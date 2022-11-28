@@ -3,13 +3,13 @@
  * This is only a minimal backend to get started.
  */
 
-import * as fs from "fs";
 import {io} from "socket.io-client";
 import { environment } from "./environments/environment";
+import * as controller from "./app/controller";
 
-const hardware = JSON.parse(fs.readFileSync(`${__dirname}/assets/hardware.json`).toString());
-
-const socket = io(`ws://${environment.core}/hardware`);
+const socket = io(`ws://${environment.core}/hardware`, {autoConnect: false});
+socket.auth = {"name": "test"};
+socket.connect();
 console.log(`Testing: ${environment.core}`);
 
 socket.on('connect', () => {
@@ -22,26 +22,24 @@ socket.on('disconnect', () => {
   console.log(socket.id);
 });
 
-socket.on('spaces', callback => {
-  console.log('Loading spaces');
-  const spaces = JSON.parse(fs.readFileSync(`${__dirname}/assets/spaces.json`).toString());
-  callback(spaces);
-});
+socket.on("message", (url, type, callback) => {
+  if (!url) {
+    callback("Matched /");
+  }
 
-socket.on('hardware', callback => {
-  console.log('Loading hardware');
-  callback(hardware);
-});
+  let match;
 
-// socket.on('hardware/general', async (callback) => {
-//   console.log('Getting general hardware information');
-//   console.log(hardware);
-//
-//   await Promise.all(hardware.map(device => {
-//
-//   }))
-//
-//   callback(hardware);
-// });
+  switch (url) {
+    case url.match(/^\/devices$/i)?.input:
+      callback({"bridge-id": socket.id, "data": controller.devices()});
+      return;
+    case (match = url.match(/^\/device\/([0-9]+)$/i))?.input:
+      console.log(JSON.stringify(parseInt(match[1])));
+      callback('Matched hardware general');
+      return;
+    default:
+      throw Error(`Unknown URL: ${url}`);
+  }
+});
 
 socket.on('connect_error', err => console.log(`connect_error due to ${err.message}`));

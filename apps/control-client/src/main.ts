@@ -15,6 +15,10 @@ app.get('/', (req, res) => {
   res.send({ message: 'Welcome to control-client!' });
 });
 
+app.get('/info/general', (req, res) => {
+  res.send({"version": si.version(), "time": si.time()});
+});
+
 app.get('/info', async (req, res) => {
   res.send({
     // cpus: os.cpus().length,

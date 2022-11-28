@@ -6,21 +6,16 @@
 import * as express from "express";
 import * as http from "http";
 import * as path from "path";
-import hardware from "./app/hardware/hardware";
+import { init as hardwareInit, router as hardware } from "./app/hardware/hardware";
 import { Server } from "socket.io";
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const registerNamespace = namespace => {
-  const namespaceIO = io.of(namespace);
-
-  namespaceIO.on("connection", socket => {
-    console.log(`${socket.id} connected via ${namespace}`);
-
-    socket.on("disconnect", reason => console.log(`${socket.id} disconnected with reason: ${reason}`));
-  });
+const registerNamespace = (namespace, init, router) => {
+  init(io);
+  app.use(namespace, router);
 };
 
 io.on("connection", socket => {
@@ -35,8 +30,7 @@ app.use((req, res, next) => {
 })
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-registerNamespace("/hardware");
-app.use("/hardware", hardware);
+registerNamespace("/hardware", hardwareInit, hardware);
 
 app.get("/", (req, res) => res.send({ message: "Welcome to core!" }));
 
