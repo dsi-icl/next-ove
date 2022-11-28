@@ -3,19 +3,45 @@
  * This is only a minimal backend to get started.
  */
 
-import * as express from 'express';
-import * as path from 'path';
+import * as fs from "fs";
+import {io} from "socket.io-client";
+import { environment } from "./environments/environment";
 
-const app = express();
+const hardware = JSON.parse(fs.readFileSync(`${__dirname}/assets/hardware.json`).toString());
 
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
+const socket = io(`ws://${environment.core}/hardware`);
+console.log(`Testing: ${environment.core}`);
 
-app.get('/api', (req, res) => {
-  res.send({ message: 'Welcome to bridge!' });
+socket.on('connect', () => {
+  console.log('Connected');
+  console.log(socket.id);
 });
 
-const port = process.env.port || 3333;
-const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
+socket.on('disconnect', () => {
+  console.log('Disconnected');
+  console.log(socket.id);
 });
-server.on('error', console.error);
+
+socket.on('spaces', callback => {
+  console.log('Loading spaces');
+  const spaces = JSON.parse(fs.readFileSync(`${__dirname}/assets/spaces.json`).toString());
+  callback(spaces);
+});
+
+socket.on('hardware', callback => {
+  console.log('Loading hardware');
+  callback(hardware);
+});
+
+// socket.on('hardware/general', async (callback) => {
+//   console.log('Getting general hardware information');
+//   console.log(hardware);
+//
+//   await Promise.all(hardware.map(device => {
+//
+//   }))
+//
+//   callback(hardware);
+// });
+
+socket.on('connect_error', err => console.log(`connect_error due to ${err.message}`));

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "0",
+    "description": "Test Hardware",
+    "ip": "localhost",
+    "port": 3335,
+    "protocol": "device",
+    "mac": "example:example:example",
+    "tags": ["test"]
+  }
+]
