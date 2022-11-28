@@ -279,3 +279,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Playwright
+**/test-results
+**/playwright-report
