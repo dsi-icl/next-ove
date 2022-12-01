@@ -19,6 +19,38 @@ app.get('/info/general', (req, res) => {
   res.send({"version": si.version(), "time": si.time()});
 });
 
+app.get("/info/system", async (req, res) => {
+  res.send({
+    "general": await si.system(),
+    "bios": await si.bios(),
+    "baseboard": await si.baseboard(),
+    "chassis": await si.chassis()
+  });
+});
+
+app.get("/info/cpu", async (req, res) => {
+  res.send({
+    "general": await si.cpu(),
+    "flags": await si.cpuFlags(),
+    "cache": await si.cpuCache(),
+    "currentSpeed": await si.cpuCurrentSpeed(),
+    "temperature": await si.cpuTemperature()
+  });
+});
+
+app.get("/info/memory", async (req, res) => {
+  res.send({
+    "general": await si.mem(),
+    "layout": await si.memLayout()
+  });
+});
+
+app.get("/info/battery", async (req, res) => {
+  res.send({
+    "general": await si.battery()
+  });
+});
+
 app.get('/info', async (req, res) => {
   res.send({
     // cpus: os.cpus().length,

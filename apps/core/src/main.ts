@@ -8,10 +8,16 @@ import * as http from "http";
 import * as path from "path";
 import { init as hardwareInit, router as hardware } from "./app/hardware/hardware";
 import { Server } from "socket.io";
+import * as cors from "cors";
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ["GET", "POST", "DELETE"]
+  }
+});
 
 const registerNamespace = (namespace, init, router) => {
   init(io);
@@ -23,6 +29,8 @@ io.on("connection", socket => {
 
   socket.on("disconnect", reason => console.log(`${socket.id} disconnecting with reason: ${reason}`));
 });
+
+app.use(cors({origin: '*'}));
 
 app.use((req, res, next) => {
   req["io"] = io;
