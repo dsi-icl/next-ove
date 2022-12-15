@@ -6,6 +6,9 @@
 import * as express from 'express';
 import * as path from 'path';
 import * as controller from "./app/controller";
+import {Logging} from "@ove/ove-utils";
+
+const logger = Logging.Logger("control-client");
 
 const app = express();
 
@@ -42,6 +45,6 @@ app.post("/browser", controller.openBrowser);
 
 const port = process.env.port || 3335;
 const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}`);
+  logger.info(`Listening at http://localhost:${port}`);
 });
 server.on('error', console.error);

@@ -8,13 +8,16 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "es2015",
+    "target": "es2017",
     "module": "esnext",
     "lib": ["es2017", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@ove/ove-data": ["libs/ove-data/src/index.ts"],
+      "@ove/ove-utils": ["libs/ove-utils/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

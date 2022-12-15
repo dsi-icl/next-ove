@@ -1,0 +1,16 @@
+/* eslint-disable */
+export default {
+  displayName: 'ove-control-client',
+  preset: '../../jest.preset.js',
+  globals: {
+    'ts-jest': {
+      tsconfig: '<rootDir>/tsconfig.spec.json',
+    },
+  },
+  testEnvironment: 'node',
+  transform: {
+    '^.+\\.[tj]s$': 'ts-jest',
+  },
+  moduleFileExtensions: ['ts', 'js', 'html'],
+  coverageDirectory: '../../coverage/apps/ove-control-client',
+};

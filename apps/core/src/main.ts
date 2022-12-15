@@ -9,6 +9,9 @@ import * as path from "path";
 import { init as hardwareInit, router as hardware } from "./app/hardware/hardware";
 import { Server } from "socket.io";
 import * as cors from "cors";
+import {Logging} from "@ove/ove-utils";
+
+const logger = Logging.Logger("core", -1);
 
 const app = express();
 const server = http.createServer(app);
@@ -20,14 +23,14 @@ const io = new Server(server, {
 });
 
 const registerNamespace = (namespace, init, router) => {
-  init(io);
+  init(io, logger);
   app.use(namespace, router);
 };
 
 io.on("connection", socket => {
-  console.log(`New client connected: ${socket.id}`);
+  logger.info(`New client connected: ${socket.id}`);
 
-  socket.on("disconnect", reason => console.log(`${socket.id} disconnecting with reason: ${reason}`));
+  socket.on("disconnect", reason => logger.info(`${socket.id} disconnecting with reason: ${reason}`));
 });
 
 app.use(cors({origin: '*'}));
@@ -43,5 +46,5 @@ registerNamespace("/hardware", hardwareInit, hardware);
 app.get("/", (req, res) => res.send({ message: "Welcome to core!" }));
 
 const port = process.env.port || 3333;
-server.listen(port, () => console.log(`Listening at http://localhost:${port}`));
-server.on("error", console.error);
+server.listen(port, () => logger.info(`Listening at http://localhost:${port}`));
+server.on("error", logger.error);

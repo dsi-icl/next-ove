@@ -49,5 +49,8 @@
         "linter": "eslint"
       }
     }
+  },
+  "cli": {
+    "defaultCollection": "nx-electron"
   }
 }

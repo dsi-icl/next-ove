@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-  displayName: 'control-client',
+  displayName: 'ove-utils',
   preset: '../../jest.preset.js',
   globals: {
     'ts-jest': {
@@ -9,8 +9,8 @@ export default {
   },
   testEnvironment: 'node',
   transform: {
-    '^.+\\.[tj]s$': 'ts-jest',
+    '^.+\\.[tj]sx?$': 'ts-jest',
   },
-  moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/control-client',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  coverageDirectory: '../../coverage/libs/ove-utils',
 };

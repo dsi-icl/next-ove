@@ -3,21 +3,23 @@ import * as express from "express";
 const router = express.Router();
 let io = null;
 let clients = {};
+let logger = null;
 
-const init = io_ => {
-  console.log('Initialising Hardware');
+const init = (io_, logger_) => {
+  logger = logger_;
+  logger.info('Initialising Hardware');
   io = io_.of("/hardware");
 
   io.on("connection", socket => {
-    console.log(`${socket.id} connected via /hardware`);
-    console.log(`Socket ID: ${socket.handshake.auth.name}`);
+    logger.info(`${socket.id} connected via /hardware`);
+    logger.debug(`Socket ID: ${socket.handshake.auth.name}`);
     clients = {...clients, [socket.handshake.auth.name]: socket.id};
-    console.log(JSON.stringify(clients));
+    logger.debug(JSON.stringify(clients));
 
     socket.on("disconnect", reason => {
       delete clients[socket.handshake.auth.name];
-      console.log(JSON.stringify(clients));
-      console.log(`${socket.id} disconnected with reason: ${reason}`);
+      logger.debug(JSON.stringify(clients));
+      logger.info(`${socket.id} disconnected with reason: ${reason}`);
     });
   });
 };
