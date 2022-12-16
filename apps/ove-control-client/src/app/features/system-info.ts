@@ -1,5 +1,5 @@
 import * as si from "systeminformation";
-import { SystemInfo } from "../types";
+import { SystemInfo } from "../../types";
 
 const general = () => ({ "version": si.version(), "time": si.time() });
 

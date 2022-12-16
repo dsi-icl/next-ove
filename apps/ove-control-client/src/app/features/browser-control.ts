@@ -1,4 +1,4 @@
-import { BrowserControl } from "../types";
+import { BrowserControl } from "../../types";
 
 const load = () => {
   throw new Error();

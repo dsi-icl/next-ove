@@ -2,15 +2,16 @@
  * This is not a production server yet!
  * This is only a minimal backend to get started.
  */
-
+import * as dotenv from "dotenv";
 import {Logging} from "@ove/ove-utils";
 import { environment } from "./environments/environment";
 import { io } from "socket.io-client";
-import * as controller from "./app/controller";
+import Controller from "./app/controller";
+
+dotenv.config();
 
 const logger = Logging.Logger("bridge", -1);
 logger.debug("This is a test");
-const wrapCallback = f => data => f({ "bridge-id": environment.name, "data": data });
 
 const socket = io(`ws://${environment.core}/hardware`, {autoConnect: false});
 socket.auth = {"name": `${environment.name}`};
@@ -27,29 +28,8 @@ socket.on('disconnect', () => {
   logger.debug(socket.id);
 });
 
-socket.on("message", (url, type, callback) => {
-  callback = wrapCallback(callback);
-  if (!url) {
-    callback("Matched /");
-  }
-
-  let match;
-  logger.debug(url);
-
-  switch (url) {
-    case url.match(/^\/devices$/i)?.input:
-      callback(controller.devices());
-      return;
-    case (match = url.match(/^\/devices\/(.+)$/i))?.input: {
-      callback(controller.devices(match[1]));
-      return;
-    }
-    case (match = url.match(/^\/device\/([0-9]+)$/i))?.input:
-      callback(controller.device(match[1]));
-      return;
-    default:
-      throw Error(`Unknown URL: ${url}`);
-  }
-});
+socket.on("get", (data, callback) => Controller.get(data, callback));
+socket.on("post", (data, callback) => Controller.post(data, callback));
+socket.on("delete", (data, callback) => Controller.delete(data, callback));
 
 socket.on('connect_error', err => logger.error(`connect_error due to ${err.message}`));

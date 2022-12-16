@@ -1,6 +1,6 @@
 import { exec } from "child_process";
-import { SystemControl } from "../types";
-import {logger} from "./utils";
+import { SystemControl } from "../../types";
+import {logger} from "../utils";
 import * as path from "path";
 import * as fs from "fs";
 // eslint-disable-next-line @typescript-eslint/no-var-requires

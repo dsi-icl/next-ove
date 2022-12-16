@@ -1,6 +1,6 @@
-import si from "./system-info";
-import sc from "./system-control";
-import bc from "./browser-control";
+import si from "./features/system-info";
+import sc from "./features/system-control";
+import bc from "./features/browser-control";
 
 const SystemInfo = si();
 const SystemControl = sc();
