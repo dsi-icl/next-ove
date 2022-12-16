@@ -1,107 +1,82 @@
 import * as service from "./service";
 
-const getInfoGeneral = (req, res) => {
-  res.send(service.getInfoGeneral());
-};
-
-const getInfoSystem = async (req, res) => {
-  res.send(await service.getInfoSystem());
-};
-
-const getInfoCPU = async (req, res) => {
-  res.send(await service.getInfoCPU());
-};
-
-const getInfoMemory = async (req, res) => {
-  res.send(await service.getInfoMemory());
-};
-
-const getInfoBattery = async (req, res) => {
-  res.send(await service.getInfoBattery());
-};
-
-const getInfoGraphics = async (req, res) => {
-  res.send(await service.getInfoGraphics());
-};
-
-const getInfoOS = async (req, res) => {
-  res.send(await service.getInfoOS());
-};
-
-const getInfoProcesses = async (req, res) => {
-  res.send(await service.getInfoProcesses());
-};
-
-const getInfoFS = async (req, res) => {
-  res.send(await service.getInfoFS());
-};
-
-const getStatus = (req, res) => {
+export const getStatus = (req, res) => {
   res.send({"status": "running"});
+}
+
+export const getInfo = async (req, res) => {
+  const type: string = req.query.type;
+
+  if (type && type.match(/^system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker$/gi) === null) {
+    res.sendStatus(400).send({error: `Unknown type: ${type}`});
+    return;
+  }
+
+  switch (type) {
+    case "system":
+      res.send(await service.getInfoSystem());
+      break;
+    case "cpu":
+      res.send(await service.getInfoCPU());
+      break;
+    case "memory":
+      res.send(await service.getInfoMemory());
+      break;
+    case "battery":
+      res.send(await service.getInfoBattery());
+      break;
+    case "graphics":
+      res.send(await service.getInfoGraphics());
+      break;
+    case "os":
+      res.send(await service.getInfoOS());
+      break;
+    case "processes":
+      res.send(await service.getInfoProcesses());
+      break;
+    case "fs":
+      res.send(await service.getInfoFS());
+      break;
+    case "usb":
+      res.send(await service.getInfoUSB());
+      break;
+    case "printer":
+      res.send(await service.getInfoPrinter());
+      break;
+    case "audio":
+      res.send(await service.getInfoAudio());
+      break;
+    case "network":
+      res.send(await service.getInfoNetwork());
+      break;
+    case "wifi":
+      res.send(await service.getInfoWifi());
+      break;
+    case "bluetooth":
+      res.send(await service.getInfoBluetooth());
+      break;
+    case "docker":
+      res.send(await service.getInfoDocker());
+      break;
+    default:
+      res.send(service.getInfoGeneral());
+      break;
+  }
 };
 
-const getInfoUSB = async (req, res) => {
-  res.send(await service.getInfoUSB());
-};
-
-const getInfoPrinter = async (req, res) => {
-  res.send(await service.getInfoPrinter());
-};
-
-const getInfoAudio = async (req, res) => {
-  res.send(await service.getInfoAudio());
-};
-
-const getInfoNetwork = async (req, res) => {
-  res.send(await service.getInfoNetwork());
-};
-
-const getInfoWifi = async (req, res) => {
-  res.send(await service.getInfoWifi());
-};
-
-const getInfoBluetooth = async (req, res) => {
-  res.send(await service.getInfoBluetooth());
-};
-
-const getInfoDocker = async (req, res) => {
-  res.send(await service.getInfoDocker());
-};
-
-const shutdown = (req, res) => {
+export const shutdown = (req, res) => {
   service.shutdown();
   res.send({});
 };
 
-const reboot = (req, res) => {
+export const reboot = (req, res) => {
   service.reboot();
   res.send({});
 };
 
-const openBrowser = async (req, res) => {
-  await service.openBrowser();
-  res.send({});
-};
-
-export {
-  getInfoGeneral,
-  getInfoSystem,
-  getInfoCPU,
-  getInfoMemory,
-  getInfoBattery,
-  getInfoGraphics,
-  getInfoOS,
-  getInfoProcesses,
-  getInfoFS,
-  getStatus,
-  getInfoUSB,
-  getInfoPrinter,
-  getInfoAudio,
-  getInfoNetwork,
-  getInfoWifi,
-  getInfoBluetooth,
-  getInfoDocker,
-  shutdown,
-  reboot,
-  openBrowser
+export const execute = (req, res) => {
+  if (!req.body.command) {
+    res.sendStatus(400).send({error: 'No command provided'});
+  }
+  service.execute(req.body.command, (result) => res.send(result));
 };
