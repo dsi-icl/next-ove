@@ -6,7 +6,8 @@ declare module "screenshot-desktop" {
     primary: boolean
   }
 
+  // noinspection JSUnusedGlobalSymbols
   export function listDisplays(): Promise<Display[]>;
-  function takeScreenshot(options: object): void;
-  export default takeScreenshot;
+  function takeScreenshot(options: object): Promise<Buffer | string>;
+  export = takeScreenshot;
 }

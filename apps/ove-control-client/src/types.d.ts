@@ -86,5 +86,11 @@ export type SystemControl = {
   shutdown: () => void
   reboot: () => void
   execute: (command: string, callback: (string) => void) => void
-  screenshot: (callback: (Buffer) => void, screen?) => void
+  screenshot: (method: string, screens: string[], format?: string) => Promise<(Buffer | string)[]>
+}
+
+export type BrowserControl = {
+  load: () => void
+  status: () => string
+  kill: () => void
 }

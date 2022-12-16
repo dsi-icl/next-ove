@@ -1,8 +1,10 @@
 import si from "./system-info";
 import sc from "./system-control";
+import bc from "./browser-control";
 
 const SystemInfo = si();
 const SystemControl = sc();
+const BrowserControl = bc();
 
 export const getInfoGeneral = SystemInfo.general;
 export const getInfoSystem = SystemInfo.system;
@@ -23,3 +25,7 @@ export const getInfoDocker = SystemInfo.docker;
 export const shutdown = SystemControl.shutdown;
 export const reboot = SystemControl.reboot;
 export const execute = SystemControl.execute;
+export const screenshot = SystemControl.screenshot;
+export const loadBrowser = BrowserControl.load;
+export const browserStatus = BrowserControl.status;
+export const killBrowser = BrowserControl.kill;

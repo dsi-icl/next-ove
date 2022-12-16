@@ -1,14 +1,14 @@
 import * as service from "./service";
 
 export const getStatus = (req, res) => {
-  res.send({"status": "running"});
-}
+  res.send({ "status": "running" });
+};
 
 export const getInfo = async (req, res) => {
   const type: string = req.query.type;
 
   if (type && type.match(/^system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker$/gi) === null) {
-    res.sendStatus(400).send({error: `Unknown type: ${type}`});
+    res.sendStatus(400).send({ error: `Unknown type: ${type}` });
     return;
   }
 
@@ -76,7 +76,37 @@ export const reboot = (req, res) => {
 
 export const execute = (req, res) => {
   if (!req.body.command) {
-    res.sendStatus(400).send({error: 'No command provided'});
+    res.status(400).send({ error: "No command provided" });
   }
   service.execute(req.body.command, (result) => res.send(result));
+};
+
+export const screenshot = async (req, res) => {
+  if (!["local", "http", "upload"].includes(req.query.method)) {
+    res.status(400).send({error: `Unknown method: ${req.query.method}`});
+    return;
+  }
+
+  if (req.query.method === 'upload') {
+    res.status(400).send({error: "Not implemented"});
+    return;
+  }
+
+  const images = await service.screenshot(req.query.method, req.body?.screens || [], req.query.format);
+
+  res.send({images: images});
+};
+
+export const loadBrowser = (req, res) => {
+  service.loadBrowser();
+  res.send({});
+};
+
+export const browserStatus = (req, res) => {
+  res.send({status: service.browserStatus()});
+};
+
+export const killBrowser = (req, res) => {
+  service.killBrowser();
+  res.send({});
 };
