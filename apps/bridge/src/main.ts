@@ -6,7 +6,8 @@ import * as dotenv from "dotenv";
 import {Logging} from "@ove/ove-utils";
 import { environment } from "./environments/environment";
 import { io } from "socket.io-client";
-import Controller from "./app/controller";
+import * as Controller from "./app/controller";
+import { DeleteSchema, GetSchema, PostSchema, wrapCallback } from "./utils/utils";
 
 dotenv.config();
 
@@ -28,8 +29,44 @@ socket.on('disconnect', () => {
   logger.debug(socket.id);
 });
 
-socket.on("get", (data, callback) => Controller.get(data, callback));
-socket.on("post", (data, callback) => Controller.post(data, callback));
-socket.on("delete", (data, callback) => Controller.delete(data, callback));
+socket.on("get", (data_, callback) => {
+  const data = GetSchema.parse(data_);
+
+  switch (data.type) {
+    case "devices":
+      Controller.getDevices(data, wrapCallback(callback));
+      break;
+    case "device":
+      Controller.getDevice(data, wrapCallback(callback));
+      break;
+  }
+});
+socket.on("post", (data_, callback) => {
+  const data = PostSchema.parse(data_);
+
+  switch (data.type) {
+    case "device":
+      Controller.addDevice(data, wrapCallback(callback));
+      break;
+    case "reboot":
+      Controller.reboot(data, wrapCallback(callback));
+      break;
+    case "shutdown":
+      Controller.shutdown(data, wrapCallback(callback));
+      break;
+    case "start":
+      Controller.start(data, wrapCallback(callback));
+      break;
+  }
+});
+socket.on("delete", (data_, callback) => {
+  const data = DeleteSchema.parse(data_);
+
+  switch (data.type) {
+    case "device":
+      Controller.removeDevice(data, wrapCallback(callback));
+      break;
+  }
+});
 
 socket.on('connect_error', err => logger.error(`connect_error due to ${err.message}`));
