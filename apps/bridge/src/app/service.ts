@@ -7,8 +7,6 @@ import ProjectorService from "./projector-service";
 
 const devices = Utils.getDevices();
 
-type DeviceHandler = (ip: string, port: number, mac: string) => Promise<DeviceResult>
-
 export const getDevices = (tag: string | undefined): Device[] => {
   if (tag === undefined) {
     return devices;
@@ -37,7 +35,7 @@ export const start = async (id: DeviceID): Promise<DeviceResult[]> => manageDevi
 
 const manageDevice = async (
   { id, tag }: DeviceID,
-  callback: (service: DeviceService) => DeviceHandler
+  callback: (service: DeviceService) => (ip: string, port: number, mac: string) => Promise<DeviceResult>
 ): Promise<DeviceResult[]> => {
   const devices = id !== undefined ? [getDevice(id)] : getDevices(tag);
 
