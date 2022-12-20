@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Logging } from "@ove/ove-utils";
 import * as fs from "fs";
 import * as path from "path";
-import { Device } from "./types";
+import { Device, ResponseCallback } from "./types";
 import { environment } from "../environments/environment";
 
 export const logger = Logging.Logger("bridge");
@@ -15,11 +15,11 @@ export const getTags = (): string[] => getDevices().flatMap(({ tags }) => tags);
 
 export const getIds = (): string[] => getDevices().flatMap(({ id }) => id);
 
-const generateTagRegex = () => new RegExp(`^${getTags().join("|")}$`, "gi");
+const generateTagRegex = (): RegExp => new RegExp(`^${getTags().join("|")}$`, "gi");
 
-const generateIdRegex = () => new RegExp(`^${getIds().join("|")}$`, "gi");
+const generateIdRegex = (): RegExp => new RegExp(`^${getIds().join("|")}$`, "gi");
 
-export const wrapCallback = f => data => f({ "bridge-id": environment.name, "data": data });
+export const wrapCallback = (f: (data: object) => void): ResponseCallback => (data: object): void => f({ "bridge-id": environment.name, "data": data });
 
 export const DeviceSchema = z.object({
   id: z.string(),
@@ -37,7 +37,8 @@ export const DeviceIDSchema = z.object({
 }).partial();
 
 export const GetSchema = z.object({
-  type: z.string().regex(/^devices|device$/gi)
+  type: z.string().regex(/^devices|device$/gi),
+  query: z.string().regex(/^system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker$/gi).optional()
 }).merge(DeviceIDSchema).refine(
   ({ id, tag }) => tag !== undefined ? id === undefined : true,
   "Cannot provide both an ID and a tag"

@@ -10,10 +10,13 @@ const shutdown = async (ip: string, port: number): Promise<DeviceResult> => (awa
 
 const start = async (ip: string, port: number, mac: string): Promise<DeviceResult> => wake(mac, { address: ip });
 
+const info = async (query: string, ip: string, port: number): Promise<DeviceResult> => (await axios.get(`${deviceProtocol}://${ip}:${port}/info?type=${query}`)).data;
+
 const NodeService: DeviceService = {
   reboot,
   shutdown,
-  start
+  start,
+  info
 };
 
 export default NodeService;

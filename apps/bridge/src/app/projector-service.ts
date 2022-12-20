@@ -15,10 +15,13 @@ const start = async (ip: string, port: number, mac: string): Promise<DeviceResul
   throw new Error("Not Implemented");
 };
 
+const info = async (): Promise<DeviceResult> => ({});
+
 const ProjectorService: DeviceService = {
   reboot,
   shutdown,
-  start
+  start,
+  info
 };
 
 export default ProjectorService;

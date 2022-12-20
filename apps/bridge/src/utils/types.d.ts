@@ -15,6 +15,9 @@ export type DeviceService = {
   reboot: (ip: string, port: number) => Promise<object | boolean>
   shutdown: (ip: string, port: number) => Promise<object | boolean>
   start: (ip: string, port: number, mac: string) => Promise<object | boolean>
+  info: (query: string, ip: string, port: number) => Promise<DeviceResult>
 };
+
+export type ResponseCallback = (data: object) => void;
 
 export type DeviceResult = object | boolean

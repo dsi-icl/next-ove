@@ -33,6 +33,8 @@ export const shutdown = async (id: DeviceID): Promise<DeviceResult[]> => manageD
 
 export const start = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.start);
 
+export const info = async (query: string, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.info(query, ip, port));
+
 const manageDevice = async (
   { id, tag }: DeviceID,
   callback: (service: DeviceService) => (ip: string, port: number, mac: string) => Promise<DeviceResult>
