@@ -1,12 +1,13 @@
-import axios from "axios";
-import { Device, DeviceID } from "../utils/types";
-import { wake } from "../utils/wol";
 import * as Utils from "../utils/utils";
+import { Device, DeviceID, DeviceResult, DeviceService } from "../utils/types";
 import { saveDevices } from "../utils/utils";
+import NodeService from "./node-service";
+import MDCService from "./mdc-service";
+import ProjectorService from "./projector-service";
 
 const devices = Utils.getDevices();
-const deviceProtocol = "http";
 
+type DeviceHandler = (ip: string, port: number, mac: string) => Promise<DeviceResult>
 
 export const getDevices = (tag: string | undefined): Device[] => {
   if (tag === undefined) {
@@ -28,17 +29,28 @@ export const removeDevice = (did: string) => {
   return { status: "Device added" };
 };
 
-export const reboot = async (id: DeviceID) => await manageDevice(id, async (ip: string, port: number) => (await axios.post(`${deviceProtocol}://${ip}:${port}/reboot`)).data);
+export const reboot = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.reboot);
 
-export const shutdown = async (id: DeviceID) => await manageDevice(id, async (ip: string, port: number) => (await axios.post(`${deviceProtocol}://${ip}:${port}/shutdown`)).data);
+export const shutdown = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.shutdown);
 
-export const start = async (id: DeviceID) => await manageDevice(id, async (ip: string, port: number, mac: string): Promise<boolean> => wake(mac, { address: ip }));
+export const start = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.start);
 
 const manageDevice = async (
   { id, tag }: DeviceID,
-  callback: (ip: string, port: number, mac?: string) => Promise<object | boolean>
-) => {
+  callback: (service: DeviceService) => DeviceHandler
+): Promise<DeviceResult[]> => {
   const devices = id !== undefined ? [getDevice(id)] : getDevices(tag);
 
-  return await Promise.all(devices.map(async ({ ip, port, mac }) => await callback(ip, port, mac)));
+  const handleService = protocol => {
+    switch (protocol) {
+      case "node":
+        return NodeService;
+      case "mdc":
+        return MDCService;
+      case "projector":
+        return ProjectorService;
+    }
+  };
+
+  return Promise.all(devices.map(async ({ip, port, mac, protocol}) => callback(handleService(protocol))(ip, port, mac)));
 };
