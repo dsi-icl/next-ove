@@ -54,9 +54,25 @@ export const PostSchema = z.object({
 }).merge(DeviceIDSchema).refine(
   ({ id, tag }) => tag !== undefined ? id === undefined : true,
   "Cannot provide both an ID and a tag"
+).refine(
+  ({type, command}) => type !== "execute" || command !== undefined,
+  "Must provide a command when calling execute"
+).refine(
+  ({type, method, format, screens}) => type !== "screenshot" || (screens !== undefined && format !== undefined && method !== undefined),
+  "Must provide method, format and screens when calling screenshot"
 );
 
 export const DeleteSchema = z.object({
   type: z.string().regex(/^device|browser$/gi),
   id: z.string().regex(generateIdRegex()).optional()
-});
+}).refine(
+  ({type, id}) => type !== "device" || id !== undefined,
+  "Must provide an ID when calling device"
+);
+
+export const notEmpty = <TValue>(value: TValue | null | undefined): value is TValue => {
+  if (value === null || value === undefined) return false;
+  // noinspection JSUnusedLocalSymbols
+  const dummy: TValue = value;
+  return true;
+};

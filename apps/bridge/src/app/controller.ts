@@ -10,7 +10,13 @@ export const getDevice = ({ id }: GetData, callback: ResponseCallback) => {
     callback({ error: "No device specified" });
     return;
   }
-  callback(service.getDevice(id));
+  const device = service.getDevice(id);
+  if (!device) {
+    callback({error: "No device found"});
+    return;
+  }
+
+  callback(device);
 };
 
 export const addDevice = ({ device }: PostData, callback: ResponseCallback) => {
@@ -45,11 +51,11 @@ export const status = (id: DeviceID, callback: ResponseCallback) => {
 };
 
 export const execute = (data: PostData, callback: ResponseCallback) => {
-  callback(service.execute(data.command, data));
+  callback(service.execute(data.command!!, data));
 };
 
 export const screenshot = (data: PostData, callback: ResponseCallback) => {
-  callback(service.screenshot(data.method, data.format, data.screens, data));
+  callback(service.screenshot(data.method!!, data.format!!, data.screens!!, data));
 };
 
 export const openBrowser = (id: DeviceID, callback: ResponseCallback) => {
@@ -64,6 +70,6 @@ export const closeBrowser = (id: DeviceID, callback: ResponseCallback) => {
   callback(service.closeBrowser(id));
 };
 
-export const removeDevice = ({id}: DeleteData, callback) => {
-  callback(service.removeDevice(id));
+export const removeDevice = ({id}: DeleteData, callback: ResponseCallback) => {
+  callback(service.removeDevice(id!!));
 };

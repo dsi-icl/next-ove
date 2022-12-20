@@ -1,6 +1,6 @@
 import * as Utils from "../utils/utils";
 import { Device, DeviceID, DeviceResult, DeviceService } from "../utils/types";
-import { saveDevices } from "../utils/utils";
+import { notEmpty, saveDevices } from "../utils/utils";
 import NodeService from "./node-service";
 import MDCService from "./mdc-service";
 import ProjectorService from "./projector-service";
@@ -15,7 +15,7 @@ export const getDevices = (tag: string | undefined): Device[] => {
   }
 };
 
-export const getDevice = (did: string): Device => devices.find(({ id }) => did === id);
+export const getDevice = (did: string): Device | undefined => devices.find(({ id }) => did === id);
 
 export const addDevice = (device: Device) => {
   saveDevices(devices.concat([device]));
@@ -33,7 +33,7 @@ export const shutdown = async (id: DeviceID): Promise<DeviceResult[]> => manageD
 
 export const start = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.start);
 
-export const info = async (query: string, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.info(query, ip, port));
+export const info = async (query: string | undefined, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.info(query, ip, port));
 
 export const status = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.status);
 
@@ -51,9 +51,13 @@ const manageDevice = async (
   { id, tag }: DeviceID,
   callback: (service: DeviceService) => (ip: string, port: number, mac: string) => Promise<DeviceResult>
 ): Promise<DeviceResult[]> => {
-  const devices = id !== undefined ? [getDevice(id)] : getDevices(tag);
+  const devices: (Device | undefined)[] = id !== undefined ? [getDevice(id)] : getDevices(tag);
 
-  const handleService = protocol => {
+  if (devices.includes(undefined)) {
+    return [{error: "Device not found"}];
+  }
+
+  const handleService = (protocol: string) => {
     switch (protocol) {
       case "node":
         return NodeService;
@@ -61,8 +65,10 @@ const manageDevice = async (
         return MDCService;
       case "projector":
         return ProjectorService;
+      default:
+        throw new Error(`Unknown protocol: ${protocol}`);
     }
   };
 
-  return Promise.all(devices.map(async ({ip, port, mac, protocol}) => callback(handleService(protocol))(ip, port, mac)));
+  return Promise.all(devices.filter(notEmpty).map(async ({ip, port, mac, protocol}) => callback(handleService(protocol))(ip, port, mac)));
 };
