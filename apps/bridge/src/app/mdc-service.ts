@@ -1,27 +1,63 @@
 import { DeviceResult, DeviceService } from "../utils/types";
 
-const reboot = async (ip: string, port: number): Promise<DeviceResult> => {
+const reboot = async (): Promise<DeviceResult> => {
   // TODO: implement
-  throw new Error("Not Implemented");
+  return {error: "Not Implemented"};
 };
 
-const shutdown = async (ip: string, port: number): Promise<DeviceResult> => {
+const shutdown = async (): Promise<DeviceResult> => {
   // TODO: implement
-  throw new Error("Not Implemented");
+  return {error: "Not Implemented"};
 };
 
-const start = async (ip: string, port: number, mac: string): Promise<DeviceResult> => {
+const start = async (): Promise<DeviceResult> => {
   // TODO: implement
-  throw new Error("Not Implemented");
+  return {error: "Not Implemented"};
 };
 
-const info = async () => ({});
+const info = async (): Promise<DeviceResult> => ({});
+
+const status = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
+};
+
+const execute = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
+};
+
+const screenshot = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
+};
+
+const openBrowser = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
+};
+
+const getBrowserStatus = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
+};
+
+const closeBrowser = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
+};
 
 const MDCService: DeviceService = {
   reboot,
   shutdown,
   start,
-  info
+  info,
+  status,
+  execute,
+  screenshot,
+  openBrowser,
+  getBrowserStatus,
+  closeBrowser
 };
 
 export default MDCService;

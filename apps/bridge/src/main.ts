@@ -39,6 +39,15 @@ socket.on("get", (data_, callback) => {
     case "device":
       Controller.getDevice(data, wrapCallback(callback));
       break;
+    case "info":
+      Controller.info(data, wrapCallback(callback));
+      break;
+    case "status":
+      Controller.status(data, wrapCallback(callback));
+      break;
+    case "browser":
+      Controller.getBrowserStatus(data, wrapCallback(callback));
+      break;
   }
 });
 socket.on("post", (data_, callback) => {
@@ -57,6 +66,15 @@ socket.on("post", (data_, callback) => {
     case "start":
       Controller.start(data, wrapCallback(callback));
       break;
+    case "execute":
+      Controller.execute(data, wrapCallback(callback));
+      break;
+    case "screenshot":
+      Controller.screenshot(data, wrapCallback(callback));
+      break;
+    case "browser":
+      Controller.openBrowser(data, wrapCallback(callback));
+      break;
   }
 });
 socket.on("delete", (data_, callback) => {
@@ -65,6 +83,9 @@ socket.on("delete", (data_, callback) => {
   switch (data.type) {
     case "device":
       Controller.removeDevice(data, wrapCallback(callback));
+      break;
+    case "browser":
+      Controller.closeBrowser(data, wrapCallback(callback));
       break;
   }
 });

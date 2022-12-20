@@ -37,7 +37,7 @@ export const DeviceIDSchema = z.object({
 }).partial();
 
 export const GetSchema = z.object({
-  type: z.string().regex(/^devices|device$/gi),
+  type: z.string().regex(/^devices|device|info|status|browser$/gi),
   query: z.string().regex(/^system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker$/gi).optional()
 }).merge(DeviceIDSchema).refine(
   ({ id, tag }) => tag !== undefined ? id === undefined : true,
@@ -45,14 +45,18 @@ export const GetSchema = z.object({
 );
 
 export const PostSchema = z.object({
-  type: z.string().regex(/^device|reboot|shutdown|start$/gi),
-  device: DeviceSchema.optional()
+  type: z.string().regex(/^device|reboot|shutdown|start|execute|screenshot|browser$/gi),
+  device: DeviceSchema.optional(),
+  command: z.string().optional(),
+  method: z.string().optional(),
+  format: z.string().optional(),
+  screens: z.array(z.string()).optional()
 }).merge(DeviceIDSchema).refine(
   ({ id, tag }) => tag !== undefined ? id === undefined : true,
   "Cannot provide both an ID and a tag"
 );
 
 export const DeleteSchema = z.object({
-  type: z.string().regex(/^device$/gi),
+  type: z.string().regex(/^device|browser$/gi),
   id: z.string().regex(generateIdRegex()).optional()
 });

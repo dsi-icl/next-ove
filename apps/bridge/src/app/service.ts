@@ -35,6 +35,18 @@ export const start = async (id: DeviceID): Promise<DeviceResult[]> => manageDevi
 
 export const info = async (query: string, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.info(query, ip, port));
 
+export const status = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.status);
+
+export const execute = async (command: string, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.execute(command, ip, port));
+
+export const screenshot = async (method: string, format: string, screens: string[], id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.screenshot(method, format, screens, ip, port));
+
+export const openBrowser = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.openBrowser);
+
+export const getBrowserStatus = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.getBrowserStatus);
+
+export const closeBrowser = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.closeBrowser);
+
 const manageDevice = async (
   { id, tag }: DeviceID,
   callback: (service: DeviceService) => (ip: string, port: number, mac: string) => Promise<DeviceResult>

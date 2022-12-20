@@ -16,6 +16,12 @@ export type DeviceService = {
   shutdown: (ip: string, port: number) => Promise<object | boolean>
   start: (ip: string, port: number, mac: string) => Promise<object | boolean>
   info: (query: string, ip: string, port: number) => Promise<DeviceResult>
+  status: (ip: string, port: number) => Promise<DeviceResult>
+  execute: (command: string, ip: string, port: number) => Promise<DeviceResult>
+  screenshot: (method: string, format: string, screens: string[], ip: string, port: number) => Promise<DeviceResult>
+  openBrowser: (ip: string, port: number) => Promise<DeviceResult>
+  getBrowserStatus: (ip: string, port: number) => Promise<DeviceResult>
+  closeBrowser: (ip: string, port: number) => Promise<DeviceResult>
 };
 
 export type ResponseCallback = (data: object) => void;
