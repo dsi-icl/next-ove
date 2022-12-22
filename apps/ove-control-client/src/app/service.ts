@@ -29,3 +29,5 @@ export const screenshot = SystemControl.screenshot;
 export const openBrowser = BrowserControl.openBrowser;
 export const getBrowserStatus = BrowserControl.getBrowserStatus;
 export const closeBrowser = BrowserControl.closeBrowser;
+export const getBrowsers = BrowserControl.getBrowsers;
+export const closeBrowsers = BrowserControl.closeBrowsers;

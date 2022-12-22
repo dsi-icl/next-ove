@@ -3,9 +3,19 @@ import { environment } from "../environments/environment";
 import { join } from "path";
 import { pathToFileURL } from "url";
 
-import { Logging } from "@ove/ove-utils"
+import { Logging } from "@ove/ove-utils";
+import {io} from "socket.io-client";
 
-const log = Logging.Logger("client", -1)
+const log = Logging.Logger("client", -1);
+const socket = io("ws://localhost:3335/browser", {autoConnect: false});
+
+socket.on("connect", () => {
+  log.info("Connected");
+});
+
+socket.connect();
+
+console.log("Socket built");
 
 // noinspection JSUnusedLocalSymbols
 export default class App {

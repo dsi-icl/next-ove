@@ -3,6 +3,8 @@ import ElectronEvents from './app/events/electron.events';
 import { app, BrowserWindow } from 'electron';
 import App from './app/app';
 
+console.log(JSON.stringify(process.argv));
+
 export default class Main {
   static initialize() {
     if (SquirrelEvents.handleEvents()) {

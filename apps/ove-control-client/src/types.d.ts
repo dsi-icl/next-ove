@@ -87,10 +87,12 @@ export type SystemControl = {
   reboot: () => void
   execute: (command: string, callback: (string) => void) => void
   screenshot: (method: string, screens: string[], format?: string) => Promise<(Buffer | string)[]>
-}
+};
 
 export type BrowserControl = {
-  openBrowser: () => void
-  getBrowserStatus: () => string
-  closeBrowser: () => void
-}
+  openBrowser: () => number
+  getBrowserStatus: (browserId: number) => string
+  closeBrowser: (browserId: number) => void
+  getBrowsers: () => number[]
+  closeBrowsers: () => void
+};

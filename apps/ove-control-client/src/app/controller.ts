@@ -98,15 +98,23 @@ export const screenshot = async (req, res) => {
 };
 
 export const openBrowser = (req, res) => {
-  service.openBrowser();
-  res.send({});
+  res.send({id: service.openBrowser()});
 };
 
 export const getBrowserStatus = (req, res) => {
-  res.send({status: service.getBrowserStatus()});
+  res.send({status: service.getBrowserStatus(req.params.id)});
 };
 
 export const closeBrowser = (req, res) => {
-  service.closeBrowser();
+  service.closeBrowser(req.params.id);
+  res.send({});
+};
+
+export const getBrowsers = (req, res) => {
+  res.send(service.getBrowsers());
+};
+
+export const closeBrowsers = (req, res) => {
+  service.closeBrowsers();
   res.send({});
 };
