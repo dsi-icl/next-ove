@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import { SystemControl } from "../../types";
-import {logger} from "../utils";
+import { handleExecOutput } from "../utils";
 import * as path from "path";
 import * as fs from "fs";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -8,22 +8,6 @@ import * as takeScreenshot from "screenshot-desktop";
 
 const isLinuxLike = () => ['linux', 'darwin', 'freebsd', 'openbsd'].includes(process.platform);
 const isWindows = () => process.platform === 'win32';
-const handleExecOutput = (err, stdout, stderr, callback?) => {
-  if (err) {
-    logger.error(err.message);
-    callback(err.message);
-    return;
-  }
-
-  if (stderr) {
-    logger.error(stderr);
-    callback(stderr);
-    return;
-  }
-
-  logger.info(stdout);
-  callback(stdout);
-};
 
 const buildShutdownCommand = () => {
   if (isLinuxLike()) {

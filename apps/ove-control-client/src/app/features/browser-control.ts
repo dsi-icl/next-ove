@@ -1,21 +1,23 @@
 import { BrowserControl } from "../../types";
+import { exec } from "child_process";
+import { handleExecOutput } from "../utils";
 
-const load = () => {
+const openBrowser = () => {
+  exec("nx run ove-client:serve", handleExecOutput);
+};
+
+const closeBrowser = () => {
   throw new Error();
 };
 
-const kill = () => {
-  throw new Error();
-};
-
-const browserStatus = (): string => {
+const getBrowserStatus = (): string => {
   throw new Error();
 };
 
 const BrowserControl = (): BrowserControl => ({
-  load,
-  kill,
-  status: browserStatus
+  openBrowser,
+  closeBrowser,
+  getBrowserStatus
 });
 
 export default BrowserControl;

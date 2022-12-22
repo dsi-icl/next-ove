@@ -90,7 +90,7 @@ export type SystemControl = {
 }
 
 export type BrowserControl = {
-  load: () => void
-  status: () => string
-  kill: () => void
+  openBrowser: () => void
+  getBrowserStatus: () => string
+  closeBrowser: () => void
 }

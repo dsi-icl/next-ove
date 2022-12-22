@@ -97,16 +97,16 @@ export const screenshot = async (req, res) => {
   res.send({images: images});
 };
 
-export const loadBrowser = (req, res) => {
-  service.loadBrowser();
+export const openBrowser = (req, res) => {
+  service.openBrowser();
   res.send({});
 };
 
-export const browserStatus = (req, res) => {
-  res.send({status: service.browserStatus()});
+export const getBrowserStatus = (req, res) => {
+  res.send({status: service.getBrowserStatus()});
 };
 
-export const killBrowser = (req, res) => {
-  service.killBrowser();
+export const closeBrowser = (req, res) => {
+  service.closeBrowser();
   res.send({});
 };
