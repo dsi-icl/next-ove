@@ -1,43 +1,38 @@
 import { BrowserControl } from "../../types";
 import { exec } from "child_process";
 import { handleExecOutput } from "../utils";
+import {state} from "../state";
 
-type Browser = {
-  controller: AbortController
-};
-
-const browsers: {[browserId: number]: Browser} = {};
-
-const addBrowser = (browserId: number) => {
-  browsers[browserId] = {
+export const addBrowser = (browserId: number) => {
+  state.browsers[browserId] = {
     controller: new AbortController()
   };
 };
 
-const removeBrowser = (browserId: number) => {
-  browsers[browserId].controller.abort();
-  delete browsers[browserId];
+export const removeBrowser = (browserId: number) => {
+  state.browsers[browserId].controller.abort();
+  delete state.browsers[browserId];
 };
 
 const openBrowser = (): number => {
-  const browserId = Object.keys(browsers).length;
+  const browserId = Object.keys(state.browsers).length;
   addBrowser(browserId);
-  exec(`nx run ove-client:serve --args="--id=${browserId}"`, {signal: browsers[browserId].controller.signal}, handleExecOutput);
+  exec(`nx run ove-client:serve --args="--id=${browserId}"`, {signal: state.browsers[browserId].controller.signal}, handleExecOutput);
   return browserId;
 };
 
 const closeBrowser = removeBrowser;
 
 const getBrowserStatus = (browserId: number): string => {
-  if (Object.keys(browsers).includes(browserId.toString())) {
+  if (Object.keys(state.browsers).includes(browserId.toString())) {
     return "open";
   } else {
     return "closed";
   }
 };
 
-const getBrowsers = (): number[] => Object.keys(browsers).map(parseInt);
-const closeBrowsers = () => Object.keys(browsers).forEach(key => removeBrowser(parseInt(key)));
+const getBrowsers = (): number[] => Object.keys(state.browsers).map(parseInt);
+const closeBrowsers = () => Object.keys(state.browsers).forEach(key => removeBrowser(parseInt(key)));
 
 const BrowserControl = (): BrowserControl => ({
   openBrowser,

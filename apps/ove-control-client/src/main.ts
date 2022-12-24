@@ -8,8 +8,8 @@ import * as path from "path";
 import * as controller from "./app/controller";
 import { logger } from "./app/utils";
 import { Server } from "socket.io";
-
-let clients = [];
+import { state } from "./app/state";
+import { addBrowser, removeBrowser } from "./app/features/browser-control";
 
 const app = express();
 
@@ -20,19 +20,24 @@ app.get("/", (req, res) => {
 });
 
 const init = () => {
-  logger.info("Initialising Hardware");
+  logger.info("Initialising Client");
   const namespace = io.of("/browser");
 
   namespace.on("connection", socket => {
-    logger.info(`${socket.id} connected via /hardware`);
-    logger.debug(`Socket ID: ${socket.handshake.auth.name}`);
-    clients = { ...clients, [socket.handshake.auth.name]: socket.id };
-    logger.debug(JSON.stringify(clients));
+    logger.info(`${socket.id} connected via /browser`);
+    const browserId = parseInt(socket.handshake.auth.name);
+
+    if (!(browserId in state.browsers)) {
+      addBrowser(browserId);
+    }
+
+    state.browsers[browserId].client = socket;
 
     socket.on("disconnect", reason => {
-      delete clients[socket.handshake.auth.name];
-      logger.debug(JSON.stringify(clients));
       logger.info(`${socket.id} disconnected with reason: ${reason}`);
+      if (browserId in state.browsers) {
+        removeBrowser(browserId);
+      }
     });
   });
 };

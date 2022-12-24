@@ -96,3 +96,12 @@ export type BrowserControl = {
   getBrowsers: () => number[]
   closeBrowsers: () => void
 };
+
+export type Browser = {
+  controller: AbortController
+  client?: object
+};
+
+export type State = {
+  browsers: {[browserId: number]: Browser}
+};

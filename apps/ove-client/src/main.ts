@@ -5,6 +5,8 @@ import App from './app/app';
 
 console.log(JSON.stringify(process.argv));
 
+global.SharedObject = {id: process.argv.find(x => x.includes("--id=")).slice(5) || "client"}
+
 export default class Main {
   static initialize() {
     if (SquirrelEvents.handleEvents()) {
@@ -14,7 +16,7 @@ export default class Main {
   }
 
   static bootstrapApp() {
-    App.main(app, BrowserWindow);
+    App.main(process.argv.find(x => x.includes("--id=")).slice(5) || "client", app, BrowserWindow);
   }
 
   static bootstrapAppEvents() {

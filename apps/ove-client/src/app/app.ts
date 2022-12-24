@@ -7,15 +7,6 @@ import { Logging } from "@ove/ove-utils";
 import {io} from "socket.io-client";
 
 const log = Logging.Logger("client", -1);
-const socket = io("ws://localhost:3335/browser", {autoConnect: false});
-
-socket.on("connect", () => {
-  log.info("Connected");
-});
-
-socket.connect();
-
-console.log("Socket built");
 
 // noinspection JSUnusedLocalSymbols
 export default class App {
@@ -24,6 +15,7 @@ export default class App {
   static mainWindow: Electron.BrowserWindow;
   static application: Electron.App;
   static BrowserWindow;
+  static socket;
 
   public static isDevelopmentMode() {
     const isEnvironmentSet: boolean = "ELECTRON_IS_DEV" in process.env;
@@ -124,11 +116,21 @@ export default class App {
     ).then(() => log.info("Loaded"));
   }
 
-  static main(app: Electron.App, browserWindow: typeof BrowserWindow) {
+  static main(id: string, app: Electron.App, browserWindow: typeof BrowserWindow) {
     // we pass the Electron.App object and the
     // Electron.BrowserWindow into this function
     // so this class has no dependencies. This
     // makes the code easier to write tests for
+
+    App.socket = io("ws://localhost:3335/browser", {autoConnect: false});
+
+    App.socket.auth = {name: id};
+
+    App.socket.on("connect", () => {
+      log.info("Connected");
+    });
+
+    App.socket.connect();
 
     App.BrowserWindow = browserWindow;
     App.application = app;
