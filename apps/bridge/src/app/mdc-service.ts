@@ -1,4 +1,5 @@
 import { DeviceResult, DeviceService } from "../utils/types";
+import { getStatus } from "./features/mdc";
 
 const reboot = async (): Promise<DeviceResult> => {
   // TODO: implement
@@ -12,38 +13,33 @@ const shutdown = async (): Promise<DeviceResult> => {
 
 const start = async (): Promise<DeviceResult> => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  return {};
 };
 
 const info = async (): Promise<DeviceResult> => ({});
 
-const status = async (): Promise<DeviceResult> => {
-  // TODO: implement
-  return {error: "Not Implemented"};
+const status = async (ip: string, port: number): Promise<DeviceResult> => {
+  getStatus(0x01, ip, port);
+  return {};
 };
 
 const execute = async (): Promise<DeviceResult> => {
-  // TODO: implement
   return {error: "Not Implemented"};
 };
 
 const screenshot = async (): Promise<DeviceResult> => {
-  // TODO: implement
   return {error: "Not Implemented"};
 };
 
 const openBrowser = async (): Promise<DeviceResult> => {
-  // TODO: implement
   return {error: "Not Implemented"};
 };
 
 const getBrowserStatus = async (): Promise<DeviceResult> => {
-  // TODO: implement
   return {error: "Not Implemented"};
 };
 
 const closeBrowser = async (): Promise<DeviceResult> => {
-  // TODO: implement
   return {error: "Not Implemented"};
 };
 

@@ -1,7 +1,7 @@
 import * as net from "net";
 import * as udp from "dgram";
 
-export const createMagicPacket = mac => {
+export const createMagicPacket = (mac: string) => {
   const MAC_REPEAT = 16;
   const MAC_LENGTH = 0x06;
   const PACKET_HEADER = 0x06;
@@ -17,7 +17,7 @@ export const createMagicPacket = mac => {
   return buffer;
 };
 
-export const wake = async (mac, options?, callback?): Promise<boolean> => {
+export const wake = async (mac: string, options?: any, callback?: any): Promise<boolean> => {
   options = options || {};
   if (typeof options == "function") {
     callback = options;
@@ -28,7 +28,7 @@ export const wake = async (mac, options?, callback?): Promise<boolean> => {
   };
   // create magic packet
   const magicPacket = createMagicPacket(mac);
-  const socket = udp.createSocket(
+  const socket: udp.Socket = udp.createSocket(
     net.isIPv6(address) ? "udp6" : "udp4"
   ).on("error", err => {
     socket.close();

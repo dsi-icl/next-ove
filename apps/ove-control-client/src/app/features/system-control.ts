@@ -64,11 +64,9 @@ const screenshot = async (method: string, screens: string[], format?: string) =>
 };
 
 
-const SystemControl = (): SystemControl => ({
+export default (): SystemControl => ({
   shutdown,
   reboot,
   execute,
   screenshot
 });
-
-export default SystemControl;
