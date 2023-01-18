@@ -6,6 +6,8 @@ const SystemInfo = si();
 const SystemControl = sc();
 const BrowserControl = bc();
 
+export const getStatus = () => ({status: "running"});
+
 export const getInfoGeneral = SystemInfo.general;
 export const getInfoSystem = SystemInfo.system;
 export const getInfoCPU = SystemInfo.cpu;
@@ -31,3 +33,47 @@ export const getBrowserStatus = BrowserControl.getBrowserStatus;
 export const closeBrowser = BrowserControl.closeBrowser;
 export const getBrowsers = BrowserControl.getBrowsers;
 export const closeBrowsers = BrowserControl.closeBrowsers;
+
+const getInfo = async (type: string): Promise<object> => {
+  switch (type) {
+    case "system":
+      return await getInfoSystem();
+    case "cpu":
+      return await getInfoCPU();
+    case "memory":
+      return await getInfoMemory();
+    case "battery":
+      return await getInfoBattery();
+    case "graphics":
+      return await getInfoGraphics();
+    case "os":
+      return await getInfoOS();
+    case "processes":
+      return await getInfoProcesses();
+    case "fs":
+      return await getInfoFS();
+    case "usb":
+      return await getInfoUSB();
+    case "printer":
+      return await getInfoPrinter();
+    case "audio":
+      return await getInfoAudio();
+    case "network":
+      return await getInfoNetwork();
+    case "wifi":
+      return await getInfoWifi();
+    case "bluetooth":
+      return await getInfoBluetooth();
+    case "docker":
+      return await getInfoDocker();
+    default:
+      return getInfoGeneral();
+  }
+}
+
+export default () => ({
+  getStatus,
+  getInfo,
+  getBrowserStatus,
+  getBrowsers
+});
