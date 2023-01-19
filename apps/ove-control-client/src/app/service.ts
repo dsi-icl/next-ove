@@ -6,74 +6,69 @@ const SystemInfo = si();
 const SystemControl = sc();
 const BrowserControl = bc();
 
-export const getStatus = () => ({status: "running"});
-
-export const getInfoGeneral = SystemInfo.general;
-export const getInfoSystem = SystemInfo.system;
-export const getInfoCPU = SystemInfo.cpu;
-export const getInfoMemory = SystemInfo.memory;
-export const getInfoBattery = SystemInfo.battery;
-export const getInfoGraphics = SystemInfo.graphics;
-export const getInfoOS = SystemInfo.fs;
-export const getInfoProcesses = SystemInfo.processes;
-export const getInfoFS = SystemInfo.fs;
-export const getInfoUSB = SystemInfo.usb;
-export const getInfoPrinter = SystemInfo.printer;
-export const getInfoAudio = SystemInfo.audio;
-export const getInfoNetwork = SystemInfo.network;
-export const getInfoWifi = SystemInfo.wifi;
-export const getInfoBluetooth = SystemInfo.bluetooth;
-export const getInfoDocker = SystemInfo.docker;
-export const shutdown = SystemControl.shutdown;
-export const reboot = SystemControl.reboot;
-export const execute = SystemControl.execute;
-export const screenshot = SystemControl.screenshot;
-export const openBrowser = BrowserControl.openBrowser;
-export const getBrowserStatus = BrowserControl.getBrowserStatus;
-export const closeBrowser = BrowserControl.closeBrowser;
-export const getBrowsers = BrowserControl.getBrowsers;
-export const closeBrowsers = BrowserControl.closeBrowsers;
-
+const getDisplays = SystemInfo.getDisplays;
+const getBrowsers = BrowserControl.getBrowsers;
+const getBrowserStatus = BrowserControl.getBrowserStatus;
 const getInfo = async (type: string): Promise<object> => {
   switch (type) {
     case "system":
-      return await getInfoSystem();
+      return await SystemInfo.system();
     case "cpu":
-      return await getInfoCPU();
+      return await SystemInfo.cpu();
     case "memory":
-      return await getInfoMemory();
+      return await SystemInfo.memory();
     case "battery":
-      return await getInfoBattery();
+      return await SystemInfo.battery();
     case "graphics":
-      return await getInfoGraphics();
+      return await SystemInfo.graphics();
     case "os":
-      return await getInfoOS();
+      return await SystemInfo.os();
     case "processes":
-      return await getInfoProcesses();
+      return await SystemInfo.processes();
     case "fs":
-      return await getInfoFS();
+      return await SystemInfo.fs();
     case "usb":
-      return await getInfoUSB();
+      return await SystemInfo.usb();
     case "printer":
-      return await getInfoPrinter();
+      return await SystemInfo.printer();
     case "audio":
-      return await getInfoAudio();
+      return await SystemInfo.audio();
     case "network":
-      return await getInfoNetwork();
+      return await SystemInfo.network();
     case "wifi":
-      return await getInfoWifi();
+      return await SystemInfo.wifi();
     case "bluetooth":
-      return await getInfoBluetooth();
+      return await SystemInfo.bluetooth();
     case "docker":
-      return await getInfoDocker();
+      return await SystemInfo.docker();
     default:
-      return getInfoGeneral();
+      return SystemInfo.general();
   }
 }
+const getStatus = (): {status: string} => ({status: "running"});
+const getWelcome = (): {message: string} => ({ message: "Welcome to control-client!" });
+
+const reboot = SystemControl.reboot;
+const execute = SystemControl.execute;
+const shutdown = SystemControl.shutdown;
+const screenshot = SystemControl.screenshot;
+const openBrowser = BrowserControl.openBrowser;
+
+const closeBrowser = BrowserControl.closeBrowser;
+const closeBrowsers = BrowserControl.closeBrowsers;
 
 export default () => ({
+  getWelcome,
   getStatus,
   getInfo,
   getBrowserStatus,
-  getBrowsers
+  getBrowsers,
+  shutdown,
+  reboot,
+  execute,
+  screenshot,
+  openBrowser,
+  getDisplays,
+  closeBrowsers,
+  closeBrowser
 });

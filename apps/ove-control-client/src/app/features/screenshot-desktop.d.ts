@@ -1,10 +1,5 @@
 declare module "screenshot-desktop" {
-
-  type Display = {
-    id: number,
-    name: string
-    primary: boolean
-  }
+  import { Display } from "../../types";
 
   // noinspection JSUnusedGlobalSymbols
   export function listDisplays(): Promise<Display[]>;

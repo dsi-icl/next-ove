@@ -80,12 +80,13 @@ export type SystemInfo = {
     containerProcesses: object[]
     volumes: object[]
   }>
+  getDisplays: () => Promise<Display[]>
 };
 
 export type SystemControl = {
   shutdown: () => void
   reboot: () => void
-  execute: (command: string, callback: (string) => void) => void
+  execute: (command: string) => Buffer
   screenshot: (method: string, screens: string[], format?: string) => Promise<(Buffer | string)[]>
 };
 
@@ -105,3 +106,9 @@ export type Browser = {
 export type State = {
   browsers: {[browserId: number]: Browser}
 };
+
+export type Display = {
+  id: number,
+  name: string
+  primary: boolean
+}

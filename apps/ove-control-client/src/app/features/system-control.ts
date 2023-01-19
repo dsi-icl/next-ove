@@ -1,13 +1,11 @@
-import { exec } from "child_process";
+import { execSync } from "child_process";
 import { SystemControl } from "../../types";
-import { handleExecOutput } from "../utils";
 import * as path from "path";
 import * as fs from "fs";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import * as takeScreenshot from "screenshot-desktop";
 
-const isLinuxLike = () => ['linux', 'darwin', 'freebsd', 'openbsd'].includes(process.platform);
-const isWindows = () => process.platform === 'win32';
+const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"].includes(process.platform);
+const isWindows = () => process.platform === "win32";
 
 const buildShutdownCommand = () => {
   if (isLinuxLike()) {
@@ -19,7 +17,7 @@ const buildShutdownCommand = () => {
   }
 };
 
-const shutdown = () => setTimeout(() => exec(buildShutdownCommand(), handleExecOutput), 1000);
+const shutdown = () => setTimeout(() => execSync(buildShutdownCommand()), 1000);
 
 const buildRebootCommand = () => {
   if (isLinuxLike()) {
@@ -31,31 +29,35 @@ const buildRebootCommand = () => {
   }
 };
 
-const reboot = () => setTimeout(() => exec(buildRebootCommand(), handleExecOutput), 1000);
+const reboot = () => setTimeout(() => execSync(buildRebootCommand()), 1000);
 
-const execute = (command, callback) => exec(command, (err, stdout, stderr) => handleExecOutput(err, stdout, stderr, callback));
+const execute = (command: string) => execSync(command);
 
-const screenshot = async (method: string, screens: string[], format?: string) => {
+const screenshot = async (method: string, screens: string[], format?: string): Promise<string[]> => {
   let displays = await takeScreenshot.listDisplays();
   if (screens.length !== 0) {
-    displays = displays.filter(({name}) => screens.includes(name));
+    displays = displays.filter(({ name }) => screens.includes(name));
   }
 
-  return await Promise.all(displays.map(async ({id, name}) => {
+  if (displays.length === 0) {
+    throw new Error("No displays with matching names found. To view available displays please use the /displays endpoint");
+  }
+
+  return await Promise.all(displays.map(async ({ id, name }) => {
     let filename = null;
     let dir = null;
     if (method === "local") {
       dir = path.join(__dirname, "screenshots");
 
-      if (!fs.existsSync(dir)){
+      if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
       }
 
-      filename = `${name}-${new Date().toISOString()}.${format || 'jpg'}`;
+      filename = `${name}-${new Date().toISOString()}.${format || "jpg"}`;
     }
-    const image = await takeScreenshot({screen: id, format: format, filename: path.join(dir, filename)});
+    const image = await takeScreenshot({ screen: id, format: format, filename: path.join(dir, filename) });
 
-    if (method === "http") {
+    if (method === "return") {
       return (image as Buffer).toString("base64url");
     } else if (method === "local") {
       return filename;
