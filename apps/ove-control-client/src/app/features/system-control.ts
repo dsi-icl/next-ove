@@ -17,7 +17,7 @@ const buildShutdownCommand = () => {
   }
 };
 
-const shutdown = () => setTimeout(() => execSync(buildShutdownCommand()), 1000);
+const shutdown = () => execSync(buildShutdownCommand());
 
 const buildRebootCommand = () => {
   if (isLinuxLike()) {
@@ -29,7 +29,7 @@ const buildRebootCommand = () => {
   }
 };
 
-const reboot = () => setTimeout(() => execSync(buildRebootCommand()), 1000);
+const reboot = () => execSync(buildRebootCommand());
 
 const execute = (command: string) => execSync(command);
 
@@ -64,7 +64,6 @@ const screenshot = async (method: string, screens: string[], format?: string): P
     }
   }));
 };
-
 
 export default (): SystemControl => ({
   shutdown,

@@ -34,12 +34,10 @@ const getBrowserStatus = (browserId: number): string => {
 const getBrowsers = (): number[] => Object.keys(state.browsers).map(parseInt);
 const closeBrowsers = () => Object.keys(state.browsers).forEach(key => removeBrowser(parseInt(key)));
 
-const BrowserControl = (): BrowserControl => ({
+export default (): BrowserControl => ({
   openBrowser,
   closeBrowser,
   getBrowserStatus,
   getBrowsers,
   closeBrowsers
 });
-
-export default BrowserControl;

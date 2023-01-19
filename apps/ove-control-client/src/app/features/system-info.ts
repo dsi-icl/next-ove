@@ -100,7 +100,7 @@ const docker = async () => ({
   "volumes": await si.dockerVolumes()
 });
 
-const Info = (): SystemInfo => ({
+export default (): SystemInfo => ({
   general,
   system,
   cpu,
@@ -119,5 +119,3 @@ const Info = (): SystemInfo => ({
   docker,
   getDisplays
 });
-
-export default Info;

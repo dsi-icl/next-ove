@@ -84,8 +84,8 @@ export type SystemInfo = {
 };
 
 export type SystemControl = {
-  shutdown: () => void
-  reboot: () => void
+  shutdown: () => Buffer
+  reboot: () => Buffer
   execute: (command: string) => Buffer
   screenshot: (method: string, screens: string[], format?: string) => Promise<(Buffer | string)[]>
 };
