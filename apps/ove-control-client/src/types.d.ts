@@ -92,7 +92,7 @@ export type SystemControl = {
 
 export type BrowserControl = {
   openBrowser: () => number
-  getBrowserStatus: (browserId: number) => string
+  getBrowserStatus: (browserId: number) => { status: string }
   closeBrowser: (browserId: number) => void
   getBrowsers: () => number[]
   closeBrowsers: () => void
@@ -104,7 +104,7 @@ export type Browser = {
 };
 
 export type State = {
-  browsers: {[browserId: number]: Browser}
+  browsers: { [browserId: number]: Browser }
 };
 
 export type Display = {

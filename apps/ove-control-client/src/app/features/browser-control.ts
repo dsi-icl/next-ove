@@ -1,7 +1,7 @@
 import { BrowserControl } from "../../types";
 import { exec } from "child_process";
 import { handleExecOutput } from "../utils";
-import {state} from "../state";
+import { state } from "../state";
 
 export const addBrowser = (browserId: number) => {
   state.browsers[browserId] = {
@@ -17,17 +17,17 @@ export const removeBrowser = (browserId: number) => {
 const openBrowser = (): number => {
   const browserId = Object.keys(state.browsers).length;
   addBrowser(browserId);
-  exec(`nx run ove-client:serve --args="--id=${browserId}"`, {signal: state.browsers[browserId].controller.signal}, handleExecOutput);
+  exec(`nx run ove-client:serve --args="--id=${browserId}"`, { signal: state.browsers[browserId].controller.signal }, handleExecOutput);
   return browserId;
 };
 
 const closeBrowser = removeBrowser;
 
-const getBrowserStatus = (browserId: number): string => {
+const getBrowserStatus = (browserId: number): { status: string } => {
   if (Object.keys(state.browsers).includes(browserId.toString())) {
-    return "open";
+    return { status: "open" };
   } else {
-    return "closed";
+    return { status: "closed" };
   }
 };
 

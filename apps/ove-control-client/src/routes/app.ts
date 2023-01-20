@@ -37,7 +37,7 @@ export const appRouter = router({
     .input(z.object({
       id: z.number().min(0).max(service.getBrowsers().length)
     }))
-    .output(z.string())
+    .output(z.object({ status: z.string() }))
     .query(({ input: { id } }) => {
       return service.getBrowserStatus(id);
     }),
@@ -104,18 +104,18 @@ export const appRouter = router({
     .input(z.object({
       id: z.number().min(0).max(service.getBrowsers().length)
     }))
-    .output(z.null())
-    .query(({ input: {id} }) => {
+    .output(z.object({}))
+    .query(({ input: { id } }) => {
       service.closeBrowser(id);
-      return null;
+      return {};
     }),
   closeBrowsers: procedure
     .meta({ openapi: { method: "DELETE", path: "/browsers" } })
     .input(z.undefined())
-    .output(z.null())
+    .output(z.object({}))
     .query(() => {
       service.closeBrowsers();
-      return null;
+      return {};
     })
 });
 
