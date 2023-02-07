@@ -47,6 +47,18 @@ const closeBrowser = async (): Promise<DeviceResult> => {
   return {error: "Not Implemented"};
 };
 
+const closeBrowsers = async (): Promise<DeviceResult> => {
+  return {error: "Not Implemented"}
+};
+
+const getDisplays = async (): Promise<DeviceResult> => {
+  return {error: "Not Implemented"};
+};
+
+const getBrowsers = async (): Promise<DeviceResult> => {
+  return {error: "Not Implemented"};
+};
+
 const ProjectorService: DeviceService = {
   reboot,
   shutdown,
@@ -57,7 +69,10 @@ const ProjectorService: DeviceService = {
   screenshot,
   openBrowser,
   getBrowserStatus,
-  closeBrowser
+  closeBrowser,
+  closeBrowsers,
+  getDisplays,
+  getBrowsers
 };
 
 export default ProjectorService;

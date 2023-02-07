@@ -1,39 +1,34 @@
 import { wake } from "../utils/wol";
 import { DeviceResult, DeviceService } from "../utils/types";
-import {createTRPCProxyClient, httpBatchLink} from "@trpc/client";
-import type {AppRouter} from "../../../ove-control-client/src/routes/app";
+import { appRouter } from "../../../ove-control-client/src/routes/app";
 
-const trpc = createTRPCProxyClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: "http://localhost:3335/api/v1/trpc"
-    })
-  ]
-});
+const trpc = appRouter.createCaller({});
 
-const reboot = async (): Promise<DeviceResult> => trpc.reboot.query();
+const reboot = async (): Promise<DeviceResult> => trpc.reboot();
 
-const shutdown = async (): Promise<DeviceResult> => trpc.shutdown.query();
+const shutdown = async (): Promise<DeviceResult> => trpc.shutdown();
 
 const start = async (ip: string, port: number, mac: string): Promise<DeviceResult> => wake(mac, { address: ip });
 
-const info = async (type: string | undefined): Promise<DeviceResult> => trpc.getInfo.query({type});
+const info = async (type: string | undefined): Promise<DeviceResult> => trpc.getInfo({type});
 
-const status = async (): Promise<DeviceResult> => trpc.getStatus.query();
+const status = async (): Promise<DeviceResult> => trpc.getStatus();
 
-const execute = async (command: string): Promise<DeviceResult> => trpc.execute.query({command});
+const execute = async (command: string): Promise<DeviceResult> => trpc.execute({command});
 
-const screenshot = async (method: string, format: string, screens: string[]): Promise<DeviceResult> => trpc.screenshot.query({method, screens, format});
+const screenshot = async (method: string, format: string, screens: string[]): Promise<DeviceResult> => trpc.screenshot({method, screens, format});
 
-const openBrowser = async (): Promise<DeviceResult> => trpc.openBrowser.query();
+const openBrowser = async (): Promise<DeviceResult> => trpc.openBrowser();
 
-const getBrowserStatus = async (id: number): Promise<DeviceResult> => trpc.getBrowserStatus.query({id});
+const getBrowserStatus = async (id: number): Promise<DeviceResult> => trpc.getBrowserStatus({id});
 
-const closeBrowser = async (id: number): Promise<DeviceResult> => trpc.closeBrowser.query({id});
+const closeBrowser = async (id: number): Promise<DeviceResult> => trpc.closeBrowser({id});
 
-const getBrowsers = async (): Promise<DeviceResult> => trpc.getBrowsers.query();
+const closeBrowsers = async (): Promise<DeviceResult> => trpc.closeBrowsers();
 
-const getDisplays = async (): Promise<DeviceResult> => trpc.getDisplays.query();
+const getBrowsers = async (): Promise<DeviceResult> => trpc.getBrowsers();
+
+const getDisplays = async (): Promise<DeviceResult> => trpc.getDisplays();
 
 const NodeService: DeviceService = {
   reboot,
@@ -47,7 +42,8 @@ const NodeService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   getBrowsers,
-  getDisplays
+  getDisplays,
+  closeBrowsers
 };
 
 export default NodeService;

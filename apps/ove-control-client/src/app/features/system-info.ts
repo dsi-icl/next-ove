@@ -1,11 +1,11 @@
 import * as si from "systeminformation";
 import { Display, SystemInfo } from "../../types";
-import * as takeScreenshot from "screenshot-desktop";
+import * as screenshot from "screenshot-desktop";
 
 const general = () => ({ "version": si.version(), "time": si.time() });
 
 const getDisplays = async (): Promise<Display[]> => {
-  return await takeScreenshot.listDisplays();
+  return await screenshot.listDisplays();
 };
 
 const system = async () => ({

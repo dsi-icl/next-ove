@@ -513,6 +513,8 @@ paths:
 
 ![image](sections_screen.jpg)
 
+![image](wireframes.svg)
+
 ### Existing Issues
 
 ### Decisions
@@ -553,6 +555,15 @@ paths:
   - All
 - Whether to support developing HTML controller in Editor
   - Needs further development
+- Display as unified list of devices or organised by bridge
+  - organised by bridge
+- Should login be Imperial or custom
+  - both
+- State maintenance for controller to prevent reloads
+  - optional
+- Custom section launcher
+- Show network stats for connection on info view
+- Generate view of client
 
 ## Endpoint Structure
 
@@ -571,3 +582,30 @@ paths:
 ## Time frame
 
 ![image](time_frame_2.jpg)
+
+## TODO
+
+- Apps
+  - Viz.gl/WebGL rendering
+  - WebRTC integration
+- Demos
+  - Star map
+  - Street view with controller
+  - Masters demo
+  - Connected spaces demo
+  - Kaggle demos
+  - Rossella demo
+  - Viz.gl/avs.auto demos
+- CI/CD
+  - SonarQube
+  - Analytics - PostHog etc
+  - Jest unit tests
+  - TestContainers integration tests
+  - Playwright visual regression and accessibility tests - aXe
+  - a11y accessibility testing
+  - Lighthouse score
+  - Bundle analyser
+- Misc.
+  - A/B Testing
+  - Sitemap
+  - OpenGraph + Twitter Card analysis

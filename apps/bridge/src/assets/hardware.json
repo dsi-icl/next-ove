@@ -4,7 +4,7 @@
     "description": "Test Hardware",
     "ip": "localhost",
     "port": 3335,
-    "protocol": "device",
+    "protocol": "node",
     "mac": "example:example:example",
     "tags": ["test"]
   }

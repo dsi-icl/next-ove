@@ -9,7 +9,7 @@ const BrowserControl = bc();
 const getDisplays = SystemInfo.getDisplays;
 const getBrowsers = BrowserControl.getBrowsers;
 const getBrowserStatus = BrowserControl.getBrowserStatus;
-const getInfo = async (type: string): Promise<object> => {
+const getInfo = async (type?: string): Promise<object> => {
   switch (type) {
     case "system":
       return await SystemInfo.system();

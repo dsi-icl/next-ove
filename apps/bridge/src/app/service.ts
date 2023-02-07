@@ -1,13 +1,13 @@
-import * as Utils from "../utils/utils";
 import { Device, DeviceID, DeviceResult, DeviceService } from "../utils/types";
-import { notEmpty, saveDevices } from "../utils/utils";
 import NodeService from "./node-service";
 import MDCService from "./mdc-service";
 import ProjectorService from "./projector-service";
+import { Utils as OVEUtils } from "@ove/ove-utils";
+import * as Utils from "../utils/utils";
 
-const devices = Utils.getDevices();
+let devices: Device[] = Utils.getDevices();
 
-export const getDevices = (tag: string | undefined): Device[] => {
+export const getDevices = (tag?: string): Device[] => {
   if (tag === undefined) {
     return devices;
   } else {
@@ -18,57 +18,73 @@ export const getDevices = (tag: string | undefined): Device[] => {
 export const getDevice = (did: string): Device | undefined => devices.find(({ id }) => did === id);
 
 export const addDevice = (device: Device) => {
-  saveDevices(devices.concat([device]));
+  devices = [...devices, device];
+  Utils.saveDevices(devices);
   return { status: "Device added" };
 };
 
 export const removeDevice = (did: string) => {
-  saveDevices(devices.filter(({ id }) => id === did));
+  devices = devices.filter(({ id }) => id === did);
+  Utils.saveDevices(devices);
   return { status: "Device added" };
 };
 
-export const reboot = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.reboot);
+export const reboot = (id: DeviceID) => manageDevice("reboot", id);
 
-export const shutdown = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.shutdown);
+export const shutdown = (id: DeviceID) => manageDevice("shutdown", id);
 
-export const start = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.start);
+export const start = (id: DeviceID) => manageDevice("start", id);
 
-export const info = async (query: string | undefined, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.info(query, ip, port));
+export const info = (id: DeviceID, type?: string) => manageDevice("info", id, type);
 
-export const status = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.status);
+export const status = (id: DeviceID) => manageDevice("status", id);
 
-export const execute = async (command: string, id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.execute(command, ip, port));
+export const execute = (id: DeviceID, command: string) => manageDevice("execute", id, command);
 
-export const screenshot = async (method: string, format: string, screens: string[], id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => (ip: string, port: number) => service.screenshot(method, format, screens, ip, port));
+export const screenshot = (id: DeviceID, method: string, format: string, screens: string[]) => manageDevice("screenshot", id, method, format, screens);
 
-export const openBrowser = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.openBrowser);
+export const openBrowser = (id: DeviceID) => manageDevice("openBrowser", id);
 
-export const getBrowserStatus = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.getBrowserStatus);
+export const getBrowserStatus = (id: DeviceID, browserId: number) => manageDevice("getBrowserStatus", id, browserId);
 
-export const closeBrowser = async (id: DeviceID): Promise<DeviceResult[]> => manageDevice(id, (service: DeviceService) => service.closeBrowser);
+export const closeBrowser = (id: DeviceID, browserId: number) => manageDevice("closeBrowser", id, browserId);
 
-const manageDevice = async (
-  { id, tag }: DeviceID,
-  callback: (service: DeviceService) => (ip: string, port: number, mac: string) => Promise<DeviceResult>
+export const closeBrowsers = (id: DeviceID) => manageDevice("closeBrowsers", id);
+
+export const getBrowsers = (id: DeviceID) => manageDevice("getBrowsers", id);
+
+export const getDisplays = (id: DeviceID) => manageDevice("getDisplays", id);
+
+const manageDevice = (
+  fn: keyof DeviceService,
+  did?: DeviceID,
+  ...args: any[]
 ): Promise<DeviceResult[]> => {
-  const devices: (Device | undefined)[] = id !== undefined ? [getDevice(id)] : getDevices(tag);
+  let devices: (Device | undefined)[] = did !== undefined ? (did.id !== undefined ? [getDevice(did.id)] : getDevices(did.tag)) : getDevices();
 
   if (devices.includes(undefined)) {
-    return [{error: "Device not found"}];
+    throw new Error("Device not found");
   }
 
-  const handleService = (protocol: string) => {
+  const getServiceForProtocol = (protocol: string): DeviceService => {
     switch (protocol) {
       case "node":
         return NodeService;
-      case "mdc":
-        return MDCService;
       case "projector":
         return ProjectorService;
+      case "screen":
+        return MDCService;
       default:
         throw new Error(`Unknown protocol: ${protocol}`);
     }
   };
 
-  return Promise.all(devices.filter(notEmpty).map(async ({ip, port, mac, protocol}) => callback(handleService(protocol))(ip, port, mac)));
+  return Promise.all(devices.filter(OVEUtils.notEmpty).map(async device => {
+    const service = getServiceForProtocol(device.protocol);
+    if (!(fn in service)) {
+      throw new Error(`Protocol ${device.protocol} does not support operation: ${fn}`);
+    }
+    const r: ((...args: any[]) => Promise<DeviceResult>) = service[fn as keyof typeof service];
+    return await r(...{ ...args, ...device });
+  }));
 };

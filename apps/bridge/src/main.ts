@@ -1,93 +1,40 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
 import * as dotenv from "dotenv";
-import {Logging} from "@ove/ove-utils";
+import { Logging } from "@ove/ove-utils";
 import { environment } from "./environments/environment";
-import { io } from "socket.io-client";
-import * as Controller from "./app/controller";
-import { DeleteSchema, GetSchema, PostSchema, wrapCallback } from "./utils/utils";
+import { io, Socket } from "socket.io-client";
+import * as Service from "./app/service";
+import { ClientToServerEvents, ServerToClientEvents } from "../../../libs/ove-types/src/lib/hardware";
+import { DeviceIDSchema } from "./utils/schemas";
 
 dotenv.config();
+
+console.log(process.env.NAME);
+
+const wrapCallback = (callback: (response: object) => void) => (response: object) => callback({
+  bridge: environment.name,
+  response
+});
 
 const logger = Logging.Logger("bridge", -1);
 logger.debug("This is a test");
 
-const socket = io(`ws://${environment.core}/hardware`, {autoConnect: false});
-socket.auth = {"name": `${environment.name}`};
+const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(`ws://${environment.core}/hardware`, { autoConnect: false });
+socket.auth = { "name": `${environment.name}` };
 socket.connect();
 logger.debug(`Testing: ${environment.core}`);
 
-socket.on('connect', () => {
-  logger.info('Connected');
+socket.on("connect", () => {
+  logger.info("Connected");
   logger.debug(socket.id);
 });
 
-socket.on('disconnect', () => {
-  logger.info('Disconnected');
+socket.on("disconnect", () => {
+  logger.info("Disconnected");
   logger.debug(socket.id);
 });
 
-socket.on("get", (data_, callback) => {
-  const data = GetSchema.parse(data_);
+socket.on("getDevices", callback => wrapCallback(callback)(Service.getDevices()));
 
-  switch (data.type) {
-    case "devices":
-      Controller.getDevices(data, wrapCallback(callback));
-      break;
-    case "device":
-      Controller.getDevice(data, wrapCallback(callback));
-      break;
-    case "info":
-      Controller.info(data, wrapCallback(callback));
-      break;
-    case "status":
-      Controller.status(data, wrapCallback(callback));
-      break;
-    case "browser":
-      Controller.getBrowserStatus(data, wrapCallback(callback));
-      break;
-  }
-});
-socket.on("post", (data_, callback) => {
-  const data = PostSchema.parse(data_);
+socket.on("info", (callback, id, type) => wrapCallback(callback)(Service.info(DeviceIDSchema.parse(id), type)));
 
-  switch (data.type) {
-    case "device":
-      Controller.addDevice(data, wrapCallback(callback));
-      break;
-    case "reboot":
-      Controller.reboot(data, wrapCallback(callback));
-      break;
-    case "shutdown":
-      Controller.shutdown(data, wrapCallback(callback));
-      break;
-    case "start":
-      Controller.start(data, wrapCallback(callback));
-      break;
-    case "execute":
-      Controller.execute(data, wrapCallback(callback));
-      break;
-    case "screenshot":
-      Controller.screenshot(data, wrapCallback(callback));
-      break;
-    case "browser":
-      Controller.openBrowser(data, wrapCallback(callback));
-      break;
-  }
-});
-socket.on("delete", (data_, callback) => {
-  const data = DeleteSchema.parse(data_);
-
-  switch (data.type) {
-    case "device":
-      Controller.removeDevice(data, wrapCallback(callback));
-      break;
-    case "browser":
-      Controller.closeBrowser(data, wrapCallback(callback));
-      break;
-  }
-});
-
-socket.on('connect_error', err => logger.error(`connect_error due to ${err.message}`));
+socket.on("connect_error", err => logger.error(`connect_error due to ${err.message}`));
