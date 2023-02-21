@@ -51,7 +51,7 @@ const getWelcome = (): {message: string} => ({ message: "Welcome to control-clie
 const reboot = SystemControl.reboot;
 const execute = SystemControl.execute;
 const shutdown = SystemControl.shutdown;
-const screenshot = SystemControl.screenshot;
+const screenshot = BrowserControl.screenshot;
 const openBrowser = BrowserControl.openBrowser;
 
 const closeBrowser = BrowserControl.closeBrowser;

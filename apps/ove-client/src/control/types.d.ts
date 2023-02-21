@@ -91,11 +91,12 @@ export type SystemControl = {
 };
 
 export type BrowserControl = {
-  openBrowser: () => number
+  openBrowser: (displayId?: number) => number
   getBrowserStatus: (browserId: number) => { status: string }
   closeBrowser: (browserId: number) => void
   getBrowsers: () => number[]
   closeBrowsers: () => void
+  screenshot: (method: string, screens: number[], format?: string) => Promise<(Buffer | string)[]>
 };
 
 export type Browser = {

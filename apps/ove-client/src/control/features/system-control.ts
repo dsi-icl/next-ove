@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { Display, SystemControl } from "../../types";
+import { Display, SystemControl } from "../types";
 import * as path from "path";
 import * as fs from "fs";
 import * as sc from "screenshot-desktop";

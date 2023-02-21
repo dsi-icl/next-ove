@@ -2,11 +2,7 @@ import { BrowserWindow, shell, screen } from "electron";
 import { environment } from "../environments/environment";
 import { join } from "path";
 import { pathToFileURL } from "url";
-
-import { Logging } from "@ove/ove-utils";
-import {io} from "socket.io-client";
-
-const log = Logging.Logger("client", -1);
+import { logger } from "../control/utils";
 
 // noinspection JSUnusedLocalSymbols
 export default class App {
@@ -15,7 +11,7 @@ export default class App {
   static mainWindow: Electron.BrowserWindow;
   static application: Electron.App;
   static BrowserWindow;
-  static socket;
+  static displayId?: number;
 
   public static isDevelopmentMode() {
     const isEnvironmentSet: boolean = "ELECTRON_IS_DEV" in process.env;
@@ -63,14 +59,28 @@ export default class App {
   }
 
   private static initMainWindow() {
-    const workAreaSize = screen.getPrimaryDisplay().workAreaSize;
-    const width = Math.min(1280, workAreaSize.width || 1280);
-    const height = Math.min(720, workAreaSize.height || 720);
+    // const workAreaSize = screen.getPrimaryDisplay().workAreaSize;
+    // const width = Math.min(1280, workAreaSize.width || 1280);
+    // const height = Math.min(720, workAreaSize.height || 720);
+    // const {x, y, width, height} = screen.getAllDisplays().find(monitor => monitor.id === 2).bounds
+
+    let bounds;
+
+    logger.debug(`Display ID: ${this.displayId}`);
+
+    if (this.displayId !== undefined) {
+      bounds = screen.getAllDisplays().find(monitor => monitor.id === this.displayId).bounds;
+    } else {
+      bounds = screen.getPrimaryDisplay().bounds;
+    }
+
+    logger.debug(`Bounds: ${JSON.stringify(bounds)}`);
 
     // Create the browser window.
     App.mainWindow = new BrowserWindow({
-      width: width,
-      height: height,
+      x: bounds.x + 50,
+      y: bounds.y + 50,
+      fullscreen: true,
       show: false,
       webPreferences: {
         contextIsolation: true,
@@ -113,30 +123,23 @@ export default class App {
     const url = pathToFileURL(join(__dirname, "assets", "index.html"))
     App.mainWindow.loadURL(
       url.toString()
-    ).then(() => log.info("Loaded"));
+    ).then(() => logger.info("Loaded"));
   }
 
-  static main(id: string, app: Electron.App, browserWindow: typeof BrowserWindow) {
+  static main(app: Electron.App, browserWindow: typeof BrowserWindow, displayId?: number) {
     // we pass the Electron.App object and the
     // Electron.BrowserWindow into this function
     // so this class has no dependencies. This
     // makes the code easier to write tests for
 
-    App.socket = io("ws://localhost:3335/browser", {autoConnect: false});
-
-    App.socket.auth = {name: id};
-
-    App.socket.on("connect", () => {
-      log.info("Connected");
-    });
-
-    App.socket.connect();
-
     App.BrowserWindow = browserWindow;
     App.application = app;
+    App.displayId = displayId;
 
     App.application.on("window-all-closed", App.onWindowAllClosed); // Quit when all windows are closed.
     App.application.on("ready", App.onReady); // App is ready to load data
     App.application.on("activate", App.onActivate); // App is activated
+
+    App.onReady();
   }
 }

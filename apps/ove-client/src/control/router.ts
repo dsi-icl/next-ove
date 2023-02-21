@@ -1,6 +1,7 @@
 import { z } from "zod";
-import Service from "../app/service";
-import { procedure, router } from "../trpc";
+import Service from "./service";
+import { procedure, router } from "./trpc";
+import { logger } from "./utils";
 
 const service = Service();
 
@@ -26,7 +27,7 @@ export const appRouter = router({
   getInfo: procedure
     .meta({ openapi: { method: "GET", path: "/info" } })
     .input(z.object({
-      type: z.string().regex(/^system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker$/gi).optional()
+      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker)$/gi).optional()
     }))
     .output(z.any())
     .query(({ input: { type } }) => {
@@ -81,8 +82,8 @@ export const appRouter = router({
   screenshot: procedure
     .meta({ openapi: { method: "POST", path: "/screenshot" } })
     .input(z.object({
-      method: z.string().regex(/^local|return|upload$/gi),
-      screens: z.array(z.string()),
+      method: z.string().regex(/^(local|return|upload)$/gi),
+      screens: z.array(z.number()),
       format: z.string().optional()
     }))
     .output(z.any())
@@ -94,10 +95,18 @@ export const appRouter = router({
     }),
   openBrowser: procedure
     .meta({ openapi: { method: "POST", path: "/browser" } })
-    .input(z.undefined())
+    .input(z.object({displayId: z.number().optional()}))
     .output(z.number())
-    .query(() => {
-      return service.openBrowser();
+    .query(async ({input: {displayId}}) => {
+      logger.info(`Received Display ID: ${displayId} - ${typeof displayId}`);
+      if (displayId !== undefined) {
+        const displays = await service.getDisplays();
+        const screenName = displays.find(({ id }) => id === displayId).name;
+        const graphics = await service.getInfo("graphics");
+        displayId = Number(graphics["general"].displays.find(({ model }) => model === screenName).displayId);
+      }
+      logger.info(`Type: ${typeof displayId}`);
+      return service.openBrowser(displayId);
     }),
   closeBrowser: procedure
     .meta({ openapi: { method: "DELETE", path: "/browser/{id}" } })

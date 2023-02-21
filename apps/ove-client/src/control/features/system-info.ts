@@ -1,5 +1,5 @@
 import * as si from "systeminformation";
-import { Display, SystemInfo } from "../../types";
+import { Display, SystemInfo } from "../types";
 import * as screenshot from "screenshot-desktop";
 
 const general = () => ({ "version": si.version(), "time": si.time() });

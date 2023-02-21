@@ -1,6 +1,6 @@
 import { wake } from "../utils/wol";
 import { DeviceResult, DeviceService } from "../utils/types";
-import { appRouter } from "../../../ove-control-client/src/routes/app";
+import { appRouter } from "../../../ove-client/src/control/router";
 
 const trpc = appRouter.createCaller({});
 
