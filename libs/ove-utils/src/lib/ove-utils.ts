@@ -1,3 +1,5 @@
+// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
+
 export const oveUtils = (): string => 'ove-utils';
 export const deepCopy = (obj: unknown): unknown => JSON.parse(JSON.stringify(obj));
 
@@ -8,7 +10,7 @@ export const deepCopy = (obj: unknown): unknown => JSON.parse(JSON.stringify(obj
 
 export const notEmpty = <TValue>(value: TValue | null | undefined): value is TValue => {
   if (value === null || value === undefined) return false;
-  // noinspection JSUnusedLocalSymbols
+  // @ts-ignore
   const dummy: TValue = value;
   return true;
 };

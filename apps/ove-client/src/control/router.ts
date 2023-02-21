@@ -1,7 +1,6 @@
 import { z } from "zod";
 import Service from "./service";
 import { procedure, router } from "./trpc";
-import { logger } from "./utils";
 
 const service = Service();
 
@@ -49,13 +48,6 @@ export const appRouter = router({
     .query(() => {
       return service.getBrowsers();
     }),
-  getDisplays: procedure
-    .meta({ openapi: { method: "GET", path: "/displays" } })
-    .input(z.undefined())
-    .output(z.array(z.any()))
-    .query(async () => {
-      return await service.getDisplays();
-    }),
   shutdown: procedure
     .meta({ openapi: { method: "POST", path: "/shutdown" } })
     .input(z.undefined())
@@ -97,17 +89,7 @@ export const appRouter = router({
     .meta({ openapi: { method: "POST", path: "/browser" } })
     .input(z.object({displayId: z.number().optional()}))
     .output(z.number())
-    .query(async ({input: {displayId}}) => {
-      logger.info(`Received Display ID: ${displayId} - ${typeof displayId}`);
-      if (displayId !== undefined) {
-        const displays = await service.getDisplays();
-        const screenName = displays.find(({ id }) => id === displayId).name;
-        const graphics = await service.getInfo("graphics");
-        displayId = Number(graphics["general"].displays.find(({ model }) => model === screenName).displayId);
-      }
-      logger.info(`Type: ${typeof displayId}`);
-      return service.openBrowser(displayId);
-    }),
+    .query(async ({input: {displayId}}) => service.openBrowser(displayId)),
   closeBrowser: procedure
     .meta({ openapi: { method: "DELETE", path: "/browser/{id}" } })
     .input(z.object({

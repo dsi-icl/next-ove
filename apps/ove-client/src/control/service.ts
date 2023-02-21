@@ -6,7 +6,6 @@ const SystemInfo = si();
 const SystemControl = sc();
 const BrowserControl = bc();
 
-const getDisplays = SystemInfo.getDisplays;
 const getBrowsers = BrowserControl.getBrowsers;
 const getBrowserStatus = BrowserControl.getBrowserStatus;
 const getInfo = async (type?: string): Promise<object> => {
@@ -68,7 +67,6 @@ export default () => ({
   execute,
   screenshot,
   openBrowser,
-  getDisplays,
   closeBrowsers,
   closeBrowser
 });

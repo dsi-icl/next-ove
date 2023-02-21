@@ -1,10 +1,11 @@
 // noinspection DuplicatedCode
 
-import * as cors from "cors";
+import cors from "cors";
 import * as path from "path";
-import * as express from "express";
+import express from "express";
 import { appRouter } from "./router";
 import { createContext } from "./context";
+// @ts-ignore
 import * as swaggerUi from "swagger-ui-express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";

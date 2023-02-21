@@ -1,12 +1,7 @@
 import * as si from "systeminformation";
-import { Display, SystemInfo } from "../types";
-import * as screenshot from "screenshot-desktop";
+import { SystemInfo } from "../types";
 
 const general = () => ({ "version": si.version(), "time": si.time() });
-
-const getDisplays = async (): Promise<Display[]> => {
-  return await screenshot.listDisplays();
-};
 
 const system = async () => ({
   "general": await si.system(),
@@ -116,6 +111,5 @@ export default (): SystemInfo => ({
   network,
   wifi,
   bluetooth,
-  docker,
-  getDisplays
+  docker
 });

@@ -1,3 +1,5 @@
+import type {GraphicsData} from "systeminformation";
+
 export type SystemInfo = {
   general: () => {
     version: string,
@@ -23,9 +25,7 @@ export type SystemInfo = {
   battery: () => Promise<{
     general: object
   }>
-  graphics: () => Promise<{
-    general: object
-  }>
+  graphics: () => Promise<GraphicsData>
   os: () => Promise<{
     general: object
     uuid: object
@@ -80,14 +80,12 @@ export type SystemInfo = {
     containerProcesses: object[]
     volumes: object[]
   }>
-  getDisplays: () => Promise<Display[]>
 };
 
 export type SystemControl = {
   shutdown: () => Buffer
   reboot: () => Buffer
   execute: (command: string) => Buffer
-  screenshot: (method: string, screens: string[], format?: string) => Promise<(Buffer | string)[]>
 };
 
 export type BrowserControl = {
@@ -109,7 +107,23 @@ export type State = {
 };
 
 export type Display = {
-  id: number,
-  name: string
-  primary: boolean
+  vendor: string,
+  vendorId: string,
+  model: string,
+  productionYear: string,
+  serial: string,
+  displayId: string,
+  main: boolean,
+  builtin: boolean,
+  connection: string,
+  sizeX: number | null,
+  sizeY: number | null,
+  pixelDepth: number | null,
+  resolutionX: number | null,
+  resolutionY: number | null,
+  currentResX: number,
+  currentResY: number,
+  positionX: number,
+  positionY: number,
+  currentRefreshRate: number
 }

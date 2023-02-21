@@ -5,6 +5,8 @@ import * as path from "path";
 import * as fs from "fs";
 import SystemInfo from "./system-info";
 import { screenshot as takeScreenshots } from "../../electron";
+import { Systeminformation } from "systeminformation";
+import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
 
 export const addBrowser = (browserId: number) => {
   state.browsers[browserId] = {
@@ -25,7 +27,7 @@ const openBrowser = (displayId?: number): number => {
 };
 
 const screenshot = async (method: string, screens: number[], format?: string): Promise<(Buffer | string)[]> => {
-  let displays = (await SystemInfo().graphics()).general["displays"];
+  let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).general.displays;
   if (screens.length !== 0) {
     displays = displays.filter(({ displayId }) => screens.includes(Number(displayId)));
   }
@@ -36,7 +38,11 @@ const screenshot = async (method: string, screens: number[], format?: string): P
 
   const screenshots = await takeScreenshots();
   return await Promise.all(displays.map(async ({ displayId, serial }) => {
-    const image = screenshots.find(({ display_id }) => display_id === displayId).thumbnail.toDataURL();
+    const image = screenshots.find(({ display_id }) => display_id === displayId)?.thumbnail.toDataURL();
+
+    if (image === undefined) {
+      throw Error(`No screen found matching displayId: ${displayId}`);
+    }
 
     if (method === "return") {
       return image;
@@ -50,6 +56,8 @@ const screenshot = async (method: string, screens: number[], format?: string): P
       const filename = `${serial}-${new Date().toISOString()}.${format || "jpg"}`;
       fs.createWriteStream(filename).write(Buffer.from(image, "base64url"));
       return filename;
+    } else {
+      throw Error("Not Implemented");
     }
   }));
 };
