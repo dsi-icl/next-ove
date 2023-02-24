@@ -37,6 +37,7 @@
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-client",
+        "platform": ["mac", "windows", "linux"],
         "frontendProject": "ove-data",
         "outputPath": "dist/packages",
         "prepackageOnly": true
@@ -46,6 +47,7 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
+        "platform": ["mac", "windows", "linux"],
         "frontendProject": "ove-data",
         "outputPath": "dist/executables"
       }
