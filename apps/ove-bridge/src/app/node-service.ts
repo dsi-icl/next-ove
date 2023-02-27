@@ -16,9 +16,9 @@ const status = async (): Promise<DeviceResult> => trpc.getStatus();
 
 const execute = async (command: string): Promise<DeviceResult> => trpc.execute({command});
 
-const screenshot = async (method: string, format: string, screens: string[]): Promise<DeviceResult> => trpc.screenshot({method, screens, format});
+const screenshot = async (method: string, format: string, screens: number[]): Promise<DeviceResult> => trpc.screenshot({method, screens, format});
 
-const openBrowser = async (): Promise<DeviceResult> => trpc.openBrowser();
+const openBrowser = async (displayId: number): Promise<DeviceResult> => trpc.openBrowser({ displayId });
 
 const getBrowserStatus = async (id: number): Promise<DeviceResult> => trpc.getBrowserStatus({id});
 
@@ -27,8 +27,6 @@ const closeBrowser = async (id: number): Promise<DeviceResult> => trpc.closeBrow
 const closeBrowsers = async (): Promise<DeviceResult> => trpc.closeBrowsers();
 
 const getBrowsers = async (): Promise<DeviceResult> => trpc.getBrowsers();
-
-const getDisplays = async (): Promise<DeviceResult> => trpc.getDisplays();
 
 const NodeService: DeviceService = {
   reboot,
@@ -42,7 +40,6 @@ const NodeService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   getBrowsers,
-  getDisplays,
   closeBrowsers
 };
 

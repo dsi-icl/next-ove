@@ -33,7 +33,7 @@ export const hardwareRouter = router({
       return service.getWelcome();
     }),
   getDevicesForBridge: procedure
-    .meta({openapi: {method: "GET", path: "/hardware/devices/{bridge}"}})
+    .meta({openapi: {method: "GET", path: "/hardware/devices/{ove-bridge}"}})
     .input(z.object({bridge: z.string()}))
     .output(z.array(z.string()))
     .query(async ({input: { bridge }}) =>

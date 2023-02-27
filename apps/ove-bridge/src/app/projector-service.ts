@@ -1,63 +1,61 @@
-// noinspection DuplicatedCode
-
 import { DeviceResult, DeviceService } from "../utils/types";
-import { getStatus } from "./features/mdc";
 
 const reboot = async (): Promise<DeviceResult> => {
   // TODO: implement
-  return { error: "Not Implemented" };
+  return {error: "Not Implemented"};
 };
 
 const shutdown = async (): Promise<DeviceResult> => {
   // TODO: implement
-  return { error: "Not Implemented" };
+  return {error: "Not Implemented"};
 };
 
 const start = async (): Promise<DeviceResult> => {
   // TODO: implement
-  return {};
+  return {error: "Not Implemented"};
 };
 
 const info = async (): Promise<DeviceResult> => ({});
 
-const status = async (ip: string, port: number): Promise<DeviceResult> => {
-  getStatus(0x01, ip, port);
-  return {};
+const status = async (): Promise<DeviceResult> => {
+  // TODO: implement
+  return {error: "Not Implemented"};
 };
 
 const execute = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  // TODO: implement
+  return {error: "Not Implemented"};
 };
 
 const screenshot = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  // TODO: implement
+  return {error: "Not Implemented"};
 };
 
 const openBrowser = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  // TODO: implement
+  return {error: "Not Implemented"};
 };
 
 const getBrowserStatus = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  // TODO: implement
+  return {error: "Not Implemented"};
 };
 
 const closeBrowser = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  // TODO: implement
+  return {error: "Not Implemented"};
 };
 
 const closeBrowsers = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  return {error: "Not Implemented"}
 };
 
 const getBrowsers = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+  return {error: "Not Implemented"};
 };
 
-const getDisplays = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
-};
-
-const MDCService: DeviceService = {
+const ProjectorService: DeviceService = {
   reboot,
   shutdown,
   start,
@@ -69,8 +67,7 @@ const MDCService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   closeBrowsers,
-  getBrowsers,
-  getDisplays
+  getBrowsers
 };
 
-export default MDCService;
+export default ProjectorService;

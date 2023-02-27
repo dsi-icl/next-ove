@@ -27,9 +27,9 @@ const Hardware = () => {
     <h1 className='hardware-header'><strong>Hardware Management</strong></h1>
     {
       devices.map(bridge => (
-        <div key={`${bridge["bridge-id"]}-container`} style={{ minHeight: "10vh", height: "40vh", width: "100%" }}>
-          <h4 key={`${bridge["bridge-id"]}-header`}>{bridge["bridge-id"]}</h4>
-          <DataGrid key={`${bridge["bridge-id"]}-data`} columns={columns} rows={bridge["data"]} />
+        <div key={`${bridge["ove-bridge-id"]}-container`} style={{ minHeight: "10vh", height: "40vh", width: "100%" }}>
+          <h4 key={`${bridge["ove-bridge-id"]}-header`}>{bridge["ove-bridge-id"]}</h4>
+          <DataGrid key={`${bridge["ove-bridge-id"]}-data`} columns={columns} rows={bridge["data"]} />
         </div>))
     }
   </div>;

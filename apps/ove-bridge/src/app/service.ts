@@ -53,14 +53,22 @@ export const closeBrowsers = (id: DeviceID) => manageDevice("closeBrowsers", id)
 
 export const getBrowsers = (id: DeviceID) => manageDevice("getBrowsers", id);
 
-export const getDisplays = (id: DeviceID) => manageDevice("getDisplays", id);
-
 const manageDevice = (
   fn: keyof DeviceService,
   did?: DeviceID,
   ...args: any[]
 ): Promise<DeviceResult[]> => {
-  let devices: (Device | undefined)[] = did !== undefined ? (did.id !== undefined ? [getDevice(did.id)] : getDevices(did.tag)) : getDevices();
+  let devices: (Device | undefined)[];
+  if (did !== undefined) {
+      if (did.id !== undefined) {
+        devices = [getDevice(did.id)];
+      } else {
+        devices = getDevices(did.tag);
+      }
+  } else {
+    devices = getDevices();
+  }
+
 
   if (devices.includes(undefined)) {
     throw new Error("Device not found");
@@ -84,7 +92,7 @@ const manageDevice = (
     if (!(fn in service)) {
       throw new Error(`Protocol ${device.protocol} does not support operation: ${fn}`);
     }
-    const r: ((...args: any[]) => Promise<DeviceResult>) = service[fn as keyof typeof service];
+    const r: ((...args: any[]) => Promise<DeviceResult>) = service[fn];
     return await r(...{ ...args, ...device });
   }));
 };
