@@ -1,8 +1,13 @@
 import { z } from "zod";
-import Service from "./service";
+import { Service } from "@ove/ove-client-control";
 import { procedure, router } from "./trpc";
+import { DesktopCapturerSource } from "electron";
 
-const service = Service();
+const service = Service.default();
+
+export const init = (createWindow: (displayId?: number) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => {
+  service.init(createWindow, takeScreenshots);
+};
 
 export const appRouter = router({
   home: procedure
@@ -35,18 +40,22 @@ export const appRouter = router({
   getBrowserStatus: procedure
     .meta({ openapi: { method: "GET", path: "/browser/{id}/status" } })
     .input(z.object({
-      id: z.number().min(0).max(service.getBrowsers().length)
+      id: z.number().min(0)
     }))
     .output(z.object({ status: z.string() }))
-    .query(({ input: { id } }) => {
-      return service.getBrowserStatus(id);
+    .query(({ ctx, input: { id } }) => {
+      if (Object.keys(ctx.browsers).includes(id.toString())) {
+        return { status: "open" };
+      } else {
+        return { status: "closed" };
+      }
     }),
   getBrowsers: procedure
     .meta({ openapi: { method: "GET", path: "/browsers" } })
     .input(z.undefined())
     .output(z.array(z.number()))
-    .query(() => {
-      return service.getBrowsers();
+    .query(({ctx}) => {
+      return Object.keys(ctx.browsers).map(parseInt);
     }),
   shutdown: procedure
     .meta({ openapi: { method: "POST", path: "/shutdown" } })
@@ -89,23 +98,33 @@ export const appRouter = router({
     .meta({ openapi: { method: "POST", path: "/browser" } })
     .input(z.object({displayId: z.number().optional()}))
     .output(z.number())
-    .query(async ({input: {displayId}}) => service.openBrowser(displayId)),
+    .query(async ({ctx, input: {displayId}}) => {
+      service.openBrowser(displayId);
+      const browserId = Object.keys(ctx.browsers).length;
+      ctx.browsers[browserId] = {
+        controller: new AbortController()
+      };
+
+      return browserId;
+    }),
   closeBrowser: procedure
     .meta({ openapi: { method: "DELETE", path: "/browser/{id}" } })
     .input(z.object({
-      id: z.number().min(0).max(service.getBrowsers().length)
+      id: z.number().min(0)
     }))
     .output(z.object({}))
-    .query(({ input: { id } }) => {
-      service.closeBrowser(id);
+    .query(({ ctx, input: { id } }) => {
+      service.closeBrowser(ctx.browsers[id]);
+      delete ctx.browsers[id];
       return {};
     }),
   closeBrowsers: procedure
     .meta({ openapi: { method: "DELETE", path: "/browsers" } })
     .input(z.undefined())
     .output(z.object({}))
-    .query(() => {
-      service.closeBrowsers();
+    .query(({ctx}) => {
+      service.closeBrowsers(Object.values(ctx.browsers));
+      ctx.browsers = {};
       return {};
     })
 });

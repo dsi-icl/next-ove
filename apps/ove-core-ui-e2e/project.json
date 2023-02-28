@@ -1,13 +1,13 @@
 {
-  "name": "core-ui-e2e",
+  "name": "ove-core-ui-e2e",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "/src",
+  "sourceRoot": "apps/ove-core-ui-e2e/src",
   "projectType": "application",
   "targets": {
     "e2e": {
       "executor": "@mands/nx-playwright:playwright-executor",
       "options": {
-        "e2eFolder": "apps/core-ui-e2e",
+        "e2eFolder": "apps/ove-core-ui-e2e",
         "devServerTarget": "core-ui:serve",
         "packageRunner": "yarn"
       },
@@ -22,7 +22,7 @@
       "options": {
         "commands": [
           {
-            "command": "tsc --build --force --verbose apps/core-ui-e2e/tsconfig.json"
+            "command": "tsc --build --force --verbose apps/ove-core-ui-e2e/tsconfig.json"
           }
         ]
       }
@@ -31,10 +31,10 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/core-ui-e2e/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": ["apps/ove-core-ui-e2e/**/*.{ts,tsx,js,jsx}"]
       }
     }
   },
   "tags": [],
-  "implicitDependencies": ["core-ui"]
+  "implicitDependencies": ["ove-core-ui"]
 }

@@ -1,32 +1,32 @@
-import { BrowserControl } from "../types";
-import { state } from "../state";
-import { createWindow } from "../../electron";
+import { BrowserControl, Browser } from "./types";
+import { DesktopCapturerSource } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import SystemInfo from "./system-info";
-import { screenshot as takeScreenshots } from "../../electron";
 import { Systeminformation } from "systeminformation";
 import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
 
-export const addBrowser = (browserId: number) => {
-  state.browsers[browserId] = {
-    controller: new AbortController()
-  };
+const controller = <{ createWindow: ((displayId?: number) => void) | null, takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null }>{
+  createWindow: null,
+  takeScreenshots: null
 };
 
-export const removeBrowser = (browserId: number) => {
-  state.browsers[browserId].controller.abort();
-  delete state.browsers[browserId];
+const init = (createWindow: (displayId?: number) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => {
+  controller.createWindow = createWindow;
+  controller.takeScreenshots = takeScreenshots;
 };
 
-const openBrowser = (displayId?: number): number => {
-  const browserId = Object.keys(state.browsers).length;
-  addBrowser(browserId);
-  createWindow(displayId);
-  return browserId;
+export const closeBrowser = (browser: Browser) => {
+  browser.controller.abort();
+};
+
+const openBrowser = (displayId?: number): void => {
+  if (controller.createWindow === null) return;
+  controller.createWindow(displayId);
 };
 
 const screenshot = async (method: string, screens: number[], format?: string): Promise<(Buffer | string)[]> => {
+  if (controller.takeScreenshots === null) throw new Error("Controller not initialised for managing browsers");
   let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).general.displays;
   if (screens.length !== 0) {
     displays = displays.filter(({ displayId }) => screens.includes(Number(displayId)));
@@ -36,7 +36,7 @@ const screenshot = async (method: string, screens: number[], format?: string): P
     throw new Error("No displays with matching names found. To view available displays please use the /info?type=graphics endpoint");
   }
 
-  const screenshots = await takeScreenshots();
+  const screenshots = await controller.takeScreenshots();
   return await Promise.all(displays.map(async ({ displayId, serial }) => {
     const image = screenshots.find(({ display_id }) => display_id === displayId)?.thumbnail.toDataURL();
 
@@ -62,24 +62,13 @@ const screenshot = async (method: string, screens: number[], format?: string): P
   }));
 };
 
-const closeBrowser = removeBrowser;
 
-const getBrowserStatus = (browserId: number): { status: string } => {
-  if (Object.keys(state.browsers).includes(browserId.toString())) {
-    return { status: "open" };
-  } else {
-    return { status: "closed" };
-  }
-};
-
-const getBrowsers = (): number[] => Object.keys(state.browsers).map(parseInt);
-const closeBrowsers = () => Object.keys(state.browsers).forEach(key => removeBrowser(parseInt(key)));
+const closeBrowsers = (browsers: Browser[]) => browsers.forEach(browser => closeBrowser(browser));
 
 export default (): BrowserControl => ({
+  init,
   openBrowser,
   closeBrowser,
-  getBrowserStatus,
-  getBrowsers,
   closeBrowsers,
   screenshot
 });

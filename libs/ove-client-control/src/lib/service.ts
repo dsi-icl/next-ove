@@ -1,13 +1,11 @@
-import si from "./features/system-info";
-import sc from "./features/system-control";
-import bc from "./features/browser-control";
+import si from "./system-info";
+import sc from "./system-control";
+import bc from "./browser-control";
 
 const SystemInfo = si();
 const SystemControl = sc();
 const BrowserControl = bc();
 
-const getBrowsers = BrowserControl.getBrowsers;
-const getBrowserStatus = BrowserControl.getBrowserStatus;
 const getInfo = async (type?: string): Promise<object> => {
   switch (type) {
     case "system":
@@ -56,12 +54,13 @@ const openBrowser = BrowserControl.openBrowser;
 const closeBrowser = BrowserControl.closeBrowser;
 const closeBrowsers = BrowserControl.closeBrowsers;
 
+const init = BrowserControl.init;
+
 export default () => ({
+  init,
   getWelcome,
   getStatus,
   getInfo,
-  getBrowserStatus,
-  getBrowsers,
   shutdown,
   reboot,
   execute,

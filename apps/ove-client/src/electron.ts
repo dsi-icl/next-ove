@@ -1,6 +1,6 @@
 import { app, BrowserWindow, desktopCapturer } from "electron";
 import App from "./app/app";
-import { logger } from "./control/utils";
+import { logger } from "./utils";
 import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
@@ -10,6 +10,8 @@ export const createWindow = (displayId?: number) => {
   logger.info("Creating Window");
   App.main(app, BrowserWindow, displayId);
 };
+
+export const takeScreenshots = async () => desktopCapturer.getSources({ types: ["screen"] });
 
 export const initializeElectron = () => {
   if (SquirrelEvents.handleEvents()) {
@@ -26,5 +28,3 @@ export const initializeElectronEvents = () => {
     initUpdates();
   }
 };
-
-export const screenshot = async () => desktopCapturer.getSources({ types: ["screen"] });

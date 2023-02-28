@@ -3,17 +3,19 @@
 import cors from "cors";
 import * as path from "path";
 import express from "express";
-import { appRouter } from "./router";
-import { createContext } from "./context";
+import { appRouter, init } from "@ove/ove-client-router";
+import { createContext } from "@ove/ove-client-router";
 // @ts-ignore
 import * as swaggerUi from "swagger-ui-express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
-import { logger } from "./utils";
+import { logger } from "../../utils";
+import { createWindow, takeScreenshots } from "../../electron";
 
 export const start = () => {
   const app = express();
+  init(createWindow, takeScreenshots);
 
   app.use(cors({ origin: "*" }));
 

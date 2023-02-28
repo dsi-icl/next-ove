@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { SystemControl } from "../types";
+import { SystemControl } from "./types";
 
 const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"].includes(process.platform);
 const isWindows = () => process.platform === "win32";

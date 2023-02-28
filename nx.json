@@ -36,7 +36,7 @@
     ],
     "sharedGlobals": ["{workspaceRoot}/babel.config.json"]
   },
-  "defaultProject": "core",
+  "defaultProject": "ove-core",
   "generators": {
     "@nrwl/react": {
       "application": {

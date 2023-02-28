@@ -2,7 +2,7 @@ import { BrowserWindow, screen } from "electron";
 import { environment } from "../environments/environment";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { logger } from "../control/utils";
+import { logger } from "../utils";
 
 // noinspection JSUnusedLocalSymbols
 export default class App {

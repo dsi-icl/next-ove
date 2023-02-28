@@ -1,4 +1,6 @@
-import type {GraphicsData} from "systeminformation";
+import { Systeminformation } from "systeminformation";
+import GraphicsData = Systeminformation.GraphicsData;
+import { DesktopCapturerSource } from "electron";
 
 export type SystemInfo = {
   general: () => {
@@ -25,7 +27,7 @@ export type SystemInfo = {
   battery: () => Promise<{
     general: object
   }>
-  graphics: () => Promise<GraphicsData>
+  graphics: () => Promise<{general: GraphicsData}>
   os: () => Promise<{
     general: object
     uuid: object
@@ -89,11 +91,10 @@ export type SystemControl = {
 };
 
 export type BrowserControl = {
-  openBrowser: (displayId?: number) => number
-  getBrowserStatus: (browserId: number) => { status: string }
-  closeBrowser: (browserId: number) => void
-  getBrowsers: () => number[]
-  closeBrowsers: () => void
+  init: (createWindow: (displayId?: number) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => void
+  openBrowser: (displayId?: number) => void
+  closeBrowser: (browser: Browser) => void
+  closeBrowsers: (browsers: Browser[]) => void
   screenshot: (method: string, screens: number[], format?: string) => Promise<(Buffer | string)[]>
 };
 
@@ -101,29 +102,3 @@ export type Browser = {
   controller: AbortController
   client?: object
 };
-
-export type State = {
-  browsers: { [browserId: number]: Browser }
-};
-
-export type Display = {
-  vendor: string,
-  vendorId: string,
-  model: string,
-  productionYear: string,
-  serial: string,
-  displayId: string,
-  main: boolean,
-  builtin: boolean,
-  connection: string,
-  sizeX: number | null,
-  sizeY: number | null,
-  pixelDepth: number | null,
-  resolutionX: number | null,
-  resolutionY: number | null,
-  currentResX: number,
-  currentResY: number,
-  positionX: number,
-  positionY: number,
-  currentRefreshRate: number
-}

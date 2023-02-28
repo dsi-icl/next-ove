@@ -33,12 +33,12 @@ export const hardwareRouter = router({
       return service.getWelcome();
     }),
   getDevicesForBridge: procedure
-    .meta({openapi: {method: "GET", path: "/hardware/devices/{ove-bridge}"}})
-    .input(z.object({bridge: z.string()}))
+    .meta({openapi: {method: "GET", path: "/hardware/devices/{bridgeId}"}})
+    .input(z.object({bridgeId: z.string()}))
     .output(z.array(z.string()))
-    .query(async ({input: { bridge }}) =>
+    .query(async ({input: { bridgeId }}) =>
       new Promise((resolve, reject) => {
-        state.clients[bridge].emit("getDevices", (err, response) => {
+        state.clients[bridgeId].emit("getDevices", (err, response) => {
           if (err) {
             reject(err);
           }
@@ -48,12 +48,12 @@ export const hardwareRouter = router({
   getDevices: procedure
     .meta({openapi: {method: "GET", path: "/hardware/devices"}})
     .input(z.void())
-    .output(z.array(z.object({bridge: z.string(), response: z.array(DeviceSchema)})))
+    .output(z.array(z.object({bridgeId: z.string(), response: z.array(DeviceSchema)})))
     .query(async () => new Promise((resolve) => {
       io.timeout(5000).emit("getDevices", (_, response) => {
         console.log(JSON.stringify(response))
         console.log(z.array(z.object({bridge: z.string(), response: z.array(DeviceSchema)})).parse(response))
         resolve(response);
-      })
+      });
     }))
 });

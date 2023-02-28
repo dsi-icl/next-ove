@@ -16,6 +16,9 @@
     "baseUrl": ".",
     "paths": {
       "@ove/nx-electron-vite": ["libs/nx-electron-vite/src/index.ts"],
+      "@ove/ove-client-control": ["libs/ove-client-control/src/index.ts"],
+      "@ove/ove-client-display": ["libs/ove-client-display/src/index.ts"],
+      "@ove/ove-client-router": ["libs/ove-client-router/src/index.ts"],
       "@ove/ove-data": ["libs/ove-data/src/index.ts"],
       "@ove/ove-types": ["libs/ove-types/src/index.ts"],
       "@ove/ove-utils": ["libs/ove-utils/src/index.ts"]

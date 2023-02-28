@@ -1,7 +1,7 @@
 {
-  "name": "core",
+  "name": "ove-core",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "/src",
+  "sourceRoot": "apps/ove-core/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -10,10 +10,10 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/core",
-        "main": "apps/core/src/main.ts",
-        "tsConfig": "apps/core/tsconfig.app.json",
-        "assets": ["apps/core/src/assets"]
+        "outputPath": "dist/apps/ove-core",
+        "main": "apps/ove-core/src/main.ts",
+        "tsConfig": "apps/ove-core/tsconfig.app.json",
+        "assets": ["apps/ove-core/src/assets"]
       },
       "configurations": {
         "production": {
@@ -22,8 +22,8 @@
           "inspect": false,
           "fileReplacements": [
             {
-              "replace": "apps/core/src/environments/environment.ts",
-              "with": "apps/core/src/environments/environment.prod.ts"
+              "replace": "apps/ove-core/src/environments/environment.ts",
+              "with": "apps/ove-core/src/environments/environment.prod.ts"
             }
           ]
         }
@@ -32,11 +32,11 @@
     "serve": {
       "executor": "@nrwl/js:node",
       "options": {
-        "buildTarget": "core:build"
+        "buildTarget": "ove-core:build"
       },
       "configurations": {
         "production": {
-          "buildTarget": "core:build:production"
+          "buildTarget": "ove-core:build:production"
         }
       }
     },
@@ -44,14 +44,14 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/core/**/*.ts"]
+        "lintFilePatterns": ["apps/ove-core/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/core/jest.config.ts",
+        "jestConfig": "apps/ove-core/jest.config.ts",
         "passWithNoTests": true
       }
     }

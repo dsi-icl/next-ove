@@ -1,8 +1,8 @@
 import { wake } from "../utils/wol";
 import { DeviceResult, DeviceService } from "../utils/types";
-import { appRouter } from "../../../ove-client/src/control/router";
+import { appRouter } from "@ove/ove-client-router";
 
-const trpc = appRouter.createCaller({});
+const trpc = appRouter.createCaller({browsers: {}});
 
 const reboot = async (): Promise<DeviceResult> => trpc.reboot();
 

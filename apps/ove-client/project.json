@@ -66,17 +66,6 @@
         "jestConfig": "apps/ove-client/jest.config.js",
         "passWithNoTests": true
       }
-    },
-    "compile": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "nx run ove-client:build",
-          "electron-builder build --config .electron-builder.config.js --dir --config.asar=false"
-        ],
-        "cwd": "apps/ove-client",
-        "parallel": false
-      }
     }
   }
 }
