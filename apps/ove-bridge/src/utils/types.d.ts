@@ -1,23 +1,18 @@
 import { z } from "zod";
-import { DeviceIDSchema, DeviceSchema } from "./schemas";
-
-export type Device = z.infer<typeof DeviceSchema>;
-
-export type DeviceID = z.infer<typeof DeviceIDSchema>;
+import { Device, InfoSchema, Status } from "@ove/ove-types";
+import { MDCInfo } from "../app/mdc-service";
 
 export type DeviceService = {
-  reboot: () => Promise<DeviceResult>
-  shutdown: () => Promise<DeviceResult>
-  start: (ip: string, port: number, mac: string) => Promise<DeviceResult>
-  info: (type: string | undefined) => Promise<DeviceResult>
-  status: (ip: string, port: number) => Promise<DeviceResult>
-  execute: (command: string) => Promise<DeviceResult>
-  screenshot: (method: string, format: string, screens: number[]) => Promise<DeviceResult>
-  openBrowser: (displayId: number) => Promise<DeviceResult>
-  getBrowserStatus: (id: number) => Promise<DeviceResult>
-  closeBrowser: (id: number) => Promise<DeviceResult>
-  closeBrowsers: () => Promise<DeviceResult>
-  getBrowsers: () => Promise<DeviceResult>
+  reboot: (device: Device) => Promise<string>
+  shutdown: (device: Device) => Promise<string>
+  start: (device: Device) => Promise<boolean | string>
+  info: (device: Device, type?: string) => Promise<z.infer<typeof InfoSchema> | MDCInfo>
+  status: (device: Device) => Promise<{ status: string }>
+  execute: (device: Device, command: string) => Promise<string>
+  screenshot: (device: Device, method: string, format: string, screens: number[]) => Promise<string[]>
+  openBrowser: (device: Device, displayId: number) => Promise<number>
+  getBrowserStatus: (device: Device, id: number) => Promise<Status>
+  closeBrowser: (device: Device, id: number) => Promise<Status>
+  closeBrowsers: (device: Device) => Promise<Status>
+  getBrowsers: (device: Device) => Promise<number[]>
 };
-
-export type DeviceResult = object | boolean | number

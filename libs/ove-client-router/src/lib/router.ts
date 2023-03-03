@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Service } from "@ove/ove-client-control";
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
+import { InfoSchema } from "@ove/ove-types";
 
 const service = Service.default();
 
@@ -12,7 +13,7 @@ export const init = (createWindow: (displayId?: number) => void, takeScreenshots
 export const appRouter = router({
   home: procedure
     .meta({ openapi: { method: "GET", path: "/" } })
-    .input(z.undefined())
+    .input(z.void())
     .output(z.object({
       message: z.string()
     }))
@@ -21,7 +22,7 @@ export const appRouter = router({
     }),
   getStatus: procedure
     .meta({ openapi: { method: "GET", path: "/status" } })
-    .input(z.undefined())
+    .input(z.void())
     .output(z.object({
       status: z.string()
     }))
@@ -33,9 +34,9 @@ export const appRouter = router({
     .input(z.object({
       type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker)$/gi).optional()
     }))
-    .output(z.any())
-    .query(({ input: { type } }) => {
-      return service.getInfo(type);
+    .output(InfoSchema)
+    .query(async ({ input: { type } }) => {
+      return await service.getInfo(type);
     }),
   getBrowserStatus: procedure
     .meta({ openapi: { method: "GET", path: "/browser/{id}/status" } })
@@ -59,26 +60,26 @@ export const appRouter = router({
     }),
   shutdown: procedure
     .meta({ openapi: { method: "POST", path: "/shutdown" } })
-    .input(z.undefined())
-    .output(z.any())
+    .input(z.void())
+    .output(z.string())
     .query(() => {
-      return service.shutdown();
+      return JSON.stringify(service.shutdown().toJSON());
     }),
   reboot: procedure
     .meta({ openapi: { method: "POST", path: "/reboot" } })
-    .input(z.undefined())
-    .output(z.any())
-    .query(() => {
-      return service.reboot();
+    .input(z.void())
+    .output(z.string())
+    .query(async () => {
+      return JSON.stringify(service.reboot().toJSON());
     }),
   execute: procedure
     .meta({ openapi: { method: "POST", path: "/execute" } })
     .input(z.object({
       command: z.string()
     }))
-    .output(z.any())
+    .output(z.string())
     .query(({ input: { command } }) => {
-      return service.execute(command);
+      return JSON.stringify(service.execute(command).toJSON());
     }),
   screenshot: procedure
     .meta({ openapi: { method: "POST", path: "/screenshot" } })
@@ -87,7 +88,7 @@ export const appRouter = router({
       screens: z.array(z.number()),
       format: z.string().optional()
     }))
-    .output(z.any())
+    .output(z.array(z.string()))
     .query(({ input }) => {
       if (input.method === "upload") {
         throw new Error("File upload is not currently implemented, please use the 'local' or 'return' methods");

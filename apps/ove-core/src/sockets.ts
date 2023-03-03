@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import { ServerToClientEvents, ClientToServerEvents } from "../../../libs/ove-types/src/lib/hardware";
+import { ServerToClientEvents, ClientToServerEvents } from "@ove/ove-types";
 import { logger, server } from "./app";
 
 export let io: Server | undefined;

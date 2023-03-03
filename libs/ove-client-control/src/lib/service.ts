@@ -1,12 +1,14 @@
 import si from "./system-info";
 import sc from "./system-control";
 import bc from "./browser-control";
+import { InfoSchema } from "@ove/ove-types";
+import {z} from "zod";
 
 const SystemInfo = si();
 const SystemControl = sc();
 const BrowserControl = bc();
 
-const getInfo = async (type?: string): Promise<object> => {
+const getInfo = async (type?: string): Promise<z.infer<typeof InfoSchema>> => {
   switch (type) {
     case "system":
       return await SystemInfo.system();

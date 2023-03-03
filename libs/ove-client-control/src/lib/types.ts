@@ -1,87 +1,33 @@
-import { Systeminformation } from "systeminformation";
-import GraphicsData = Systeminformation.GraphicsData;
 import { DesktopCapturerSource } from "electron";
+import {z} from "zod";
+import {
+  AudioSchema,
+  BatterySchema, BluetoothSchema,
+  CpuSchema, DockerSchema, FsSchema,
+  GeneralSchema,
+  GraphicsSchema,
+  MemorySchema, NetworkSchema,
+  OsSchema, PrinterSchema, ProcessesSchema,
+  SystemSchema, UsbSchema, WifiSchema
+} from "@ove/ove-types";
 
 export type SystemInfo = {
-  general: () => {
-    version: string,
-    time: object
-  }
-  system: () => Promise<{
-    general: object
-    bios: object
-    baseboard: object
-    chassis: object
-  }>
-  cpu: () => Promise<{
-    general: object
-    flags: string,
-    cache: object
-    currentSpeed: object
-    temperature: object
-  }>
-  memory: () => Promise<{
-    general: object
-    layout: object[]
-  }>
-  battery: () => Promise<{
-    general: object
-  }>
-  graphics: () => Promise<{general: GraphicsData}>
-  os: () => Promise<{
-    general: object
-    uuid: object
-    versions: object
-    shell: string
-    users: object[]
-  }>
-  processes: () => Promise<{
-    currentLoad: object,
-    fullLoad: number
-    processes: object
-  }>
-  fs: () => Promise<{
-    diskLayout: object[]
-    blockDevices: object[]
-    disksIO: object
-    fsSize: object[]
-    fsOpenFiles: object[]
-    fsStats: object
-  }>
-  usb: () => Promise<{
-    general: object[]
-  }>
-  printer: () => Promise<{
-    general: object[]
-  }>
-  audio: () => Promise<{
-    general: object[]
-  }>
-  network: () => Promise<{
-    interfaces: object[]
-    interfaceDefault: string
-    gatewayDefault: string
-    stats: object[]
-    connections: object[]
-    inetChecksite: object
-    inetLatency: number
-  }>
-  wifi: () => Promise<{
-    networks: object[]
-    interfaces: object[]
-    connections: object[]
-  }>
-  bluetooth: () => Promise<{
-    devices: object[]
-  }>
-  docker: () => Promise<{
-    general: object
-    images: object[]
-    containers: object[]
-    containerStats: object[]
-    containerProcesses: object[]
-    volumes: object[]
-  }>
+  general: () => z.infer<typeof GeneralSchema>
+  system: () => Promise<z.infer<typeof SystemSchema>>
+  cpu: () => Promise<z.infer<typeof CpuSchema>>
+  memory: () => Promise<z.infer<typeof MemorySchema>>
+  battery: () => Promise<z.infer<typeof BatterySchema>>
+  graphics: () => Promise<z.infer<typeof GraphicsSchema>>
+  os: () => Promise<z.infer<typeof OsSchema>>
+  processes: () => Promise<z.infer<typeof ProcessesSchema>>
+  fs: () => Promise<z.infer<typeof FsSchema>>
+  usb: () => Promise<z.infer<typeof UsbSchema>>
+  printer: () => Promise<z.infer<typeof PrinterSchema>>
+  audio: () => Promise<z.infer<typeof AudioSchema>>
+  network: () => Promise<z.infer<typeof NetworkSchema>>
+  wifi: () => Promise<z.infer<typeof WifiSchema>>
+  bluetooth: () => Promise<z.infer<typeof BluetoothSchema>>
+  docker: () => Promise<z.infer<typeof DockerSchema>>
 };
 
 export type SystemControl = {
@@ -95,7 +41,7 @@ export type BrowserControl = {
   openBrowser: (displayId?: number) => void
   closeBrowser: (browser: Browser) => void
   closeBrowsers: (browsers: Browser[]) => void
-  screenshot: (method: string, screens: number[], format?: string) => Promise<(Buffer | string)[]>
+  screenshot: (method: string, screens: number[], format?: string) => Promise<string[]>
 };
 
 export type Browser = {

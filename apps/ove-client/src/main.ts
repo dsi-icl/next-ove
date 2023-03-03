@@ -1,4 +1,4 @@
-import { start } from "./app/control/control-server";
+import { start } from "./server";
 import { initializeElectron, initializeElectronEvents } from "./electron";
 
 start();

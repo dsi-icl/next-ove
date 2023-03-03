@@ -1,58 +1,62 @@
-import { DeviceResult, DeviceService } from "../utils/types";
+// noinspection DuplicatedCode
 
-const reboot = async (): Promise<DeviceResult> => {
+import { DeviceService } from "../utils/types";
+
+const reboot = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const shutdown = async (): Promise<DeviceResult> => {
+const shutdown = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const start = async (): Promise<DeviceResult> => {
+const start = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const info = async (): Promise<DeviceResult> => ({});
+const info = async () => {
+  throw new Error();
+};
 
-const status = async (): Promise<DeviceResult> => {
+const status = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const execute = async (): Promise<DeviceResult> => {
+const execute = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const screenshot = async (): Promise<DeviceResult> => {
+const screenshot = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const openBrowser = async (): Promise<DeviceResult> => {
+const openBrowser = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const getBrowserStatus = async (): Promise<DeviceResult> => {
+const getBrowserStatus = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const closeBrowser = async (): Promise<DeviceResult> => {
+const closeBrowser = async () => {
   // TODO: implement
-  return {error: "Not Implemented"};
+  throw new Error();
 };
 
-const closeBrowsers = async (): Promise<DeviceResult> => {
-  return {error: "Not Implemented"}
+const closeBrowsers = async () => {
+  throw new Error();
 };
 
-const getBrowsers = async (): Promise<DeviceResult> => {
-  return {error: "Not Implemented"};
+const getBrowsers = async () => {
+  throw new Error();
 };
 
 const ProjectorService: DeviceService = {

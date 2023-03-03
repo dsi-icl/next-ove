@@ -1,56 +1,59 @@
 // noinspection DuplicatedCode
 
-import { DeviceResult, DeviceService } from "../utils/types";
-import { getStatus } from "./features/mdc";
+import { DeviceService } from "../utils/types";
+import * as service from "./features/mdc";
+import { Device } from "@ove/ove-types";
 
-const reboot = async (): Promise<DeviceResult> => {
+const reboot = async () => {
   // TODO: implement
-  return { error: "Not Implemented" };
+  throw new Error();
 };
 
-const shutdown = async (): Promise<DeviceResult> => {
-  // TODO: implement
-  return { error: "Not Implemented" };
+const shutdown = async ({ip, port}: Device) => await service.setPower(0x01, ip, port, "off");
+
+const start = async ({ip, port}: Device) => await service.setPower(0x01, ip, port, "on");
+
+const info = async ({ip, port}: Device) => {
+  const power = await service.getPower(0x01, ip, port);
+  const volume = await service.getVolume(0x01, ip, port);
+
+  return {
+    power,
+    volume
+  };
 };
 
-const start = async (): Promise<DeviceResult> => {
-  // TODO: implement
-  return {};
+const status = async ({ip, port}: Device) => {
+  const status = await service.getStatus(0x01, ip, port);
+  return {status};
 };
 
-const info = async (): Promise<DeviceResult> => ({});
-
-const status = async (ip: string, port: number): Promise<DeviceResult> => {
-  getStatus(0x01, ip, port);
-  return {};
+const execute = async () => {
+  throw new Error();
 };
 
-const execute = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+const screenshot = async () => {
+  throw new Error();
 };
 
-const screenshot = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+const openBrowser = async () => {
+  throw new Error();
 };
 
-const openBrowser = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+const getBrowserStatus = async () => {
+  throw new Error();
 };
 
-const getBrowserStatus = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+const closeBrowser = async () => {
+  throw new Error();
 };
 
-const closeBrowser = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+const closeBrowsers = async () => {
+  throw new Error();
 };
 
-const closeBrowsers = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
-};
-
-const getBrowsers = async (): Promise<DeviceResult> => {
-  return { error: "Not Implemented" };
+const getBrowsers = async () => {
+  throw new Error();
 };
 
 const MDCService: DeviceService = {

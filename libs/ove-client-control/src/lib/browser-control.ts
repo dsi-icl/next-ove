@@ -25,7 +25,7 @@ const openBrowser = (displayId?: number): void => {
   controller.createWindow(displayId);
 };
 
-const screenshot = async (method: string, screens: number[], format?: string): Promise<(Buffer | string)[]> => {
+const screenshot = async (method: string, screens: number[], format?: string): Promise<string[]> => {
   if (controller.takeScreenshots === null) throw new Error("Controller not initialised for managing browsers");
   let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).general.displays;
   if (screens.length !== 0) {
