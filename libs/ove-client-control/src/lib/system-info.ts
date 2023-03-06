@@ -1,48 +1,55 @@
 import * as si from "systeminformation";
 import { SystemInfo } from "./types";
 
-const general = () => ({ version: si.version(), time: si.time() });
+const general = () => ({ version: si.version(), time: si.time(), type: "general" as const });
 
 const system = async () => ({
-  general: await si.system(),
+  system: await si.system(),
   bios: await si.bios(),
   baseboard: await si.baseboard(),
-  chassis: await si.chassis()
+  chassis: await si.chassis(),
+  type: "system" as const
 });
 
 const cpu = async () => ({
-  general: await si.cpu(),
+  cpu: await si.cpu(),
   flags: await si.cpuFlags(),
   cache: await si.cpuCache(),
   currentSpeed: await si.cpuCurrentSpeed(),
-  temperature: await si.cpuTemperature()
+  temperature: await si.cpuTemperature(),
+  type: "cpu" as const
 });
 
 const memory = async () => ({
-  general: await si.mem(),
-  layout: await si.memLayout()
+  memory: await si.mem(),
+  layout: await si.memLayout(),
+  type: "memory" as const
 });
 
 const battery = async () => ({
-  general: await si.battery()
+  battery: await si.battery(),
+  type: "battery" as const
 });
 
 const graphics = async () => ({
-  general: await si.graphics()
+  graphics: await si.graphics(),
+  type: "graphics" as const
 });
 
 const os = async () => ({
-  general: await si.osInfo(),
+  os: await si.osInfo(),
   uuid: await si.uuid(),
   versions: await si.versions(),
   shell: await si.shell(),
-  users: await si.users()
+  users: await si.users(),
+  type: "os" as const
 });
 
 const processes = async () => ({
   currentLoad: await si.currentLoad(),
   fullLoad: await si.fullLoad(),
-  processes: await si.processes()
+  processes: await si.processes(),
+  type: "processes" as const
 });
 
 const fs = async () => ({
@@ -51,19 +58,23 @@ const fs = async () => ({
   disksIO: await si.disksIO(),
   fsSize: await si.fsSize(),
   fsOpenFiles: await si.fsOpenFiles(),
-  fsStats: await si.fsStats()
+  fsStats: await si.fsStats(),
+  type: "fs" as const
 });
 
 const usb = async () => ({
-  general: await si.usb()
+  usb: await si.usb(),
+  type: "usb" as const
 });
 
 const printer = async () => ({
-  general: await si.printer()
+  printer: await si.printer(),
+  type: "printer" as const
 });
 
 const audio = async () => ({
-  general: await si.audio()
+  audio: await si.audio(),
+  type: "audio" as const
 });
 
 const network = async () => ({
@@ -73,26 +84,30 @@ const network = async () => ({
   stats: await si.networkStats(),
   connections: await si.networkConnections(),
   inetChecksite: await si.inetChecksite("www.google.com"),
-  inetLatency: await si.inetLatency()
+  inetLatency: await si.inetLatency(),
+  type: "network" as const
 });
 
 const wifi = async () => ({
   networks: await si.wifiNetworks(),
   interfaces: await si.wifiInterfaces(),
-  connections: await si.wifiConnections()
+  connections: await si.wifiConnections(),
+  type: "wifi" as const
 });
 
 const bluetooth = async () => ({
-  devices: await si.bluetoothDevices()
+  devices: await si.bluetoothDevices(),
+  type: "bluetooth" as const
 });
 
 const docker = async () => ({
-  general: await si.dockerInfo(),
+  docker: await si.dockerInfo(),
   images: await si.dockerImages(),
   containers: await si.dockerContainers(),
   containerStats: await si.dockerContainerStats(),
   containerProcesses: await si.dockerContainerProcesses(),
-  volumes: await si.dockerVolumes()
+  volumes: await si.dockerVolumes(),
+  type: "docker" as const
 });
 
 export default (): SystemInfo => ({

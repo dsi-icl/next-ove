@@ -32,12 +32,10 @@ export const appRouter = router({
   getInfo: procedure
     .meta({ openapi: { method: "GET", path: "/info" } })
     .input(z.object({
-      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker)$/gi).optional()
-    }))
+      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker)$/gi)
+    }).optional())
     .output(InfoSchema)
-    .query(async ({ input: { type } }) => {
-      return await service.getInfo(type);
-    }),
+    .query(async ({ input }) => await service.getInfo(input?.type)),
   getBrowserStatus: procedure
     .meta({ openapi: { method: "GET", path: "/browser/{id}/status" } })
     .input(z.object({

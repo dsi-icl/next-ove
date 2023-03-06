@@ -3,49 +3,57 @@ import { OVEException, Status } from "./ove-types";
 
 export const GeneralSchema = z.object({
   version: z.string(),
-  time: z.any()
+  time: z.any(),
+  type: z.literal("general")
 });
 
 export const SystemSchema = z.object({
-  general: z.any(),
+  system: z.any(),
   bios: z.any(),
   baseboard: z.any(),
-  chassis: z.any()
+  chassis: z.any(),
+  type: z.literal("system")
 });
 
 export const CpuSchema = z.object({
-  general: z.any(),
+  cpu: z.any(),
   flags: z.string(),
   cache: z.any(),
   currentSpeed: z.any(),
-  temperature: z.any()
+  temperature: z.any(),
+  type: z.literal("cpu")
 });
 
 export const MemorySchema = z.object({
-  general: z.any(),
-  layout: z.array(z.any())
+  memory: z.any(),
+  layout: z.array(z.any()),
+  type: z.literal("memory")
 });
 
 export const BatterySchema = z.object({
-  general: z.any()
+  battery: z.any(),
+  type: z.literal("battery")
 });
 
 export const GraphicsSchema = z.object({
-  general: z.any()
+  graphics: z.any(),
+  type: z.literal("graphics")
 });
 
 export const OsSchema = z.object({
-  general: z.any(),
+  os: z.any(),
   uuid: z.any(),
   versions: z.any(),
   shell: z.string(),
-  users: z.array(z.any())
+  users: z.array(z.any()),
+  type: z.literal("os")
 });
 
 export const ProcessesSchema = z.object({
   currentLoad: z.any(),
   fullLoad: z.number(),
-  processes: z.any()
+  processes: z.any(),
+  type: z.literal("processes")
 });
 
 export const FsSchema = z.object({
@@ -54,19 +62,23 @@ export const FsSchema = z.object({
   disksIO: z.any(),
   fsSize: z.array(z.any()),
   fsOpenFiles: z.array(z.any()),
-  fsStats: z.any()
+  fsStats: z.any(),
+  type: z.literal("fs")
 });
 
 export const UsbSchema = z.object({
-  general: z.array(z.any())
+  usb: z.array(z.any()),
+  type: z.literal("usb")
 });
 
 export const PrinterSchema = z.object({
-  general: z.array(z.any())
+  printer: z.array(z.any()),
+  type: z.literal("printer")
 });
 
 export const AudioSchema = z.object({
-  general: z.array(z.any())
+  audio: z.array(z.any()),
+  type: z.literal("audio")
 });
 
 export const NetworkSchema = z.object({
@@ -76,29 +88,33 @@ export const NetworkSchema = z.object({
   stats: z.array(z.any()),
   connections: z.array(z.any()),
   inetChecksite: z.any(),
-  inetLatency: z.number()
+  inetLatency: z.number(),
+  type: z.literal("network")
 });
 
 export const WifiSchema = z.object({
   networks: z.array(z.any()),
   interfaces: z.array(z.any()),
-  connections: z.array(z.any())
+  connections: z.array(z.any()),
+  type: z.literal("wifi")
 });
 
 export const BluetoothSchema = z.object({
-  devices: z.array(z.any())
+  devices: z.array(z.any()),
+  type: z.literal("bluetooth")
 });
 
 export const DockerSchema = z.object({
-  general: z.any(),
+  docker: z.any(),
   images: z.array(z.any()),
   containers: z.array(z.any()),
   containerStats: z.array(z.any()),
   containerProcesses: z.array(z.any()),
-  volumes: z.array(z.any())
+  volumes: z.array(z.any()),
+  type: z.literal("docker")
 });
 
-export const InfoSchema = z.union([
+export const InfoSchema = z.discriminatedUnion("type", [
   GeneralSchema,
   SystemSchema,
   CpuSchema,

@@ -1,7 +1,7 @@
-import { oveTypes } from './ove-types';
+import * as Types from './ove-types';
 
 describe('oveTypes', () => {
   it('should work', () => {
-    expect(oveTypes()).toEqual('ove-types');
+    expect(Types).toEqual('ove-types');
   });
 });

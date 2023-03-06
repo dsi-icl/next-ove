@@ -27,7 +27,7 @@ const openBrowser = (displayId?: number): void => {
 
 const screenshot = async (method: string, screens: number[], format?: string): Promise<string[]> => {
   if (controller.takeScreenshots === null) throw new Error("Controller not initialised for managing browsers");
-  let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).general.displays;
+  let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).graphics.displays;
   if (screens.length !== 0) {
     displays = displays.filter(({ displayId }) => screens.includes(Number(displayId)));
   }
