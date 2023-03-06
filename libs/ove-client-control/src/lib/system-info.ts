@@ -45,12 +45,19 @@ const os = async () => ({
   type: "os" as const
 });
 
-const processes = async () => ({
-  currentLoad: await si.currentLoad(),
-  fullLoad: await si.fullLoad(),
-  processes: await si.processes(),
-  type: "processes" as const
-});
+const processes = async () => {
+  const processes = await si.processes();
+  const services = await si.services(processes.list.map(x => x.name).join(",")); //Promise.all(processes.list.map(async x => (await si.services(x.name))[0]));
+  const processLoad = await si.processLoad(processes.list.map(x => x.name).join(",")); // Promise.all(processes.list.map(async x => (await si.processLoad(x.name))[0]));
+  return ({
+    currentLoad: await si.currentLoad(),
+    fullLoad: await si.fullLoad(),
+    processes: processes,
+    services: services,
+    processLoad: processLoad,
+    type: "processes" as const
+  });
+};
 
 const fs = async () => ({
   diskLayout: await si.diskLayout(),
@@ -110,6 +117,11 @@ const docker = async () => ({
   type: "docker" as const
 });
 
+const vbox = async () => ({
+  vbox: await si.vboxInfo(),
+  type: "vbox" as const
+});
+
 export default (): SystemInfo => ({
   general,
   system,
@@ -126,5 +138,6 @@ export default (): SystemInfo => ({
   network,
   wifi,
   bluetooth,
-  docker
+  docker,
+  vbox
 });

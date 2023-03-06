@@ -32,7 +32,7 @@ export const appRouter = router({
   getInfo: procedure
     .meta({ openapi: { method: "GET", path: "/info" } })
     .input(z.object({
-      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker)$/gi)
+      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker|vbox)$/gi)
     }).optional())
     .output(InfoSchema)
     .query(async ({ input }) => await service.getInfo(input?.type)),

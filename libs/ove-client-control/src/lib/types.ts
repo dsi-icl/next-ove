@@ -8,7 +8,7 @@ import {
   GraphicsSchema,
   MemorySchema, NetworkSchema,
   OsSchema, PrinterSchema, ProcessesSchema,
-  SystemSchema, UsbSchema, WifiSchema
+  SystemSchema, UsbSchema, VBoxSchema, WifiSchema
 } from "@ove/ove-types";
 
 export type SystemInfo = {
@@ -28,6 +28,7 @@ export type SystemInfo = {
   wifi: () => Promise<z.infer<typeof WifiSchema>>
   bluetooth: () => Promise<z.infer<typeof BluetoothSchema>>
   docker: () => Promise<z.infer<typeof DockerSchema>>
+  vbox: () => Promise<z.infer<typeof VBoxSchema>>
 };
 
 export type SystemControl = {

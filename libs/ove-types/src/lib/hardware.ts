@@ -53,6 +53,8 @@ export const ProcessesSchema = z.object({
   currentLoad: z.any(),
   fullLoad: z.number(),
   processes: z.any(),
+  services: z.any(),
+  processLoad: z.any(),
   type: z.literal("processes")
 });
 
@@ -61,7 +63,7 @@ export const FsSchema = z.object({
   blockDevices: z.array(z.any()),
   disksIO: z.any(),
   fsSize: z.array(z.any()),
-  fsOpenFiles: z.array(z.any()),
+  fsOpenFiles: z.any(),
   fsStats: z.any(),
   type: z.literal("fs")
 });
@@ -114,6 +116,11 @@ export const DockerSchema = z.object({
   type: z.literal("docker")
 });
 
+export const VBoxSchema = z.object({
+  vbox: z.any(),
+  type: z.literal("vbox")
+});
+
 export const InfoSchema = z.discriminatedUnion("type", [
   GeneralSchema,
   SystemSchema,
@@ -130,7 +137,8 @@ export const InfoSchema = z.discriminatedUnion("type", [
   NetworkSchema,
   WifiSchema,
   BluetoothSchema,
-  DockerSchema
+  DockerSchema,
+  VBoxSchema
 ]);
 
 export type Info = z.infer<typeof InfoSchema>;

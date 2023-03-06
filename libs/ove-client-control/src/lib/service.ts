@@ -40,6 +40,8 @@ const getInfo = async (type?: string): Promise<z.infer<typeof InfoSchema>> => {
       return await SystemInfo.bluetooth();
     case "docker":
       return await SystemInfo.docker();
+    case "vbox":
+      return await SystemInfo.vbox();
     default:
       return SystemInfo.general();
   }
