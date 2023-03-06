@@ -1,6 +1,25 @@
 import { z } from "zod";
-import { Device, InfoSchema, Status } from "@ove/ove-types";
-import { MDCInfo } from "../app/mdc-service";
+import { Device, InfoSchema, Status, MDCInfo } from "@ove/ove-types";
+
+export type MDCSource = {
+  UNKNOWN: number,
+  PC: number,
+  DVI: number,
+  DVI_VIDEO: number,
+  AV: number,
+  SVIDEO: number,
+  COMPONENT: number,
+  MAGICNET: number,
+  TV: number,
+  DTV: number,
+  HDMI1: number,
+  HDMI1_PC: number,
+  HDMI2: number,
+  HDMI2_PC: number,
+  DP: number,
+  DP2: number,
+  DP3: number
+};
 
 export type DeviceService = {
   reboot: (device: Device) => Promise<string>
@@ -15,4 +34,8 @@ export type DeviceService = {
   closeBrowser: (device: Device, id: number) => Promise<Status>
   closeBrowsers: (device: Device) => Promise<Status>
   getBrowsers: (device: Device) => Promise<number[]>
+  setVolume: (device: Device, volume: number) => Promise<string>
+  mute: (device: Device) => Promise<string>
+  unmute: (device: Device) => Promise<string>
+  setSource: (device: Device, source: keyof MDCSource) => Promise<string>
 };

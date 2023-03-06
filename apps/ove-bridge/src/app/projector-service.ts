@@ -59,6 +59,22 @@ const getBrowsers = async () => {
   throw new Error();
 };
 
+const setVolume = async () => {
+  throw new Error();
+};
+
+const setSource = async () => {
+  throw new Error();
+};
+
+const mute = async () => {
+  throw new Error();
+};
+
+const unmute = async () => {
+  throw new Error();
+};
+
 const ProjectorService: DeviceService = {
   reboot,
   shutdown,
@@ -71,7 +87,11 @@ const ProjectorService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   closeBrowsers,
-  getBrowsers
+  getBrowsers,
+  setVolume,
+  setSource,
+  mute,
+  unmute
 };
 
 export default ProjectorService;

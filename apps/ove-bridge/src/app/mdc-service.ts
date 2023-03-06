@@ -1,31 +1,37 @@
 // noinspection DuplicatedCode
 
-import { DeviceService } from "../utils/types";
+import { DeviceService, MDCSource } from "../utils/types";
 import * as service from "./features/mdc";
-import { Device } from "@ove/ove-types";
+import { Device, MDCInfo } from "@ove/ove-types";
 
-const reboot = async () => {
-  // TODO: implement
-  throw new Error();
+const reboot = async ({ ip, port }: Device): Promise<string> => {
+  await service.setPower(0x01, ip, port, "off");
+  return await new Promise(resolve => setTimeout(async () => resolve(await service.setPower(0x01, ip, port, "on")), 1000));
 };
 
-const shutdown = async ({ip, port}: Device) => await service.setPower(0x01, ip, port, "off");
+const shutdown = async ({ ip, port }: Device) => await service.setPower(0x01, ip, port, "off");
 
-const start = async ({ip, port}: Device) => await service.setPower(0x01, ip, port, "on");
+const start = async ({ ip, port }: Device) => await service.setPower(0x01, ip, port, "on");
 
-const info = async ({ip, port}: Device) => {
+const info = async ({ ip, port }: Device): Promise<MDCInfo> => {
   const power = await service.getPower(0x01, ip, port);
   const volume = await service.getVolume(0x01, ip, port);
+  const source = await service.getSource(0x01, ip, port);
+  const isMuted = await service.getIsMute(0x01, ip, port);
+  const model = await service.getModel(0x01, ip, port);
 
   return {
     power,
-    volume
+    volume,
+    source,
+    isMuted,
+    model
   };
 };
 
-const status = async ({ip, port}: Device) => {
+const status = async ({ ip, port }: Device) => {
   const status = await service.getStatus(0x01, ip, port);
-  return {status};
+  return { status };
 };
 
 const execute = async () => {
@@ -56,6 +62,14 @@ const getBrowsers = async () => {
   throw new Error();
 };
 
+const mute = async ({ip, port}: Device) => await service.setIsMute(0x01, ip, port, true);
+
+const unmute = async ({ip, port}: Device) => await service.setIsMute(0x01, ip, port, false);
+
+const setVolume = async ({ip, port}: Device, volume: number) => await service.setVolume(0x01, ip, port, volume);
+
+const setSource = async ({ip, port}: Device, source: keyof MDCSource) => await service.setSource(0x01, ip, port, source);
+
 const MDCService: DeviceService = {
   reboot,
   shutdown,
@@ -68,7 +82,11 @@ const MDCService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   closeBrowsers,
-  getBrowsers
+  getBrowsers,
+  mute,
+  unmute,
+  setVolume,
+  setSource,
 };
 
 export default MDCService;

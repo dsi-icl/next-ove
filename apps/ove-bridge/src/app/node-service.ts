@@ -54,6 +54,22 @@ const closeBrowsers = async (device: Device): Promise<Status> => {
 
 const getBrowsers = async (device: Device): Promise<number[]> => createClient(device).getBrowsers.query();
 
+const setVolume = async () => {
+  throw new Error();
+};
+
+const mute = async () => {
+  throw new Error();
+};
+
+const unmute = async () => {
+  throw new Error();
+};
+
+const setSource = async () => {
+  throw new Error();
+};
+
 const NodeService: DeviceService = {
   reboot,
   shutdown,
@@ -66,7 +82,11 @@ const NodeService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   getBrowsers,
-  closeBrowsers
+  closeBrowsers,
+  setVolume,
+  setSource,
+  mute,
+  unmute
 };
 
 export default NodeService;

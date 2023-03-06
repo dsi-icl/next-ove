@@ -5,17 +5,9 @@ import ProjectorService from "./projector-service";
 import * as Utils from "../utils/utils";
 import { Device } from "@ove/ove-types";
 
-export const getDevices = (tag?: string) => {
-  if (tag === undefined) {
-    return Utils.getDevices().filter(Utils.notEmpty);
-  } else {
-    return Utils.getDevices().filter(device => device.tags.includes(tag));
-  }
-};
+export const getDevices = (tag?: string): Device[] => Utils.getDevices().filter(device => tag === undefined || device.tags.includes(tag));
 
-export const getDevice = (did: string): Device | undefined => {
-  return Utils.getDevices().find(({ id }) => did === id);
-};
+export const getDevice = (did: string): Device | undefined => Utils.getDevices().find(({ id }) => did === id);
 
 export const getInfo = (device: Device, type?: string) => getServiceForProtocol(device.protocol).info(device, type);
 

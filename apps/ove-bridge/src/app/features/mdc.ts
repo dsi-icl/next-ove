@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
+import { MDCSource } from "../../utils/types";
 
-const sources = {
+export const sources: MDCSource = {
   UNKNOWN: 0x00,
   PC: 0x14,
   DVI: 0x18,
@@ -59,8 +60,8 @@ export const getIsMute = (id: number, ip: string, port: number) => {
   return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x13));
 };
 
-export const setSource = (id: number, ip: string, port: number, source: string) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x14, sources[source as keyof typeof sources]));
+export const setSource = (id: number, ip: string, port: number, source: keyof MDCSource) => {
+  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x14, sources[source]));
 };
 
 export const getSource = (id: number, ip: string, port: number) => {

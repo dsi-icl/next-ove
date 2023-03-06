@@ -121,7 +121,10 @@ export type Info = z.infer<typeof InfoSchema>;
 
 export const MDCInfoSchema = z.object({
   power: z.string(),
-  volume: z.string()
+  volume: z.string(),
+  isMuted: z.string(),
+  source: z.string(),
+  model: z.string()
 });
 
 export type MDCInfo = z.infer<typeof MDCInfoSchema>;
