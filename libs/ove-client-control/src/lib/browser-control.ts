@@ -25,7 +25,7 @@ const openBrowser = (displayId?: number): void => {
   controller.createWindow(displayId);
 };
 
-const screenshot = async (method: string, screens: number[], format?: string): Promise<string[]> => {
+const screenshot = async (method: string, screens: number[]): Promise<string[]> => {
   if (controller.takeScreenshots === null) throw new Error("Controller not initialised for managing browsers");
   let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).graphics.displays;
   if (screens.length !== 0) {
@@ -53,7 +53,7 @@ const screenshot = async (method: string, screens: number[], format?: string): P
         fs.mkdirSync(dir);
       }
 
-      const filename = `${serial}-${new Date().toISOString()}.${format || "jpg"}`;
+      const filename = `${serial}-${new Date().toISOString()}.png`;
       fs.createWriteStream(filename).write(Buffer.from(image, "base64url"));
       return filename;
     } else {

@@ -4,9 +4,13 @@ import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
 import { InfoSchema } from "@ove/ove-types";
 
+
 const service = Service.default();
 
-export const init = (createWindow: (displayId?: number) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => {
+export const init = (
+  createWindow: (displayId?: number) => void,
+  takeScreenshots: () => Promise<DesktopCapturerSource[]>
+) => {
   service.init(createWindow, takeScreenshots);
 };
 
@@ -53,7 +57,7 @@ export const appRouter = router({
     .meta({ openapi: { method: "GET", path: "/browsers" } })
     .input(z.undefined())
     .output(z.array(z.number()))
-    .query(({ctx}) => {
+    .query(({ ctx }) => {
       return Object.keys(ctx.browsers).map(parseInt);
     }),
   shutdown: procedure
@@ -61,14 +65,14 @@ export const appRouter = router({
     .input(z.void())
     .output(z.string())
     .query(() => {
-      return JSON.stringify(service.shutdown().toJSON());
+      return service.shutdown().toString();
     }),
   reboot: procedure
     .meta({ openapi: { method: "POST", path: "/reboot" } })
     .input(z.void())
     .output(z.string())
     .query(async () => {
-      return JSON.stringify(service.reboot().toJSON());
+      return service.reboot().toString();
     }),
   execute: procedure
     .meta({ openapi: { method: "POST", path: "/execute" } })
@@ -77,27 +81,27 @@ export const appRouter = router({
     }))
     .output(z.string())
     .query(({ input: { command } }) => {
-      return JSON.stringify(service.execute(command).toJSON());
+      return service.execute(command).toString();
     }),
   screenshot: procedure
     .meta({ openapi: { method: "POST", path: "/screenshot" } })
     .input(z.object({
       method: z.string().regex(/^(local|return|upload)$/gi),
-      screens: z.array(z.number()),
-      format: z.string().optional()
+      screens: z.array(z.number())
     }))
     .output(z.array(z.string()))
     .query(({ input }) => {
       if (input.method === "upload") {
-        throw new Error("File upload is not currently implemented, please use the 'local' or 'return' methods");
+        throw new Error("File upload is not currently implemented, " +
+          "please use the 'local' or 'return' methods");
       }
-      return service.screenshot(input.method, input.screens, input.format);
+      return service.screenshot(input.method, input.screens);
     }),
   openBrowser: procedure
     .meta({ openapi: { method: "POST", path: "/browser" } })
-    .input(z.object({displayId: z.number().optional()}))
+    .input(z.object({ displayId: z.number().optional() }))
     .output(z.number())
-    .query(async ({ctx, input: {displayId}}) => {
+    .query(async ({ ctx, input: { displayId } }) => {
       service.openBrowser(displayId);
       const browserId = Object.keys(ctx.browsers).length;
       ctx.browsers[browserId] = {
@@ -121,7 +125,7 @@ export const appRouter = router({
     .meta({ openapi: { method: "DELETE", path: "/browsers" } })
     .input(z.undefined())
     .output(z.object({}))
-    .query(({ctx}) => {
+    .query(({ ctx }) => {
       service.closeBrowsers(Object.values(ctx.browsers));
       ctx.browsers = {};
       return {};

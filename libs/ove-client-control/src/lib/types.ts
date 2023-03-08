@@ -42,7 +42,7 @@ export type BrowserControl = {
   openBrowser: (displayId?: number) => void
   closeBrowser: (browser: Browser) => void
   closeBrowsers: (browsers: Browser[]) => void
-  screenshot: (method: string, screens: number[], format?: string) => Promise<string[]>
+  screenshot: (method: string, screens: number[]) => Promise<string[]>
 };
 
 export type Browser = {
