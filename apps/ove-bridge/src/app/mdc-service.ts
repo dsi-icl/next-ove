@@ -1,24 +1,81 @@
-// noinspection DuplicatedCode
+import * as mdc from "@ove/mdc-control";
+import {
+  Device,
+  MDCInfo,
+  OVEException,
+  Response,
+  DeviceService,
+  Options,
+  Status
+} from "@ove/ove-types";
+import { MDCSource, MDCSourceSchema } from "@ove/mdc-control";
+import { z } from "zod";
+import { Utils } from "@ove/ove-utils";
 
-import { DeviceService, MDCSource } from "../utils/types";
-import * as service from "./features/mdc";
-import { Device, MDCInfo } from "@ove/ove-types";
+const reboot = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const rebootOptsSchema = z.object({}).strict();
+  const parsedOpts = rebootOptsSchema.safeParse(opts);
 
-const reboot = async ({ ip, port }: Device): Promise<string> => {
-  await service.setPower(0x01, ip, port, "off");
-  return await new Promise(resolve => setTimeout(async () => resolve(await service.setPower(0x01, ip, port, "on")), 1000));
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await mdc.setPower(0x01, ip, port, "off");
+  return await new Promise<Status>(resolve => setTimeout(async () => {
+    await mdc.setPower(0x01, ip, port, "on");
+    resolve(true);
+  }, 1000));
 };
 
-const shutdown = async ({ ip, port }: Device) => await service.setPower(0x01, ip, port, "off");
+const shutdown = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const shutdownOptsSchema = z.object({}).strict();
+  const parsedOpts = shutdownOptsSchema.safeParse(opts);
 
-const start = async ({ ip, port }: Device) => await service.setPower(0x01, ip, port, "on");
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
 
-const info = async ({ ip, port }: Device): Promise<MDCInfo> => {
-  const power = await service.getPower(0x01, ip, port);
-  const volume = await service.getVolume(0x01, ip, port);
-  const source = await service.getSource(0x01, ip, port);
-  const isMuted = await service.getIsMute(0x01, ip, port);
-  const model = await service.getModel(0x01, ip, port);
+  await mdc.setPower(0x01, ip, port, "off");
+  return true;
+};
+
+const start = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const startOptsSchema = z.object({}).strict();
+  const parsedOpts = startOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await mdc.setPower(0x01, ip, port, "on");
+  return true;
+};
+
+const info = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<MDCInfo | OVEException> => {
+  const infoOptsSchema = z.object({}).strict();
+  const parsedOpts = infoOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  const power = await mdc.getPower(0x01, ip, port);
+  const volume = await mdc.getVolume(0x01, ip, port);
+  const source = await mdc.getSource(0x01, ip, port);
+  const isMuted = await mdc.getIsMute(0x01, ip, port);
+  const model = await mdc.getModel(0x01, ip, port);
 
   return {
     power,
@@ -29,64 +86,91 @@ const info = async ({ ip, port }: Device): Promise<MDCInfo> => {
   };
 };
 
-const status = async ({ ip, port }: Device) => {
-  const status = await service.getStatus(0x01, ip, port);
-  return { status };
+const status = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Response | OVEException> => {
+  const statusOptsSchema = z.object({}).strict();
+  const parsedOpts = statusOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  const response = await mdc.getStatus(0x01, ip, port);
+  return { response };
 };
 
-const execute = async () => {
-  throw new Error();
+const mute = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const muteOptsSchema = z.object({}).strict();
+  const parsedOpts = muteOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await mdc.setIsMute(0x01, ip, port, true);
+  return true;
 };
 
-const screenshot = async () => {
-  throw new Error();
+const unmute = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const unmuteOptsSchema = z.object({}).strict();
+  const parsedOpts = unmuteOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await mdc.setIsMute(0x01, ip, port, false);
+  return true;
 };
 
-const openBrowser = async () => {
-  throw new Error();
+const setVolume = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const setVolumeOptsSchema = z.object({ volume: z.number() }).strict();
+  const parsedOpts = setVolumeOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await mdc.setVolume(0x01, ip, port, parsedOpts.data.volume);
+  return true;
 };
 
-const getBrowserStatus = async () => {
-  throw new Error();
+const setSource = async ({
+  ip,
+  port
+}: Device, opts: Options): Promise<Status | OVEException> => {
+  const setSourceOptsSchema = z.object({ source: MDCSourceSchema.keyof() }).strict();
+  const parsedOpts = setSourceOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await mdc.setSource(0x01, ip, port, parsedOpts.data.source);
+  return true;
 };
 
-const closeBrowser = async () => {
-  throw new Error();
-};
-
-const closeBrowsers = async () => {
-  throw new Error();
-};
-
-const getBrowsers = async () => {
-  throw new Error();
-};
-
-const mute = async ({ip, port}: Device) => await service.setIsMute(0x01, ip, port, true);
-
-const unmute = async ({ip, port}: Device) => await service.setIsMute(0x01, ip, port, false);
-
-const setVolume = async ({ip, port}: Device, volume: number) => await service.setVolume(0x01, ip, port, volume);
-
-const setSource = async ({ip, port}: Device, source: keyof MDCSource) => await service.setSource(0x01, ip, port, source);
-
-const MDCService: DeviceService = {
+const MDCService: DeviceService<MDCInfo, MDCSource> = {
   reboot,
   shutdown,
   start,
   info,
   status,
-  execute,
-  screenshot,
-  openBrowser,
-  getBrowserStatus,
-  closeBrowser,
-  closeBrowsers,
-  getBrowsers,
   mute,
   unmute,
   setVolume,
-  setSource,
+  setSource
 };
 
 export default MDCService;

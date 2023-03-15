@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Service } from "@ove/ove-client-control";
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
-import { InfoSchema } from "@ove/ove-types";
+import { NodeInfoSchema, ResponseSchema } from "@ove/ove-types";
 
 
 const service = Service.default();
@@ -27,30 +27,28 @@ export const appRouter = router({
   getStatus: procedure
     .meta({ openapi: { method: "GET", path: "/status" } })
     .input(z.void())
-    .output(z.object({
-      status: z.string()
-    }))
+    .output(ResponseSchema)
     .query(() => {
       return service.getStatus();
     }),
   getInfo: procedure
     .meta({ openapi: { method: "GET", path: "/info" } })
     .input(z.object({
-      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker|vbox)$/gi)
+      type: z.string().regex(/^(system|cpu|memory|battery|graphics|os|processes|fs|usb|printer|audio|network|wifi|bluetooth|docker|vbox)$/gi).optional()
     }).optional())
-    .output(InfoSchema)
+    .output(NodeInfoSchema)
     .query(async ({ input }) => await service.getInfo(input?.type)),
   getBrowserStatus: procedure
     .meta({ openapi: { method: "GET", path: "/browser/{id}/status" } })
     .input(z.object({
       id: z.number().min(0)
     }))
-    .output(z.object({ status: z.string() }))
+    .output(ResponseSchema)
     .query(({ ctx, input: { id } }) => {
       if (Object.keys(ctx.browsers).includes(id.toString())) {
-        return { status: "open" };
+        return { response: "open" };
       } else {
-        return { status: "closed" };
+        return { response: "closed" };
       }
     }),
   getBrowsers: procedure
@@ -64,14 +62,14 @@ export const appRouter = router({
     .meta({ openapi: { method: "POST", path: "/shutdown" } })
     .input(z.void())
     .output(z.string())
-    .query(() => {
+    .mutation(() => {
       return service.shutdown().toString();
     }),
   reboot: procedure
     .meta({ openapi: { method: "POST", path: "/reboot" } })
     .input(z.void())
     .output(z.string())
-    .query(async () => {
+    .mutation(async () => {
       return service.reboot().toString();
     }),
   execute: procedure
@@ -80,7 +78,7 @@ export const appRouter = router({
       command: z.string()
     }))
     .output(z.string())
-    .query(({ input: { command } }) => {
+    .mutation(({ input: { command } }) => {
       return service.execute(command).toString();
     }),
   screenshot: procedure
@@ -90,7 +88,7 @@ export const appRouter = router({
       screens: z.array(z.number())
     }))
     .output(z.array(z.string()))
-    .query(({ input }) => {
+    .mutation(({ input }) => {
       if (input.method === "upload") {
         throw new Error("File upload is not currently implemented, " +
           "please use the 'local' or 'return' methods");
@@ -101,7 +99,7 @@ export const appRouter = router({
     .meta({ openapi: { method: "POST", path: "/browser" } })
     .input(z.object({ displayId: z.number().optional() }))
     .output(z.number())
-    .query(async ({ ctx, input: { displayId } }) => {
+    .mutation(async ({ ctx, input: { displayId } }) => {
       service.openBrowser(displayId);
       const browserId = Object.keys(ctx.browsers).length;
       ctx.browsers[browserId] = {
@@ -115,20 +113,20 @@ export const appRouter = router({
     .input(z.object({
       id: z.number().min(0)
     }))
-    .output(z.object({}))
-    .query(({ ctx, input: { id } }) => {
+    .output(z.boolean())
+    .mutation(({ ctx, input: { id } }) => {
       service.closeBrowser(ctx.browsers[id]);
       delete ctx.browsers[id];
-      return {};
+      return true;
     }),
   closeBrowsers: procedure
     .meta({ openapi: { method: "DELETE", path: "/browsers" } })
     .input(z.undefined())
-    .output(z.object({}))
-    .query(({ ctx }) => {
+    .output(z.boolean())
+    .mutation(({ ctx }) => {
       service.closeBrowsers(Object.values(ctx.browsers));
       ctx.browsers = {};
-      return {};
+      return true;
     })
 });
 

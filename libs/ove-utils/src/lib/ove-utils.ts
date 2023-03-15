@@ -1,16 +1,9 @@
-// noinspection JSUnusedLocalSymbols,JSUnusedGlobalSymbols
+import { OVEException } from "@ove/ove-types";
 
-export const oveUtils = (): string => 'ove-utils';
-export const deepCopy = (obj: unknown): unknown => JSON.parse(JSON.stringify(obj));
+export const oveUtils = (): string => "ove-utils";
 
-// export const groupBy = (xs: object[], key: string) => xs.reduce((rv, x) => {
-//   (rv[x[key]] = rv[x[key]] || []).push(x);
-//   return rv;
-// }, {});
+export const replaceAll = (s: string, xs: any[]): string => s.replaceAll(/\$\d+/g, (match) => xs[parseInt(match.substring(1)) - 1]);
 
-export const notEmpty = <TValue>(value: TValue | null | undefined): value is TValue => {
-  if (value === null || value === undefined) return false;
-  // @ts-ignore
-  const dummy: TValue = value;
-  return true;
+export const raise = (error: string): OVEException => {
+  return { oveError: error };
 };

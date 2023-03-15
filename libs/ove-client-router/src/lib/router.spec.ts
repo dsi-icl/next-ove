@@ -254,4 +254,11 @@ describe("TRPC Router", () => {
 
     expect(res).toStrictEqual(["thumbnail 1", "thumbnail 2"]);
   });
+
+  it("can open a browser", async () => {
+    const caller = await setupTRPC();
+    const res = await caller.openBrowser({displayId: 1});
+
+    expect(res).toBe(0);
+  });
 });

@@ -4,7 +4,6 @@ import { join } from "path";
 import { pathToFileURL } from "url";
 import { logger } from "../utils";
 
-// noinspection JSUnusedLocalSymbols
 export default class App {
   // Keep a global reference of the window object, if you don't, the window will
   // be closed automatically when the JavaScript object is garbage collected.

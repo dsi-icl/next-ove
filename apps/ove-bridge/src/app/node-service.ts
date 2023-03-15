@@ -1,10 +1,21 @@
 import { wake } from "../utils/wol";
-import { DeviceService } from "../utils/types";
 import { AppRouter } from "@ove/ove-client-router";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import fetch from "node-fetch";
 import * as ws from "ws";
-import { Device, Status } from "@ove/ove-types";
+import {
+  Device,
+  NodeInfo,
+  OVEException,
+  Response,
+  Options,
+  Status,
+  ID,
+  Image,
+  DeviceService
+} from "@ove/ove-types";
+import { z } from "zod";
+import { Utils } from "@ove/ove-utils";
 
 const globalAny = global as any;
 globalAny.AbortController = AbortController;
@@ -20,57 +31,136 @@ const createClient = (device: Device) =>
     ]
   });
 
-const reboot = async (device: Device): Promise<string> => createClient(device).reboot.query();
+const reboot = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const rebootOptsSchema = z.object({}).strict();
+  const parsedOpts = rebootOptsSchema.safeParse(opts);
 
-const shutdown = async (device: Device): Promise<string> => createClient(device).shutdown.query();
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
 
-const start = async (device: Device): Promise<boolean> => wake(device.mac, { address: device.ip });
-
-const info = async (device: Device, type?: string) => createClient(device).getInfo.query({ type });
-
-const status = async (device: Device): Promise<{ status: string }> => createClient(device).getStatus.query();
-
-const execute = async (device: Device, command: string): Promise<string> => createClient(device).execute.query({ command });
-
-const screenshot = async (device: Device, method: string, format: string, screens: number[]): Promise<(string)[]> => createClient(device).screenshot.query({
-  method,
-  screens,
-  format
-});
-
-const openBrowser = async (device: Device, displayId: number): Promise<number> => createClient(device).openBrowser.query({ displayId });
-
-const getBrowserStatus = async (device: Device, id: number): Promise<{ status: string }> => createClient(device).getBrowserStatus.query({ id });
-
-const closeBrowser = async (device: Device, id: number): Promise<Status> => {
-  await createClient(device).closeBrowser.query({ id });
-  return { status: "Closed browser" };
+  await createClient(device).reboot.mutate();
+  return true;
 };
 
-const closeBrowsers = async (device: Device): Promise<Status> => {
-  await createClient(device).closeBrowsers.query();
-  return { status: "Closed browsers" };
+const shutdown = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const shutdownOptsSchema = z.object({}).strict();
+  const parsedOpts = shutdownOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await createClient(device).shutdown.mutate();
+  return true;
 };
 
-const getBrowsers = async (device: Device): Promise<number[]> => createClient(device).getBrowsers.query();
+const start = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const startOptsSchema = z.object({}).strict();
+  const parsedOpts = startOptsSchema.safeParse(opts);
 
-const setVolume = async () => {
-  throw new Error();
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await wake(device.mac, { address: device.ip });
 };
 
-const mute = async () => {
-  throw new Error();
+const info = async (device: Device, opts: Options): Promise<NodeInfo | OVEException> => {
+  const infoOptsSchema = z.object({ type: z.string().optional() }).strict();
+  const parsedOpts = infoOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).getInfo.query(parsedOpts.data);
 };
 
-const unmute = async () => {
-  throw new Error();
+const status = async (device: Device, opts: Options): Promise<Response | OVEException> => {
+  const statusOptsSchema = z.object({}).strict();
+  const parsedOpts = statusOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).getStatus.query();
 };
 
-const setSource = async () => {
-  throw new Error();
+const execute = async (device: Device, opts: Options): Promise<Response | OVEException> => {
+  const executeOptsSchema = z.object({ command: z.string() }).strict();
+  const parsedOpts = executeOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  const response = await createClient(device).execute.mutate(parsedOpts.data);
+  return { response };
 };
 
-const NodeService: DeviceService = {
+const screenshot = async (device: Device, opts: Options): Promise<Image[] | OVEException> => {
+  const screenshotOptsSchema = z.object({
+    method: z.string(),
+    screens: z.array(z.number())
+  }).strict();
+  const parsedOpts = screenshotOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).screenshot.mutate(parsedOpts.data);
+};
+
+const openBrowser = async (device: Device, opts: Options): Promise<ID | OVEException> => {
+  const openBrowserOptsSchema = z.object({ displayId: z.number() }).strict();
+  const parsedOpts = openBrowserOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).openBrowser.mutate(parsedOpts.data);
+};
+
+const getBrowserStatus = async (device: Device, opts: Options): Promise<Response | OVEException> => {
+  const getBrowserStatusOptsSchema = z.object({ id: z.number() }).strict();
+  const parsedOpts = getBrowserStatusOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).getBrowserStatus.query(parsedOpts.data);
+};
+
+const closeBrowser = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const closeBrowserOptsSchema = z.object({ id: z.number() }).strict();
+  const parsedOpts = closeBrowserOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).closeBrowser.mutate(parsedOpts.data);
+};
+
+const closeBrowsers = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const closeBrowsersOptsSchema = z.object({}).strict();
+  const parsedOpts = closeBrowsersOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  return await createClient(device).closeBrowsers.mutate();
+};
+
+const getBrowsers = (device: Device): Promise<number[]> => createClient(device).getBrowsers.query();
+
+const NodeService: DeviceService<NodeInfo, undefined> = {
   reboot,
   shutdown,
   start,
@@ -82,11 +172,7 @@ const NodeService: DeviceService = {
   getBrowserStatus,
   closeBrowser,
   getBrowsers,
-  closeBrowsers,
-  setVolume,
-  setSource,
-  mute,
-  unmute
+  closeBrowsers
 };
 
 export default NodeService;

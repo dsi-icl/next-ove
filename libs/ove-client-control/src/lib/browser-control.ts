@@ -21,7 +21,7 @@ export const closeBrowser = (browser: Browser) => {
 };
 
 const openBrowser = (displayId?: number): void => {
-  if (controller.createWindow === null) return;
+  if (controller.createWindow === null) throw new Error("Cannot create window as missing function");
   controller.createWindow(displayId);
 };
 

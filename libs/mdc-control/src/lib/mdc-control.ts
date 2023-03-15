@@ -1,5 +1,27 @@
 import { io } from "socket.io-client";
-import { MDCSource } from "../../utils/types";
+import { z } from "zod";
+
+export const MDCSourceSchema = z.object({
+  UNKNOWN: z.number(),
+  PC: z.number(),
+  DVI: z.number(),
+  DVI_VIDEO: z.number(),
+  AV: z.number(),
+  SVIDEO: z.number(),
+  COMPONENT: z.number(),
+  MAGICNET: z.number(),
+  TV: z.number(),
+  DTV: z.number(),
+  HDMI1: z.number(),
+  HDMI1_PC: z.number(),
+  HDMI2: z.number(),
+  HDMI2_PC: z.number(),
+  DP: z.number(),
+  DP2: z.number(),
+  DP3: z.number()
+}).strict();
+
+export type MDCSource = z.infer<typeof MDCSourceSchema>;
 
 export const sources: MDCSource = {
   UNKNOWN: 0x00,

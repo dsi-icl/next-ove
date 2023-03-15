@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OVEException, Status } from "./ove-types";
+import { OVEException, Response } from "./ove-types";
 
 export const GeneralSchema = z.object({
   version: z.string(),
@@ -121,7 +121,7 @@ export const VBoxSchema = z.object({
   type: z.literal("vbox")
 });
 
-export const InfoSchema = z.discriminatedUnion("type", [
+export const NodeInfoSchema = z.discriminatedUnion("type", [
   GeneralSchema,
   SystemSchema,
   CpuSchema,
@@ -141,7 +141,7 @@ export const InfoSchema = z.discriminatedUnion("type", [
   VBoxSchema
 ]);
 
-export type Info = z.infer<typeof InfoSchema>;
+export type NodeInfo = z.infer<typeof NodeInfoSchema>;
 
 export const MDCInfoSchema = z.object({
   power: z.string(),
@@ -154,39 +154,48 @@ export const MDCInfoSchema = z.object({
 export type MDCInfo = z.infer<typeof MDCInfoSchema>;
 
 export type WSResponse<Response> = {
-  bridge: string,
+  meta: {
+    bridge: string
+  }
   response: Response
 };
 
+export const BridgeMetadataSchema = z.object({bridge: z.string()});
+
+export const PJLinkInfoSchema = z.object({
+  info: z.string()
+});
+export type PJLinkInfo = z.infer<typeof PJLinkInfoSchema>;
+
 export interface ServerToClientEvents {
-  getDevice: (args: {id: string}, callback: (response: WSResponse<z.infer<typeof DeviceSchema>> | OVEException) => void) => void;
-  getDevices: (args: {}, callback: (response: WSResponse<z.infer<typeof DeviceSchema>[]> | OVEException) => void) => void;
-  getStatus: (args: {id: string}, callback: (response: WSResponse<Status> | OVEException) => void) => void;
-  getStatusAll: (args: {tag?: string}, callback: (response: WSResponse<Status[]> | OVEException) => void) => void;
-  getInfo: (args: {id: string, type?: string}, callback: (response: WSResponse<Info | MDCInfo> | OVEException) => void) => void;
-  getInfoAll: (args: {type?: string, tag?: string}, callback: (response: WSResponse<(Info | MDCInfo)[]> | OVEException) => void) => void;
-  getBrowserStatus: (args: {id: string, browserId: number}, callback: (response: WSResponse<Status> | OVEException) => void) => void;
-  getBrowserStatusAll: (args: {browserId: number, tag?: string}, callback: (response: WSResponse<Status[]> | OVEException) => void) => void;
-  getBrowsers: (args: {id: string}, callback: (response: WSResponse<number[]> | OVEException) => void) => void;
-  getBrowsersAll: (args: {tag?: string}, callback: (response: WSResponse<number[][]> | OVEException) => void) => void;
-  start: (args: {id: string}, callback: (response: WSResponse<boolean | string> | OVEException) => void) => void;
-  startAll: (args: {tag?: string}, callback: (response: WSResponse<(boolean | string)[]> | OVEException) => void) => void;
-  reboot: (args: {id: string}, callback: (response: WSResponse<string> | OVEException) => void) => void;
-  rebootAll: (args: {tag?: string}, callback: (response: WSResponse<string[]> | OVEException) => void) => void;
-  shutdown: (args: {id: string}, callback: (response: WSResponse<string> | OVEException) => void) => void;
-  shutdownAll: (args: {tag?: string}, callback: (response: WSResponse<string[]> | OVEException) => void) => void;
-  execute: (args: {id: string, command: string}, callback: (response: WSResponse<string> | OVEException) => void) => void;
-  executeAll: (args: {command: string, tag?: string}, callback: (response: WSResponse<string[]> | OVEException) => void) => void;
-  screenshot: (args: {id: string, method: string, format: string, screens: number[]}, callback: (response: WSResponse<string[]> | OVEException) => void) => void;
-  screenshotAll: (args: {tag?: string, method: string, format: string, screens: number[]}, callback: (response: WSResponse<string[][]> | OVEException) => void) => void;
-  openBrowser: (args: {id: string, displayId: number}, callback: (response: WSResponse<number> | OVEException) => void) => void;
-  openBrowserAll: (args: {displayId: number, tag?: string}, callback: (response: WSResponse<number[]> | OVEException) => void) => void;
-  addDevice: (args: {device: z.infer<typeof DeviceSchema>}, callback: (response: WSResponse<Status> | OVEException) => void) => void;
-  closeBrowser: (args: {id: string, browserId: number}, callback: (response: WSResponse<Status> | OVEException) => void) => void;
-  closeBrowserAll: (args: {browserId: number, tag?: string}, callback: (response: WSResponse<Status[]> | OVEException) => void) => void;
-  closeBrowsers: (args: {id: string}, callback: (response: WSResponse<Status> | OVEException) => void) => void;
-  closeBrowsersAll: (args: {tag?: string}, callback: (response: WSResponse<Status[]> | OVEException) => void) => void;
-  removeDevice: (args: {id: string}, callback: (response: WSResponse<Status> | OVEException) => void) => void;
+  getDevice: (args: {id: string}, callback: (response: WSResponse<z.infer<typeof DeviceSchema> | OVEException>) => void) => void
+  getDevices: (args: {}, callback: (response: WSResponse<z.infer<typeof DeviceSchema>[] | OVEException>) => void) => void
+  getStatus: (args: {id: string}, callback: (response: WSResponse<Response | OVEException>) => void) => void
+  getStatusAll: (args: {tag?: string}, callback: (response: WSResponse<Response[] | OVEException>) => void) => void
+  getInfo: (args: {id: string, type?: string}, callback: (response: WSResponse<Info | OVEException>) => void) => void
+  getInfoAll: (args: {type?: string, tag?: string}, callback: (response: WSResponse<Info[] | OVEException>) => void) => void
+  getBrowserStatus: (args: {id: string, browserId: number}, callback: (response: WSResponse<Response | OVEException>) => void) => void
+  getBrowserStatusAll: (args: {browserId: number, tag?: string}, callback: (response: WSResponse<Response[] | OVEException>) => void) => void
+  getBrowsers: (args: {id: string}, callback: (response: WSResponse<ID[] | OVEException>) => void) => void
+  getBrowsersAll: (args: {tag?: string}, callback: (response: WSResponse<ID[][] | OVEException>) => void) => void
+  start: (args: {id: string}, callback: (response: WSResponse<Status | OVEException>) => void) => void
+  startAll: (args: {tag?: string}, callback: (response: WSResponse<Status[] | OVEException>) => void) => void
+  reboot: (args: {id: string}, callback: (response: WSResponse<Status | OVEException>) => void) => void
+  rebootAll: (args: {tag?: string}, callback: (response: WSResponse<Status[] | OVEException>) => void) => void
+  shutdown: (args: {id: string}, callback: (response: WSResponse<Status | OVEException>) => void) => void
+  shutdownAll: (args: {tag?: string}, callback: (response: WSResponse<Status[] | OVEException>) => void) => void
+  execute: (args: {id: string, command: string}, callback: (response: WSResponse<Response | OVEException>) => void) => void
+  executeAll: (args: {command: string, tag?: string}, callback: (response: WSResponse<Response[] | OVEException>) => void) => void
+  screenshot: (args: {id: string, method: string, screens: number[]}, callback: (response: WSResponse<Image[] | OVEException>) => void) => void
+  screenshotAll: (args: {tag?: string, method: string, screens: number[]}, callback: (response: WSResponse<Image[][] | OVEException>) => void) => void
+  openBrowser: (args: {id: string, displayId: number}, callback: (response: WSResponse<ID | OVEException>) => void) => void
+  openBrowserAll: (args: {displayId: number, tag?: string}, callback: (response: WSResponse<ID[] | OVEException>) => void) => void
+  addDevice: (args: {device: z.infer<typeof DeviceSchema>}, callback: (response: WSResponse<Status | OVEException>) => void) => void
+  closeBrowser: (args: {id: string, browserId: number}, callback: (response: WSResponse<Status | OVEException>) => void) => void
+  closeBrowserAll: (args: {browserId: number, tag?: string}, callback: (response: WSResponse<Status[] | OVEException>) => void) => void
+  closeBrowsers: (args: {id: string}, callback: (response: WSResponse<Status | OVEException>) => void) => void
+  closeBrowsersAll: (args: {tag?: string}, callback: (response: WSResponse<Status[] | OVEException>) => void) => void
+  removeDevice: (args: {id: string}, callback: (response: WSResponse<Status | OVEException>) => void) => void
 }
 
 export const DeviceSchema = z.object({
@@ -203,3 +212,30 @@ export type Device = z.infer<typeof DeviceSchema>;
 
 export interface ClientToServerEvents {
 }
+
+export type Image = string;
+export type ID = number;
+export type Status = boolean;
+export type Options = object;
+
+export type DeviceService<InfoType, Sources> = {
+  reboot?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  shutdown?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  start?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  info?: (device: Device, opts: Options) => Promise<InfoType | OVEException>
+  status?: (device: Device, opts: Options) => Promise<Response | OVEException>
+  execute?: (device: Device, opts: Options) => Promise<Response | OVEException>
+  screenshot?: (device: Device, opts: Options) => Promise<Image[] | OVEException>
+  openBrowser?: (device: Device, opts: Options) => Promise<ID | OVEException>
+  getBrowserStatus?: (device: Device, opts: Options) => Promise<Response | OVEException>
+  closeBrowser?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  closeBrowsers?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  getBrowsers?: (device: Device, opts: Options) => Promise<ID[] | OVEException>
+  setVolume?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  mute?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  unmute?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  setSource?: (device: Device, opts: Options) => Promise<Status | OVEException>
+};
+
+export type Info = PJLinkInfo | NodeInfo | MDCInfo;
+export const InfoSchema = z.union([NodeInfoSchema, MDCInfoSchema, PJLinkInfoSchema]);

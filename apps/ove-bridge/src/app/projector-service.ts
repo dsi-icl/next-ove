@@ -1,94 +1,149 @@
-// noinspection DuplicatedCode
+import * as PJLink from "@ove/pjlink-control";
+import {
+  Device,
+  is,
+  OVEException,
+  OVEExceptionSchema,
+  Response,
+  DeviceService,
+  Options,
+  Status
+} from "@ove/ove-types";
+import { z } from "zod";
+import { Utils } from "@ove/ove-utils";
 
-import { DeviceService } from "../utils/types";
-
-const reboot = async () => {
-  // TODO: implement
-  throw new Error();
+type PJLinkInfo = {
+  info: string,
+  source: string
 };
 
-const shutdown = async () => {
-  // TODO: implement
-  throw new Error();
+const reboot = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const rebootOptsSchema = z.object({}).strict();
+  const parsedOpts = rebootOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await PJLink.setPower(device, PJLink.POWER.OFF);
+  return await new Promise<boolean>(resolve => setTimeout(async () => {
+    await PJLink.setPower(device, PJLink.POWER.ON);
+    resolve(true);
+  }, 1000));
 };
 
-const start = async () => {
-  // TODO: implement
-  throw new Error();
+const shutdown = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const shutdownOptsSchema = z.object({}).strict();
+  const parsedOpts = shutdownOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await PJLink.setPower(device, PJLink.POWER.OFF);
+  return true;
 };
 
-const info = async () => {
-  throw new Error();
+const start = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const startOptsSchema = z.object({}).strict();
+  const parsedOpts = startOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  const response = await PJLink.setPower(device, PJLink.POWER.ON);
+
+  if (is(OVEExceptionSchema, response)) {
+    return response;
+  }
+
+  return true;
 };
 
-const status = async () => {
-  // TODO: implement
-  throw new Error();
+const info = async (device: Device, opts: Options): Promise<PJLinkInfo | OVEException> => {
+  const infoOptsSchema = z.object({}).strict();
+  const parsedOpts = infoOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  const info = await PJLink.getInfo(device);
+  const source = await PJLink.getInput(device);
+
+  if (is(OVEExceptionSchema, info) || is(OVEExceptionSchema, source)) {
+    return { oveError: "Unable to gather system information" };
+  }
+
+  return {
+    info,
+    source
+  };
 };
 
-const execute = async () => {
-  // TODO: implement
-  throw new Error();
+const status = async (device: Device, opts: Options): Promise<Response | OVEException> => {
+  const statusOptsSchema = z.object({}).strict();
+  const parsedOpts = statusOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  const response = await PJLink.getPower(device);
+
+  if (is(OVEExceptionSchema, response)) {
+    return response;
+  }
+
+  return { response: "running" };
 };
 
-const screenshot = async () => {
-  // TODO: implement
-  throw new Error();
+const setSource = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const setSourceOptsSchema = z.object({
+    source: PJLink.InputSchema.keyof(),
+    channel: z.number().optional()
+  }).strict();
+  const parsedOpts = setSourceOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await PJLink.setInput(device, PJLink.INPUT[parsedOpts.data.source], parsedOpts.data.channel);
+  return true;
 };
 
-const openBrowser = async () => {
-  // TODO: implement
-  throw new Error();
+const mute = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const muteOptsSchema = z.object({}).strict();
+  const parsedOpts = muteOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await PJLink.mute(device);
+  return true;
 };
 
-const getBrowserStatus = async () => {
-  // TODO: implement
-  throw new Error();
+const unmute = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+  const unmuteOptsSchema = z.object({}).strict();
+  const parsedOpts = unmuteOptsSchema.safeParse(opts);
+
+  if (!parsedOpts.success) {
+    return Utils.raise("Function options not recognised");
+  }
+
+  await PJLink.unmute(device);
+  return true;
 };
 
-const closeBrowser = async () => {
-  // TODO: implement
-  throw new Error();
-};
-
-const closeBrowsers = async () => {
-  throw new Error();
-};
-
-const getBrowsers = async () => {
-  throw new Error();
-};
-
-const setVolume = async () => {
-  throw new Error();
-};
-
-const setSource = async () => {
-  throw new Error();
-};
-
-const mute = async () => {
-  throw new Error();
-};
-
-const unmute = async () => {
-  throw new Error();
-};
-
-const ProjectorService: DeviceService = {
+const ProjectorService: DeviceService<PJLinkInfo, PJLink.Input> = {
   reboot,
   shutdown,
   start,
   info,
   status,
-  execute,
-  screenshot,
-  openBrowser,
-  getBrowserStatus,
-  closeBrowser,
-  closeBrowsers,
-  getBrowsers,
-  setVolume,
   setSource,
   mute,
   unmute
