@@ -6,7 +6,7 @@ import {
   Response,
   DeviceService,
   Options,
-  Status
+  Status, Optional
 } from "@ove/ove-types";
 import { MDCSource, MDCSourceSchema } from "@ove/mdc-control";
 import { z } from "zod";
@@ -15,13 +15,11 @@ import { Utils } from "@ove/ove-utils";
 const reboot = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setPower(0x01, ip, port, "off");
   return await new Promise<Status>(resolve => setTimeout(async () => {
@@ -33,13 +31,11 @@ const reboot = async ({
 const shutdown = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setPower(0x01, ip, port, "off");
   return true;
@@ -48,13 +44,11 @@ const shutdown = async ({
 const start = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setPower(0x01, ip, port, "on");
   return true;
@@ -63,13 +57,11 @@ const start = async ({
 const info = async ({
   ip,
   port
-}: Device, opts: Options): Promise<MDCInfo | OVEException> => {
+}: Device, opts: Options): Promise<Optional<MDCInfo | OVEException>> => {
   const infoOptsSchema = z.object({}).strict();
   const parsedOpts = infoOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   const power = await mdc.getPower(0x01, ip, port);
   const volume = await mdc.getVolume(0x01, ip, port);
@@ -89,13 +81,11 @@ const info = async ({
 const status = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Response | OVEException> => {
+}: Device, opts: Options): Promise<Optional<Response | OVEException>> => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   const response = await mdc.getStatus(0x01, ip, port);
   return { response };

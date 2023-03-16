@@ -20,3 +20,5 @@ export const filterIsNot = <T extends z.ZodTypeAny, U>(schema: T): (obj: U | z.i
 export const isAll = <T extends z.ZodTypeAny>(schema: T, obj: any[]): obj is z.infer<T>[] => z.array(schema).safeParse(obj).success;
 
 export const isNotAll = <T extends z.ZodTypeAny, U>(schema: T, obj: (U | z.infer<T>)[]): obj is Exclude<typeof obj, z.infer<T>> => !schema.safeParse(obj).success;
+
+export const isDefined = <T>(obj: T | undefined): obj is Exclude<typeof obj, undefined> => obj !== undefined;

@@ -7,7 +7,7 @@ import {
   Response,
   DeviceService,
   Options,
-  Status
+  Status, Optional
 } from "@ove/ove-types";
 import { z } from "zod";
 import { Utils } from "@ove/ove-utils";
@@ -17,13 +17,11 @@ type PJLinkInfo = {
   source: string
 };
 
-const reboot = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+const reboot = async (device: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower(device, PJLink.POWER.OFF);
   return await new Promise<boolean>(resolve => setTimeout(async () => {
@@ -32,25 +30,21 @@ const reboot = async (device: Device, opts: Options): Promise<Status | OVEExcept
   }, 1000));
 };
 
-const shutdown = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+const shutdown = async (device: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower(device, PJLink.POWER.OFF);
   return true;
 };
 
-const start = async (device: Device, opts: Options): Promise<Status | OVEException> => {
+const start = async (device: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.setPower(device, PJLink.POWER.ON);
 
@@ -61,13 +55,11 @@ const start = async (device: Device, opts: Options): Promise<Status | OVEExcepti
   return true;
 };
 
-const info = async (device: Device, opts: Options): Promise<PJLinkInfo | OVEException> => {
+const info = async (device: Device, opts: Options): Promise<Optional<PJLinkInfo | OVEException>> => {
   const infoOptsSchema = z.object({}).strict();
   const parsedOpts = infoOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   const info = await PJLink.getInfo(device);
   const source = await PJLink.getInput(device);
@@ -82,13 +74,11 @@ const info = async (device: Device, opts: Options): Promise<PJLinkInfo | OVEExce
   };
 };
 
-const status = async (device: Device, opts: Options): Promise<Response | OVEException> => {
+const status = async (device: Device, opts: Options): Promise<Optional<Response | OVEException>> => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(opts);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.getPower(device);
 

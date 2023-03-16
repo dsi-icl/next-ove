@@ -8,17 +8,18 @@ import {
   filterIsNot,
   is,
   isAll,
-  MDCInfo,
-  NodeInfo,
   OVEException,
   OVEExceptionSchema,
-  PJLinkInfo,
   Response,
   Info,
   Status,
   ID,
-  Image
+  Image,
+  Optional,
+  isDefined,
+  SourceSchemas
 } from "@ove/ove-types";
+import { z } from "zod";
 
 export const getDevices = (tag?: string): Device[] | OVEException => {
   const devices = Utils.getDevices().filter(device => tag === undefined || device.tags.includes(tag));
@@ -41,33 +42,38 @@ export const getDevice = (did: string): Device | OVEException => {
   return device;
 };
 
-export const getInfo = async (deviceId: string, type?: string): Promise<MDCInfo | NodeInfo | PJLinkInfo | OVEException> => {
+const _getInfo = async (device: Device, type?: string): Promise<Optional<Info | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.info?.(device, { type });
+};
+
+export const getInfo = async (deviceId: string, type?: string): Promise<Info | OVEException> => {
   const device = getDevice(deviceId);
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = service.info?.(device, { type });
+  const result = await _getInfo(device, type);
 
-  if (result === undefined) {
-    return OVEUtils.raise("'info' command not available on device");
-  }
+  if (result === undefined) return OVEUtils.raise("'info' command not available on device");
 
   return result;
 };
 
-export const getInfoAll = async (tag?: string, type?: string): Promise<Info[] | OVEException> => {
+export const getInfoAll = async (tag?: string, type?: string): Promise<(Info | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const results = await Promise.all(devices.map(device => getInfo(device.id, type)));
+  const results = await Promise.all(devices.map(device => _getInfo(device, type)));
 
-  if (isAll(OVEExceptionSchema, results)) {
-    OVEUtils.raise("'info' command not available on devices");
-  }
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'info' command not available on devices");
 
-  return results.filter(filterIsNot(OVEExceptionSchema));
+  return results.filter(isDefined);
+};
+
+const _getStatus = async (device: Device): Promise<Optional<Response | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.status?.(device, {});
 };
 
 export const getStatus = async (deviceId: string): Promise<Response | OVEException> => {
@@ -75,27 +81,28 @@ export const getStatus = async (deviceId: string): Promise<Response | OVEExcepti
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = await service.status?.(device, {});
-  if (result === undefined) {
-    return OVEUtils.raise("'status' command not recognised");
-  }
+  const result = await _getStatus(device);
+
+  if (result === undefined) return OVEUtils.raise("'status' command not recognised");
 
   return result;
 };
 
-export const getStatusAll = async (tag?: string): Promise<Response[] | OVEException> => {
+export const getStatusAll = async (tag?: string): Promise<(Response | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const statuses = await Promise.all(devices.map(device => getStatus(device.id)));
+  const statuses = await Promise.all(devices.map(_getStatus));
 
-  if (isAll(OVEExceptionSchema, statuses)) {
-    return OVEUtils.raise("'status' command not available on devices");
-  }
+  if (isAll(z.undefined(), statuses)) return OVEUtils.raise("'status' command not available on devices");
 
-  return statuses.filter(filterIsNot(OVEExceptionSchema));
+  return statuses.filter(isDefined);
+};
+
+const _getBrowserStatus = async (device: Device, browserId: number): Promise<Optional<Response | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.getBrowserStatus?.(device, { browserId });
 };
 
 export const getBrowserStatus = async (deviceId: string, browserId: number): Promise<Response | OVEException> => {
@@ -103,28 +110,28 @@ export const getBrowserStatus = async (deviceId: string, browserId: number): Pro
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = await service.getBrowserStatus?.(device, { browserId });
+  const result = await _getBrowserStatus(device, browserId);
 
-  if (result === undefined) {
-    return OVEUtils.raise("'getBrowserStatus' command not available on device");
-  }
+  if (result === undefined) return OVEUtils.raise("'getBrowserStatus' command not available on device");
 
   return result;
 };
 
-export const getBrowserStatusAll = async (browserId: number, tag?: string): Promise<Response[] | OVEException> => {
+export const getBrowserStatusAll = async (browserId: number, tag?: string): Promise<(Response | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const results = await Promise.all(devices.map(device => getBrowserStatus(device.id, browserId)));
+  const results = await Promise.all(devices.map(device => _getBrowserStatus(device, browserId)));
 
-  if (isAll(OVEExceptionSchema, results)) {
-    return OVEUtils.raise("'getBrowserStatus' command not available on devices");
-  }
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'getBrowserStatus' command not available on devices");
 
-  return results.filter(filterIsNot(OVEExceptionSchema));
+  return results.filter(isDefined);
+};
+
+const _getBrowsers = async (device: Device): Promise<Optional<ID[] | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.getBrowsers?.(device, {});
 };
 
 export const getBrowsers = async (deviceId: string): Promise<ID[] | OVEException> => {
@@ -132,28 +139,23 @@ export const getBrowsers = async (deviceId: string): Promise<ID[] | OVEException
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = await service.getBrowsers?.(device, {});
+  const result = await _getBrowsers(device);
 
-  if (result === undefined) {
-    return OVEUtils.raise("'getBrowsers' command not available on device");
-  }
+  if (result === undefined) return OVEUtils.raise("'getBrowsers' command not available on device");
 
   return result;
 };
 
-export const getBrowsersAll = async (tag?: string): Promise<ID[][] | OVEException> => {
+export const getBrowsersAll = async (tag?: string): Promise<(ID[] | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const results = await Promise.all(devices.map(device => getBrowsers(device.id)));
+  const results = await Promise.all(devices.map(_getBrowsers));
 
-  if (isAll(OVEExceptionSchema, results)) {
-    return OVEUtils.raise("'getBrowsers' command not available on device");
-  }
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'getBrowsers' command not available on device");
 
-  return results.filter(filterIsNot(OVEExceptionSchema));
+  return results.filter(isDefined);
 };
 
 export const addDevice = async (device: Device): Promise<Status> => {
@@ -162,33 +164,38 @@ export const addDevice = async (device: Device): Promise<Status> => {
   return true;
 };
 
+const _reboot = async (device: Device): Promise<Optional<Status | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.reboot?.(device, {});
+};
+
 export const reboot = async (deviceId: string): Promise<Status | OVEException> => {
   const device = getDevice(deviceId);
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = await service.reboot?.(device, {});
+  const result = await _reboot(device);
 
-  if (result === undefined) {
-    return OVEUtils.raise("'reboot' command not available on device");
-  }
+  if (result === undefined) return OVEUtils.raise("'reboot' command not available on device");
 
   return result;
 };
 
-export const rebootAll = async (tag?: string): Promise<Status[] | OVEException> => {
+export const rebootAll = async (tag?: string): Promise<(Status | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const results = await Promise.all(devices.map(device => reboot(device.id)));
+  const results = await Promise.all(devices.map(_reboot));
 
-  if (isAll(OVEExceptionSchema, results)) {
-    return OVEUtils.raise("'reboot' command not available on devices");
-  }
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'reboot' command not available on devices");
 
-  return results.filter(filterIsNot(OVEExceptionSchema));
+  return results.filter(isDefined);
+};
+
+const _shutdown = async (device: Device): Promise<Optional<Status | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.shutdown?.(device, {});
 };
 
 export const shutdown = async (deviceId: string): Promise<Status | OVEException> => {
@@ -196,28 +203,28 @@ export const shutdown = async (deviceId: string): Promise<Status | OVEException>
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = await service.shutdown?.(device, {});
+  const result = await _shutdown(device);
 
-  if (result === undefined) {
-    return OVEUtils.raise("'shutdown' command not available on device");
-  }
+  if (result === undefined) return OVEUtils.raise("'shutdown' command not available on device");
 
   return result;
 };
 
-export const shutdownAll = async (tag?: string): Promise<Status[] | OVEException> => {
+export const shutdownAll = async (tag?: string): Promise<(Status | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const results = await Promise.all(devices.map(device => shutdown(device.id)));
+  const results = await Promise.all(devices.map(_shutdown));
 
-  if (isAll(OVEExceptionSchema, results)) {
-    return OVEUtils.raise("'shutdown' command not available on devices");
-  }
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'shutdown' command not available on devices");
 
-  return results.filter(filterIsNot(OVEExceptionSchema));
+  return results.filter(isDefined);
+};
+
+const _start = async (device: Device): Promise<Optional<Status | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.start?.(device, {});
 };
 
 export const start = async (deviceId: string): Promise<Status | OVEException> => {
@@ -225,28 +232,23 @@ export const start = async (deviceId: string): Promise<Status | OVEException> =>
 
   if (is(OVEExceptionSchema, device)) return device;
 
-  const service = getServiceForProtocol(device.protocol);
-  const result = service.start?.(device, {});
+  const result = await _start(device);
 
-  if (result === undefined) {
-    return OVEUtils.raise("'start' command not available on device");
-  }
+  if (result === undefined) return OVEUtils.raise("'start' command not available on device");
 
   return result;
 };
 
-export const startAll = async (tag?: string): Promise<Status[] | OVEException> => {
+export const startAll = async (tag?: string): Promise<(Status | OVEException)[] | OVEException> => {
   const devices = getDevices(tag);
 
   if (is(OVEExceptionSchema, devices)) return devices;
 
-  const results = await Promise.all(devices.map(device => start(device.id)));
+  const results = await Promise.all(devices.map(_start));
 
-  if (isAll(OVEExceptionSchema, results)) {
-    return OVEUtils.raise("'start' command not available on devices");
-  }
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'start' command not available on devices");
 
-  return results.filter(filterIsNot(OVEExceptionSchema));
+  return results.filter(isDefined);
 };
 
 export const execute = async (deviceId: string, command: string): Promise<Response | OVEException> => {
@@ -334,6 +336,64 @@ export const openBrowserAll = async (displayId: number, tag?: string): Promise<I
   }
 
   return results.filter(filterIsNot(OVEExceptionSchema));
+};
+
+const _setVolume = async (device: Device, volume: number): Promise<Optional<Status | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.setVolume?.(device, { volume });
+};
+
+export const setVolume = async (deviceId: string, volume: number): Promise<Status | OVEException> => {
+  const device = getDevice(deviceId);
+
+  if (is(OVEExceptionSchema, device)) return device;
+
+  const result = await _setVolume(device, volume);
+
+  if (result === undefined) return OVEUtils.raise("'setVolume' command not available on device");
+
+  return result;
+};
+
+export const setVolumeAll = async (volume: number, tag?: string): Promise<(Status | OVEException)[] | OVEException> => {
+  const devices = getDevices(tag);
+
+  if (is(OVEExceptionSchema, devices)) return devices;
+
+  const results = await Promise.all(devices.map(device => _setVolume(device, volume)));
+
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'setVolume' command not available on devices");
+
+  return results.filter(isDefined);
+};
+
+const _setSource = async (device: Device, source: z.infer<typeof SourceSchemas>, channel?: number): Promise<Optional<Status | OVEException>> => {
+  const service = getServiceForProtocol(device.protocol);
+  return service.setSource?.(device, { source, channel });
+};
+
+export const setSource = async (id: string, source: z.infer<typeof SourceSchemas>, channel?: number): Promise<Status | OVEException> => {
+  const device = getDevice(id);
+
+  if (is(OVEExceptionSchema, device)) return device;
+
+  const result = await _setSource(device, source, channel);
+
+  if (result === undefined) return OVEUtils.raise("'setSource' command not available on device");
+
+  return result;
+};
+
+export const setSourceAll = async (source: z.infer<typeof SourceSchemas>, channel?: number, tag?: string): Promise<(Status | OVEException)[] | OVEException> => {
+  const devices = getDevices(tag);
+
+  if (is(OVEExceptionSchema, devices)) return devices;
+
+  const results = await Promise.all(devices.map(device => _setSource(device, source, channel)));
+
+  if (isAll(z.undefined(), results)) return OVEUtils.raise("'setSource' command not available on devices");
+
+  return results.filter(isDefined);
 };
 
 export const closeBrowser = async (deviceId: string, browserId: number): Promise<Status | OVEException> => {

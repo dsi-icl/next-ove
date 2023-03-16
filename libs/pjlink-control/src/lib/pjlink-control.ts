@@ -1,6 +1,6 @@
 import * as net from "net";
 import * as crypto from "crypto";
-import { Device, OVEException } from "@ove/ove-types";
+import { Device, OVEException, PJLinkSource } from "@ove/ove-types";
 import { Utils } from "@ove/ove-utils";
 import { z } from "zod";
 
@@ -30,17 +30,7 @@ export type Power = z.infer<typeof PowerSchema>;
 
 export const POWER: Power = { OFF: 0, ON: 1, COOLING_DOWN: 2, WARMING_UP: 3 };
 
-export const InputSchema = z.object({
-  RGB: z.literal(1),
-  VIDEO: z.literal(2),
-  DIGITAL: z.literal(3),
-  STORAGE: z.literal(4),
-  NETWORK: z.literal(5)
-}).strict();
-
-export type Input = z.infer<typeof InputSchema>;
-
-export const INPUT: Input = {
+export const INPUT: PJLinkSource = {
   RGB: 1, VIDEO: 2, DIGITAL: 3, STORAGE: 4, NETWORK: 5
 };
 

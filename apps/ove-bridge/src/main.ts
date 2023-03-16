@@ -39,10 +39,10 @@ socket.on("getDevice", async ({ id }, cb) => {
   const callback = wrapCallback(cb);
   const response = Service.getDevice(id);
 
-  if (response !== undefined) {
-    callback(response);
-  } else {
+  if (response === undefined) {
     callback(Utils.raise(`No device found with ID: ${id}`));
+  } else {
+    callback(response);
   }
 });
 
@@ -158,6 +158,26 @@ socket.on("openBrowserAll", async ({ tag, displayId }, cb) => {
 socket.on("addDevice", async ({ device }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.addDevice(device));
+});
+
+socket.on("setVolume", async ({id, volume}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.setVolume(id, volume));
+});
+
+socket.on("setVolumeAll", async ({volume, tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.setVolumeAll(volume, tag));
+});
+
+socket.on("setSource", async ({id, source, channel}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.setSource(id, source, channel));
+});
+
+socket.on("setSourceAll", async ({source, channel, tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.setSourceAll(source, channel ,tag));
 });
 
 socket.on("closeBrowser", async ({ id, browserId }, cb) => {
