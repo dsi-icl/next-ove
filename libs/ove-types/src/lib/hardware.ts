@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { OVEException, Response } from "./ove-types";
-import { MDCSource, MDCSourceSchema } from "@ove/mdc-control";
+import { MDCSourceSchema } from "@ove/mdc-control";
 
 export const GeneralSchema = z.object({
   version: z.string(),
@@ -224,7 +224,7 @@ export type Status = boolean;
 export type Options = object;
 export type Optional<T> = T | undefined;
 
-export type DeviceService<InfoType, Sources> = {
+export type DeviceService<InfoType> = {
   reboot?: (device: Device, opts: Options) => Promise<Optional<Status | OVEException>>
   shutdown?: (device: Device, opts: Options) => Promise<Optional<Status | OVEException>>
   start?: (device: Device, opts: Options) => Promise<Optional<Status | OVEException>>
@@ -256,5 +256,4 @@ export type PJLinkSource = z.infer<typeof PJLinkSourceSchema>;
 export const SourceSchemas = z.union([MDCSourceSchema.keyof(), PJLinkSourceSchema.keyof()]);
 
 export type Info = PJLinkInfo | NodeInfo | MDCInfo;
-export type Sources = MDCSource | PJLinkSource;
 export const InfoSchema = z.union([NodeInfoSchema, MDCInfoSchema, PJLinkInfoSchema]);

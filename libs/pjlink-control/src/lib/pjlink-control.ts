@@ -8,14 +8,14 @@ type PJLinkState = {
   settings: {
     host: string,
     port: number,
-    password: string,
+    password: string | null,
     timeout: number
-  },
-  class: number,
-  _connection: net.Socket | null,
-  _sessionToken: string | null,
-  _curCmd: string | null,
-  _callback: (response: PJLinkResponse) => void
+  }
+  class: number
+  _connection: net.Socket | null
+  _sessionToken: string | null
+  _curCmd: string | null
+  _callback: ((response: PJLinkResponse) => void) | null
   _received: boolean
 };
 
@@ -37,19 +37,23 @@ export const INPUT: PJLinkSource = {
 type PJLinkResponse = OVEException | string;
 type PJLinkCallback = (response: PJLinkResponse) => void;
 
-const calcDigest = (rand: string, password: string): any => {
+const calcDigest = (rand: string, password: string | null): any => {
   const md5 = crypto.createHash("md5");
   md5.setEncoding("hex");
   md5.write(rand);
-  md5.end(password);
+  if (password !== null) {
+    md5.end(password);
+  } else {
+    md5.end();
+  }
   return md5.read();
 };
 
 const init = (command: string, callback: PJLinkCallback, device?: Device, password?: string): PJLinkState => {
   return {
     settings: {
-      host: device.ip || "192.168.1.1",
-      port: device.port || 4352,
+      host: device?.ip || "192.168.1.1",
+      port: device?.port || 4352,
       password: password || null,
       timeout: 0
     },
@@ -67,7 +71,7 @@ const init = (command: string, callback: PJLinkCallback, device?: Device, passwo
 
 const disconnect = (state: PJLinkState) => {
   if (!state._received) {
-    state._callback({ oveError: "Connection closed" });
+    state._callback?.({ oveError: "Connection closed" });
   }
 
   if (state._connection) {
@@ -84,7 +88,7 @@ const disconnect = (state: PJLinkState) => {
 };
 
 const onError = (state: PJLinkState) => (err: Error) => {
-  state._callback({ oveError: err.message });
+  state._callback?.({ oveError: err.message });
 };
 
 const onClose = (state: PJLinkState) => () => {
@@ -92,41 +96,48 @@ const onClose = (state: PJLinkState) => () => {
 };
 
 const onTimeout = (state: PJLinkState) => () => {
-  state._callback({ oveError: "Connection timeout" });
+  state._callback?.({ oveError: "Connection timeout" });
   disconnect(state);
+};
+
+const REGEX = {
+  AUTH_REGEX: /^PJLINK 1 (.*)\r$/,
+  SUCCESS_REGEX: /^%.*=OK\r$/,
+  GET_REGEX: /^%.*=\b(?!ERR1|ERR2|ERR3|ERR4|ERRA)\b(.*)\r$/,
+  AUTH_ERROR_REGEX: /^PJLINK ERRA\r$/,
+  UC_ERROR_REGEX: /^%.*=ERR1\r$/,
+  OOP_ERROR_REGEX: /^%.*=ERR2\r$/,
+  UT_ERROR_REGEX: /^%.*=ERR3\r$/,
+  PDF_ERROR_REGEX: /^%.*=ERR4\r$/
 };
 
 const onData = (state: PJLinkState) => (buffer: Buffer) => {
   const response = buffer.toString("ascii");
-  const AUTH_REGEX = /^PJLINK 1 (.*)\r$/;
-  const SUCCESS_REGEX = /^%.*=OK\r$/;
-  const GET_REGEX = /^%.*=\b(?!ERR1|ERR2|ERR3|ERR4|ERRA)\b(.*)\r$/;
-  const AUTH_ERROR_REGEX = /^PJLINK ERRA\r$/;
-  const UC_ERROR_REGEX = /^%.*=ERR1\r$/;
-  const OOP_ERROR_REGEX = /^%.*=ERR2\r$/;
-  const UT_ERROR_REGEX = /^%.*=ERR3\r$/;
-  const PDF_ERROR_REGEX = /^%.*=ERR4\r$/;
 
-  if (AUTH_REGEX.test(response)) {
-    const sessionToken = response.match(AUTH_REGEX).pop();
-    state._connection.write(`${calcDigest(sessionToken, state.settings.password)}%${state.class}${state._curCmd}\r`);
-  } else if (SUCCESS_REGEX.test(response)) {
-    state._callback(response);
-  } else if (GET_REGEX.test(response)) {
-    const res = response.match(GET_REGEX).pop();
-    state._callback(res);
-  } else if (AUTH_ERROR_REGEX.test(response)) {
-    state._callback({ oveError: "Incorrect password" });
-  } else if (UC_ERROR_REGEX.test(response)) {
-    state._callback({ oveError: "Undefined command" });
-  } else if (OOP_ERROR_REGEX.test(response)) {
-    state._callback({ oveError: "Out of parameter" });
-  } else if (UT_ERROR_REGEX.test(response)) {
-    state._callback({ oveError: "Unavailable time" });
-  } else if (PDF_ERROR_REGEX.test(response)) {
-    state._callback({ oveError: "Projector/Display failure" });
+  if (state._callback === null || state._connection === null) throw new Error("Callback cannot be null");
+
+  if (REGEX.AUTH_REGEX.test(response)) {
+    const sessionToken = response.match(REGEX.AUTH_REGEX)!!.pop();
+    if (sessionToken === undefined) throw new Error("Session token cannot be undefined");
+    state._connection?.write(`${calcDigest(sessionToken, state.settings.password)}%${state.class}${state._curCmd}\r`);
+  } else if (REGEX.SUCCESS_REGEX.test(response)) {
+    state._callback?.(response);
+  } else if (REGEX.GET_REGEX.test(response)) {
+    const res = response.match(REGEX.GET_REGEX)!!.pop();
+    if (res === undefined) throw new Error("Result cannot be undefined");
+    state._callback?.(res);
+  } else if (REGEX.AUTH_ERROR_REGEX.test(response)) {
+    state._callback?.({ oveError: "Incorrect password" });
+  } else if (REGEX.UC_ERROR_REGEX.test(response)) {
+    state._callback?.({ oveError: "Undefined command" });
+  } else if (REGEX.OOP_ERROR_REGEX.test(response)) {
+    state._callback?.({ oveError: "Out of parameter" });
+  } else if (REGEX.UT_ERROR_REGEX.test(response)) {
+    state._callback?.({ oveError: "Unavailable time" });
+  } else if (REGEX.PDF_ERROR_REGEX.test(response)) {
+    state._callback?.({ oveError: "Projector/Display failure" });
   } else {
-    state._callback({ oveError: `Unknown response: ${response}` });
+    state._callback?.({ oveError: `Unknown response: ${response}` });
   }
 };
 

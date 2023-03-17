@@ -155,7 +155,7 @@ const getBrowsers = async (device: Device, opts: Options): Promise<Optional<ID[]
   return await createClient(device).getBrowsers.query();
 };
 
-const NodeService: DeviceService<NodeInfo, undefined> = {
+const NodeService: DeviceService<NodeInfo> = {
   reboot,
   shutdown,
   start,

@@ -7,7 +7,7 @@ import {
   Response,
   DeviceService,
   Options,
-  Status, Optional
+  Status, Optional, PJLinkSourceSchema
 } from "@ove/ove-types";
 import { z } from "zod";
 import { Utils } from "@ove/ove-utils";
@@ -91,7 +91,7 @@ const status = async (device: Device, opts: Options): Promise<Optional<Response 
 
 const setSource = async (device: Device, opts: Options): Promise<Status | OVEException> => {
   const setSourceOptsSchema = z.object({
-    source: PJLink.InputSchema.keyof(),
+    source: PJLinkSourceSchema.keyof(),
     channel: z.number().optional()
   }).strict();
   const parsedOpts = setSourceOptsSchema.safeParse(opts);
@@ -128,7 +128,7 @@ const unmute = async (device: Device, opts: Options): Promise<Status | OVEExcept
   return true;
 };
 
-const ProjectorService: DeviceService<PJLinkInfo, PJLink.Input> = {
+const ProjectorService: DeviceService<PJLinkInfo> = {
   reboot,
   shutdown,
   start,

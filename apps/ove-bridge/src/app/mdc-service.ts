@@ -8,7 +8,7 @@ import {
   Options,
   Status, Optional
 } from "@ove/ove-types";
-import { MDCSource, MDCSourceSchema } from "@ove/mdc-control";
+import { MDCSourceSchema } from "@ove/mdc-control";
 import { z } from "zod";
 import { Utils } from "@ove/ove-utils";
 
@@ -151,7 +151,7 @@ const setSource = async ({
   return true;
 };
 
-const MDCService: DeviceService<MDCInfo, MDCSource> = {
+const MDCService: DeviceService<MDCInfo> = {
   reboot,
   shutdown,
   start,
