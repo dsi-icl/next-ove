@@ -5,11 +5,11 @@ import * as Service from "./app/service";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-  WSResponse
+  BridgeResponse
 } from "@ove/ove-types";
 import { Utils, Logging } from "@ove/ove-utils";
 
-const wrapCallback = <T>(callback: (response: WSResponse<T>) => void): (response: T) => void => (response: T) => callback({
+const wrapCallback = <T>(callback: (response: BridgeResponse<T>) => void): (response: T) => void => (response: T) => callback({
   response,
   meta: {
     bridge: environment.name
@@ -178,6 +178,66 @@ socket.on("setSource", async ({id, source, channel}, cb) => {
 socket.on("setSourceAll", async ({source, channel, tag}, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.setSourceAll(source, channel ,tag));
+});
+
+socket.on("mute", async ({id}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.mute(id));
+});
+
+socket.on("muteAll", async ({tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.muteAll(tag));
+});
+
+socket.on("unmute", async ({id}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.unmute(id));
+});
+
+socket.on("unmuteAll", async ({tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.unmuteAll(tag));
+});
+
+socket.on("muteAudio", async ({id}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.muteAudio(id));
+});
+
+socket.on("muteAudioAll", async ({tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.muteAudioAll(tag));
+});
+
+socket.on("unmuteAudio", async ({id}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.unmuteAudio(id));
+});
+
+socket.on("unmuteAudioAll", async ({tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.unmuteAudioAll(tag));
+});
+
+socket.on("muteVideo", async ({id}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.muteVideo(id));
+});
+
+socket.on("muteVideoAll", async ({tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.muteVideoAll(tag));
+});
+
+socket.on("unmuteVideo", async ({id}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.unmuteVideo(id));
+});
+
+socket.on("unmuteVideoAll", async ({tag}, cb) => {
+  const callback = wrapCallback(cb);
+  callback(await Service.unmuteVideoAll(tag));
 });
 
 socket.on("closeBrowser", async ({ id, browserId }, cb) => {

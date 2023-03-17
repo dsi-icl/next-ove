@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OVEException, Response } from "./ove-types";
+import { OVEException, OVEExceptionSchema, Response } from "./ove-types";
 import { MDCSourceSchema } from "@ove/mdc-control";
 
 export const GeneralSchema = z.object({
@@ -154,7 +154,7 @@ export const MDCInfoSchema = z.object({
 
 export type MDCInfo = z.infer<typeof MDCInfoSchema>;
 
-export type WSResponse<Response> = {
+export type BridgeResponse<Response> = {
   meta: {
     bridge: string
   }
@@ -169,78 +169,119 @@ export const PJLinkInfoSchema = z.object({
 export type PJLinkInfo = z.infer<typeof PJLinkInfoSchema>;
 
 export interface ServerToClientEvents {
-  getDevice: (args: { id: string }, callback: (response: WSResponse<z.infer<typeof DeviceSchema> | OVEException>) => void) => void;
-  getDevices: (args: {}, callback: (response: WSResponse<z.infer<typeof DeviceSchema>[] | OVEException>) => void) => void;
-  getStatus: (args: { id: string }, callback: (response: WSResponse<Response | OVEException>) => void) => void;
-  getStatusAll: (args: { tag?: string }, callback: (response: WSResponse<(Response | OVEException)[] | OVEException>) => void) => void;
-  getInfo: (args: { id: string, type?: string }, callback: (response: WSResponse<Info | OVEException>) => void) => void;
-  getInfoAll: (args: { type?: string, tag?: string }, callback: (response: WSResponse<(Info | OVEException)[] | OVEException>) => void) => void;
-  getBrowserStatus: (args: { id: string, browserId: number }, callback: (response: WSResponse<Response | OVEException>) => void) => void;
-  getBrowserStatusAll: (args: { browserId: number, tag?: string }, callback: (response: WSResponse<(Response | OVEException)[] | OVEException>) => void) => void;
-  getBrowsers: (args: { id: string }, callback: (response: WSResponse<ID[] | OVEException>) => void) => void;
-  getBrowsersAll: (args: { tag?: string }, callback: (response: WSResponse<(ID[] | OVEException)[] | OVEException>) => void) => void;
-  start: (args: { id: string }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  startAll: (args: { tag?: string }, callback: (response: WSResponse<(Status | OVEException)[] | OVEException>) => void) => void;
-  reboot: (args: { id: string }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  rebootAll: (args: { tag?: string }, callback: (response: WSResponse<(Status | OVEException)[] | OVEException>) => void) => void;
-  shutdown: (args: { id: string }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  shutdownAll: (args: { tag?: string }, callback: (response: WSResponse<(Status | OVEException)[] | OVEException>) => void) => void;
-  execute: (args: { id: string, command: string }, callback: (response: WSResponse<Response | OVEException>) => void) => void;
-  executeAll: (args: { command: string, tag?: string }, callback: (response: WSResponse<Response[] | OVEException>) => void) => void;
-  screenshot: (args: { id: string, method: string, screens: number[] }, callback: (response: WSResponse<Image[] | OVEException>) => void) => void;
-  screenshotAll: (args: { tag?: string, method: string, screens: number[] }, callback: (response: WSResponse<Image[][] | OVEException>) => void) => void;
-  openBrowser: (args: { id: string, displayId: number }, callback: (response: WSResponse<ID | OVEException>) => void) => void;
-  openBrowserAll: (args: { displayId: number, tag?: string }, callback: (response: WSResponse<ID[] | OVEException>) => void) => void;
-  addDevice: (args: { device: z.infer<typeof DeviceSchema> }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  setVolume: (args: {id: string, volume: number}, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  setVolumeAll: (args: {volume: number, tag?: string}, callback: (response: WSResponse<(Status | OVEException)[] | OVEException>) => void) => void;
-  setSource: (args: {id: string, source: z.infer<typeof SourceSchemas>, channel?: number}, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  setSourceAll: (args: {source: z.infer<typeof SourceSchemas>, tag?: string, channel?: number}, callback: (response: WSResponse<(Status | OVEException)[] | OVEException>) => void) => void;
-  closeBrowser: (args: { id: string, browserId: number }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  closeBrowserAll: (args: { browserId: number, tag?: string }, callback: (response: WSResponse<Status[] | OVEException>) => void) => void;
-  closeBrowsers: (args: { id: string }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
-  closeBrowsersAll: (args: { tag?: string }, callback: (response: WSResponse<Status[] | OVEException>) => void) => void;
-  removeDevice: (args: { id: string }, callback: (response: WSResponse<Status | OVEException>) => void) => void;
+  getDevice: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<z.infer<typeof DeviceSchema>>>) => void) => void;
+  getDevices: (args: {}, callback: (response: BridgeResponse<DeviceResponse<z.infer<typeof DeviceSchema>[]>>) => void) => void;
+  getStatus: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<Response>>) => void) => void;
+  getStatusAll: (args: { tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Response>>) => void) => void;
+  getInfo: (args: { id: string, type?: string }, callback: (response: BridgeResponse<DeviceResponse<Info>>) => void) => void;
+  getInfoAll: (args: { type?: string, tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Info>>) => void) => void;
+  getBrowserStatus: (args: { id: string, browserId: number }, callback: (response: BridgeResponse<DeviceResponse<Response>>) => void) => void;
+  getBrowserStatusAll: (args: { browserId: number, tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Response>>) => void) => void;
+  getBrowsers: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<ID[]>>) => void) => void;
+  getBrowsersAll: (args: { tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<ID[]>>) => void) => void;
+  start: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  startAll: (args: { tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  reboot: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  rebootAll: (args: { tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  shutdown: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  shutdownAll: (args: { tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  execute: (args: { id: string, command: string }, callback: (response: BridgeResponse<DeviceResponse<Response>>) => void) => void;
+  executeAll: (args: { command: string, tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Response>>) => void) => void;
+  screenshot: (args: { id: string, method: ScreenshotMethod, screens: ID[] }, callback: (response: BridgeResponse<DeviceResponse<Image[]>>) => void) => void;
+  screenshotAll: (args: { tag?: string, method: ScreenshotMethod, screens: ID[] }, callback: (response: BridgeResponse<MultiDeviceResponse<Image[]>>) => void) => void;
+  openBrowser: (args: { id: string, displayId: ID }, callback: (response: BridgeResponse<DeviceResponse<ID>>) => void) => void;
+  openBrowserAll: (args: { displayId: ID, tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<ID>>) => void) => void;
+  addDevice: (args: { device: z.infer<typeof DeviceSchema> }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  setVolume: (args: { id: string, volume: number }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  setVolumeAll: (args: { volume: number, tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  setSource: (args: { id: string, source: z.infer<typeof SourceSchemas>, channel?: number }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  setSourceAll: (args: { source: z.infer<typeof SourceSchemas>, tag?: string, channel?: number }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  mute: (args: {id: string}, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  muteAll: (args: {tag?: string}, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  unmute: (args: {id: string}, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  unmuteAll: (args: {tag?: string}, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  muteAudio: (args: {id: string}, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  muteAudioAll: (args: {tag?: string}, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  unmuteAudio: (args: {id: string}, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  unmuteAudioAll: (args: {tag?: string}, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  muteVideo: (args: {id: string}, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  muteVideoAll: (args: {tag?: string}, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  unmuteVideo: (args: {id: string}, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  unmuteVideoAll: (args: {tag?: string}, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  closeBrowser: (args: { id: string, browserId: ID }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  closeBrowserAll: (args: { browserId: ID, tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  closeBrowsers: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
+  closeBrowsersAll: (args: { tag?: string }, callback: (response: BridgeResponse<MultiDeviceResponse<Status>>) => void) => void;
+  removeDevice: (args: { id: string }, callback: (response: BridgeResponse<DeviceResponse<Status>>) => void) => void;
 }
+
+export const ServiceTypesSchema = z.union([z.literal("node"), z.literal("mdc"), z.literal("pjlink")]);
+export type ServiceTypes = z.infer<typeof ServiceTypesSchema>;
 
 export const DeviceSchema = z.object({
   id: z.string(),
   description: z.string(),
   ip: z.string(),
   port: z.number(),
-  protocol: z.string().regex(/^(mdc|node|projector)$/gi),
+  protocol: ServiceTypesSchema,
   mac: z.string(),
   tags: z.array(z.string())
 });
 
 export type Device = z.infer<typeof DeviceSchema>;
 
+export type DeviceResponse<Type> = Type | OVEException;
+export type MultiDeviceResponse<Type> =
+  { deviceId: string, response: DeviceResponse<Type> }[]
+  | OVEException;
+
+export const getDeviceResponseSchema = <T extends z.ZodTypeAny>(schema: T) => z.union([schema, OVEExceptionSchema]);
+export const getMultiDeviceResponseSchema = <T extends z.ZodTypeAny>(schema: T) => z.union([z.array(z.object({
+  deviceId: z.string(),
+  response: getDeviceResponseSchema(schema)
+})), OVEExceptionSchema]);
+
+export const getBridgeResponseSchema = <T extends z.ZodTypeAny>(schema: T) => z.object({
+  meta: BridgeMetadataSchema,
+  response: schema
+});
+
+export const ScreenshotMethodSchema = z.union([z.literal("upload"), z.literal("local"), z.literal("response")]);
+export type ScreenshotMethod = z.infer<typeof ScreenshotMethodSchema>;
+
 export interface ClientToServerEvents {
 }
 
 export type Image = string;
+export const ImageSchema = z.string();
 export type ID = number;
+export const IDSchema = z.number();
 export type Status = boolean;
+export const StatusSchema = z.boolean();
 export type Options = object;
 export type Optional<T> = T | undefined;
 
 export type DeviceService<InfoType> = {
-  reboot?: (device: Device, opts: Options) => Promise<Optional<Status | OVEException>>
-  shutdown?: (device: Device, opts: Options) => Promise<Optional<Status | OVEException>>
-  start?: (device: Device, opts: Options) => Promise<Optional<Status | OVEException>>
-  info?: (device: Device, opts: Options) => Promise<Optional<InfoType | OVEException>>
-  status?: (device: Device, opts: Options) => Promise<Optional<Response | OVEException>>
-  execute?: (device: Device, opts: Options) => Promise<Response | OVEException>
-  screenshot?: (device: Device, opts: Options) => Promise<Image[] | OVEException>
-  openBrowser?: (device: Device, opts: Options) => Promise<ID | OVEException>
-  getBrowserStatus?: (device: Device, opts: Options) => Promise<Optional<Response | OVEException>>
-  closeBrowser?: (device: Device, opts: Options) => Promise<Status | OVEException>
-  closeBrowsers?: (device: Device, opts: Options) => Promise<Status | OVEException>
-  getBrowsers?: (device: Device, opts: Options) => Promise<Optional<ID[] | OVEException>>
-  setVolume?: (device: Device, opts: Options) => Promise<Status | OVEException>
-  mute?: (device: Device, opts: Options) => Promise<Status | OVEException>
-  unmute?: (device: Device, opts: Options) => Promise<Status | OVEException>
-  setSource?: (device: Device, opts: Options) => Promise<Status | OVEException>
+  reboot?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  shutdown?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  start?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  info?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<InfoType>>>
+  status?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Response>>>
+  execute?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Response>>>
+  screenshot?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Image[]>>>
+  openBrowser?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<ID>>>
+  getBrowserStatus?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Response>>>
+  closeBrowser?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  closeBrowsers?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  getBrowsers?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<ID[]>>>
+  setVolume?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  mute?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  unmute?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  setSource?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  muteAudio?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  unmuteAudio?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  muteVideo?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
+  unmuteVideo?: (device: Device, opts: Options) => Promise<Optional<DeviceResponse<Status>>>
 };
 
 export const PJLinkSourceSchema = z.object({

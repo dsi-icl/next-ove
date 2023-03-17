@@ -11,8 +11,23 @@ import {
   OVEExceptionSchema,
   ServerToClientEvents,
   ResponseSchema,
-  WSResponse,
-  InfoSchema, Response, ID, Info, Status, SourceSchemas
+  BridgeResponse,
+  InfoSchema,
+  Response,
+  ID,
+  Info,
+  Status,
+  SourceSchemas,
+  MultiDeviceResponse,
+  getBridgeResponseSchema,
+  getMultiDeviceResponseSchema,
+  getDeviceResponseSchema,
+  IDSchema,
+  StatusSchema,
+  DeviceResponse,
+  ScreenshotMethodSchema,
+  ImageSchema,
+  Image
 } from "@ove/ove-types";
 import { Namespace } from "socket.io";
 
@@ -63,9 +78,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceSchema.omit({ id: true }).merge(DeviceInputSchema))
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input }) => {
-      return new Promise<WSResponse<boolean | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<boolean | OVEException>>(resolve => {
         io.sockets.get(state.clients[input.bridgeId]).emit("addDevice", { device: input }, response => resolve(response));
       });
     }),
@@ -77,9 +92,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema.extend({ browserId: z.number() }))
-    .output(generateOutputSchema(ResponseSchema))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(ResponseSchema)))
     .query(async ({ input: { bridgeId, deviceId, browserId } }) =>
-      new Promise<WSResponse<Response | OVEException>>(resolve =>
+      new Promise<BridgeResponse<Response | OVEException>>(resolve =>
         io.sockets.get(state.clients[bridgeId]).emit("getBrowserStatus", {
           id: deviceId,
           browserId
@@ -92,9 +107,9 @@ export const hardwareRouter = router({
       }
     })
     .input(BridgeInputSchema.extend({ browserId: z.number() }))
-    .output(generateOutputSchema(z.array(z.union([ResponseSchema, OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(ResponseSchema)))
     .query(async ({ input: { bridgeId, tag, browserId } }) => {
-      return new Promise<WSResponse<(Response | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Response>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getBrowserStatusAll", {
           tag,
           browserId
@@ -109,18 +124,18 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(generateOutputSchema(z.array(z.number())))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(z.array(IDSchema))))
     .query(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<ID[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<ID[]>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getBrowsers", { id: deviceId }, response => resolve(response));
       });
     }),
   getBrowsersAll: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/browsers" } })
     .input(BridgeInputSchema)
-    .output(generateOutputSchema(z.array(z.union([z.array(z.number()), OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(z.array(IDSchema))))
     .query(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<WSResponse<(ID[] | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<ID[]>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getBrowsersAll", { tag }, response => resolve(response));
       });
     }),
@@ -132,9 +147,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(DeviceSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(DeviceSchema)))
     .query(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<Device | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Device>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getDevice", { id: deviceId }, (response) => resolve(response));
       });
     }),
@@ -146,25 +161,25 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(generateOutputSchema(ResponseSchema))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(ResponseSchema)))
     .query(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<Response | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Response>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getStatus", { id: deviceId }, response => resolve(response));
       });
     }),
   getDevices: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/devices" } })
     .input(z.void())
-    .output(z.array(generateOutputSchema(z.array(DeviceSchema))))
+    .output(z.array(getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))))
     .query(async () => {
-      return multiSocketHandling<WSResponse<Device[] | OVEException>, "getDevices">("getDevices", resolve => [{}, response => resolve(response)]);
+      return multiSocketHandling<BridgeResponse<DeviceResponse<Device[]>>, "getDevices">("getDevices", resolve => [{}, response => resolve(response)]);
     }),
   getDevicesForBridge: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/devices" } })
     .input(BridgeInputSchema)
-    .output(generateOutputSchema(z.array(DeviceSchema)))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema))))
     .query(async ({ input: { bridgeId } }) => {
-      return new Promise<WSResponse<Device[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Device[]>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getDevices", {}, response => resolve(response));
       });
     }),
@@ -176,9 +191,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema.extend({ type: z.string().optional() }))
-    .output(generateOutputSchema(InfoSchema))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(InfoSchema)))
     .query(async ({ input: { bridgeId, deviceId, type } }) => {
-      return new Promise(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Info>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getInfo", {
           id: deviceId,
           type
@@ -188,9 +203,9 @@ export const hardwareRouter = router({
   getInfoAll: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/info" } })
     .input(BridgeInputSchema.extend({ type: z.string().optional() }))
-    .output(generateOutputSchema(z.array(z.union([InfoSchema, OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(InfoSchema)))
     .query(async ({ input: { bridgeId, tag, type } }) => {
-      return new Promise<WSResponse<(Info | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Info>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getInfoAll", {
           tag,
           type
@@ -200,9 +215,9 @@ export const hardwareRouter = router({
   getStatusAll: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/status" } })
     .input(BridgeInputSchema)
-    .output(generateOutputSchema(z.array(z.union([ResponseSchema, OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(ResponseSchema)))
     .query(async ({ input: { bridgeId } }) => {
-      return new Promise<WSResponse<(Response | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Response>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("getStatusAll", { tag: "test" }, (response) => resolve(response));
       });
     }),
@@ -214,18 +229,18 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<Status | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("reboot", { id: deviceId }, response => resolve(response));
       });
     }),
   rebootAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/reboot" } })
     .input(BridgeInputSchema)
-    .output(generateOutputSchema(z.array(z.union([z.boolean(), OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<WSResponse<(Status | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("rebootAll", { tag }, response => resolve(response));
       });
     }),
@@ -237,9 +252,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<Status | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("shutdown", { id: deviceId }, response => resolve(response));
       });
     }),
@@ -251,9 +266,9 @@ export const hardwareRouter = router({
       }
     })
     .input(BridgeInputSchema)
-    .output(generateOutputSchema(z.array(z.union([z.boolean(), OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<WSResponse<(Status | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("shutdownAll", { tag }, response => resolve(response));
       });
     }),
@@ -265,9 +280,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<Status | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("removeDevice", { id: deviceId }, response => resolve(response));
       });
     }),
@@ -279,18 +294,18 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema)
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<WSResponse<Status | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("start", { id: deviceId }, response => resolve(response));
       });
     }),
   startAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/start" } })
     .input(BridgeInputSchema)
-    .output(generateOutputSchema(z.array(z.union([z.boolean(), OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<WSResponse<(Status | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("startAll", { tag }, response => resolve(response));
       });
     }),
@@ -302,9 +317,9 @@ export const hardwareRouter = router({
       }
     })
     .input(DeviceInputSchema.extend({ volume: z.number() }))
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, deviceId, volume } }) => {
-      return new Promise<WSResponse<Status | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("setVolume", {
           id: deviceId,
           volume
@@ -314,9 +329,9 @@ export const hardwareRouter = router({
   setVolumeAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/volume" } })
     .input(BridgeInputSchema.extend({ volume: z.number() }))
-    .output(generateOutputSchema(z.array(z.union([z.boolean(), OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, volume, tag } }) => {
-      return new Promise<WSResponse<(Status | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("setVolumeAll", {
           volume,
           tag
@@ -334,9 +349,9 @@ export const hardwareRouter = router({
       source: SourceSchemas,
       channel: z.number().optional()
     }))
-    .output(generateOutputSchema(z.boolean()))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, deviceId, source, channel } }) => {
-      return new Promise<WSResponse<Status | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("setSource", {
           id: deviceId,
           source,
@@ -350,14 +365,243 @@ export const hardwareRouter = router({
       source: SourceSchemas,
       channel: z.number().optional()
     }))
-    .output(generateOutputSchema(z.array(z.union([z.boolean(), OVEExceptionSchema]))))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
     .mutation(async ({ input: { bridgeId, tag, source, channel } }) => {
-      return new Promise<WSResponse<(Status | OVEException)[] | OVEException>>(resolve => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
         io.sockets.get(state.clients[bridgeId]).emit("setSourceAll", {
           tag,
           source,
           channel
         }, response => resolve(response));
+      });
+    }),
+  takeScreenshot: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/screenshot"
+      }
+    })
+    .input(DeviceInputSchema.extend({
+      method: ScreenshotMethodSchema,
+      screens: z.array(IDSchema)
+    }))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(z.array(ImageSchema))))
+    .query(async ({ input: { bridgeId, deviceId, method, screens } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Image[]>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("screenshot", {
+          id: deviceId,
+          method,
+          screens
+        }, response => resolve(response));
+      });
+    }),
+  takeScreenshotAll: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/screenshot"
+      }
+    })
+    .input(BridgeInputSchema.extend({
+      method: ScreenshotMethodSchema,
+      screens: z.array(IDSchema)
+    }))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(z.array(ImageSchema))))
+    .query(async ({ input: { bridgeId, tag, method, screens } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Image[]>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("screenshotAll", {
+          tag,
+          method,
+          screens
+        }, response => resolve(response));
+      });
+    }),
+  execute: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/execute"
+      }
+    })
+    .input(DeviceInputSchema.extend({ command: z.string() }))
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(ResponseSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId, command } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Response>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("execute", {
+          id: deviceId,
+          command
+        }, response => resolve(response));
+      });
+    }),
+  executeAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/execute" } })
+    .input(BridgeInputSchema.extend({ command: z.string() }))
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(ResponseSchema)))
+    .mutation(async ({ input: { bridgeId, tag, command } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Response>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("executeAll", {
+          tag,
+          command
+        }, response => resolve(response));
+      });
+    }),
+  mute: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/mute"
+      }
+    })
+    .input(DeviceInputSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("mute", { id: deviceId }, response => resolve(response));
+      });
+    }),
+  muteAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/mute" } })
+    .input(BridgeInputSchema)
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, tag } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("muteAll", { tag }, response => resolve(response));
+      });
+    }),
+  unmute: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/unmute"
+      }
+    })
+    .input(DeviceInputSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("unmute", { id: deviceId }, response => resolve(response));
+      });
+    }),
+  unmuteAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/unmute" } })
+    .input(BridgeInputSchema)
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, tag } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("unmuteAll", { tag }, response => resolve(response));
+      });
+    }),
+  muteAudio: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/muteAudio"
+      }
+    })
+    .input(DeviceInputSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("muteAudio", { id: deviceId }, response => resolve(response));
+      });
+    }),
+  muteAudioAll: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/muteAudio"
+      }
+    })
+    .input(BridgeInputSchema)
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, tag } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("muteAudioAll", { tag }, response => resolve(response));
+      });
+    }),
+  unmuteAudio: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/unmuteAudio"
+      }
+    })
+    .input(DeviceInputSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("unmuteAudio", { id: deviceId }, response => resolve(response));
+      });
+    }),
+  unmuteAudioAll: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/unmuteAudio"
+      }
+    })
+    .input(BridgeInputSchema)
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, tag } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("unmuteAudioAll", { tag }, response => resolve(response));
+      });
+    }),
+  muteVideo: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/muteVideo"
+      }
+    })
+    .input(DeviceInputSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("muteVideo", { id: deviceId }, response => resolve(response));
+      });
+    }),
+  muteVideoAll: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/muteVideo"
+      }
+    })
+    .input(BridgeInputSchema)
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, tag } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("muteVideoAll", { tag }, response => resolve(response));
+      });
+    }),
+  unmuteVideo: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/unmuteVideo"
+      }
+    })
+    .input(DeviceInputSchema)
+    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, deviceId } }) => {
+      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("unmuteVideo", { id: deviceId }, response => resolve(response));
+      });
+    }),
+  unmuteVideoAll: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/unmuteVideo"
+      }
+    })
+    .input(BridgeInputSchema)
+    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
+    .mutation(async ({ input: { bridgeId, tag } }) => {
+      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
+        io.sockets.get(state.clients[bridgeId]).emit("unmuteVideoAll", { tag }, response => resolve(response));
       });
     })
 });

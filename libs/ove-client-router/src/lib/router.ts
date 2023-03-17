@@ -2,7 +2,11 @@ import { z } from "zod";
 import { Service } from "@ove/ove-client-control";
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
-import { NodeInfoSchema, ResponseSchema } from "@ove/ove-types";
+import {
+  IDSchema,
+  NodeInfoSchema,
+  ResponseSchema, ScreenshotMethodSchema
+} from "@ove/ove-types";
 
 
 const service = Service.default();
@@ -84,8 +88,8 @@ export const appRouter = router({
   screenshot: procedure
     .meta({ openapi: { method: "POST", path: "/screenshot" } })
     .input(z.object({
-      method: z.string().regex(/^(local|return|upload)$/gi),
-      screens: z.array(z.number())
+      method: ScreenshotMethodSchema,
+      screens: z.array(IDSchema)
     }))
     .output(z.array(z.string()))
     .mutation(({ input }) => {
