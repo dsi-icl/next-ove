@@ -3,13 +3,9 @@ import {
   Device,
   is,
   OVEExceptionSchema,
-  Response,
-  DeviceService,
-  Options,
-  Status,
-  Optional,
   PJLinkSourceSchema,
-  DeviceResponse
+  DS,
+  DSArgs
 } from "@ove/ove-types";
 import { z } from "zod";
 
@@ -27,9 +23,9 @@ type PJLinkInfo = {
   name: string;
 };
 
-const reboot = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const reboot = async (device: Device, args: DSArgs<"reboot", DS<PJLinkInfo>>) => {
   const rebootOptsSchema = z.object({}).strict();
-  const parsedOpts = rebootOptsSchema.safeParse(opts);
+  const parsedOpts = rebootOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -40,9 +36,9 @@ const reboot = async (device: Device, opts: Options): Promise<Optional<DeviceRes
   }, 1000));
 };
 
-const shutdown = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const shutdown = async (device: Device, args: DSArgs<"shutdown", DS<PJLinkInfo>>) => {
   const shutdownOptsSchema = z.object({}).strict();
-  const parsedOpts = shutdownOptsSchema.safeParse(opts);
+  const parsedOpts = shutdownOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -50,9 +46,9 @@ const shutdown = async (device: Device, opts: Options): Promise<Optional<DeviceR
   return true;
 };
 
-const start = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const start = async (device: Device, args: DSArgs<"start", DS<PJLinkInfo>>) => {
   const startOptsSchema = z.object({}).strict();
-  const parsedOpts = startOptsSchema.safeParse(opts);
+  const parsedOpts = startOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -65,9 +61,9 @@ const start = async (device: Device, opts: Options): Promise<Optional<DeviceResp
   return true;
 };
 
-const info = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<PJLinkInfo>>> => {
+const getInfo = async (device: Device, args: DSArgs<"getInfo", DS<PJLinkInfo>>) => {
   const infoOptsSchema = z.object({}).strict();
-  const parsedOpts = infoOptsSchema.safeParse(opts);
+  const parsedOpts = infoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -102,9 +98,9 @@ const info = async (device: Device, opts: Options): Promise<Optional<DeviceRespo
   };
 };
 
-const status = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Response>>> => {
+const getStatus = async (device: Device, args: DSArgs<"getStatus", DS<PJLinkInfo>>) => {
   const statusOptsSchema = z.object({}).strict();
-  const parsedOpts = statusOptsSchema.safeParse(opts);
+  const parsedOpts = statusOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -114,88 +110,109 @@ const status = async (device: Device, opts: Options): Promise<Optional<DeviceRes
     return response;
   }
 
-  return { response: "running" };
+  return true;
 };
 
-const setSource = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const setSource = async (device: Device, args: DSArgs<"setSource", DS<PJLinkInfo>>) => {
   const setSourceOptsSchema = z.object({
     source: PJLinkSourceSchema.keyof(),
     channel: z.number().optional()
   }).strict();
-  const parsedOpts = setSourceOptsSchema.safeParse(opts);
+  const parsedOpts = setSourceOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.setInput(device, PJLink.INPUT[parsedOpts.data.source], parsedOpts.data.channel);
+  const response = await PJLink.setInput(device, PJLink.INPUT[parsedOpts.data.source], parsedOpts.data.channel);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const mute = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const mute = async (device: Device, args: DSArgs<"mute", DS<PJLinkInfo>>) => {
   const muteOptsSchema = z.object({}).strict();
-  const parsedOpts = muteOptsSchema.safeParse(opts);
+  const parsedOpts = muteOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.mute(device);
+  const response = await PJLink.mute(device);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const unmute = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const unmute = async (device: Device, args: DSArgs<"unmute", DS<PJLinkInfo>>) => {
   const unmuteOptsSchema = z.object({}).strict();
-  const parsedOpts = unmuteOptsSchema.safeParse(opts);
+  const parsedOpts = unmuteOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.unmute(device);
+  const response = await PJLink.unmute(device);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const muteAudio = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const muteAudio = async (device: Device, args: DSArgs<"muteAudio", DS<PJLinkInfo>>) => {
   const muteAudioOptsSchema = z.object({}).strict();
-  const parsedOpts = muteAudioOptsSchema.safeParse(opts);
+  const parsedOpts = muteAudioOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.muteAudio(device);
+  const response = await PJLink.muteAudio(device);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const unmuteAudio = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const unmuteAudio = async (device: Device, args: DSArgs<"unmuteAudio", DS<PJLinkInfo>>) => {
   const unmuteAudioOptsSchema = z.object({}).strict();
-  const parsedOpts = unmuteAudioOptsSchema.safeParse(opts);
+  const parsedOpts = unmuteAudioOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.unmuteAudio(device);
+  const response = await PJLink.unmuteAudio(device);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const muteVideo = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const muteVideo = async (device: Device, args: DSArgs<"muteVideo", DS<PJLinkInfo>>) => {
   const muteVideoOptsSchema = z.object({}).strict();
-  const parsedOpts = muteVideoOptsSchema.safeParse(opts);
+  const parsedOpts = muteVideoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.muteVideo(device);
+  const response = await PJLink.muteVideo(device);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const unmuteVideo = async (device: Device, opts: Options): Promise<Optional<DeviceResponse<Status>>> => {
+const unmuteVideo = async (device: Device, args: DSArgs<"unmuteVideo", DS<PJLinkInfo>>) => {
   const unmuteVideoOptsSchema = z.object({}).strict();
-  const parsedOpts = unmuteVideoOptsSchema.safeParse(opts);
+  const parsedOpts = unmuteVideoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.unmuteVideo(device);
+  const response = await PJLink.unmuteVideo(device);
+
+  if (is(OVEExceptionSchema, response)) return response;
+
   return true;
 };
 
-const PJLinkService: DeviceService<PJLinkInfo> = {
+const PJLinkService: DS<PJLinkInfo> = {
   reboot,
   shutdown,
   start,
-  info,
-  status,
+  getInfo,
+  getStatus,
   setSource,
   mute,
   unmute,

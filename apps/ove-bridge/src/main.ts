@@ -4,10 +4,10 @@ import { io, Socket } from "socket.io-client";
 import * as Service from "./app/service";
 import {
   ClientToServerEvents,
-  ServerToClientEvents,
+  BridgeAPI,
   BridgeResponse
 } from "@ove/ove-types";
-import { Utils, Logging } from "@ove/ove-utils";
+import { Logging } from "@ove/ove-utils";
 
 const wrapCallback = <T>(callback: (response: BridgeResponse<T>) => void): (response: T) => void => (response: T) => callback({
   response,
@@ -20,7 +20,7 @@ dotenv.config();
 
 const logger = Logging.Logger("bridge", -1);
 
-const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(`ws://${environment.core}/hardware`, { autoConnect: false });
+const socket: Socket<BridgeAPI, ClientToServerEvents> = io(`ws://${environment.core}/hardware`, { autoConnect: false });
 socket.auth = { "name": `${environment.name}` };
 socket.connect();
 logger.debug(`Testing: ${environment.core}`);
@@ -35,15 +35,9 @@ socket.on("disconnect", () => {
   logger.debug(socket.id);
 });
 
-socket.on("getDevice", async ({ id }, cb) => {
+socket.on("getDevice", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  const response = Service.getDevice(id);
-
-  if (response === undefined) {
-    callback(Utils.raise(`No device found with ID: ${id}`));
-  } else {
-    callback(response);
-  }
+  callback(Service.getDevice(deviceId));
 });
 
 socket.on("getDevices", async (args, cb) => {
@@ -56,14 +50,14 @@ socket.on("getStatusAll", async ({ tag }, cb) => {
   callback(await Service.getStatusAll(tag));
 });
 
-socket.on("getStatus", async ({ id }, cb) => {
+socket.on("getStatus", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.getStatus(id));
+  callback(await Service.getStatus(deviceId));
 });
 
-socket.on("getInfo", async ({ id, type }, cb) => {
+socket.on("getInfo", async ({ deviceId, type }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.getInfo(id, type));
+  callback(await Service.getInfo(deviceId, type));
 });
 
 socket.on("getInfoAll", async ({ tag, type }, cb) => {
@@ -71,9 +65,9 @@ socket.on("getInfoAll", async ({ tag, type }, cb) => {
   callback(await Service.getInfoAll(tag, type));
 });
 
-socket.on("getBrowserStatus", async ({ id, browserId }, cb) => {
+socket.on("getBrowserStatus", async ({ deviceId, browserId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.getBrowserStatus(id, browserId));
+  callback(await Service.getBrowserStatus(deviceId, browserId));
 });
 
 socket.on("getBrowserStatusAll", async ({ tag, browserId }, cb) => {
@@ -81,9 +75,9 @@ socket.on("getBrowserStatusAll", async ({ tag, browserId }, cb) => {
   callback(await Service.getBrowserStatusAll(browserId, tag));
 });
 
-socket.on("getBrowsers", async ({ id }, cb) => {
+socket.on("getBrowsers", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.getBrowsers(id));
+  callback(await Service.getBrowsers(deviceId));
 });
 
 socket.on("getBrowsersAll", async ({ tag }, cb) => {
@@ -91,9 +85,9 @@ socket.on("getBrowsersAll", async ({ tag }, cb) => {
   callback(await Service.getBrowsersAll(tag));
 });
 
-socket.on("start", async ({ id }, cb) => {
+socket.on("start", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.start(id));
+  callback(await Service.start(deviceId));
 });
 
 socket.on("startAll", async ({ tag }, cb) => {
@@ -101,9 +95,9 @@ socket.on("startAll", async ({ tag }, cb) => {
   callback(await Service.startAll(tag));
 });
 
-socket.on("reboot", async ({ id }, cb) => {
+socket.on("reboot", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.reboot(id));
+  callback(await Service.reboot(deviceId));
 });
 
 socket.on("rebootAll", async ({ tag }, cb) => {
@@ -111,9 +105,9 @@ socket.on("rebootAll", async ({ tag }, cb) => {
   callback(await Service.rebootAll(tag));
 });
 
-socket.on("shutdown", async ({ id }, cb) => {
+socket.on("shutdown", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.shutdown(id));
+  callback(await Service.shutdown(deviceId));
 });
 
 socket.on("shutdownAll", async ({ tag }, cb) => {
@@ -121,9 +115,9 @@ socket.on("shutdownAll", async ({ tag }, cb) => {
   callback(await Service.shutdownAll(tag));
 });
 
-socket.on("execute", async ({ id, command }, cb) => {
+socket.on("execute", async ({ deviceId, command }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.execute(id, command));
+  callback(await Service.execute(deviceId, command));
 });
 
 socket.on("executeAll", async ({ tag, command }, cb) => {
@@ -131,9 +125,9 @@ socket.on("executeAll", async ({ tag, command }, cb) => {
   callback(await Service.executeAll(command, tag));
 });
 
-socket.on("screenshot", async ({ id, method, screens }, cb) => {
+socket.on("screenshot", async ({ deviceId, method, screens }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.screenshot(id, method, screens));
+  callback(await Service.screenshot(deviceId, method, screens));
 });
 
 socket.on("screenshotAll", async ({
@@ -145,9 +139,9 @@ socket.on("screenshotAll", async ({
   callback(await Service.screenshotAll(method, screens, tag));
 });
 
-socket.on("openBrowser", async ({ id, displayId }, cb) => {
+socket.on("openBrowser", async ({ deviceId, displayId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.openBrowser(id, displayId));
+  callback(await Service.openBrowser(deviceId, displayId));
 });
 
 socket.on("openBrowserAll", async ({ tag, displayId }, cb) => {
@@ -159,10 +153,10 @@ socket.on("addDevice", async ({ device }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.addDevice(device));
 });
-
-socket.on("setVolume", async ({id, volume}, cb) => {
+//
+socket.on("setVolume", async ({deviceId, volume}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.setVolume(id, volume));
+  callback(await Service.setVolume(deviceId, volume));
 });
 
 socket.on("setVolumeAll", async ({volume, tag}, cb) => {
@@ -170,9 +164,9 @@ socket.on("setVolumeAll", async ({volume, tag}, cb) => {
   callback(await Service.setVolumeAll(volume, tag));
 });
 
-socket.on("setSource", async ({id, source, channel}, cb) => {
+socket.on("setSource", async ({deviceId, source, channel}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.setSource(id, source, channel));
+  callback(await Service.setSource(deviceId, source, channel));
 });
 
 socket.on("setSourceAll", async ({source, channel, tag}, cb) => {
@@ -180,9 +174,9 @@ socket.on("setSourceAll", async ({source, channel, tag}, cb) => {
   callback(await Service.setSourceAll(source, channel ,tag));
 });
 
-socket.on("mute", async ({id}, cb) => {
+socket.on("mute", async ({deviceId}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.mute(id));
+  callback(await Service.mute(deviceId));
 });
 
 socket.on("muteAll", async ({tag}, cb) => {
@@ -190,9 +184,9 @@ socket.on("muteAll", async ({tag}, cb) => {
   callback(await Service.muteAll(tag));
 });
 
-socket.on("unmute", async ({id}, cb) => {
+socket.on("unmute", async ({deviceId}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.unmute(id));
+  callback(await Service.unmute(deviceId));
 });
 
 socket.on("unmuteAll", async ({tag}, cb) => {
@@ -200,9 +194,9 @@ socket.on("unmuteAll", async ({tag}, cb) => {
   callback(await Service.unmuteAll(tag));
 });
 
-socket.on("muteAudio", async ({id}, cb) => {
+socket.on("muteAudio", async ({deviceId}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.muteAudio(id));
+  callback(await Service.muteAudio(deviceId));
 });
 
 socket.on("muteAudioAll", async ({tag}, cb) => {
@@ -210,9 +204,9 @@ socket.on("muteAudioAll", async ({tag}, cb) => {
   callback(await Service.muteAudioAll(tag));
 });
 
-socket.on("unmuteAudio", async ({id}, cb) => {
+socket.on("unmuteAudio", async ({deviceId}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.unmuteAudio(id));
+  callback(await Service.unmuteAudio(deviceId));
 });
 
 socket.on("unmuteAudioAll", async ({tag}, cb) => {
@@ -220,9 +214,9 @@ socket.on("unmuteAudioAll", async ({tag}, cb) => {
   callback(await Service.unmuteAudioAll(tag));
 });
 
-socket.on("muteVideo", async ({id}, cb) => {
+socket.on("muteVideo", async ({deviceId}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.muteVideo(id));
+  callback(await Service.muteVideo(deviceId));
 });
 
 socket.on("muteVideoAll", async ({tag}, cb) => {
@@ -230,9 +224,9 @@ socket.on("muteVideoAll", async ({tag}, cb) => {
   callback(await Service.muteVideoAll(tag));
 });
 
-socket.on("unmuteVideo", async ({id}, cb) => {
+socket.on("unmuteVideo", async ({deviceId}, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.unmuteVideo(id));
+  callback(await Service.unmuteVideo(deviceId));
 });
 
 socket.on("unmuteVideoAll", async ({tag}, cb) => {
@@ -240,9 +234,9 @@ socket.on("unmuteVideoAll", async ({tag}, cb) => {
   callback(await Service.unmuteVideoAll(tag));
 });
 
-socket.on("closeBrowser", async ({ id, browserId }, cb) => {
+socket.on("closeBrowser", async ({ deviceId, browserId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.closeBrowser(id, browserId));
+  callback(await Service.closeBrowser(deviceId, browserId));
 });
 
 socket.on("closeBrowserAll", async ({ tag, browserId }, cb) => {
@@ -250,9 +244,9 @@ socket.on("closeBrowserAll", async ({ tag, browserId }, cb) => {
   callback(await Service.closeBrowserAll(browserId, tag));
 });
 
-socket.on("closeBrowsers", async ({ id }, cb) => {
+socket.on("closeBrowsers", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.closeBrowsers(id));
+  callback(await Service.closeBrowsers(deviceId));
 });
 
 socket.on("closeBrowsersAll", async ({ tag }, cb) => {
@@ -260,9 +254,9 @@ socket.on("closeBrowsersAll", async ({ tag }, cb) => {
   callback(await Service.closeBrowsersAll(tag));
 });
 
-socket.on("removeDevice", async ({ id }, cb) => {
+socket.on("removeDevice", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.removeDevice(id));
+  callback(await Service.removeDevice(deviceId));
 });
 
 socket.on("connect_error", err => logger.error(`connect_error due to ${err.message}`));

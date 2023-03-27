@@ -1,5 +1,4 @@
 import * as si from "systeminformation";
-import { SystemInfo } from "./types";
 
 const general = () => ({ version: si.version(), time: si.time(), type: "general" as const });
 
@@ -122,7 +121,7 @@ const vbox = async () => ({
   type: "vbox" as const
 });
 
-export default (): SystemInfo => ({
+export default () => ({
   general,
   system,
   cpu,

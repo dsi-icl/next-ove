@@ -1,14 +1,12 @@
 import si from "./system-info";
 import sc from "./system-control";
 import bc from "./browser-control";
-import { NodeInfoSchema, Response } from "@ove/ove-types";
-import {z} from "zod";
 
 const SystemInfo = si();
 const SystemControl = sc();
 const BrowserControl = bc();
 
-const getInfo = async (type?: string): Promise<z.infer<typeof NodeInfoSchema>> => {
+const getInfo = async (type?: string) => {
   switch (type) {
     case "system":
       return await SystemInfo.system();
@@ -45,9 +43,7 @@ const getInfo = async (type?: string): Promise<z.infer<typeof NodeInfoSchema>> =
     default:
       return SystemInfo.general();
   }
-}
-const getStatus = (): Response => ({response: "running"});
-const getWelcome = (): {message: string} => ({ message: "Welcome to control-client!" });
+};
 
 const reboot = SystemControl.reboot;
 const execute = SystemControl.execute;
@@ -62,8 +58,6 @@ const init = BrowserControl.init;
 
 export default () => ({
   init,
-  getWelcome,
-  getStatus,
   getInfo,
   shutdown,
   reboot,

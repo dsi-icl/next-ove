@@ -1,17 +1,17 @@
-import { BrowserControl, Browser } from "./types";
-import { DesktopCapturerSource } from "electron";
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
 import SystemInfo from "./system-info";
+import { DesktopCapturerSource } from "electron";
 import { Systeminformation } from "systeminformation";
+import { Browser, ID, Image, ScreenshotMethod } from "@ove/ove-types";
 import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
 
-const controller = <{ createWindow: ((displayId?: number) => void) | null, takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null }>{
+const controller = <{ createWindow: ((displayId?: ID) => void) | null, takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null }>{
   createWindow: null,
   takeScreenshots: null
 };
 
-const init = (createWindow: (displayId?: number) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => {
+const init = (createWindow: (displayId?: ID) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => {
   controller.createWindow = createWindow;
   controller.takeScreenshots = takeScreenshots;
 };
@@ -20,12 +20,12 @@ export const closeBrowser = (browser: Browser) => {
   browser.controller.abort();
 };
 
-const openBrowser = (displayId?: number): void => {
+const openBrowser = (displayId?: ID) => {
   if (controller.createWindow === null) throw new Error("Cannot create window as missing function");
   controller.createWindow(displayId);
 };
 
-const screenshot = async (method: string, screens: number[]): Promise<string[]> => {
+const screenshot = async (method: ScreenshotMethod, screens: ID[]): Promise<Image[]> => {
   if (controller.takeScreenshots === null) throw new Error("Controller not initialised for managing browsers");
   let displays: GraphicsDisplayData[] = (await SystemInfo().graphics()).graphics.displays;
   if (screens.length !== 0) {
@@ -44,7 +44,7 @@ const screenshot = async (method: string, screens: number[]): Promise<string[]> 
       throw Error(`No screen found matching displayId: ${displayId}`);
     }
 
-    if (method === "return") {
+    if (method === "response") {
       return image;
     } else if (method === "local") {
       const dir = path.join(__dirname, "screenshots");
@@ -62,10 +62,9 @@ const screenshot = async (method: string, screens: number[]): Promise<string[]> 
   }));
 };
 
-
 const closeBrowsers = (browsers: Browser[]) => browsers.forEach(browser => closeBrowser(browser));
 
-export default (): BrowserControl => ({
+export default () => ({
   init,
   openBrowser,
   closeBrowser,

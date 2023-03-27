@@ -11,6 +11,7 @@ export const OVEExceptionSchema = z.object({
 export type OVEException = z.infer<typeof OVEExceptionSchema>;
 
 export const is = <T extends z.ZodTypeAny>(schema: T, obj: any): obj is z.infer<T> => schema.safeParse(obj).success;
+export const isSchema = <T extends z.ZodTypeAny>(schema: T, obj: any): obj is T => schema.safeParse(obj).success;
 export const isNot = <T extends z.ZodTypeAny, U>(schema: T, obj: U | z.infer<T>): obj is Exclude<typeof obj, z.infer<T>> => !schema.safeParse(obj).success;
 
 export const filterIs = <T extends z.ZodTypeAny>(schema: T): (obj: any) => obj is z.infer<T> => (obj: any): obj is z.infer<T> => schema.safeParse(obj).success;
@@ -22,3 +23,6 @@ export const isAll = <T extends z.ZodTypeAny>(schema: T, obj: any[]): obj is z.i
 export const isNotAll = <T extends z.ZodTypeAny, U>(schema: T, obj: (U | z.infer<T>)[]): obj is Exclude<typeof obj, z.infer<T>> => !schema.safeParse(obj).success;
 
 export const isDefined = <T>(obj: T | undefined): obj is Exclude<typeof obj, undefined> => obj !== undefined;
+
+export const defAny = z.custom<Exclude<any, undefined>>((v: any) => v !== undefined);
+export type DefAny = z.infer<typeof defAny>;

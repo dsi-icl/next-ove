@@ -1,5 +1,4 @@
 import { execSync } from "child_process";
-import { SystemControl } from "./types";
 
 const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"].includes(process.platform);
 const isWindows = () => process.platform === "win32";
@@ -14,7 +13,15 @@ const buildShutdownCommand = () => {
   }
 };
 
-const shutdown = () => execSync(buildShutdownCommand());
+const shutdown = () => {
+  try {
+    execSync(buildShutdownCommand());
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
 
 const buildRebootCommand = () => {
   if (isLinuxLike()) {
@@ -26,11 +33,22 @@ const buildRebootCommand = () => {
   }
 };
 
-const reboot = () => execSync(buildRebootCommand());
+const reboot = () => {
+  try {
+    execSync(buildRebootCommand());
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
 
-const execute = (command: string) => execSync(command);
+const execute = (command: string) => {
+  const response = execSync(command).toString();
+  return {response};
+}
 
-export default (): SystemControl => ({
+export default () => ({
   shutdown,
   reboot,
   execute,

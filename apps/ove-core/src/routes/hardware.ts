@@ -7,18 +7,15 @@ import {
   ClientToServerEvents,
   Device,
   DeviceSchema,
-  OVEException,
   OVEExceptionSchema,
-  ServerToClientEvents,
+  BridgeAPI,
   ResponseSchema,
   BridgeResponse,
-  InfoSchema,
   Response,
   ID,
-  Info,
   Status,
   SourceSchemas,
-  MultiDeviceResponse,
+  // MultiDeviceResponse,
   getBridgeResponseSchema,
   getMultiDeviceResponseSchema,
   getDeviceResponseSchema,
@@ -27,9 +24,12 @@ import {
   DeviceResponse,
   ScreenshotMethodSchema,
   ImageSchema,
-  Image
+  Image, BridgeAPIRoutes, CoreAPIRoutes
 } from "@ove/ove-types";
-import { Namespace } from "socket.io";
+import { Namespace, Socket } from "socket.io";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
+
+const getSocket: (socketId: string) => Socket<ClientToServerEvents, BridgeAPI, DefaultEventsMap, any> = (socketId: string) => io.sockets.get(state.clients[socketId]);
 
 const DeviceInputSchema = z.object({
   bridgeId: z.string(),
@@ -48,9 +48,9 @@ const generateOutputSchema = <Type extends z.ZodTypeAny>(schema: Type) => z.obje
 
 let state = { clients: {} };
 logger.info("Initialising Hardware");
-const io: Namespace<ClientToServerEvents, ServerToClientEvents> = SocketServer.of("/hardware");
+const io: Namespace<ClientToServerEvents, BridgeAPI> = SocketServer.of("/hardware");
 
-const multiSocketHandling = <RType, Ev extends keyof ServerToClientEvents>(event: Ev, loadArgs: (resolve: (obj: RType) => void) => Parameters<ServerToClientEvents[Ev]>): Promise<RType[]> =>
+const multiSocketHandling = <RType, Ev extends keyof BridgeAPI>(event: Ev, loadArgs: (resolve: (obj: RType) => void) => Parameters<BridgeAPI[Ev]>): Promise<RType[]> =>
   Promise.all(Array.from(io.sockets.values()).map((v) =>
     new Promise<RType>((resolve) => {
       v.emit(event, ...loadArgs(resolve));
@@ -70,119 +70,31 @@ io.on("connection", socket => {
 });
 
 export const hardwareRouter = router({
-  addDevice: procedure
-    .meta({
-      openapi: {
-        method: "POST",
-        path: "/hardware/device/{bridgeId}/{deviceId}"
-      }
-    })
-    .input(DeviceSchema.omit({ id: true }).merge(DeviceInputSchema))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input }) => {
-      return new Promise<BridgeResponse<boolean | OVEException>>(resolve => {
-        io.sockets.get(state.clients[input.bridgeId]).emit("addDevice", { device: input }, response => resolve(response));
-      });
-    }),
-  getBrowserStatus: procedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/hardware/{bridgeId}/{deviceId}/browser/{browserId}/status"
-      }
-    })
-    .input(DeviceInputSchema.extend({ browserId: z.number() }))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(ResponseSchema)))
-    .query(async ({ input: { bridgeId, deviceId, browserId } }) =>
-      new Promise<BridgeResponse<Response | OVEException>>(resolve =>
-        io.sockets.get(state.clients[bridgeId]).emit("getBrowserStatus", {
-          id: deviceId,
-          browserId
-        }, response => resolve(response)))),
-  getBrowserStatusAll: procedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/hardware/{bridgeId}/browsers/status"
-      }
-    })
-    .input(BridgeInputSchema.extend({ browserId: z.number() }))
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(ResponseSchema)))
-    .query(async ({ input: { bridgeId, tag, browserId } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Response>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getBrowserStatusAll", {
-          tag,
-          browserId
-        }, response => resolve(response));
-      });
-    }),
-  getBrowsers: procedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/hardware/{bridgeId}/{deviceId}/browsers"
-      }
-    })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(z.array(IDSchema))))
-    .query(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<ID[]>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getBrowsers", { id: deviceId }, response => resolve(response));
-      });
-    }),
-  getBrowsersAll: procedure
-    .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/browsers" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(z.array(IDSchema))))
-    .query(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<ID[]>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getBrowsersAll", { tag }, response => resolve(response));
-      });
-    }),
-  getDevice: procedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: "/hardware/{bridgeId}/device/{deviceId}"
-      }
-    })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(DeviceSchema)))
-    .query(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Device>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getDevice", { id: deviceId }, (response) => resolve(response));
-      });
-    }),
-  getDeviceStatus: procedure
+  getStatus: procedure
     .meta({
       openapi: {
         method: "GET",
         path: "/hardware/{bridgeId}/{deviceId}/status"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(ResponseSchema)))
-    .query(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Response>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getStatus", { id: deviceId }, response => resolve(response));
-      });
-    }),
-  getDevices: procedure
-    .meta({ openapi: { method: "GET", path: "/hardware/devices" } })
-    .input(z.void())
-    .output(z.array(getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))))
-    .query(async () => {
-      return multiSocketHandling<BridgeResponse<DeviceResponse<Device[]>>, "getDevices">("getDevices", resolve => [{}, response => resolve(response)]);
-    }),
-  getDevicesForBridge: procedure
-    .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/devices" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema))))
-    .query(async ({ input: { bridgeId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Device[]>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getDevices", {}, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.getStatus.args)
+    .output(CoreAPIRoutes.getStatus.bridge)
+    .query(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("getStatus", { deviceId }, resolve))),
+  getStatusAll: procedure
+    .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/status" } })
+    .input(CoreAPIRoutes.getStatusAll.args)
+    .output(CoreAPIRoutes.getStatusAll.bridge)
+    .query(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("getStatusAll", { tag }, resolve))),
   getInfo: procedure
     .meta({
       openapi: {
@@ -190,102 +102,95 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/info"
       }
     })
-    .input(DeviceInputSchema.extend({ type: z.string().optional() }))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(InfoSchema)))
-    .query(async ({ input: { bridgeId, deviceId, type } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Info>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getInfo", {
-          id: deviceId,
-          type
-        }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.getInfo.args)
+    .output(CoreAPIRoutes.getInfo.bridge)
+    .query(async ({ input: { bridgeId, deviceId, type } }) =>
+      new Promise(resolve => getSocket(bridgeId).emit("getInfo", {
+        deviceId,
+        type
+      }, resolve))),
   getInfoAll: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/info" } })
-    .input(BridgeInputSchema.extend({ type: z.string().optional() }))
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(InfoSchema)))
-    .query(async ({ input: { bridgeId, tag, type } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Info>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getInfoAll", {
-          tag,
-          type
-        }, response => resolve(response));
-      });
-    }),
-  getStatusAll: procedure
-    .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/status" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(ResponseSchema)))
-    .query(async ({ input: { bridgeId } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Response>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("getStatusAll", { tag: "test" }, (response) => resolve(response));
-      });
-    }),
-  reboot: procedure
+    .input(CoreAPIRoutes.getInfoAll.args)
+    .output(CoreAPIRoutes.getInfoAll.bridge)
+    .query(async ({ input: { bridgeId, tag, type } }) =>
+      new Promise(resolve => getSocket(bridgeId).emit("getInfoAll", {
+        tag,
+        type
+      }, resolve))),
+  getBrowserStatus: procedure
     .meta({
       openapi: {
-        method: "POST",
-        path: "/hardware/{bridgeId}/{deviceId}/reboot"
+        method: "GET",
+        path: "/hardware/{bridgeId}/{deviceId}/browser/{browserId}/status"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("reboot", { id: deviceId }, response => resolve(response));
-      });
-    }),
-  rebootAll: procedure
-    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/reboot" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("rebootAll", { tag }, response => resolve(response));
-      });
-    }),
-  shutdown: procedure
+    .input(CoreAPIRoutes.getBrowserStatus.args)
+    .output(CoreAPIRoutes.getBrowserStatus.bridge)
+    .query(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        browserId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowserStatus", {
+      deviceId,
+      browserId
+    }, resolve))),
+  getBrowserStatusAll: procedure
     .meta({
       openapi: {
-        method: "POST",
-        path: "/hardware/{bridgeId}/{deviceId}/shutdown"
+        method: "GET",
+        path: "/hardware/{bridgeId}/browser/{browserId}/status"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("shutdown", { id: deviceId }, response => resolve(response));
-      });
-    }),
-  shutdownAll: procedure
+    .input(CoreAPIRoutes.getBrowserStatusAll.args)
+    .output(CoreAPIRoutes.getBrowserStatusAll.bridge)
+    .query(async ({
+      input: {
+        bridgeId,
+        tag,
+        browserId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowserStatusAll", {
+      tag,
+      browserId
+    }, resolve))),
+  getBrowsers: procedure
     .meta({
       openapi: {
-        method: "POST",
-        path: "/hardware/{bridgeId}/shutdown"
+        method: "GET",
+        path: "/hardware/{bridgeId}/{deviceId}/browsers"
       }
     })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("shutdownAll", { tag }, response => resolve(response));
-      });
-    }),
-  removeDevice: procedure
-    .meta({
-      openapi: {
-        method: "DELETE",
-        path: "/hardware/device/{bridgeId}/{deviceId}"
+    .input(CoreAPIRoutes.getBrowsers.args)
+    .output(CoreAPIRoutes.getBrowsers.bridge)
+    .query(async ({
+      input: {
+        bridgeId,
+        deviceId
       }
-    })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("removeDevice", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowsers", { deviceId }, resolve))),
+  getBrowsersAll: procedure
+    .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/browsers" } })
+    .input(CoreAPIRoutes.getBrowsersAll.args)
+    .output(CoreAPIRoutes.getBrowsersAll.bridge)
+    .query(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowsersAll", { tag }, resolve))),
+  addDevice: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/device" } })
+    .input(CoreAPIRoutes.addDevice.args)
+    .output(CoreAPIRoutes.addDevice.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        device
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("addDevice", { device }, resolve))),
   start: procedure
     .meta({
       openapi: {
@@ -293,130 +198,79 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/start"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("start", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.start.args)
+    .output(CoreAPIRoutes.start.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("start", { deviceId }, resolve))),
   startAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/start" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("startAll", { tag }, response => resolve(response));
-      });
-    }),
-  setVolume: procedure
+    .input(CoreAPIRoutes.startAll.args)
+    .output(CoreAPIRoutes.startAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("startAll", { tag }, resolve))),
+  reboot: procedure
     .meta({
       openapi: {
         method: "POST",
-        path: "/hardware/{bridgeId}/{deviceId}/volume"
+        path: "/hardware/{bridgeId}/{deviceId}/reboot"
       }
     })
-    .input(DeviceInputSchema.extend({ volume: z.number() }))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId, volume } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("setVolume", {
-          id: deviceId,
-          volume
-        }, response => resolve(response));
-      });
-    }),
-  setVolumeAll: procedure
-    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/volume" } })
-    .input(BridgeInputSchema.extend({ volume: z.number() }))
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, volume, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("setVolumeAll", {
-          volume,
-          tag
-        }, response => resolve(response));
-      });
-    }),
-  setSource: procedure
+    .input(CoreAPIRoutes.reboot.args)
+    .output(CoreAPIRoutes.reboot.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("reboot", { deviceId }, resolve))),
+  rebootAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId/reboot" } })
+    .input(CoreAPIRoutes.rebootAll.args)
+    .output(CoreAPIRoutes.rebootAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("rebootAll", { tag }, resolve))),
+  shutdown: procedure
     .meta({
       openapi: {
         method: "POST",
-        path: "/hardware/{bridgeId}/{deviceId}/source"
+        path: "/hardware/{bridgeId}/{deviceId}/shutdown"
       }
     })
-    .input(DeviceInputSchema.extend({
-      source: SourceSchemas,
-      channel: z.number().optional()
-    }))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId, source, channel } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("setSource", {
-          id: deviceId,
-          source,
-          channel
-        }, response => resolve(response));
-      });
-    }),
-  setSourceAll: procedure
-    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/source" } })
-    .input(BridgeInputSchema.extend({
-      source: SourceSchemas,
-      channel: z.number().optional()
-    }))
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag, source, channel } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("setSourceAll", {
-          tag,
-          source,
-          channel
-        }, response => resolve(response));
-      });
-    }),
-  takeScreenshot: procedure
+    .input(CoreAPIRoutes.shutdown.args)
+    .output(CoreAPIRoutes.shutdown.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("shutdown", { deviceId }, resolve))),
+  shutdownAll: procedure
     .meta({
       openapi: {
         method: "POST",
-        path: "/hardware/{bridgeId}/{deviceId}/screenshot"
+        path: "/hardware/{bridgeId}/shutdown"
       }
     })
-    .input(DeviceInputSchema.extend({
-      method: ScreenshotMethodSchema,
-      screens: z.array(IDSchema)
-    }))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(z.array(ImageSchema))))
-    .query(async ({ input: { bridgeId, deviceId, method, screens } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Image[]>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("screenshot", {
-          id: deviceId,
-          method,
-          screens
-        }, response => resolve(response));
-      });
-    }),
-  takeScreenshotAll: procedure
-    .meta({
-      openapi: {
-        method: "POST",
-        path: "/hardware/{bridgeId}/screenshot"
+    .input(CoreAPIRoutes.shutdownAll.args)
+    .output(CoreAPIRoutes.shutdownAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
       }
-    })
-    .input(BridgeInputSchema.extend({
-      method: ScreenshotMethodSchema,
-      screens: z.array(IDSchema)
-    }))
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(z.array(ImageSchema))))
-    .query(async ({ input: { bridgeId, tag, method, screens } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Image[]>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("screenshotAll", {
-          tag,
-          method,
-          screens
-        }, response => resolve(response));
-      });
-    }),
+    }) => new Promise(resolve => getSocket(bridgeId).emit("shutdownAll", { tag }, resolve))),
   execute: procedure
     .meta({
       openapi: {
@@ -424,28 +278,245 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/execute"
       }
     })
-    .input(DeviceInputSchema.extend({ command: z.string() }))
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(ResponseSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId, command } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Response>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("execute", {
-          id: deviceId,
-          command
-        }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.execute.args)
+    .output(CoreAPIRoutes.execute.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        command
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("execute", {
+      deviceId,
+      command
+    }, resolve))),
   executeAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/execute" } })
-    .input(BridgeInputSchema.extend({ command: z.string() }))
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(ResponseSchema)))
-    .mutation(async ({ input: { bridgeId, tag, command } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Response>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("executeAll", {
-          tag,
-          command
-        }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.executeAll.args)
+    .output(CoreAPIRoutes.executeAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag,
+        command
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("executeAll", {
+      tag,
+      command
+    }, resolve))),
+  screenshot: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/screenshot"
+      }
+    })
+    .input(CoreAPIRoutes.screenshot.args)
+    .output(CoreAPIRoutes.screenshot.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        method,
+        screens
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("screenshot", {
+      deviceId,
+      method,
+      screens
+    }, resolve))),
+  screenshotAll: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/screenshot"
+      }
+    })
+    .input(CoreAPIRoutes.screenshotAll.args)
+    .output(CoreAPIRoutes.screenshotAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag,
+        method,
+        screens
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("screenshotAll", {
+      tag,
+      method,
+      screens
+    }, resolve))),
+  openBrowser: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/browser"
+      }
+    })
+    .input(CoreAPIRoutes.openBrowser.args)
+    .output(CoreAPIRoutes.openBrowser.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        displayId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("openBrowser", {
+      deviceId,
+      displayId
+    }, resolve))),
+  openBrowserAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/browser" } })
+    .input(CoreAPIRoutes.openBrowserAll.args)
+    .output(CoreAPIRoutes.openBrowserAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag,
+        displayId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("openBrowserAll", {
+      tag,
+      displayId
+    }, resolve))),
+  closeBrowser: procedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/hardware/{bridgeId}/{deviceId}/browser"
+      }
+    })
+    .input(CoreAPIRoutes.closeBrowser.args)
+    .output(CoreAPIRoutes.closeBrowser.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        browserId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowser", {
+      deviceId,
+      browserId
+    }, resolve))),
+  closeBrowserAll: procedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/hardware/{bridgeId}/browser"
+      }
+    })
+    .input(CoreAPIRoutes.closeBrowserAll.args)
+    .output(CoreAPIRoutes.closeBrowserAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag,
+        browserId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowserAll", {
+      tag,
+      browserId
+    }, resolve))),
+  closeBrowsers: procedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/hardware/{bridgeId}/{deviceId}/browsers"
+      }
+    })
+    .input(CoreAPIRoutes.closeBrowsers.args)
+    .output(CoreAPIRoutes.closeBrowsers.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowsers", { deviceId }, resolve))),
+  closeBrowsersAll: procedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/hardware/{bridgeId}/browsers"
+      }
+    })
+    .input(CoreAPIRoutes.closeBrowsersAll.args)
+    .output(CoreAPIRoutes.closeBrowsersAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowsersAll", { tag }, resolve))),
+  setVolume: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/volume"
+      }
+    })
+    .input(CoreAPIRoutes.setVolume.args)
+    .output(CoreAPIRoutes.setVolume.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        volume
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("setVolume", {
+      deviceId,
+      volume
+    }, resolve))),
+  setVolumeAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/volume" } })
+    .input(CoreAPIRoutes.setVolumeAll.args)
+    .output(CoreAPIRoutes.setVolumeAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag,
+        volume
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("setVolumeAll", {
+      tag,
+      volume
+    }, resolve))),
+  setSource: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/hardware/{bridgeId}/{deviceId}/source"
+      }
+    })
+    .input(CoreAPIRoutes.setSource.args)
+    .output(CoreAPIRoutes.setSource.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId,
+        source,
+        channel
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("setSource", {
+      deviceId,
+      source,
+      channel
+    }, resolve))),
+  setSourceAll: procedure
+    .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/source" } })
+    .input(CoreAPIRoutes.setSourceAll.args)
+    .output(CoreAPIRoutes.setSourceAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag,
+        source,
+        channel
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("setSourceAll", {
+      tag,
+      source,
+      channel
+    }, resolve))),
   mute: procedure
     .meta({
       openapi: {
@@ -453,22 +524,24 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/mute"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("mute", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.mute.args)
+    .output(CoreAPIRoutes.mute.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("mute", { deviceId }, resolve))),
   muteAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/mute" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("muteAll", { tag }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.muteAll.args)
+    .output(CoreAPIRoutes.muteAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("muteAll", { tag }, resolve))),
   unmute: procedure
     .meta({
       openapi: {
@@ -476,22 +549,24 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/unmute"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("unmute", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.unmute.args)
+    .output(CoreAPIRoutes.unmute.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("unmute", { deviceId }, resolve))),
   unmuteAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/unmute" } })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("unmuteAll", { tag }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.unmuteAll.args)
+    .output(CoreAPIRoutes.unmuteAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteAll", { tag }, resolve))),
   muteAudio: procedure
     .meta({
       openapi: {
@@ -499,13 +574,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/muteAudio"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("muteAudio", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.muteAudio.args)
+    .output(CoreAPIRoutes.muteAudio.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("muteAudio", { deviceId }, resolve))),
   muteAudioAll: procedure
     .meta({
       openapi: {
@@ -513,13 +589,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/muteAudio"
       }
     })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("muteAudioAll", { tag }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.muteAudioAll.args)
+    .output(CoreAPIRoutes.muteAudioAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("muteAudioAll", { tag }, resolve))),
   unmuteAudio: procedure
     .meta({
       openapi: {
@@ -527,13 +604,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/unmuteAudio"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("unmuteAudio", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.unmuteAudio.args)
+    .output(CoreAPIRoutes.unmuteAudio.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteAudio", { deviceId }, resolve))),
   unmuteAudioAll: procedure
     .meta({
       openapi: {
@@ -541,13 +619,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/unmuteAudio"
       }
     })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("unmuteAudioAll", { tag }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.unmuteAudioAll.args)
+    .output(CoreAPIRoutes.unmuteAudioAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteAudioAll", { tag }, resolve))),
   muteVideo: procedure
     .meta({
       openapi: {
@@ -555,13 +634,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/muteVideo"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("muteVideo", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.muteVideo.args)
+    .output(CoreAPIRoutes.muteVideo.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("muteVideo", { deviceId }, resolve))),
   muteVideoAll: procedure
     .meta({
       openapi: {
@@ -569,13 +649,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/muteVideo"
       }
     })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("muteVideoAll", { tag }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.muteVideoAll.args)
+    .output(CoreAPIRoutes.muteVideoAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("muteVideoAll", { tag }, resolve))),
   unmuteVideo: procedure
     .meta({
       openapi: {
@@ -583,13 +664,14 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/unmuteVideo"
       }
     })
-    .input(DeviceInputSchema)
-    .output(getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, deviceId } }) => {
-      return new Promise<BridgeResponse<DeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("unmuteVideo", { id: deviceId }, response => resolve(response));
-      });
-    }),
+    .input(CoreAPIRoutes.unmuteVideo.args)
+    .output(CoreAPIRoutes.unmuteVideo.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        deviceId
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteVideo", { deviceId }, resolve))),
   unmuteVideoAll: procedure
     .meta({
       openapi: {
@@ -597,11 +679,12 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/unmuteVideo"
       }
     })
-    .input(BridgeInputSchema)
-    .output(getBridgeResponseSchema(getMultiDeviceResponseSchema(StatusSchema)))
-    .mutation(async ({ input: { bridgeId, tag } }) => {
-      return new Promise<BridgeResponse<MultiDeviceResponse<Status>>>(resolve => {
-        io.sockets.get(state.clients[bridgeId]).emit("unmuteVideoAll", { tag }, response => resolve(response));
-      });
-    })
+    .input(CoreAPIRoutes.unmuteVideoAll.args)
+    .output(CoreAPIRoutes.unmuteVideoAll.bridge)
+    .mutation(async ({
+      input: {
+        bridgeId,
+        tag
+      }
+    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteVideoAll", { tag }, resolve)))
 });

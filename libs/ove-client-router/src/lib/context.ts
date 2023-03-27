@@ -1,8 +1,8 @@
 import { inferAsyncReturnType } from "@trpc/server";
-import { Types } from "@ove/ove-client-control";
+import { Browser } from "@ove/ove-types";
 
 export const createInnerContext = async () => ({
-  browsers: <{ [browserId: number]: Types.Browser }>{}
+  browsers: <{ [browserId: number]: Browser }>{}
 });
 
 export const createContext = async () => {

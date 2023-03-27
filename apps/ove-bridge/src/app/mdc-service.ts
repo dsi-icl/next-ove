@@ -1,23 +1,14 @@
 import * as mdc from "@ove/mdc-control";
-import {
-  Device,
-  MDCInfo,
-  OVEException,
-  Response,
-  DeviceService,
-  Options,
-  Status, Optional
-} from "@ove/ove-types";
+import { Device, MDCInfo, Status, DS, DSArgs } from "@ove/ove-types";
 import { MDCSourceSchema } from "@ove/mdc-control";
 import { z } from "zod";
-import { Utils } from "@ove/ove-utils";
 
 const reboot = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
+}: Device, args: DSArgs<"reboot", DS<MDCInfo>>) => {
   const rebootOptsSchema = z.object({}).strict();
-  const parsedOpts = rebootOptsSchema.safeParse(opts);
+  const parsedOpts = rebootOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -31,9 +22,9 @@ const reboot = async ({
 const shutdown = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
+}: Device, args: DSArgs<"shutdown", DS<MDCInfo>>) => {
   const shutdownOptsSchema = z.object({}).strict();
-  const parsedOpts = shutdownOptsSchema.safeParse(opts);
+  const parsedOpts = shutdownOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -44,9 +35,9 @@ const shutdown = async ({
 const start = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Optional<Status | OVEException>> => {
+}: Device, args: DSArgs<"start", DS<MDCInfo>>) => {
   const startOptsSchema = z.object({}).strict();
-  const parsedOpts = startOptsSchema.safeParse(opts);
+  const parsedOpts = startOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -54,12 +45,12 @@ const start = async ({
   return true;
 };
 
-const info = async ({
+const getInfo = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Optional<MDCInfo | OVEException>> => {
+}: Device, args: DSArgs<"getInfo", DS<MDCInfo>>) => {
   const infoOptsSchema = z.object({}).strict();
-  const parsedOpts = infoOptsSchema.safeParse(opts);
+  const parsedOpts = infoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
@@ -78,29 +69,27 @@ const info = async ({
   };
 };
 
-const status = async ({
+const getStatus = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Optional<Response | OVEException>> => {
+}: Device, args: DSArgs<"getStatus", DS<MDCInfo>>) => {
   const statusOptsSchema = z.object({}).strict();
-  const parsedOpts = statusOptsSchema.safeParse(opts);
+  const parsedOpts = statusOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await mdc.getStatus(0x01, ip, port);
-  return { response };
+  await mdc.getStatus(0x01, ip, port);
+  return true;
 };
 
 const mute = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, args: DSArgs<"mute", DS<MDCInfo>>) => {
   const muteOptsSchema = z.object({}).strict();
-  const parsedOpts = muteOptsSchema.safeParse(opts);
+  const parsedOpts = muteOptsSchema.safeParse(args);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setIsMute(0x01, ip, port, true);
   return true;
@@ -109,13 +98,11 @@ const mute = async ({
 const unmute = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, args: DSArgs<"unmute", DS<MDCInfo>>) => {
   const unmuteOptsSchema = z.object({}).strict();
-  const parsedOpts = unmuteOptsSchema.safeParse(opts);
+  const parsedOpts = unmuteOptsSchema.safeParse(args);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setIsMute(0x01, ip, port, false);
   return true;
@@ -124,13 +111,11 @@ const unmute = async ({
 const setVolume = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, args: DSArgs<"setVolume", DS<MDCInfo>>) => {
   const setVolumeOptsSchema = z.object({ volume: z.number() }).strict();
-  const parsedOpts = setVolumeOptsSchema.safeParse(opts);
+  const parsedOpts = setVolumeOptsSchema.safeParse(args);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setVolume(0x01, ip, port, parsedOpts.data.volume);
   return true;
@@ -139,24 +124,22 @@ const setVolume = async ({
 const setSource = async ({
   ip,
   port
-}: Device, opts: Options): Promise<Status | OVEException> => {
+}: Device, args: DSArgs<"setSource", DS<MDCInfo>>) => {
   const setSourceOptsSchema = z.object({ source: MDCSourceSchema.keyof() }).strict();
-  const parsedOpts = setSourceOptsSchema.safeParse(opts);
+  const parsedOpts = setSourceOptsSchema.safeParse(args);
 
-  if (!parsedOpts.success) {
-    return Utils.raise("Function options not recognised");
-  }
+  if (!parsedOpts.success) return undefined;
 
   await mdc.setSource(0x01, ip, port, parsedOpts.data.source);
   return true;
 };
 
-const MDCService: DeviceService<MDCInfo> = {
+const MDCService: DS<MDCInfo> = {
   reboot,
   shutdown,
   start,
-  info,
-  status,
+  getInfo,
+  getStatus,
   mute,
   unmute,
   setVolume,

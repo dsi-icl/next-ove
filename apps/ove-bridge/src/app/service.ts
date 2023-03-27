@@ -9,11 +9,8 @@ import {
   isAll,
   OVEException,
   OVEExceptionSchema,
-  Response,
-  Info,
   Status,
   ID,
-  Image,
   Optional,
   SourceSchemas,
   MultiDeviceResponse,
@@ -75,143 +72,144 @@ export const getDevice = (did: string): DeviceResponse<Device> => {
   return device;
 };
 
-const _getInfo = async (device: Device, type?: string): Promise<Optional<DeviceResponse<Info>>> => {
+const _getInfo = async (device: Device, type?: string) => {
   const service = getServiceForProtocol(device.protocol);
-  return service.info?.(device, { type });
+  return service.getInfo?.(device, { type });
 };
 
-export const getInfo = async (deviceId: string, type?: string): Promise<DeviceResponse<Info>> => {
+export const getInfo = async (deviceId: string, type?: string) => {
   return deviceWrapper((device: Device) => _getInfo(device, type), deviceId);
 };
 
-export const getInfoAll = async (tag?: string, type?: string): Promise<MultiDeviceResponse<Info>> => {
+export const getInfoAll = async (tag?: string, type?: string) => {
   return multiDeviceWrapper((device: Device) => _getInfo(device, type), tag);
 };
 
-const _getStatus = async (device: Device): Promise<Optional<DeviceResponse<Response>>> => {
+const _getStatus = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
-  return service.status?.(device, {});
+  return service.getStatus?.(device, {});
 };
 
-export const getStatus = async (deviceId: string): Promise<DeviceResponse<Response>> => {
+export const getStatus = async (deviceId: string) => {
   return deviceWrapper(_getStatus, deviceId);
 };
 
-export const getStatusAll = async (tag?: string): Promise<MultiDeviceResponse<Response>> => {
+export const getStatusAll = async (tag?: string) => {
   return multiDeviceWrapper(_getStatus, tag);
 };
 
-const _getBrowserStatus = async (device: Device, browserId: number): Promise<Optional<DeviceResponse<Response>>> => {
+const _getBrowserStatus = async (device: Device, browserId: number) => {
   const service = getServiceForProtocol(device.protocol);
   return service.getBrowserStatus?.(device, { browserId });
 };
 
-export const getBrowserStatus = async (deviceId: string, browserId: number): Promise<DeviceResponse<Response>> => {
+export const getBrowserStatus = async (deviceId: string, browserId: number) => {
   return deviceWrapper((device: Device) => _getBrowserStatus(device, browserId), deviceId);
 };
 
-export const getBrowserStatusAll = async (browserId: number, tag?: string): Promise<MultiDeviceResponse<Response>> => {
+export const getBrowserStatusAll = async (browserId: number, tag?: string) => {
   return multiDeviceWrapper((device: Device) => _getBrowserStatus(device, browserId), tag);
 };
 
-const _getBrowsers = async (device: Device): Promise<Optional<DeviceResponse<ID[]>>> => {
+const _getBrowsers = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.getBrowsers?.(device, {});
 };
 
-export const getBrowsers = async (deviceId: string): Promise<DeviceResponse<ID[]>> => {
+export const getBrowsers = async (deviceId: string) => {
   return deviceWrapper(_getBrowsers, deviceId);
 };
 
-export const getBrowsersAll = async (tag?: string): Promise<MultiDeviceResponse<ID[]>> => {
+export const getBrowsersAll = async (tag?: string) => {
   return multiDeviceWrapper(_getBrowsers, tag);
 };
 
-export const addDevice = async (device: Device): Promise<DeviceResponse<Status>> => {
-  const devices = [...Utils.getDevices(), device];
+export const addDevice = async (device: Device) => {
+  const curDevices = Utils.getDevices();
+  const devices = {...curDevices, device};
   Utils.saveDevices(devices);
   return true;
 };
 
-const _reboot = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _reboot = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.reboot?.(device, {});
 };
 
-export const reboot = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const reboot = async (deviceId: string) => {
   return deviceWrapper(_reboot, deviceId);
 };
 
-export const rebootAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const rebootAll = async (tag?: string) => {
   return multiDeviceWrapper(_reboot, tag);
 };
 
-const _shutdown = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _shutdown = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.shutdown?.(device, {});
 };
 
-export const shutdown = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const shutdown = async (deviceId: string) => {
   return deviceWrapper(_shutdown, deviceId);
 };
 
-export const shutdownAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const shutdownAll = async (tag?: string) => {
   return multiDeviceWrapper(_shutdown, tag);
 };
 
-const _start = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _start = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.start?.(device, {});
 };
 
-export const start = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const start = async (deviceId: string) => {
   return deviceWrapper(_start, deviceId);
 };
 
-export const startAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const startAll = async (tag?: string) => {
   return multiDeviceWrapper(_start, tag);
 };
 
-const _execute = async (device: Device, command: string): Promise<Optional<DeviceResponse<Response>>> => {
+const _execute = async (device: Device, command: string) => {
   const service = getServiceForProtocol(device.protocol);
   return service.execute?.(device, { command });
 };
 
-export const execute = async (deviceId: string, command: string): Promise<DeviceResponse<Response>> => {
+export const execute = async (deviceId: string, command: string) => {
   return deviceWrapper((device: Device) => _execute(device, command), deviceId);
 };
 
-export const executeAll = async (command: string, tag?: string): Promise<MultiDeviceResponse<Response>> => {
+export const executeAll = async (command: string, tag?: string) => {
   return multiDeviceWrapper((device: Device) => _execute(device, command), tag);
 };
 
-const _screenshot = async (device: Device, method: string, screens: number[]): Promise<Optional<DeviceResponse<Image[]>>> => {
+const _screenshot = async (device: Device, method: ScreenshotMethod, screens: ID[]) => {
   const service = getServiceForProtocol(device.protocol);
   return service.screenshot?.(device, { method, screens });
 };
 
-export const screenshot = async (deviceId: string, method: string, screens: number[]): Promise<DeviceResponse<Image[]>> => {
+export const screenshot = async (deviceId: string, method: ScreenshotMethod, screens: ID[]) => {
   return deviceWrapper((device: Device) => _screenshot(device, method, screens), deviceId);
 };
 
-export const screenshotAll = async (method: ScreenshotMethod, screens: ID[], tag?: string): Promise<MultiDeviceResponse<Image[]>> => {
+export const screenshotAll = async (method: ScreenshotMethod, screens: ID[], tag?: string) => {
   return multiDeviceWrapper((device: Device) => _screenshot(device, method, screens), tag);
 };
 
-const _openBrowser = async (device: Device, displayId: ID): Promise<Optional<DeviceResponse<ID>>> => {
+const _openBrowser = async (device: Device, displayId?: ID) => {
   const service = getServiceForProtocol(device.protocol);
   return service.openBrowser?.(device, { displayId });
 };
 
-export const openBrowser = async (deviceId: string, displayId: ID): Promise<DeviceResponse<ID>> => {
+export const openBrowser = async (deviceId: string, displayId?: ID) => {
   return deviceWrapper((device: Device) => _openBrowser(device, displayId), deviceId);
 };
 
-export const openBrowserAll = async (displayId: number, tag?: string): Promise<MultiDeviceResponse<ID>> => {
+export const openBrowserAll = async (displayId?: ID, tag?: string) => {
   return multiDeviceWrapper((device: Device) => _openBrowser(device, displayId), tag);
 };
 
-const _setVolume = async (device: Device, volume: number): Promise<Optional<DeviceResponse<Status>>> => {
+const _setVolume = async (device: Device, volume: number) => {
   const service = getServiceForProtocol(device.protocol);
   return service.setVolume?.(device, { volume });
 };
@@ -237,112 +235,112 @@ export const setSourceAll = async (source: z.infer<typeof SourceSchemas>, channe
   return multiDeviceWrapper((device: Device) => _setSource(device, source, channel), tag);
 };
 
-const _mute = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _mute = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.mute?.(device, {});
 };
 
-export const mute = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const mute = async (deviceId: string) => {
   return deviceWrapper(_mute, deviceId);
 };
 
-export const muteAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const muteAll = async (tag?: string) => {
   return multiDeviceWrapper(_mute, tag);
 };
 
-const _unmute = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _unmute = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.unmute?.(device, {});
 };
 
-export const unmute = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const unmute = async (deviceId: string) => {
   return deviceWrapper(_unmute, deviceId);
 };
 
-export const unmuteAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const unmuteAll = async (tag?: string) => {
   return multiDeviceWrapper(_unmute, tag);
 };
 
-const _muteAudio = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _muteAudio = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.muteAudio?.(device, {});
 };
 
-export const muteAudio = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const muteAudio = async (deviceId: string) => {
   return deviceWrapper(_muteAudio, deviceId);
 };
 
-export const muteAudioAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const muteAudioAll = async (tag?: string) => {
   return multiDeviceWrapper(_muteAudio, tag);
 };
 
-const _unmuteAudio = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _unmuteAudio = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.unmuteAudio?.(device, {});
 };
 
-export const unmuteAudio = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const unmuteAudio = async (deviceId: string) => {
   return deviceWrapper(_unmuteAudio, deviceId);
 };
 
-export const unmuteAudioAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const unmuteAudioAll = async (tag?: string) => {
   return multiDeviceWrapper(_unmuteAudio, tag);
 };
 
-const _muteVideo = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _muteVideo = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.muteVideo?.(device, {});
 };
 
-export const muteVideo = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const muteVideo = async (deviceId: string) => {
   return deviceWrapper(_muteVideo, deviceId);
 };
 
-export const muteVideoAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const muteVideoAll = async (tag?: string) => {
   return multiDeviceWrapper(_muteVideo, tag);
 };
 
-const _unmuteVideo = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _unmuteVideo = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.unmuteVideo?.(device, {});
 };
 
-export const unmuteVideo = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const unmuteVideo = async (deviceId: string) => {
   return deviceWrapper(_unmuteVideo, deviceId);
 };
 
-export const unmuteVideoAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const unmuteVideoAll = async (tag?: string) => {
   return multiDeviceWrapper(_unmuteVideo, tag);
 };
 
-const _closeBrowser = async (device: Device, browserId: number): Promise<Optional<DeviceResponse<Status>>> => {
+const _closeBrowser = async (device: Device, browserId: number) => {
   const service = getServiceForProtocol(device.protocol);
   return service.closeBrowser?.(device, { browserId });
 };
 
-export const closeBrowser = async (deviceId: string, browserId: number): Promise<DeviceResponse<Status>> => {
+export const closeBrowser = async (deviceId: string, browserId: number) => {
   return deviceWrapper((device: Device) => _closeBrowser(device, browserId), deviceId);
 };
 
-export const closeBrowserAll = async (browserId: number, tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const closeBrowserAll = async (browserId: number, tag?: string) => {
   return multiDeviceWrapper((device: Device) => _closeBrowser(device, browserId), tag);
 };
 
-const _closeBrowsers = async (device: Device): Promise<Optional<DeviceResponse<Status>>> => {
+const _closeBrowsers = async (device: Device) => {
   const service = getServiceForProtocol(device.protocol);
   return service.closeBrowsers?.(device, {});
 };
 
-export const closeBrowsers = async (deviceId: string): Promise<DeviceResponse<Status>> => {
+export const closeBrowsers = async (deviceId: string) => {
   return deviceWrapper(_closeBrowsers, deviceId);
 };
 
-export const closeBrowsersAll = async (tag?: string): Promise<MultiDeviceResponse<Status>> => {
+export const closeBrowsersAll = async (tag?: string) => {
   return multiDeviceWrapper(_closeBrowsers, tag);
 };
 
-export const removeDevice = async (did: string): Promise<DeviceResponse<Status>> => {
-  const devices = Utils.getDevices().filter(({ id }) => id === did);
+export const removeDevice = async (deviceId: string) => {
+  const devices = Utils.getDevices().filter(({ id }) => id === deviceId);
   Utils.saveDevices(devices);
   return true;
 };
