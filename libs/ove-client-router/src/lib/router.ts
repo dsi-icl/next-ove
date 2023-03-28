@@ -28,7 +28,7 @@ export const appRouter = router({
       return service.getInfo(type);
     }),
   getBrowserStatus: procedure
-    .meta({ openapi: { method: "GET", path: "/browser/{id}/status" } })
+    .meta({ openapi: { method: "GET", path: "/browser/{browserId}/status" } })
     .input(ClientAPIRoutes.getBrowserStatus.args)
     .output(ClientAPIRoutes.getBrowserStatus.client)
     .query(({ ctx, input: { browserId } }) => {
@@ -63,7 +63,7 @@ export const appRouter = router({
       return service.execute(command);
     }),
   screenshot: procedure
-    .meta({ openapi: { method: "GET", path: "/screenshot" } })
+    .meta({ openapi: { method: "POST", path: "/screenshot" } })
     .input(ClientAPIRoutes.screenshot.args)
     .output(ClientAPIRoutes.screenshot.client)
     .mutation(({ input: { method, screens } }) => {

@@ -7,8 +7,6 @@ import {
   Device,
   DS,
   DSArgs,
-  MDCInfo,
-  NodeInfo,
   Optional,
   OVEException, ScreenshotMethodSchema,
   Status
@@ -29,7 +27,7 @@ const createClient = (device: Device) =>
     ]
   });
 
-const reboot = async (device: Device, args: DSArgs<"reboot", DS<NodeInfo>>): Promise<Optional<Status | OVEException>> => {
+const reboot = async (device: Device, args: DSArgs<"reboot">): Promise<Optional<Status | OVEException>> => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
@@ -38,7 +36,7 @@ const reboot = async (device: Device, args: DSArgs<"reboot", DS<NodeInfo>>): Pro
   return await createClient(device).reboot.mutate(parsedOpts);
 };
 
-const shutdown = async (device: Device, args: DSArgs<"shutdown", DS<NodeInfo>>) => {
+const shutdown = async (device: Device, args: DSArgs<"shutdown">) => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(args);
 
@@ -48,7 +46,7 @@ const shutdown = async (device: Device, args: DSArgs<"shutdown", DS<NodeInfo>>) 
   return true;
 };
 
-const start = async (device: Device, args: DSArgs<"start", DS<MDCInfo>>) => {
+const start = async (device: Device, args: DSArgs<"start">) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
@@ -57,7 +55,7 @@ const start = async (device: Device, args: DSArgs<"start", DS<MDCInfo>>) => {
   return await wake(device.mac, { address: device.ip });
 };
 
-const getInfo = async (device: Device, args: DSArgs<"getInfo", DS<NodeInfo>>) => {
+const getInfo = async (device: Device, args: DSArgs<"getInfo">) => {
   const infoOptsSchema = z.object({ type: z.string().optional() }).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
 
@@ -66,7 +64,7 @@ const getInfo = async (device: Device, args: DSArgs<"getInfo", DS<NodeInfo>>) =>
   return await createClient(device).getInfo.query(parsedOpts.data);
 };
 
-const getStatus = async (device: Device, args: DSArgs<"getStatus", DS<NodeInfo>>) => {
+const getStatus = async (device: Device, args: DSArgs<"getStatus">) => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(args);
 
@@ -75,7 +73,7 @@ const getStatus = async (device: Device, args: DSArgs<"getStatus", DS<NodeInfo>>
   return await createClient(device).getStatus.query(parsedOpts);
 };
 
-const execute = async (device: Device, args: DSArgs<"execute", DS<NodeInfo>>) => {
+const execute = async (device: Device, args: DSArgs<"execute">) => {
   const executeOptsSchema = z.object({ command: z.string() }).strict();
   const parsedOpts = executeOptsSchema.safeParse(args);
 
@@ -84,7 +82,7 @@ const execute = async (device: Device, args: DSArgs<"execute", DS<NodeInfo>>) =>
   return await createClient(device).execute.mutate(parsedOpts.data);
 };
 
-const screenshot = async (device: Device, args: DSArgs<"screenshot", DS<NodeInfo>>) => {
+const screenshot = async (device: Device, args: DSArgs<"screenshot">) => {
   const screenshotOptsSchema = z.object({
     method: ScreenshotMethodSchema,
     screens: z.array(z.number())
@@ -96,7 +94,7 @@ const screenshot = async (device: Device, args: DSArgs<"screenshot", DS<NodeInfo
   return await createClient(device).screenshot.mutate(parsedOpts.data);
 };
 
-const openBrowser = async (device: Device, args: DSArgs<"openBrowser", DS<NodeInfo>>) => {
+const openBrowser = async (device: Device, args: DSArgs<"openBrowser">) => {
   const openBrowserOptsSchema = z.object({ displayId: z.number() }).strict();
   const parsedOpts = openBrowserOptsSchema.safeParse(args);
 
@@ -105,7 +103,7 @@ const openBrowser = async (device: Device, args: DSArgs<"openBrowser", DS<NodeIn
   return await createClient(device).openBrowser.mutate(parsedOpts.data);
 };
 
-const getBrowserStatus = async (device: Device, args: DSArgs<"getBrowserStatus", DS<NodeInfo>>) => {
+const getBrowserStatus = async (device: Device, args: DSArgs<"getBrowserStatus">) => {
   const getBrowserStatusOptsSchema = z.object({ browserId: z.number() }).strict();
   const parsedOpts = getBrowserStatusOptsSchema.safeParse(args);
 
@@ -114,7 +112,7 @@ const getBrowserStatus = async (device: Device, args: DSArgs<"getBrowserStatus",
   return await createClient(device).getBrowserStatus.query(parsedOpts.data);
 };
 
-const closeBrowser = async (device: Device, args: DSArgs<"closeBrowser", DS<NodeInfo>>) => {
+const closeBrowser = async (device: Device, args: DSArgs<"closeBrowser">) => {
   const closeBrowserOptsSchema = z.object({ browserId: z.number() }).strict();
   const parsedOpts = closeBrowserOptsSchema.safeParse(args);
 
@@ -123,7 +121,7 @@ const closeBrowser = async (device: Device, args: DSArgs<"closeBrowser", DS<Node
   return await createClient(device).closeBrowser.mutate(parsedOpts.data);
 };
 
-const closeBrowsers = async (device: Device, args: DSArgs<"closeBrowsers", DS<NodeInfo>>) => {
+const closeBrowsers = async (device: Device, args: DSArgs<"closeBrowsers">) => {
   const closeBrowsersOptsSchema = z.object({}).strict();
   const parsedOpts = closeBrowsersOptsSchema.safeParse(args);
 
@@ -132,7 +130,7 @@ const closeBrowsers = async (device: Device, args: DSArgs<"closeBrowsers", DS<No
   return await createClient(device).closeBrowsers.mutate(parsedOpts);
 };
 
-const getBrowsers = async (device: Device, args: DSArgs<"getBrowsers", DS<NodeInfo>>) => {
+const getBrowsers = async (device: Device, args: DSArgs<"getBrowsers">) => {
   const getBrowsersOptsSchema = z.object({}).strict();
   const parsedOpts = getBrowsersOptsSchema.safeParse(args);
 
@@ -141,7 +139,7 @@ const getBrowsers = async (device: Device, args: DSArgs<"getBrowsers", DS<NodeIn
   return await createClient(device).getBrowsers.query(parsedOpts);
 };
 
-const NodeService: DS<NodeInfo> = {
+const NodeService: DS = {
   reboot,
   shutdown,
   start,

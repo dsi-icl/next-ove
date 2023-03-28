@@ -383,11 +383,11 @@ export type BridgeAPI = {
 
 type APICallback<T> = (response: T) => void;
 
-export type DS<InfoType> = {
+export type DS = {
   [Key in keyof ClientAPIRoutesType]?: (device: Device, args: z.infer<ClientAPIRoutesType[Key]["args"]>) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
 }
 
-export type DSArgs<Key extends keyof DS<InfoType>, InfoType> = Parameters<NonNullable<DS<InfoType>[Key]>>[1];
+export type DSArgs<Key extends keyof DS> = Parameters<NonNullable<DS[Key]>>[1];
 
 export type ClientToServerEvents = {};
 
