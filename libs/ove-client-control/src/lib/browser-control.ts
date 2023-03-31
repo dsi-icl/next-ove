@@ -6,23 +6,31 @@ import { Systeminformation } from "systeminformation";
 import { Browser, ID, Image, ScreenshotMethod } from "@ove/ove-types";
 import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
 
-const controller = <{ createWindow: ((displayId?: ID) => void) | null, takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null }>{
+const controller = <{
+  createWindow: ((url?: string, displayId?: ID) => string) | null,
+  takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null,
+  closeWindow: ((idx: string) => void) | null,
+}>{
   createWindow: null,
-  takeScreenshots: null
+  takeScreenshots: null,
+  closeWindow: null
 };
 
-const init = (createWindow: (displayId?: ID) => void, takeScreenshots: () => Promise<DesktopCapturerSource[]>) => {
+const init = (createWindow: (url?: string, displayId?: ID) => string, takeScreenshots: () => Promise<DesktopCapturerSource[]>, closeWindow: (idx: string) => void) => {
   controller.createWindow = createWindow;
   controller.takeScreenshots = takeScreenshots;
+  controller.closeWindow = closeWindow;
 };
 
-export const closeBrowser = (browser: Browser) => {
-  browser.controller.abort();
+const closeBrowser = (browser: Browser) => {
+  if (controller.closeWindow === null) throw new Error("Controller not initialised");
+  console.log(`Browser being closed: ${JSON.stringify(browser)}`);
+  controller.closeWindow(browser.idx);
 };
 
-const openBrowser = (displayId?: ID) => {
+const openBrowser = (url?: string, displayId?: ID) => {
   if (controller.createWindow === null) throw new Error("Cannot create window as missing function");
-  controller.createWindow(displayId);
+  return controller.createWindow(url, displayId);
 };
 
 const screenshot = async (method: ScreenshotMethod, screens: ID[]): Promise<Image[]> => {
@@ -69,5 +77,5 @@ export default () => ({
   openBrowser,
   closeBrowser,
   closeBrowsers,
-  screenshot
+  screenshot,
 });

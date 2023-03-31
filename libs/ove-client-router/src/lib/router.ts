@@ -1,15 +1,18 @@
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
 import { Service } from "@ove/ove-client-control";
-import { ClientAPIRoutes, ID } from "@ove/ove-types";
+import { Browser, ClientAPIRoutes, ID } from "@ove/ove-types";
 
 const service = Service.default();
 
+const state: {browsers: {[browserId: ID]: Browser}} = {browsers: {}};
+
 export const init = (
-  createWindow: (displayId?: ID) => void,
-  takeScreenshots: () => Promise<DesktopCapturerSource[]>
+  createWindow: (url?: string, displayId?: ID) => string,
+  takeScreenshots: () => Promise<DesktopCapturerSource[]>,
+  closeWindow: (idx: string) => void,
 ) => {
-  service.init(createWindow, takeScreenshots);
+  service.init(createWindow, takeScreenshots, closeWindow);
 };
 
 export const appRouter = router({
@@ -31,15 +34,15 @@ export const appRouter = router({
     .meta({ openapi: { method: "GET", path: "/browser/{browserId}/status" } })
     .input(ClientAPIRoutes.getBrowserStatus.args)
     .output(ClientAPIRoutes.getBrowserStatus.client)
-    .query(({ ctx, input: { browserId } }) => {
-      return (Object.keys(ctx.browsers).includes(browserId.toString()));
+    .query(({ input: { browserId } }) => {
+      return (Object.keys(state.browsers).includes(browserId.toString()));
     }),
   getBrowsers: procedure
     .meta({ openapi: { method: "GET", path: "/browsers" } })
     .input(ClientAPIRoutes.getBrowsers.args)
     .output(ClientAPIRoutes.getBrowsers.client)
-    .query(({ ctx }) => {
-      return Object.keys(ctx.browsers).map(parseInt);
+    .query(() => {
+      return Object.keys(state.browsers).map(parseInt);
     }),
   reboot: procedure
     .meta({ openapi: { method: "POST", path: "/reboot" } })
@@ -70,15 +73,14 @@ export const appRouter = router({
       return service.screenshot(method, screens);
     }),
   openBrowser: procedure
-    .meta({ openapi: { method: "GET", path: "/browser" } })
+    .meta({ openapi: { method: "POST", path: "/browser" } })
     .input(ClientAPIRoutes.openBrowser.args)
     .output(ClientAPIRoutes.openBrowser.client)
-    .mutation(async ({ ctx, input: { displayId } }) => {
-      service.openBrowser(displayId);
-      const browserId = Object.keys(ctx.browsers).length;
-      ctx.browsers[browserId] = {
-        controller: new AbortController()
-      };
+    .mutation(async ({ input: { displayId, url } }) => {
+      const idx = service.openBrowser(url, displayId);
+      const browserId = Object.keys(state.browsers).length;
+      state.browsers[browserId] = { idx };
+      console.log(`Opening browsers: ${JSON.stringify(state.browsers)}`);
 
       return browserId;
     }),
@@ -86,18 +88,19 @@ export const appRouter = router({
     .meta({openapi: {method: "DELETE", path: "/browser/{browserId}"}})
     .input(ClientAPIRoutes.closeBrowser.args)
     .output(ClientAPIRoutes.closeBrowser.client)
-    .mutation(async ({ctx, input: {browserId}}) => {
-      service.closeBrowser(ctx.browsers[browserId]);
-      delete ctx.browsers[browserId];
+    .mutation(async ({input: {browserId}}) => {
+      console.log(`Closing browsers: ${JSON.stringify(state.browsers)}`);
+      service.closeBrowser(state.browsers[browserId]);
+      delete state.browsers[browserId];
       return true;
     }),
   closeBrowsers: procedure
     .meta({openapi: {method: "DELETE", path: "/browsers"}})
     .input(ClientAPIRoutes.closeBrowsers.args)
     .output(ClientAPIRoutes.closeBrowsers.client)
-    .mutation(async ({ctx}) => {
-      service.closeBrowsers(Object.values(ctx.browsers));
-      ctx.browsers = {};
+    .mutation(async () => {
+      service.closeBrowsers(Object.values(state.browsers));
+      state.browsers = {};
       return true;
     })
 });

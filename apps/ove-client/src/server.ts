@@ -10,11 +10,15 @@ import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
 import { logger } from "./utils";
-import { createWindow, takeScreenshots } from "./electron";
+import {
+  createWindow,
+  takeScreenshots,
+  closeWindow
+} from "./electron";
 
 export const start = () => {
   const app = express();
-  init(createWindow, takeScreenshots);
+  init(createWindow, takeScreenshots, closeWindow);
 
   app.use(cors({ origin: "*" }));
 
@@ -39,4 +43,8 @@ export const start = () => {
   });
 
   server.on("error", console.error);
+
+  return () => {
+    server.close();
+  }
 };

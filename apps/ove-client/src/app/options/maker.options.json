@@ -57,14 +57,8 @@
   "linux": {
     "target": [
       "AppImage",
-      "deb",
-      "rpm",
-      "snap"
+      "deb"
     ],
     "category": "Development"
-  },
-  "snap": {
-    "grade": "stable",
-    "summary": "The next generation of the Open Visualisation Environment"
   }
 }

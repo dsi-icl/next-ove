@@ -65,5 +65,5 @@ export default () => ({
   screenshot,
   openBrowser,
   closeBrowsers,
-  closeBrowser
+  closeBrowser,
 });

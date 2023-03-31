@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { OVEException, OVEExceptionSchema, ResponseSchema } from "./ove-types";
-import { MDCSourceSchema } from "@ove/mdc-control";
 
 // Type aliases for API
 export type Image = string;
@@ -33,6 +32,28 @@ export type PJLinkSource = z.infer<typeof PJLinkSourceSchema>;
 // Services
 export const ServiceTypesSchema = z.union([z.literal("node"), z.literal("mdc"), z.literal("pjlink")]);
 export type ServiceTypes = z.infer<typeof ServiceTypesSchema>;
+
+export const MDCSourceSchema = z.object({
+  UNKNOWN: z.number(),
+  PC: z.number(),
+  DVI: z.number(),
+  DVI_VIDEO: z.number(),
+  AV: z.number(),
+  SVIDEO: z.number(),
+  COMPONENT: z.number(),
+  MAGICNET: z.number(),
+  TV: z.number(),
+  DTV: z.number(),
+  HDMI1: z.number(),
+  HDMI1_PC: z.number(),
+  HDMI2: z.number(),
+  HDMI2_PC: z.number(),
+  DP: z.number(),
+  DP2: z.number(),
+  DP3: z.number()
+}).strict();
+
+export type MDCSource = z.infer<typeof MDCSourceSchema>;
 export const SourceSchemas = z.union([MDCSourceSchema.keyof(), PJLinkSourceSchema.keyof()]);
 
 // Device
@@ -144,6 +165,7 @@ const ServiceAPI = {
   },
   openBrowser: {
     args: z.object({
+      url: z.string().optional(),
       displayId: IDSchema.optional()
     }).strict(),
     returns: IDSchema
@@ -314,7 +336,7 @@ export const BridgeAPIRoutes: BridgeAPIRoutesType = {
     bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
   },
   removeDevice: {
-    args: z.object({deviceId: DeviceIDSchema}).strict(),
+    args: z.object({ deviceId: DeviceIDSchema }).strict(),
     returns: StatusSchema,
     client: getDeviceResponseSchema(StatusSchema),
     bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
@@ -392,6 +414,5 @@ export type DSArgs<Key extends keyof DS> = Parameters<NonNullable<DS[Key]>>[1];
 export type ClientToServerEvents = {};
 
 export type Browser = {
-  controller: AbortController
-  client?: object
+  idx: string
 };

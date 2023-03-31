@@ -1,6 +1,9 @@
 {
   "name": "next-ove",
-  "author": "Imperial Data Science Institute",
+  "author": {
+    "name": "Brython Caley-Davies",
+    "email": "bc2918@ic.ac.uk"
+  },
   "description": "The next generation of the Open Visualisation Environment.",
   "version": "0.0.0",
   "license": "MIT",
@@ -91,6 +94,7 @@
     "dateformat": "^4.5.1",
     "electron-updater": "^5.3.0",
     "express": "^4.18.1",
+    "nanoid": "^3.3.6",
     "next": "13.1.1",
     "node-fetch": "^2.6.9",
     "react": "18.2.0",
