@@ -1,3 +1,1 @@
-export function oveData(): string {
-  return 'ove-data';
-}
+export const oveData = (): string => "ove-data";
