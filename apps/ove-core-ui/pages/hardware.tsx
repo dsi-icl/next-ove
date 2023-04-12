@@ -24,12 +24,20 @@ const Hardware = () => {
   ];
 
   return <div style={{ width: "100vw", height: "100vh" }}>
-    <h1 className='hardware-header'><strong>Hardware Management</strong></h1>
+    <h1 className="hardware-header"><strong>Hardware Management</strong></h1>
     {
       devices.map(bridge => (
-        <div key={`${bridge["ove-bridge-id"]}-container`} style={{ minHeight: "10vh", height: "40vh", width: "100%" }}>
-          <h4 key={`${bridge["ove-bridge-id"]}-header`}>{bridge["ove-bridge-id"]}</h4>
-          <DataGrid key={`${bridge["ove-bridge-id"]}-data`} columns={columns} rows={bridge["data"]} />
+        <div
+          key={`${bridge["ove-bridge-id"]}-container`}
+          style={{ minHeight: "10vh", height: "40vh", width: "100%" }}>
+          <h4
+            key={`${bridge["ove-bridge-id"]}-header`}>
+            {bridge["ove-bridge-id"]}
+          </h4>
+          <DataGrid
+            key={`${bridge["ove-bridge-id"]}-data`}
+            columns={columns}
+            rows={bridge["data"]} />
         </div>))
     }
   </div>;

@@ -1,7 +1,13 @@
-import { AppProps } from 'next/app';
-import Head from 'next/head';
-import '../styles.scss';
+import { AppProps } from "next/app";
+import Head from "next/head";
+import "../styles.scss";
 
+/**
+ * App code
+ * @param {any} Component
+ * @param {any} pageProps
+ * @constructor
+ */
 function CustomApp({ Component, pageProps }: AppProps) {
   return (
     <>

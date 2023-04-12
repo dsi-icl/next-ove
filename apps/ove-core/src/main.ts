@@ -1,4 +1,5 @@
 // noinspection DuplicatedCode
+/* global process, __dirname */
 
 import * as path from "path";
 import * as cors from "cors";

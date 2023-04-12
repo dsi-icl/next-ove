@@ -1,60 +1,16 @@
-import { z } from "zod";
 import { procedure, router } from "../trpc";
 import { logger } from "../app";
 import { io as SocketServer } from "../sockets";
-import {
-  BridgeMetadataSchema,
-  ClientToServerEvents,
-  Device,
-  DeviceSchema,
-  OVEExceptionSchema,
-  BridgeAPI,
-  ResponseSchema,
-  BridgeResponse,
-  Response,
-  ID,
-  Status,
-  SourceSchemas,
-  // MultiDeviceResponse,
-  getBridgeResponseSchema,
-  getMultiDeviceResponseSchema,
-  getDeviceResponseSchema,
-  IDSchema,
-  StatusSchema,
-  DeviceResponse,
-  ScreenshotMethodSchema,
-  ImageSchema,
-  Image, BridgeAPIRoutes, CoreAPIRoutes
-} from "@ove/ove-types";
+import { ClientToServerEvents, BridgeAPI, CoreAPIRoutes } from "@ove/ove-types";
 import { Namespace, Socket } from "socket.io";
-import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
-const getSocket: (socketId: string) => Socket<ClientToServerEvents, BridgeAPI, DefaultEventsMap, any> = (socketId: string) => io.sockets.get(state.clients[socketId]);
+const getSocket: (socketId: string) => Socket<ClientToServerEvents, BridgeAPI> =
+  (socketId: string) => io.sockets.get(state.clients[socketId]);
 
-const DeviceInputSchema = z.object({
-  bridgeId: z.string(),
-  deviceId: z.string()
-});
-
-const BridgeInputSchema = z.object({
-  bridgeId: z.string(),
-  tag: z.string().optional()
-});
-
-const generateOutputSchema = <Type extends z.ZodTypeAny>(schema: Type) => z.object({
-  meta: BridgeMetadataSchema,
-  response: z.union([schema, OVEExceptionSchema])
-});
-
-let state = { clients: {} };
+const state = { clients: {} };
 logger.info("Initialising Hardware");
-const io: Namespace<ClientToServerEvents, BridgeAPI> = SocketServer.of("/hardware");
-
-const multiSocketHandling = <RType, Ev extends keyof BridgeAPI>(event: Ev, loadArgs: (resolve: (obj: RType) => void) => Parameters<BridgeAPI[Ev]>): Promise<RType[]> =>
-  Promise.all(Array.from(io.sockets.values()).map((v) =>
-    new Promise<RType>((resolve) => {
-      v.emit(event, ...loadArgs(resolve));
-    })));
+const io: Namespace<ClientToServerEvents, BridgeAPI> =
+  SocketServer.of("/hardware");
 
 io.on("connection", socket => {
   logger.info(`${socket.id} connected via /hardware`);
@@ -84,7 +40,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("getStatus", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("getStatus", { deviceId }, resolve))),
   getStatusAll: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/status" } })
     .input(CoreAPIRoutes.getStatusAll.args)
@@ -94,7 +51,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("getStatusAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("getStatusAll", { tag }, resolve))),
   getInfo: procedure
     .meta({
       openapi: {
@@ -133,10 +91,11 @@ export const hardwareRouter = router({
         deviceId,
         browserId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowserStatus", {
-      deviceId,
-      browserId
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("getBrowserStatus", {
+        deviceId,
+        browserId
+      }, resolve))),
   getBrowserStatusAll: procedure
     .meta({
       openapi: {
@@ -152,10 +111,11 @@ export const hardwareRouter = router({
         tag,
         browserId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowserStatusAll", {
-      tag,
-      browserId
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("getBrowserStatusAll", {
+        tag,
+        browserId
+      }, resolve))),
   getBrowsers: procedure
     .meta({
       openapi: {
@@ -170,7 +130,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowsers", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("getBrowsers", { deviceId }, resolve))),
   getBrowsersAll: procedure
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/browsers" } })
     .input(CoreAPIRoutes.getBrowsersAll.args)
@@ -180,7 +141,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("getBrowsersAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("getBrowsersAll", { tag }, resolve))),
   addDevice: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/device" } })
     .input(CoreAPIRoutes.addDevice.args)
@@ -190,7 +152,8 @@ export const hardwareRouter = router({
         bridgeId,
         device
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("addDevice", { device }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("addDevice", { device }, resolve))),
   start: procedure
     .meta({
       openapi: {
@@ -205,7 +168,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("start", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("start", { deviceId }, resolve))),
   startAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/start" } })
     .input(CoreAPIRoutes.startAll.args)
@@ -215,7 +179,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("startAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("startAll", { tag }, resolve))),
   reboot: procedure
     .meta({
       openapi: {
@@ -230,7 +195,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("reboot", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("reboot", { deviceId }, resolve))),
   rebootAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId/reboot" } })
     .input(CoreAPIRoutes.rebootAll.args)
@@ -240,7 +206,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("rebootAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("rebootAll", { tag }, resolve))),
   shutdown: procedure
     .meta({
       openapi: {
@@ -255,7 +222,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("shutdown", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("shutdown", { deviceId }, resolve))),
   shutdownAll: procedure
     .meta({
       openapi: {
@@ -270,7 +238,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("shutdownAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("shutdownAll", { tag }, resolve))),
   execute: procedure
     .meta({
       openapi: {
@@ -286,10 +255,11 @@ export const hardwareRouter = router({
         deviceId,
         command
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("execute", {
-      deviceId,
-      command
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("execute", {
+        deviceId,
+        command
+      }, resolve))),
   executeAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/execute" } })
     .input(CoreAPIRoutes.executeAll.args)
@@ -300,10 +270,11 @@ export const hardwareRouter = router({
         tag,
         command
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("executeAll", {
-      tag,
-      command
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("executeAll", {
+        tag,
+        command
+      }, resolve))),
   screenshot: procedure
     .meta({
       openapi: {
@@ -320,11 +291,12 @@ export const hardwareRouter = router({
         method,
         screens
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("screenshot", {
-      deviceId,
-      method,
-      screens
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("screenshot", {
+        deviceId,
+        method,
+        screens
+      }, resolve))),
   screenshotAll: procedure
     .meta({
       openapi: {
@@ -341,11 +313,12 @@ export const hardwareRouter = router({
         method,
         screens
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("screenshotAll", {
-      tag,
-      method,
-      screens
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("screenshotAll", {
+        tag,
+        method,
+        screens
+      }, resolve))),
   openBrowser: procedure
     .meta({
       openapi: {
@@ -361,10 +334,11 @@ export const hardwareRouter = router({
         deviceId,
         displayId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("openBrowser", {
-      deviceId,
-      displayId
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("openBrowser", {
+        deviceId,
+        displayId
+      }, resolve))),
   openBrowserAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/browser" } })
     .input(CoreAPIRoutes.openBrowserAll.args)
@@ -375,10 +349,11 @@ export const hardwareRouter = router({
         tag,
         displayId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("openBrowserAll", {
-      tag,
-      displayId
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("openBrowserAll", {
+        tag,
+        displayId
+      }, resolve))),
   closeBrowser: procedure
     .meta({
       openapi: {
@@ -394,10 +369,11 @@ export const hardwareRouter = router({
         deviceId,
         browserId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowser", {
-      deviceId,
-      browserId
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("closeBrowser", {
+        deviceId,
+        browserId
+      }, resolve))),
   closeBrowserAll: procedure
     .meta({
       openapi: {
@@ -413,10 +389,11 @@ export const hardwareRouter = router({
         tag,
         browserId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowserAll", {
-      tag,
-      browserId
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("closeBrowserAll", {
+        tag,
+        browserId
+      }, resolve))),
   closeBrowsers: procedure
     .meta({
       openapi: {
@@ -431,7 +408,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowsers", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("closeBrowsers", { deviceId }, resolve))),
   closeBrowsersAll: procedure
     .meta({
       openapi: {
@@ -446,7 +424,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("closeBrowsersAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("closeBrowsersAll", { tag }, resolve))),
   setVolume: procedure
     .meta({
       openapi: {
@@ -462,10 +441,11 @@ export const hardwareRouter = router({
         deviceId,
         volume
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("setVolume", {
-      deviceId,
-      volume
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("setVolume", {
+        deviceId,
+        volume
+      }, resolve))),
   setVolumeAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/volume" } })
     .input(CoreAPIRoutes.setVolumeAll.args)
@@ -476,10 +456,11 @@ export const hardwareRouter = router({
         tag,
         volume
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("setVolumeAll", {
-      tag,
-      volume
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("setVolumeAll", {
+        tag,
+        volume
+      }, resolve))),
   setSource: procedure
     .meta({
       openapi: {
@@ -496,11 +477,12 @@ export const hardwareRouter = router({
         source,
         channel
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("setSource", {
-      deviceId,
-      source,
-      channel
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("setSource", {
+        deviceId,
+        source,
+        channel
+      }, resolve))),
   setSourceAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/source" } })
     .input(CoreAPIRoutes.setSourceAll.args)
@@ -512,11 +494,12 @@ export const hardwareRouter = router({
         source,
         channel
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("setSourceAll", {
-      tag,
-      source,
-      channel
-    }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("setSourceAll", {
+        tag,
+        source,
+        channel
+      }, resolve))),
   mute: procedure
     .meta({
       openapi: {
@@ -531,7 +514,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("mute", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("mute", { deviceId }, resolve))),
   muteAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/mute" } })
     .input(CoreAPIRoutes.muteAll.args)
@@ -541,7 +525,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("muteAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("muteAll", { tag }, resolve))),
   unmute: procedure
     .meta({
       openapi: {
@@ -556,7 +541,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("unmute", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("unmute", { deviceId }, resolve))),
   unmuteAll: procedure
     .meta({ openapi: { method: "POST", path: "/hardware/{bridgeId}/unmute" } })
     .input(CoreAPIRoutes.unmuteAll.args)
@@ -566,7 +552,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("unmuteAll", { tag }, resolve))),
   muteAudio: procedure
     .meta({
       openapi: {
@@ -581,7 +568,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("muteAudio", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("muteAudio", { deviceId }, resolve))),
   muteAudioAll: procedure
     .meta({
       openapi: {
@@ -596,7 +584,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("muteAudioAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("muteAudioAll", { tag }, resolve))),
   unmuteAudio: procedure
     .meta({
       openapi: {
@@ -611,7 +600,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteAudio", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("unmuteAudio", { deviceId }, resolve))),
   unmuteAudioAll: procedure
     .meta({
       openapi: {
@@ -626,7 +616,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteAudioAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("unmuteAudioAll", { tag }, resolve))),
   muteVideo: procedure
     .meta({
       openapi: {
@@ -641,7 +632,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("muteVideo", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("muteVideo", { deviceId }, resolve))),
   muteVideoAll: procedure
     .meta({
       openapi: {
@@ -656,7 +648,8 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("muteVideoAll", { tag }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("muteVideoAll", { tag }, resolve))),
   unmuteVideo: procedure
     .meta({
       openapi: {
@@ -671,7 +664,8 @@ export const hardwareRouter = router({
         bridgeId,
         deviceId
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteVideo", { deviceId }, resolve))),
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("unmuteVideo", { deviceId }, resolve))),
   unmuteVideoAll: procedure
     .meta({
       openapi: {
@@ -686,5 +680,6 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve => getSocket(bridgeId).emit("unmuteVideoAll", { tag }, resolve)))
+    }) => new Promise(resolve =>
+      getSocket(bridgeId).emit("unmuteVideoAll", { tag }, resolve)))
 });
