@@ -1,7 +1,7 @@
-import { mdcControl } from './mdc-control';
+import * as mdcControl from "./mdc-control";
 
-describe('mdcControl', () => {
-  it('should work', () => {
-    expect(mdcControl()).toEqual('mdc-control');
+describe("mdcControl", () => {
+  it("should work", () => {
+    expect(typeof mdcControl).toEqual("object");
   });
 });

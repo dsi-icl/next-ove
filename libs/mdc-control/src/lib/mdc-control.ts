@@ -21,9 +21,16 @@ export const sources: MDCSource = {
   DP3: 0x27
 };
 
-const sendCommand = (resolve: (obj: string) => void, id: number, ip: string, port: number, command_id: number, ...args: number[]) => {
+const sendCommand = (
+  resolve: (obj: string) => void,
+  id: number,
+  ip: string,
+  port: number,
+  commandId: number,
+  ...args: number[]
+) => {
   const socket = io(`ws://${ip}:${port}`);
-  const command = [0xAA, command_id, id, args.length].concat(args);
+  const command = [0xAA, commandId, id, args.length].concat(args);
   const checksum = command.slice(1).reduce((acc, x) => acc + x, 0) % 256;
   command.push(checksum);
   socket.send(command);
@@ -33,41 +40,71 @@ const sendCommand = (resolve: (obj: string) => void, id: number, ip: string, por
 };
 
 export const getStatus = (id: number, ip: string, port: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x00));
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x00));
 };
 
-export const setPower = (id: number, ip: string, port: number, state: string) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x11, state === "off" ? 0 : 1));
+export const setPower = (
+  id: number,
+  ip: string,
+  port: number,
+  state: string
+) => {
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x11, state === "off" ? 0 : 1));
 };
 
 export const getPower = (id: number, ip: string, port: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x11));
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x11));
 };
 
-export const setVolume = (id: number, ip: string, port: number, volume: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x12, volume));
+export const setVolume = (
+  id: number,
+  ip: string,
+  port: number,
+  volume: number
+) => {
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x12, volume));
 };
 
 export const getVolume = (id: number, ip: string, port: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x12));
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x12));
 };
 
-export const setIsMute = (id: number, ip: string, port: number, state: boolean) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x13, +state));
+export const setIsMute = (
+  id: number,
+  ip: string,
+  port: number,
+  state: boolean
+) => {
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x13, +state));
 };
 
 export const getIsMute = (id: number, ip: string, port: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x13));
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x13));
 };
 
-export const setSource = (id: number, ip: string, port: number, source: keyof MDCSource) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x14, sources[source]));
+export const setSource = (
+  id: number,
+  ip: string,
+  port: number,
+  source: keyof MDCSource
+) => {
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x14, sources[source]));
 };
 
 export const getSource = (id: number, ip: string, port: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x14));
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x14));
 };
 
 export const getModel = (id: number, ip: string, port: number) => {
-  return new Promise<string>(resolve => sendCommand(resolve, id, ip, port, 0x10));
+  return new Promise<string>(resolve =>
+    sendCommand(resolve, id, ip, port, 0x10));
 };
