@@ -1,6 +1,7 @@
 import * as si from "systeminformation";
 
-const general = () => ({ version: si.version(), time: si.time(), type: "general" as const });
+const general = () =>
+  ({ version: si.version(), time: si.time(), type: "general" as const });
 
 const system = async () => ({
   system: await si.system(),
@@ -46,8 +47,14 @@ const os = async () => ({
 
 const processes = async () => {
   const processes = await si.processes();
-  const services = await si.services(processes.list.map(x => x.name).join(",")); //Promise.all(processes.list.map(async x => (await si.services(x.name))[0]));
-  const processLoad = await si.processLoad(processes.list.map(x => x.name).join(",")); // Promise.all(processes.list.map(async x => (await si.processLoad(x.name))[0]));
+  const services = await si.services(processes
+    .list
+    .map(x => x.name)
+    .join(","));
+  const processLoad = await si.processLoad(processes
+    .list
+    .map(x => x.name)
+    .join(","));
   return ({
     currentLoad: await si.currentLoad(),
     fullLoad: await si.fullLoad(),

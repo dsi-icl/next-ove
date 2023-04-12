@@ -1,6 +1,9 @@
+/* global process, console */
+
 import { execSync } from "child_process";
 
-const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"].includes(process.platform);
+const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"]
+  .includes(process.platform);
 const isWindows = () => process.platform === "win32";
 
 const buildShutdownCommand = () => {
@@ -21,7 +24,7 @@ const shutdown = () => {
     console.error(e);
     return false;
   }
-}
+};
 
 const buildRebootCommand = () => {
   if (isLinuxLike()) {
@@ -41,15 +44,15 @@ const reboot = () => {
     console.error(e);
     return false;
   }
-}
+};
 
 const execute = (command: string) => {
   const response = execSync(command).toString();
-  return {response};
-}
+  return { response };
+};
 
 export default () => ({
   shutdown,
   reboot,
-  execute,
+  execute
 });
