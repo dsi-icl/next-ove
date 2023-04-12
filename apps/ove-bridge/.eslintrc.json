@@ -1,5 +1,5 @@
 {
-  "extends": ["../../.eslintrc.json", "eslint:recommended", "google"],
+  "extends": ["../../.eslintrc.json"],
   "ignorePatterns": ["!**/*"],
   "overrides": [
     {
@@ -8,9 +8,7 @@
     },
     {
       "files": ["*.ts", "*.tsx"],
-      "rules": {
-        "@typescript-eslint/no-non-null-assertion": "off"
-      }
+      "rules": {}
     },
     {
       "files": ["*.js", "*.jsx"],

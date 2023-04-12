@@ -1,3 +1,5 @@
+/* global setTimeout */
+
 import * as PJLink from "@ove/pjlink-control";
 import {
   Device,
@@ -65,7 +67,17 @@ const getInfo = async (device: Device, args: DSArgs<"getInfo">) => {
   const product = await PJLink.getProduct(device);
   const sources = await PJLink.getInputs(device);
 
-  if (is(OVEExceptionSchema, info) || is(OVEExceptionSchema, source) || is(OVEExceptionSchema, power) || is(OVEExceptionSchema, pjlinkClass) || is(OVEExceptionSchema, isMuted) || is(OVEExceptionSchema, errors) || is(OVEExceptionSchema, lamp) || is(OVEExceptionSchema, name) || is(OVEExceptionSchema, manufacturer) || is(OVEExceptionSchema, product) || is(OVEExceptionSchema, sources)) {
+  if (is(OVEExceptionSchema, info) ||
+    is(OVEExceptionSchema, source) ||
+    is(OVEExceptionSchema, power) ||
+    is(OVEExceptionSchema, pjlinkClass) ||
+    is(OVEExceptionSchema, isMuted) ||
+    is(OVEExceptionSchema, errors) ||
+    is(OVEExceptionSchema, lamp) ||
+    is(OVEExceptionSchema, name) ||
+    is(OVEExceptionSchema, manufacturer) ||
+    is(OVEExceptionSchema, product) ||
+    is(OVEExceptionSchema, sources)) {
     return { oveError: "Unable to gather system information" };
   }
 
@@ -108,7 +120,11 @@ const setSource = async (device: Device, args: DSArgs<"setSource">) => {
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.setInput(device, PJLink.INPUT[parsedOpts.data.source], parsedOpts.data.channel);
+  const response = await PJLink.setInput(
+    device,
+    PJLink.INPUT[parsedOpts.data.source],
+    parsedOpts.data.channel
+  );
 
   if (is(OVEExceptionSchema, response)) return response;
 

@@ -9,16 +9,12 @@ import {
 } from "@ove/ove-types";
 import { Logging } from "@ove/ove-utils";
 
-const wrapCallback = <T>(callback: (response: BridgeResponse<T>) => void): (response: T) => void => (response: T) => callback({
-  response,
-  meta: {
-    bridge: environment.name
-  }
-});
+const wrapCallback = <T>(callback: (response: BridgeResponse<T>) => void) =>
+  (response: T) => callback({ response, meta: { bridge: environment.name } });
 
 dotenv.config();
 
-const logger = Logging.Logger("bridge", -1);
+const logger = Logging.logger("bridge", -1);
 
 const socket: Socket<BridgeAPI, ClientToServerEvents> = io(`ws://${environment.core}/hardware`, { autoConnect: false });
 socket.auth = { "name": `${environment.name}` };
@@ -154,82 +150,82 @@ socket.on("addDevice", async ({ device }, cb) => {
   callback(await Service.addDevice(device));
 });
 //
-socket.on("setVolume", async ({deviceId, volume}, cb) => {
+socket.on("setVolume", async ({ deviceId, volume }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.setVolume(deviceId, volume));
 });
 
-socket.on("setVolumeAll", async ({volume, tag}, cb) => {
+socket.on("setVolumeAll", async ({ volume, tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.setVolumeAll(volume, tag));
 });
 
-socket.on("setSource", async ({deviceId, source, channel}, cb) => {
+socket.on("setSource", async ({ deviceId, source, channel }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.setSource(deviceId, source, channel));
 });
 
-socket.on("setSourceAll", async ({source, channel, tag}, cb) => {
+socket.on("setSourceAll", async ({ source, channel, tag }, cb) => {
   const callback = wrapCallback(cb);
-  callback(await Service.setSourceAll(source, channel ,tag));
+  callback(await Service.setSourceAll(source, channel, tag));
 });
 
-socket.on("mute", async ({deviceId}, cb) => {
+socket.on("mute", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.mute(deviceId));
 });
 
-socket.on("muteAll", async ({tag}, cb) => {
+socket.on("muteAll", async ({ tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.muteAll(tag));
 });
 
-socket.on("unmute", async ({deviceId}, cb) => {
+socket.on("unmute", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.unmute(deviceId));
 });
 
-socket.on("unmuteAll", async ({tag}, cb) => {
+socket.on("unmuteAll", async ({ tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.unmuteAll(tag));
 });
 
-socket.on("muteAudio", async ({deviceId}, cb) => {
+socket.on("muteAudio", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.muteAudio(deviceId));
 });
 
-socket.on("muteAudioAll", async ({tag}, cb) => {
+socket.on("muteAudioAll", async ({ tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.muteAudioAll(tag));
 });
 
-socket.on("unmuteAudio", async ({deviceId}, cb) => {
+socket.on("unmuteAudio", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.unmuteAudio(deviceId));
 });
 
-socket.on("unmuteAudioAll", async ({tag}, cb) => {
+socket.on("unmuteAudioAll", async ({ tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.unmuteAudioAll(tag));
 });
 
-socket.on("muteVideo", async ({deviceId}, cb) => {
+socket.on("muteVideo", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.muteVideo(deviceId));
 });
 
-socket.on("muteVideoAll", async ({tag}, cb) => {
+socket.on("muteVideoAll", async ({ tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.muteVideoAll(tag));
 });
 
-socket.on("unmuteVideo", async ({deviceId}, cb) => {
+socket.on("unmuteVideo", async ({ deviceId }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.unmuteVideo(deviceId));
 });
 
-socket.on("unmuteVideoAll", async ({tag}, cb) => {
+socket.on("unmuteVideoAll", async ({ tag }, cb) => {
   const callback = wrapCallback(cb);
   callback(await Service.unmuteVideoAll(tag));
 });
@@ -259,4 +255,5 @@ socket.on("removeDevice", async ({ deviceId }, cb) => {
   callback(await Service.removeDevice(deviceId));
 });
 
-socket.on("connect_error", err => logger.error(`connect_error due to ${err.message}`));
+socket.on("connect_error", err =>
+  logger.error(`connect_error due to ${err.message}`));

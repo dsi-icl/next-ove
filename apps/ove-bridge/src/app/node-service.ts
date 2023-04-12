@@ -1,3 +1,5 @@
+/* global global, AbortController */
+
 import { wake } from "../utils/wol";
 import { AppRouter } from "@ove/ove-client-router";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
@@ -7,12 +9,11 @@ import {
   Device,
   DS,
   DSArgs,
-  Optional,
-  OVEException, ScreenshotMethodSchema,
-  Status
+  ScreenshotMethodSchema,
 } from "@ove/ove-types";
 import { z } from "zod";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
 globalAny.AbortController = AbortController;
 globalAny.fetch = fetch;
@@ -27,7 +28,7 @@ const createClient = (device: Device) =>
     ]
   });
 
-const reboot = async (device: Device, args: DSArgs<"reboot">): Promise<Optional<Status | OVEException>> => {
+const reboot = async (device: Device, args: DSArgs<"reboot">) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
@@ -103,8 +104,12 @@ const openBrowser = async (device: Device, args: DSArgs<"openBrowser">) => {
   return await createClient(device).openBrowser.mutate(parsedOpts.data);
 };
 
-const getBrowserStatus = async (device: Device, args: DSArgs<"getBrowserStatus">) => {
-  const getBrowserStatusOptsSchema = z.object({ browserId: z.number() }).strict();
+const getBrowserStatus = async (
+  device: Device,
+  args: DSArgs<"getBrowserStatus">
+) => {
+  const getBrowserStatusOptsSchema =
+    z.object({ browserId: z.number() }).strict();
   const parsedOpts = getBrowserStatusOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;

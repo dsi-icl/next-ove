@@ -1,6 +1,7 @@
+/* global setTimeout */
+
 import * as mdc from "@ove/mdc-control";
-import { Device, Status, DS, DSArgs } from "@ove/ove-types";
-import { MDCSourceSchema } from "@ove/mdc-control";
+import { Device, Status, DS, DSArgs, MDCSourceSchema } from "@ove/ove-types";
 import { z } from "zod";
 
 const reboot = async ({
@@ -125,7 +126,8 @@ const setSource = async ({
   ip,
   port
 }: Device, args: DSArgs<"setSource">) => {
-  const setSourceOptsSchema = z.object({ source: MDCSourceSchema.keyof() }).strict();
+  const setSourceOptsSchema =
+    z.object({ source: MDCSourceSchema.keyof() }).strict();
   const parsedOpts = setSourceOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;

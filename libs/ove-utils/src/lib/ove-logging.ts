@@ -6,7 +6,7 @@ import Constants from "./ove-constants";
 import { LogLevel } from "./types";
 
 
-export const Logger = (name?: string, logLevel?: number) => {
+export const logger = (name?: string, logLevel?: number) => {
   const logLevel_ = logLevel ?? Constants.DEFAULT_LOG_LEVEL;
   const name_: string = name ?? Constants.UNKNOWN_APP_ID;
 
