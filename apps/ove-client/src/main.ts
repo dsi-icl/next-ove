@@ -1,3 +1,5 @@
+/* global setTimeout, console, process */
+
 import { start as startServer } from "./server";
 import {
   start as startElectron,

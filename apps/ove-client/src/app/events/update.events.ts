@@ -1,4 +1,4 @@
-import {autoUpdater} from "electron-updater";
+import { autoUpdater } from "electron-updater";
 
 export default () => {
   autoUpdater.on("update-available", () => {

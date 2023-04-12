@@ -1,9 +1,11 @@
+/* global __dirname, process, console */
 // noinspection DuplicatedCode
 
 import cors from "cors";
 import * as path from "path";
 import express from "express";
 import { appRouter, init, createContext } from "@ove/ove-client-router";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as swaggerUi from "swagger-ui-express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
@@ -46,5 +48,5 @@ export const start = () => {
 
   return () => {
     server.close();
-  }
+  };
 };

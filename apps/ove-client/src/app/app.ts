@@ -1,12 +1,19 @@
-// noinspection DuplicatedCode
+/* global __dirname */
+
 import { nanoid } from "nanoid";
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { logger } from "../utils";
-import { type BrowserWindow } from "electron";
+import * as Electron from "electron";
 import { ID } from "@ove/ove-types";
 
-export default (App: Electron.App, BrowserWindow: typeof Electron.BrowserWindow, Screen: Electron.Screen, windows: { [uid: string]: BrowserWindow }, closeServer: () => void) => {
+export default (
+  App: Electron.App,
+  BrowserWindow: typeof Electron.BrowserWindow,
+  Screen: Electron.Screen,
+  windows: { [uid: string]: Electron.BrowserWindow },
+  closeServer: () => void
+) => {
   let defaultIdx: string | null = null;
 
   const onWindowAllClosed = () => {
@@ -22,10 +29,10 @@ export default (App: Electron.App, BrowserWindow: typeof Electron.BrowserWindow,
     let bounds;
 
     if (displayId !== undefined) {
-      bounds = Screen.getAllDisplays().find(monitor => monitor.id === displayId)?.bounds || {
-        x: 0,
-        y: 0
-      };
+      bounds = Screen
+        .getAllDisplays()
+        .find(monitor =>
+          monitor.id === displayId)?.bounds || { x: 0, y: 0 };
     } else {
       bounds = Screen.getPrimaryDisplay().bounds;
     }
