@@ -1,6 +1,9 @@
 import { start as startServer } from "./server";
-import { start as startElectron } from "./electron";
-import { initializeElectron, initializeElectronEvents } from "./electron";
+import {
+  start as startElectron,
+  initializeElectron,
+  initializeElectronEvents
+} from "./electron";
 
 process.on("SIGINT", () => {
   console.log("Received SIGINT");
