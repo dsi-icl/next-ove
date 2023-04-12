@@ -1,3 +1,5 @@
+/* global Buffer, console */
+
 import { createContext } from "./context";
 import { appRouter, init } from "./router";
 import * as cp from "child_process";
@@ -9,20 +11,15 @@ const setupTRPC = async () => {
 };
 
 describe("TRPC Router", () => {
-  it("has a default welcome message", async () => {
-    const caller = await setupTRPC();
-    expect(await caller.home())
-      .toStrictEqual({ message: "Welcome to control-client!" });
-  });
-
   it("can provide a status", async () => {
     const caller = await setupTRPC();
-    expect(await caller.getStatus()).toStrictEqual({ status: "running" });
+    expect(await caller.getStatus({}))
+      .toStrictEqual({ status: "running" });
   });
 
   it("can provide general information on the device", async () => {
     const caller = await setupTRPC();
-    const info = await caller.getInfo();
+    const info = await caller.getInfo({});
     expect(info).toHaveProperty("version");
     expect(info).toHaveProperty("time");
   });
@@ -167,30 +164,30 @@ describe("TRPC Router", () => {
   });
 
   it("can shutdown the device", async () => {
-    // noinspection JSUnusedLocalSymbols
-    jest.spyOn(cp, "execSync").mockImplementationOnce(function(this: cp.ChildProcess, command: string, options: any, callback?: (error: cp.ExecException | null, stdout: string, stderr: string) => void): string | Buffer {
+    const mocked = function(this: cp.ChildProcess): string | Buffer {
       return "This is a mocked shutdown";
-    });
+    };
+    jest.spyOn(cp, "execSync").mockImplementationOnce(mocked);
     const caller = await setupTRPC();
-    const res = await caller.shutdown();
+    const res = await caller.shutdown({});
     expect(res).toBe("This is a mocked shutdown");
   });
 
   it("can reboot the device", async () => {
-    // noinspection JSUnusedLocalSymbols
-    jest.spyOn(cp, "execSync").mockImplementationOnce(function(this: cp.ChildProcess, command: string, options: any, callback?: (error: cp.ExecException | null, stdout: string, stderr: string) => void): string | Buffer {
+    const mocked = function(this: cp.ChildProcess): string | Buffer {
       return "This is a mocked reboot";
-    });
+    };
+    jest.spyOn(cp, "execSync").mockImplementationOnce(mocked);
     const caller = await setupTRPC();
-    const res = await caller.reboot();
+    const res = await caller.reboot({});
     expect(res).toBe("This is a mocked reboot");
   });
 
   it("can execute arbitrary code on the device", async () => {
-    // noinspection JSUnusedLocalSymbols
-    jest.spyOn(cp, "execSync").mockImplementationOnce(function(this: cp.ChildProcess, command: string, options: any, callback?: (error: cp.ExecException | null, stdout: string, stderr: string) => void): string | Buffer {
+    const mocked = function(this: cp.ChildProcess): string | Buffer {
       return "This is a mocked execution";
-    });
+    };
+    jest.spyOn(cp, "execSync").mockImplementationOnce(mocked);
 
     const caller = await setupTRPC();
     const res = await caller.execute({ command: "echo hello world" });
@@ -199,7 +196,9 @@ describe("TRPC Router", () => {
   });
 
   it("can take a screenshot of one screen of the device", async () => {
-    const createWindow = jest.fn(() => {
+    const createWindow = jest.fn(() => "window created");
+    const closeWindow = jest.fn(() => {
+      console.log("Closing window");
     });
     const takeScreenshots = jest.fn(async () => [<DesktopCapturerSource>{
       display_id: "1",
@@ -212,16 +211,18 @@ describe("TRPC Router", () => {
         toDataURL: (): string => "thumbnail"
       }
     }]);
-    init(createWindow, takeScreenshots);
+    init(createWindow, takeScreenshots, closeWindow);
 
     const caller = await setupTRPC();
-    const res = await caller.screenshot({ method: "return", screens: [1] });
+    const res = await caller.screenshot({ method: "response", screens: [1] });
 
     expect(res).toStrictEqual(["thumbnail"]);
   });
 
   it("can take screenshots of multiple screens of the device", async () => {
-    const createWindow = jest.fn(() => {
+    const createWindow = jest.fn(() => "window created");
+    const closeWindow = jest.fn(() => {
+      console.log("Closing window");
     });
     const takeScreenshots = jest.fn(async () => [
       <DesktopCapturerSource>{
@@ -247,17 +248,20 @@ describe("TRPC Router", () => {
         }
       }
     ]);
-    init(createWindow, takeScreenshots);
+    init(createWindow, takeScreenshots, closeWindow);
 
     const caller = await setupTRPC();
-    const res = await caller.screenshot({ method: "return", screens: [1, 2] });
+    const res = await caller.screenshot({
+      method: "response",
+      screens: [1, 2]
+    });
 
     expect(res).toStrictEqual(["thumbnail 1", "thumbnail 2"]);
   });
 
   it("can open a browser", async () => {
     const caller = await setupTRPC();
-    const res = await caller.openBrowser({displayId: 1});
+    const res = await caller.openBrowser({ displayId: 1 });
 
     expect(res).toBe(0);
   });

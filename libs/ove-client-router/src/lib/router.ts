@@ -1,3 +1,5 @@
+/* global console */
+
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
 import { Service } from "@ove/ove-client-control";
@@ -5,12 +7,12 @@ import { Browser, ClientAPIRoutes, ID } from "@ove/ove-types";
 
 const service = Service.default();
 
-const state: {browsers: {[browserId: ID]: Browser}} = {browsers: {}};
+const state: { browsers: { [browserId: ID]: Browser } } = { browsers: {} };
 
 export const init = (
   createWindow: (url?: string, displayId?: ID) => string,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
-  closeWindow: (idx: string) => void,
+  closeWindow: (idx: string) => void
 ) => {
   service.init(createWindow, takeScreenshots, closeWindow);
 };
@@ -85,17 +87,17 @@ export const appRouter = router({
       return browserId;
     }),
   closeBrowser: procedure
-    .meta({openapi: {method: "DELETE", path: "/browser/{browserId}"}})
+    .meta({ openapi: { method: "DELETE", path: "/browser/{browserId}" } })
     .input(ClientAPIRoutes.closeBrowser.args)
     .output(ClientAPIRoutes.closeBrowser.client)
-    .mutation(async ({input: {browserId}}) => {
+    .mutation(async ({ input: { browserId } }) => {
       console.log(`Closing browsers: ${JSON.stringify(state.browsers)}`);
       service.closeBrowser(state.browsers[browserId]);
       delete state.browsers[browserId];
       return true;
     }),
   closeBrowsers: procedure
-    .meta({openapi: {method: "DELETE", path: "/browsers"}})
+    .meta({ openapi: { method: "DELETE", path: "/browsers" } })
     .input(ClientAPIRoutes.closeBrowsers.args)
     .output(ClientAPIRoutes.closeBrowsers.client)
     .mutation(async () => {
