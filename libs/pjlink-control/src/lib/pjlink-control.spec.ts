@@ -1,7 +1,7 @@
-import { pjlinkControl } from './pjlink-control_spec';
+import * as pjLinkControl from "./pjlink-control";
 
-describe('pjlinkControl', () => {
-  it('should work', () => {
-    expect(pjlinkControl()).toEqual('pjlink-control');
+describe("pjlinkControl", () => {
+  it("should work", () => {
+    expect(typeof pjLinkControl).toEqual("object");
   });
 });

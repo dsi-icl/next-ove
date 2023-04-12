@@ -4,6 +4,8 @@ import { Device, OVEException, PJLinkSource } from "@ove/ove-types";
 import { Utils } from "@ove/ove-utils";
 import { z } from "zod";
 
+/* global Buffer, console */
+
 type PJLinkState = {
   settings: {
     host: string,
@@ -37,7 +39,7 @@ export const INPUT: PJLinkSource = {
 type PJLinkResponse = OVEException | string;
 type PJLinkCallback = (response: PJLinkResponse) => void;
 
-const calcDigest = (rand: string, password: string | null): any => {
+const calcDigest = (rand: string, password: string | null): unknown => {
   const md5 = crypto.createHash("md5");
   md5.setEncoding("hex");
   md5.write(rand);
@@ -49,7 +51,12 @@ const calcDigest = (rand: string, password: string | null): any => {
   return md5.read();
 };
 
-const init = (command: string, callback: PJLinkCallback, device?: Device, password?: string): PJLinkState => {
+const init = (
+  command: string,
+  callback: PJLinkCallback,
+  device?: Device,
+  password?: string
+): PJLinkState => {
   return {
     settings: {
       host: device?.ip || "192.168.1.1",
@@ -79,7 +86,7 @@ const disconnect = (state: PJLinkState) => {
     state._connection.end();
   }
 
-  //reset the connection etc
+  // reset the connection etc
   state._connection = null;
   state._sessionToken = null;
   state._curCmd = null;
@@ -114,16 +121,25 @@ const REGEX = {
 const onData = (state: PJLinkState) => (buffer: Buffer) => {
   const response = buffer.toString("ascii");
 
-  if (state._callback === null || state._connection === null) throw new Error("Callback cannot be null");
+  if (state._callback === null || state._connection === null) {
+    throw new Error("Callback cannot be null");
+  }
 
   if (REGEX.AUTH_REGEX.test(response)) {
-    const sessionToken = response.match(REGEX.AUTH_REGEX)!!.pop();
-    if (sessionToken === undefined) throw new Error("Session token cannot be undefined");
-    state._connection?.write(`${calcDigest(sessionToken, state.settings.password)}%${state.class}${state._curCmd}\r`);
+    const sessionToken = response.match(REGEX.AUTH_REGEX)?.pop();
+
+    if (sessionToken === undefined) {
+      throw new Error("Session token cannot be undefined");
+    }
+
+    const digest = calcDigest(sessionToken, state.settings.password);
+    const message = `${digest}%${state.class}${state._curCmd}\r`;
+
+    state._connection?.write(message);
   } else if (REGEX.SUCCESS_REGEX.test(response)) {
     state._callback?.(response);
   } else if (REGEX.GET_REGEX.test(response)) {
-    const res = response.match(REGEX.GET_REGEX)!!.pop();
+    const res = response.match(REGEX.GET_REGEX)?.pop();
     if (res === undefined) throw new Error("Result cannot be undefined");
     state._callback?.(res);
   } else if (REGEX.AUTH_ERROR_REGEX.test(response)) {
@@ -145,8 +161,7 @@ const connect = (state: PJLinkState) => {
   state._connection = net.connect({
     port: state.settings.port,
     host: state.settings.host
-  }, () => {
-  });
+  }, () => console.log("Connected"));
 
   state._connection.on("data", onData(state));
   state._connection.on("error", onError(state));
@@ -178,13 +193,17 @@ export const COMMAND = {
   GET_CLASS: "%1CLSS ?\r"
 };
 
-const runCommand = (command: string, device: Device, ...args: any[]) => {
+const runCommand = (command: string, device: Device, ...args: unknown[]) => {
   return new Promise<PJLinkResponse>(resolve => {
     if (args.length > 0) {
       command = Utils.replaceAll(command, args);
     }
 
-    const state = init(command, (response: PJLinkResponse) => resolve(response), device);
+    const state = init(
+      command,
+      (response: PJLinkResponse) => resolve(response),
+      device
+    );
     connect(state);
   });
 };
@@ -198,7 +217,8 @@ export const getPower = (device: Device) => {
 };
 
 export const setInput = (device: Device, input: number, channel?: number) => {
-  return runCommand(COMMAND.SET_INPUT, device, input, channel === undefined ? 1 : channel);
+  return runCommand(COMMAND.SET_INPUT, device, input,
+    channel === undefined ? 1 : channel);
 };
 
 export const getInput = (device: Device) => {

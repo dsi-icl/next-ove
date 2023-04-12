@@ -46,7 +46,28 @@
         "eslint:recommended",
         "google"
       ],
-      "rules": {}
+      "rules": {
+        "comma-dangle": "off",
+        "object-curly-spacing": [
+          "error",
+          "always"
+        ],
+        "quotes": [
+          "error",
+          "double",
+          {
+            "avoidEscape": true
+          }
+        ],
+        "indent": [
+          "error",
+          2
+        ],
+        "arrow-parens": [
+          "error",
+          "as-needed"
+        ]
+      }
     },
     {
       "files": [
@@ -58,7 +79,28 @@
         "eslint:recommended",
         "google"
       ],
-      "rules": {}
+      "rules": {
+        "comma-dangle": "off",
+        "object-curly-spacing": [
+          "error",
+          "always"
+        ],
+        "quotes": [
+          "error",
+          "double",
+          {
+            "avoidEscape": true
+          }
+        ],
+        "indent": [
+          "error",
+          2
+        ],
+        "arrow-parens": [
+          "error",
+          "as-needed"
+        ]
+      }
     },
     {
       "files": [
