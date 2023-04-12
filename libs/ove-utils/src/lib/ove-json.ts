@@ -10,13 +10,17 @@ export const Json = () => {
       return obj[input as (keyof typeof obj)];
     }
 
-    return getDescendent(input.substring(nameSeparator + 1), obj[input.substring(0, nameSeparator) as (keyof typeof obj)]);
+    const newInput = input.substring(nameSeparator + 1);
+    const newObj = obj[input.substring(0, nameSeparator) as keyof typeof obj];
+    return getDescendent(newInput, newObj);
   };
 
   return {
     EMPTY: JSON.stringify({}),
     EMPTY_ARRAY: JSON.stringify([]),
-    equals: (x: unknown, y: unknown): boolean => JSON.stringify(x) === JSON.stringify(y),
+    equals: (x: unknown, y: unknown): boolean => {
+      return JSON.stringify(x) === JSON.stringify(y);
+    },
     getDescendent: getDescendent
-  }
-}
+  };
+};

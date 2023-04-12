@@ -24,7 +24,7 @@ export type Logger = {
   trace: (...args: string[]) => void
 }
 
-export type Constants = {
+export type ConstantsType = {
   UNKNOWN_APP_ID: string
   APP_LOG_ID_WIDTH: number
   LogLevels: {
