@@ -15,7 +15,11 @@ export const StatusSchema = z.boolean();
 export type Optional<T> = T | undefined;
 
 // Node types
-export const ScreenshotMethodSchema = z.union([z.literal("upload"), z.literal("local"), z.literal("response")]);
+export const ScreenshotMethodSchema = z.union([
+  z.literal("upload"),
+  z.literal("local"),
+  z.literal("response")
+]);
 export type ScreenshotMethod = z.infer<typeof ScreenshotMethodSchema>;
 
 // PJLink types
@@ -30,7 +34,11 @@ export const PJLinkSourceSchema = z.object({
 export type PJLinkSource = z.infer<typeof PJLinkSourceSchema>;
 
 // Services
-export const ServiceTypesSchema = z.union([z.literal("node"), z.literal("mdc"), z.literal("pjlink")]);
+export const ServiceTypesSchema = z.union([
+  z.literal("node"),
+  z.literal("mdc"),
+  z.literal("pjlink")
+]);
 export type ServiceTypes = z.infer<typeof ServiceTypesSchema>;
 
 export const MDCSourceSchema = z.object({
@@ -54,7 +62,10 @@ export const MDCSourceSchema = z.object({
 }).strict();
 
 export type MDCSource = z.infer<typeof MDCSourceSchema>;
-export const SourceSchemas = z.union([MDCSourceSchema.keyof(), PJLinkSourceSchema.keyof()]);
+export const SourceSchemas = z.union([
+  MDCSourceSchema.keyof(),
+  PJLinkSourceSchema.keyof()
+]);
 
 // Device
 export const DeviceSchema = z.object({
@@ -70,29 +81,41 @@ export const DeviceSchema = z.object({
 export type Device = z.infer<typeof DeviceSchema>;
 
 // Bridge types
-export const BridgeMetadataSchema = z.object({ bridge: z.string() });
+export const BridgeMetadataSchema =
+  z.object({ bridge: z.string() });
 export type BridgeMetadata = z.infer<typeof BridgeMetadataSchema>;
 export type BridgeResponse<Response> = {
   meta: BridgeMetadata
   response: Response
 };
-export const getBridgeResponseSchema = <T extends z.ZodTypeAny>(schema: T) => z.object({
-  meta: BridgeMetadataSchema,
-  response: schema
-});
+export const getBridgeResponseSchema = <T extends z.ZodTypeAny>(schema: T) => {
+  return z.object({
+    meta: BridgeMetadataSchema,
+    response: schema
+  });
+};
 
 export type DeviceResponse<Type> = Type | OVEException;
 export type MultiDeviceResponse<Type> =
   { deviceId: string, response: DeviceResponse<Type> }[]
   | OVEException;
 
-export const getDeviceResponseSchema = <T extends z.ZodTypeAny>(schema: T): z.ZodUnion<readonly [T, typeof OVEExceptionSchema]> => z.union([schema, OVEExceptionSchema]);
+export const getDeviceResponseSchema =
+  <T extends z.ZodTypeAny>(schema: T):
+    z.ZodUnion<readonly [T, typeof OVEExceptionSchema]> =>
+    z.union([schema, OVEExceptionSchema]);
 
-const multiDeviceWrapper = <T extends z.ZodTypeAny>(schema: T) => z.array(z.object({
-  deviceId: z.string(),
-  response: getDeviceResponseSchema(schema)
-}));
-export const getMultiDeviceResponseSchema = <T extends z.ZodTypeAny>(schema: T): z.ZodUnion<readonly [ReturnType<typeof multiDeviceWrapper<T>>, typeof OVEExceptionSchema]> => z.union([multiDeviceWrapper(schema), OVEExceptionSchema]);
+const multiDeviceWrapper = <T extends z.ZodTypeAny>(schema: T) =>
+  z.array(z.object({
+    deviceId: z.string(),
+    response: getDeviceResponseSchema(schema)
+  }));
+export const getMultiDeviceResponseSchema =
+  <T extends z.ZodTypeAny>(schema: T):
+    z.ZodUnion<readonly [ReturnType<
+      typeof multiDeviceWrapper<T>>,
+      typeof OVEExceptionSchema
+    ]> => z.union([multiDeviceWrapper(schema), OVEExceptionSchema]);
 
 type ServiceAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny> = {
   args: z.ZodObject<A, "strict", z.ZodTypeAny>
@@ -104,12 +127,15 @@ type ClientAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny> = {
 } & { [Key in keyof ServiceAPIRoute<A, U>]: ServiceAPIRoute<A, U>[Key] }
 
 type BridgeAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny> = {
-  bridge: ReturnType<typeof getBridgeResponseSchema<ClientAPIRoute<A, U>["client"]>>;
+  bridge: ReturnType<
+    typeof getBridgeResponseSchema<ClientAPIRoute<A, U>["client"]>
+  >;
 } & { [Key in keyof ClientAPIRoute<A, U>]: ClientAPIRoute<A, U>[Key] };
 
 type BridgeAPIRouteAll<A extends z.ZodRawShape, U extends z.ZodTypeAny> =
   { [Key in keyof ClientAPIRoute<A, U>]: ClientAPIRoute<A, U>[Key] } & {
-  bridge: ReturnType<typeof getBridgeResponseSchema<ReturnType<typeof getMultiDeviceResponseSchema<U>>>>
+  bridge: ReturnType<typeof
+    getBridgeResponseSchema<ReturnType<typeof getMultiDeviceResponseSchema<U>>>>
 };
 
 type CoreAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny> = {
@@ -197,14 +223,20 @@ const ServiceAPI = {
   unmuteVideo: { args: z.object({}).strict(), returns: StatusSchema }
 };
 
-const mapToClient = <A extends z.ZodRawShape, U extends z.ZodTypeAny>(route: ServiceAPIRoute<A, U>): ClientAPIRoute<A, U> => {
+const mapToClient = <
+  A extends z.ZodRawShape,
+  U extends z.ZodTypeAny
+>(route: ServiceAPIRoute<A, U>): ClientAPIRoute<A, U> => {
   return {
     ...route,
     client: getDeviceResponseSchema(route.returns)
   };
 };
 
-const mapToBridge = <A extends z.ZodRawShape, U extends z.ZodTypeAny>(route: ClientAPIRoute<A, U>) => {
+const mapToBridge = <
+  A extends z.ZodRawShape,
+  U extends z.ZodTypeAny
+>(route: ClientAPIRoute<A, U>) => {
   return {
     ...route,
     args: route.args.extend({
@@ -214,15 +246,23 @@ const mapToBridge = <A extends z.ZodRawShape, U extends z.ZodTypeAny>(route: Cli
   };
 };
 
-const mapToBridgeAll = <A extends z.ZodRawShape, U extends z.ZodTypeAny>(route: ClientAPIRoute<A, U>) => {
+const mapToBridgeAll = <
+  A extends z.ZodRawShape,
+  U extends z.ZodTypeAny
+>(route: ClientAPIRoute<A, U>) => {
   return {
     ...route,
     args: route.args.extend({ tag: z.string().optional() }),
-    bridge: getBridgeResponseSchema(getMultiDeviceResponseSchema(route["returns"]))
+    bridge: getBridgeResponseSchema(
+      getMultiDeviceResponseSchema(route["returns"]))
   };
 };
 
-const mapToCore = <A extends z.ZodRawShape, U extends z.ZodTypeAny, T extends BridgeAPIRoute<A, U> | BridgeAPIRouteAll<A, U>>(route: T) => {
+const mapToCore = <
+  A extends z.ZodRawShape,
+  U extends z.ZodTypeAny,
+  T extends BridgeAPIRoute<A, U> | BridgeAPIRouteAll<A, U>
+>(route: T) => {
   return {
     ...route,
     args: route.args.extend({ bridgeId: z.string() })
@@ -231,26 +271,52 @@ const mapToCore = <A extends z.ZodRawShape, U extends z.ZodTypeAny, T extends Br
 
 type ServiceAPIType = typeof ServiceAPI;
 type ServiceKeys = keyof ServiceAPIType;
+type ArgsShape<Key extends keyof ServiceAPIType> =
+  ServiceAPIType[Key]["args"]["shape"]
 
 type ClientAPIRoutesType = {
-  [Key in ServiceKeys]: ClientAPIRoute<ServiceAPIType[Key]["args"]["shape"], typeof ServiceAPI[Key]["returns"]>
+  [Key in ServiceKeys]: ClientAPIRoute<
+    ArgsShape<Key>,
+    typeof ServiceAPI[Key]["returns"]
+  >
 };
 
 type ClientKeys = ServiceKeys;
 
 const devicesSchema = z.array(DeviceSchema);
-const deviceIDSchema = z.object({ deviceId: DeviceIDSchema }).strict();
+const deviceIDSchema =
+  z.object({ deviceId: DeviceIDSchema }).strict();
 const addDeviceSchema = z.object({ device: DeviceSchema }).strict();
 
+type ClientArgsShape<Key extends keyof ClientAPIRoutesType> =
+  ClientAPIRoutesType[Key]["args"]["shape"];
+
 type BridgeAPIRoutesType = {
-  getDevice: BridgeAPIRoute<typeof deviceIDSchema["shape"], typeof DeviceSchema>
-  getDevices: BridgeAPIRoute<typeof emptySchema["shape"], typeof devicesSchema>
-  addDevice: BridgeAPIRoute<typeof addDeviceSchema["shape"], typeof StatusSchema>
-  removeDevice: BridgeAPIRoute<typeof deviceIDSchema["shape"], typeof StatusSchema>
+  getDevice: BridgeAPIRoute<
+    typeof deviceIDSchema["shape"],
+    typeof DeviceSchema
+  >
+  getDevices: BridgeAPIRoute<
+    typeof emptySchema["shape"],
+    typeof devicesSchema
+  >
+  addDevice: BridgeAPIRoute<
+    typeof addDeviceSchema["shape"],
+    typeof StatusSchema
+  >
+  removeDevice: BridgeAPIRoute<
+    typeof deviceIDSchema["shape"],
+    typeof StatusSchema
+  >
 } & {
-  [Key in ClientKeys]: BridgeAPIRoute<z.extendShape<ClientAPIRoutesType[Key]["args"]["shape"], { deviceId: z.ZodString }>, ClientAPIRoutesType[Key]["returns"]>
+  [Key in ClientKeys]: BridgeAPIRoute<z.extendShape<ClientArgsShape<Key>, {
+    deviceId: z.ZodString
+  }>, ClientAPIRoutesType[Key]["returns"]>
 } & {
-  [Key in ClientKeys as `${Key}All`]: BridgeAPIRouteAll<z.extendShape<ClientAPIRoutesType[Key]["args"]["shape"], { tag: z.ZodOptional<z.ZodString> }>, ClientAPIRoutesType[Key]["returns"]>
+  [Key in ClientKeys as `${Key}All`]: BridgeAPIRouteAll<z.extendShape<
+    ClientArgsShape<Key>,
+    { tag: z.ZodOptional<z.ZodString> }
+  >, ClientAPIRoutesType[Key]["returns"]>
 };
 
 export const ClientAPIRoutes: ClientAPIRoutesType = {
@@ -327,7 +393,8 @@ export const BridgeAPIRoutes: BridgeAPIRoutesType = {
     args: z.object({}).strict(),
     returns: z.array(DeviceSchema),
     client: getDeviceResponseSchema(z.array(DeviceSchema)),
-    bridge: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))
+    bridge: getBridgeResponseSchema(
+      getDeviceResponseSchema(z.array(DeviceSchema)))
   },
   addDevice: {
     args: z.object({ device: DeviceSchema }).strict(),
@@ -343,7 +410,8 @@ export const BridgeAPIRoutes: BridgeAPIRoutesType = {
   }
 };
 
-//@ts-ignore
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 export const CoreAPIRoutes: CoreAPIRoutesType = {
   getStatus: mapToCore(BridgeAPIRoutes["getStatus"]),
   getStatusAll: mapToCore(BridgeAPIRoutes["getStatusAll"]),
@@ -391,27 +459,54 @@ export const CoreAPIRoutes: CoreAPIRoutesType = {
   removeDevice: mapToCore(BridgeAPIRoutes["removeDevice"])
 };
 
-// type CoreAPIRoutesTypeDynamic<A extends z.ZodRawShape, T extends BridgeAPIRoute<A, U> | BridgeAPIRouteAll<A, U>, U extends z.ZodTypeAny> = T extends BridgeAPIRoute<A, U> ? BridgeAPIRoute<z.extendShape<T["args"]["shape"], {bridgeId: z.ZodString}>, T["returns"> : BridgeAPIRouteAll<>
-
 type CoreAPIRoutesType = {
-  [Key in keyof BridgeAPIRoutesType]: BridgeAPIRoutesType[Key] extends BridgeAPIRoute<BridgeAPIRoutesType[Key]["args"]["shape"], BridgeAPIRoutesType[Key]["returns"]> ? CoreAPIRoute<z.extendShape<BridgeAPIRoutesType[Key]["args"]["shape"], { bridgeId: z.ZodString }>, BridgeAPIRoutesType[Key]["returns"]> : CoreAPIRouteAll<z.extendShape<BridgeAPIRoutesType[Key]["args"]["shape"], { bridgeId: z.ZodString }>, BridgeAPIRoutesType[Key]["returns"]>
+  [Key in keyof BridgeAPIRoutesType]:
+  BridgeAPIRoutesType[Key] extends BridgeAPIRoute<
+    BridgeAPIRoutesType[Key]["args"]["shape"],
+    BridgeAPIRoutesType[Key]["returns"]
+  > ? CoreAPIRoute<
+    z.extendShape<BridgeAPIRoutesType[Key]["args"]["shape"], {
+      bridgeId: z.ZodString
+    }>, BridgeAPIRoutesType[Key]["returns"]> : CoreAPIRouteAll<z.extendShape<
+    BridgeAPIRoutesType[Key]["args"]["shape"],
+    { bridgeId: z.ZodString }
+  >, BridgeAPIRoutesType[Key]["returns"]>
 }
 
-type GetObjectOutput<Key extends keyof BridgeAPIRoutesType> = BridgeAPIRoutesType[Key]["args"] extends z.ZodObject<BridgeAPIRoutesType[Key]["args"]["shape"], "strict", z.ZodTypeAny, infer O> ? O : any
+type GetObjectOutput<Key extends keyof BridgeAPIRoutesType> =
+  BridgeAPIRoutesType[Key]["args"] extends z.ZodObject<
+    BridgeAPIRoutesType[Key]["args"]["shape"],
+    "strict",
+    z.ZodTypeAny,
+    infer O
+  > ? O : unknown
 
 export type BridgeAPI = {
-  [Key in keyof BridgeAPIRoutesType]: (args: GetObjectOutput<Key>, callback: APICallback<z.infer<BridgeAPIRoutesType[Key]["bridge"]>>) => void
+  [Key in keyof BridgeAPIRoutesType]: (
+    args: GetObjectOutput<Key>,
+    callback: APICallback<z.infer<BridgeAPIRoutesType[Key]["bridge"]>>
+  ) => void
 };
 
 type APICallback<T> = (response: T) => void;
 
+type ClientArgs<T extends keyof ClientAPIRoutesType> = z.infer<
+  ClientAPIRoutesType[T]["args"]
+>;
+type Client<T extends keyof ClientAPIRoutesType> = z.infer<
+  ClientAPIRoutesType[T]["client"]
+>;
+
 export type DS = {
-  [Key in keyof ClientAPIRoutesType]?: (device: Device, args: z.infer<ClientAPIRoutesType[Key]["args"]>) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
-}
+  [Key in keyof ClientAPIRoutesType]?: (
+    device: Device,
+    args: ClientArgs<Key>
+  ) => Promise<Optional<Client<Key>>>
+};
 
 export type DSArgs<Key extends keyof DS> = Parameters<NonNullable<DS[Key]>>[1];
 
-export type ClientToServerEvents = {};
+export type ClientToServerEvents = Record<string, unknown>;
 
 export type Browser = {
   idx: string
