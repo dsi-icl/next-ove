@@ -34,8 +34,12 @@ const sendCommand = (
   const checksum = command.slice(1).reduce((acc, x) => acc + x, 0) % 256;
   command.push(checksum);
   socket.send(command);
-  socket.onAny(m => {
-    resolve(JSON.stringify(m));
+  socket.onAny((name, message) => {
+    if (typeof message === "string") {
+      resolve(message);
+    } else {
+      resolve(JSON.stringify(message));
+    }
     socket.disconnect();
   });
 };
@@ -49,7 +53,7 @@ export const setPower = (
   id: number,
   ip: string,
   port: number,
-  state: string
+  state: "on" | "off"
 ) => {
   return new Promise<string>(resolve =>
     sendCommand(resolve, id, ip, port, 0x11, state === "off" ? 0 : 1));
