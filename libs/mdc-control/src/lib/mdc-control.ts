@@ -36,6 +36,7 @@ const sendCommand = (
   socket.send(command);
   socket.onAny(m => {
     resolve(JSON.stringify(m));
+    socket.disconnect();
   });
 };
 
