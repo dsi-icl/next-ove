@@ -61,7 +61,7 @@ export const MDCSourceSchema = z.object({
   DP3: z.number()
 }).strict();
 
-export type MDCSource = z.infer<typeof MDCSourceSchema>;
+export type MDCSources = z.infer<typeof MDCSourceSchema>;
 export const SourceSchemas = z.union([
   MDCSourceSchema.keyof(),
   PJLinkSourceSchema.keyof()

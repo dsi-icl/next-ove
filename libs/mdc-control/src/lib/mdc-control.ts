@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
-import { MDCSource } from "@ove/ove-types";
+import { MDCSources } from "@ove/ove-types";
 
-export const sources: MDCSource = {
+export const sources: MDCSources = {
   UNKNOWN: 0x00,
   PC: 0x14,
   DVI: 0x18,
@@ -19,7 +19,9 @@ export const sources: MDCSource = {
   DP: 0x25,
   DP2: 0x26,
   DP3: 0x27
-};
+} as const;
+
+type MDCSource = MDCSources[keyof MDCSources];
 
 const sendCommand = (
   resolve: (obj: string) => void,
@@ -98,10 +100,10 @@ export const setSource = (
   id: number,
   ip: string,
   port: number,
-  source: keyof MDCSource
+  source: MDCSource
 ) => {
   return new Promise<string>(resolve =>
-    sendCommand(resolve, id, ip, port, 0x14, sources[source]));
+    sendCommand(resolve, id, ip, port, 0x14, source));
 };
 
 export const getSource = (id: number, ip: string, port: number) => {
