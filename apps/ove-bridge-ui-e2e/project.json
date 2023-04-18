@@ -1,0 +1,40 @@
+{
+  "name": "ove-bridge-ui-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-bridge-ui-e2e/src",
+  "projectType": "application",
+  "targets": {
+    "e2e": {
+      "executor": "@mands/nx-playwright:playwright-executor",
+      "options": {
+        "e2eFolder": "apps/ove-bridge-ui-e2e",
+        "devServerTarget": "ove-bridge-ui:serve",
+        "packageRunner": "yarn"
+      },
+      "configurations": {
+        "production": {
+          "devServerTarget": "ove-bridge-ui:serve:production"
+        }
+      }
+    },
+    "ts-check": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "tsc --build --force --verbose apps/ove-bridge-ui-e2e/tsconfig.json"
+          }
+        ]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-bridge-ui-e2e/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  },
+  "tags": [],
+  "implicitDependencies": ["ove-bridge-ui"]
+}

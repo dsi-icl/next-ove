@@ -1,26 +1,17 @@
 {
   "$schema": "../../../../../node_modules/nx-electron/src/validation/maker.schema.json",
-  "appId": "org.next-ove.client",
-  "productName": "Next-OVE Client",
+  "appId": "org.next-ove.bridge",
+  "productName": "Next-OVE Bridge",
   "copyright": "Copyright © 2023 Data Science Institute",
-  "files": [
-    "!**/.env*",
-    "!**/.vscode",
-    "!**/build",
-    "!**/config"
-  ],
+  "files": ["!**/.env*", "!**/.vscode", "!**/build", "!**/config"],
   "mac": {
-    "target": [
-      "dmg",
-      "pkg",
-      "zip"
-    ],
+    "target": ["dmg", "pkg", "zip"],
     "category": "public.app-category.developer-tools",
-    "icon": "apps/ove-client/build/icon.png",
+    "icon": "apps/ove-bridge-electron/build/icon.png",
     "type": "distribution"
   },
   "dmg": {
-    "background": "apps/ove-client/build/icon.png",
+    "background": "apps/ove-bridge-electron/build/icon.png",
     "iconSize": 160,
     "iconTextSize": 12,
     "window": {
@@ -42,12 +33,8 @@
     ]
   },
   "win": {
-    "target": [
-      "nsis",
-      "portable",
-      "zip"
-    ],
-    "icon": "apps/ove-client/build/icon.png"
+    "target": ["nsis", "portable", "zip"],
+    "icon": "apps/ove-bridge-electron/build/icon.png"
   },
   "nsis": {
     "oneClick": false,
@@ -55,10 +42,7 @@
     "license": "./LICENSE"
   },
   "linux": {
-    "target": [
-      "AppImage",
-      "deb"
-    ],
+    "target": ["AppImage", "deb"],
     "category": "Development"
   }
 }
