@@ -3,8 +3,8 @@
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { env } from "@ove/ove-bridge";
-import { type BrowserWindow as BW, type App, type Screen } from "electron";
 import { rendererAppName, rendererAppPort } from "./constants";
+import { type BrowserWindow as BW, type App, type Screen } from "electron";
 
 export default (() => {
   let mainWindow: BW | null = null;
