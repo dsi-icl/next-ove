@@ -193,7 +193,7 @@ export const COMMAND = {
   GET_CLASS: "%1CLSS ?\r"
 };
 
-const runCommand = (command: string, device: Device, ...args: unknown[]) => {
+const runCommand = (command: string, device: Device, ...args: any[]) => {
   return new Promise<PJLinkResponse>(resolve => {
     if (args.length > 0) {
       command = Utils.replaceAll(command, args);

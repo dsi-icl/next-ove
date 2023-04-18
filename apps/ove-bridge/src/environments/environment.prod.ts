@@ -1,5 +1,5 @@
+declare const __BUILD_VERSION__: string;
+
 export const environment = {
-  name: "bridge-main",
-  core: "localhost:3333",
-  production: true
+  version: __BUILD_VERSION__,
 };

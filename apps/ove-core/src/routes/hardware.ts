@@ -657,7 +657,8 @@ export const hardwareRouter = router({
         path: "/hardware/{bridgeId}/{deviceId}/unmuteVideo"
       }
     })
-    .input(CoreAPIRoutes.unmuteVideo.args)
+    // Hotfix: identify cause of unmuteVideo.args parameter type error
+    .input(CoreAPIRoutes.muteVideo.args)
     .output(CoreAPIRoutes.unmuteVideo.bridge)
     .mutation(async ({
       input: {

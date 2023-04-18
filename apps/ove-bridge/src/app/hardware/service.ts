@@ -1,7 +1,7 @@
 import NodeService from "./node-service";
 import MDCService from "./mdc-service";
 import PJLinkService from "./pjlink-service";
-import * as Utils from "../utils/utils";
+import * as Utils from "../../utils/utils";
 import { Utils as OVEUtils } from "@ove/ove-utils";
 import {
   Device,

@@ -8,15 +8,49 @@ import { Device, DeviceSchema } from "@ove/ove-types";
 
 export const logger = Logging.logger("bridge");
 
-const readAsset = (filename: string) => JSON.parse(fs.readFileSync(
+export const readAsset = (filename: string) => JSON.parse(fs.readFileSync(
   path.join(__dirname, "assets", filename)).toString());
-const toAsset = (obj: unknown, filename: string) => fs.writeFileSync(
+export const toAsset = (filename: string, obj: unknown, overwrite: boolean = true) => safeWriteFile(
   path.join(__dirname, "assets", filename),
-  JSON.stringify(obj)
+  JSON.stringify(obj, null, 2),
+  overwrite
 );
+
+const safeWriteFile = (path: string, data: string, overwrite: boolean) => {
+  if (overwrite) {
+    fs.writeFileSync(path, data);
+    return true;
+  } else {
+    try {
+      fs.statSync(path);
+      return false;
+    } catch (e) {
+      fs.writeFileSync(path, data);
+      return true;
+    }
+  }
+};
+
+export const envPath = path.join(__dirname, ".env");
+
+export const writeEnv = (env: object, overwrite: boolean = true) => {
+  safeWriteFile(envPath, Object.keys(env)
+    .map(k => `${k}=${JSON.stringify(env[k as keyof typeof env])}`)
+    .join("\n"), overwrite);
+};
+
+export const safeFileDelete = (path: string) => {
+  try {
+    fs.statSync(path);
+    fs.unlinkSync(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 export const getDevices = () =>
   z.array(DeviceSchema).parse(readAsset("hardware.json"));
 
 export const saveDevices = (devices: Device[]) =>
-  toAsset(devices, "hardware.json");
+  toAsset("hardware.json", devices);

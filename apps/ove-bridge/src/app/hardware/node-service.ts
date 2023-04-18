@@ -1,6 +1,6 @@
 /* global global, AbortController */
 
-import { wake } from "../utils/wol";
+import { wake } from "../../utils/wol";
 import { AppRouter } from "@ove/ove-client-router";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import fetch from "node-fetch";

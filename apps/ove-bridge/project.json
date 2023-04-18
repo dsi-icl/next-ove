@@ -1,15 +1,12 @@
 {
-  "name": "ove-bridge",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "apps/ove-bridge",
   "sourceRoot": "apps/ove-bridge/src",
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nrwl/webpack:webpack",
+      "executor": "nx-electron:build",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "target": "node",
-        "compiler": "tsc",
         "outputPath": "dist/apps/ove-bridge",
         "main": "apps/ove-bridge/src/main.ts",
         "tsConfig": "apps/ove-bridge/tsconfig.app.json",
@@ -30,14 +27,26 @@
       }
     },
     "serve": {
-      "executor": "@nrwl/js:node",
+      "executor": "nx-electron:execute",
       "options": {
         "buildTarget": "ove-bridge:build"
-      },
-      "configurations": {
-        "production": {
-          "buildTarget": "ove-bridge:build:production"
-        }
+      }
+    },
+    "package": {
+      "executor": "nx-electron:package",
+      "options": {
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/packages",
+        "prepackageOnly": true
+      }
+    },
+    "make": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/executables"
       }
     },
     "lint": {
@@ -49,12 +58,11 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": ["coverage/apps/ove-bridge"],
       "options": {
-        "jestConfig": "apps/ove-bridge/jest.config.ts",
+        "jestConfig": "apps/ove-bridge/jest.config.js",
         "passWithNoTests": true
       }
     }
-  },
-  "tags": []
+  }
 }
