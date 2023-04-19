@@ -3,6 +3,7 @@
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { env } from "@ove/ove-bridge";
+import initAutoUpdate from "./events/update.events"
 import { rendererAppName, rendererAppPort } from "./constants";
 import { type BrowserWindow as BW, type App, type Screen } from "electron";
 
@@ -28,6 +29,8 @@ export default (() => {
   const onReady = () => {
     initMainWindow();
     loadMainWindow();
+    const handler = initAutoUpdate();
+    handler();
   };
 
   const onActivate = () => {
