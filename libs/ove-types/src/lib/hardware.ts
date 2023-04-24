@@ -96,9 +96,6 @@ export const getBridgeResponseSchema = <T extends z.ZodTypeAny>(schema: T) => {
 };
 
 export type DeviceResponse<Type> = Type | OVEException;
-export type MultiDeviceResponse<Type> =
-  { deviceId: string, response: DeviceResponse<Type> }[]
-  | OVEException;
 
 export const getDeviceResponseSchema =
   <T extends z.ZodTypeAny>(schema: T):
@@ -223,25 +220,16 @@ const ServiceAPI = {
   unmuteVideo: { args: z.object({}).strict(), returns: StatusSchema }
 };
 
-const mapToClient = <
-  A extends z.ZodRawShape,
-  U extends z.ZodTypeAny
->(route: ServiceAPIRoute<A, U>): ClientAPIRoute<A, U> => {
-  return {
-    ...route,
-    client: getDeviceResponseSchema(route.returns)
-  };
-};
-
 const mapToBridge = <
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny
 >(route: ClientAPIRoute<A, U>) => {
   return {
-    ...route,
+    returns: route.returns,
     args: route.args.extend({
       deviceId: DeviceIDSchema
     }),
+    client: route.client,
     bridge: getBridgeResponseSchema(route["client"])
   };
 };
@@ -251,8 +239,9 @@ const mapToBridgeAll = <
   U extends z.ZodTypeAny
 >(route: ClientAPIRoute<A, U>) => {
   return {
-    ...route,
+    returns: route.returns,
     args: route.args.extend({ tag: z.string().optional() }),
+    client: route.client,
     bridge: getBridgeResponseSchema(
       getMultiDeviceResponseSchema(route["returns"]))
   };
@@ -261,11 +250,25 @@ const mapToBridgeAll = <
 const mapToCore = <
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
-  T extends BridgeAPIRoute<A, U> | BridgeAPIRouteAll<A, U>
->(route: T) => {
+  T extends BridgeAPIRoute<A, U>
+>(route: BridgeAPIRoute<A, U>) => {
   return {
-    ...route,
-    args: route.args.extend({ bridgeId: z.string() })
+    returns: route.returns,
+    args: route.args.extend({ bridgeId: z.string() }),
+    client: route.client,
+    bridge: route.bridge
+  };
+};
+
+const mapToCoreAll = <
+  A extends z.ZodRawShape,
+  U extends z.ZodTypeAny
+>(route: BridgeAPIRouteAll<A, U>) => {
+  return {
+    returns: route.returns,
+    args: route.args.extend({bridgeId: z.string()}),
+    client: route.client,
+    bridge: route.bridge
   };
 };
 
@@ -319,28 +322,16 @@ type BridgeAPIRoutesType = {
   >, ClientAPIRoutesType[Key]["returns"]>
 };
 
-export const ClientAPIRoutes: ClientAPIRoutesType = {
-  getStatus: mapToClient(ServiceAPI["getStatus"]),
-  getInfo: mapToClient(ServiceAPI["getInfo"]),
-  getBrowserStatus: mapToClient(ServiceAPI["getBrowserStatus"]),
-  getBrowsers: mapToClient(ServiceAPI["getBrowsers"]),
-  start: mapToClient(ServiceAPI["start"]),
-  reboot: mapToClient(ServiceAPI["reboot"]),
-  shutdown: mapToClient(ServiceAPI["shutdown"]),
-  execute: mapToClient(ServiceAPI["execute"]),
-  screenshot: mapToClient(ServiceAPI["screenshot"]),
-  openBrowser: mapToClient(ServiceAPI["openBrowser"]),
-  closeBrowser: mapToClient(ServiceAPI["closeBrowser"]),
-  closeBrowsers: mapToClient(ServiceAPI["closeBrowsers"]),
-  setVolume: mapToClient(ServiceAPI["setVolume"]),
-  setSource: mapToClient(ServiceAPI["setSource"]),
-  mute: mapToClient(ServiceAPI["mute"]),
-  unmute: mapToClient(ServiceAPI["unmute"]),
-  muteAudio: mapToClient(ServiceAPI["muteAudio"]),
-  unmuteAudio: mapToClient(ServiceAPI["unmuteAudio"]),
-  muteVideo: mapToClient(ServiceAPI["muteVideo"]),
-  unmuteVideo: mapToClient(ServiceAPI["unmuteVideo"])
-};
+const ClientAPIRoutes: ClientAPIRoutesType = (Object.keys(ServiceAPI) as Array<keyof typeof ServiceAPI>).reduce((acc, k) => {
+  return {
+    ...acc,
+    [k]: {
+      returns: ServiceAPI[k].returns,
+      args: ServiceAPI[k].args,
+      client: z.union([ServiceAPI[k].returns, OVEExceptionSchema])
+    }
+  }
+}, {} as ClientAPIRoutesType);
 
 export const BridgeAPIRoutes: BridgeAPIRoutesType = {
   getStatus: mapToBridge(ClientAPIRoutes["getStatus"]),
@@ -410,49 +401,47 @@ export const BridgeAPIRoutes: BridgeAPIRoutesType = {
   }
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 export const CoreAPIRoutes: CoreAPIRoutesType = {
   getStatus: mapToCore(BridgeAPIRoutes["getStatus"]),
-  getStatusAll: mapToCore(BridgeAPIRoutes["getStatusAll"]),
+  getStatusAll: mapToCoreAll(BridgeAPIRoutes["getStatusAll"]),
   getInfo: mapToCore(BridgeAPIRoutes["getInfo"]),
-  getInfoAll: mapToCore(BridgeAPIRoutes["getInfoAll"]),
+  getInfoAll: mapToCoreAll(BridgeAPIRoutes["getInfoAll"]),
   getBrowserStatus: mapToCore(BridgeAPIRoutes["getBrowserStatus"]),
-  getBrowserStatusAll: mapToCore(BridgeAPIRoutes["getBrowserStatusAll"]),
+  getBrowserStatusAll: mapToCoreAll(BridgeAPIRoutes["getBrowserStatusAll"]),
   getBrowsers: mapToCore(BridgeAPIRoutes["getBrowsers"]),
-  getBrowsersAll: mapToCore(BridgeAPIRoutes["getBrowsersAll"]),
+  getBrowsersAll: mapToCoreAll(BridgeAPIRoutes["getBrowsersAll"]),
   start: mapToCore(BridgeAPIRoutes["start"]),
-  startAll: mapToCore(BridgeAPIRoutes["startAll"]),
+  startAll: mapToCoreAll(BridgeAPIRoutes["startAll"]),
   reboot: mapToCore(BridgeAPIRoutes["reboot"]),
-  rebootAll: mapToCore(BridgeAPIRoutes["rebootAll"]),
+  rebootAll: mapToCoreAll(BridgeAPIRoutes["rebootAll"]),
   shutdown: mapToCore(BridgeAPIRoutes["shutdown"]),
-  shutdownAll: mapToCore(BridgeAPIRoutes["shutdownAll"]),
+  shutdownAll: mapToCoreAll(BridgeAPIRoutes["shutdownAll"]),
   execute: mapToCore(BridgeAPIRoutes["execute"]),
-  executeAll: mapToCore(BridgeAPIRoutes["executeAll"]),
+  executeAll: mapToCoreAll(BridgeAPIRoutes["executeAll"]),
   screenshot: mapToCore(BridgeAPIRoutes["screenshot"]),
-  screenshotAll: mapToCore(BridgeAPIRoutes["screenshotAll"]),
+  screenshotAll: mapToCoreAll(BridgeAPIRoutes["screenshotAll"]),
   openBrowser: mapToCore(BridgeAPIRoutes["openBrowser"]),
-  openBrowserAll: mapToCore(BridgeAPIRoutes["openBrowserAll"]),
+  openBrowserAll: mapToCoreAll(BridgeAPIRoutes["openBrowserAll"]),
   closeBrowser: mapToCore(BridgeAPIRoutes["closeBrowser"]),
-  closeBrowserAll: mapToCore(BridgeAPIRoutes["closeBrowserAll"]),
+  closeBrowserAll: mapToCoreAll(BridgeAPIRoutes["closeBrowserAll"]),
   closeBrowsers: mapToCore(BridgeAPIRoutes["closeBrowsers"]),
-  closeBrowsersAll: mapToCore(BridgeAPIRoutes["closeBrowsersAll"]),
+  closeBrowsersAll: mapToCoreAll(BridgeAPIRoutes["closeBrowsersAll"]),
   setVolume: mapToCore(BridgeAPIRoutes["setVolume"]),
-  setVolumeAll: mapToCore(BridgeAPIRoutes["setVolumeAll"]),
+  setVolumeAll: mapToCoreAll(BridgeAPIRoutes["setVolumeAll"]),
   setSource: mapToCore(BridgeAPIRoutes["setSource"]),
-  setSourceAll: mapToCore(BridgeAPIRoutes["setSourceAll"]),
+  setSourceAll: mapToCoreAll(BridgeAPIRoutes["setSourceAll"]),
   mute: mapToCore(BridgeAPIRoutes["mute"]),
-  muteAll: mapToCore(BridgeAPIRoutes["muteAll"]),
+  muteAll: mapToCoreAll(BridgeAPIRoutes["muteAll"]),
   unmute: mapToCore(BridgeAPIRoutes["unmute"]),
-  unmuteAll: mapToCore(BridgeAPIRoutes["unmuteAll"]),
+  unmuteAll: mapToCoreAll(BridgeAPIRoutes["unmuteAll"]),
   muteAudio: mapToCore(BridgeAPIRoutes["muteAudio"]),
-  muteAudioAll: mapToCore(BridgeAPIRoutes["muteAudioAll"]),
+  muteAudioAll: mapToCoreAll(BridgeAPIRoutes["muteAudioAll"]),
   unmuteAudio: mapToCore(BridgeAPIRoutes["unmuteAudio"]),
-  unmuteAudioAll: mapToCore(BridgeAPIRoutes["unmuteAudioAll"]),
+  unmuteAudioAll: mapToCoreAll(BridgeAPIRoutes["unmuteAudioAll"]),
   muteVideo: mapToCore(BridgeAPIRoutes["muteVideo"]),
-  muteVideoAll: mapToCore(BridgeAPIRoutes["muteVideoAll"]),
+  muteVideoAll: mapToCoreAll(BridgeAPIRoutes["muteVideoAll"]),
   unmuteVideo: mapToCore(BridgeAPIRoutes["unmuteVideo"]),
-  unmuteVideoAll: mapToCore(BridgeAPIRoutes["unmuteVideoAll"]),
+  unmuteVideoAll: mapToCoreAll(BridgeAPIRoutes["unmuteVideoAll"]),
   getDevice: mapToCore(BridgeAPIRoutes["getDevice"]),
   getDevices: mapToCore(BridgeAPIRoutes["getDevices"]),
   addDevice: mapToCore(BridgeAPIRoutes["addDevice"]),
