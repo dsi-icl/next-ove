@@ -72,7 +72,7 @@
     "jsdom": "~20.0.3",
     "jsonc-eslint-parser": "^2.1.0",
     "nx": "15.7.2",
-    "nx-electron": "^13.2.1",
+    "nx-electron": "^15.0.0-alpha.0",
     "playwright": "1.26.0",
     "prettier": "^2.6.2",
     "react-test-renderer": "18.2.0",
