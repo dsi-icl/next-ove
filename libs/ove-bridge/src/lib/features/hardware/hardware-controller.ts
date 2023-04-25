@@ -6,7 +6,7 @@ import {
   BridgeResponse
 } from "@ove/ove-types";
 import * as Service from "./service";
-import { env } from "../../environments/env";
+import { env } from "@ove/ove-bridge";
 import { io, Socket } from "socket.io-client";
 
 export default () => {
