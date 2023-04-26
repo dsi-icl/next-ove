@@ -60,6 +60,7 @@ const start = async (device: Device, args: DSArgs<"start">) => {
 const getInfo = async (device: Device, args: DSArgs<"getInfo">) => {
   const infoOptsSchema = z.object({ type: z.string().optional() }).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
+  console.log(`Parsed: ${JSON.stringify(parsedOpts)}`);
 
   if (!parsedOpts.success) return undefined;
 

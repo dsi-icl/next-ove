@@ -80,7 +80,7 @@
     "ts-jest": "28.0.5",
     "ts-node": "10.9.1",
     "ts-to-zod": "^3.0.0",
-    "typescript": "~4.8.2",
+    "typescript": "5.1.0-dev.20230425",
     "vite": "^4.0.1",
     "vite-plugin-dts": "~1.7.1",
     "vite-plugin-eslint": "^1.8.1",

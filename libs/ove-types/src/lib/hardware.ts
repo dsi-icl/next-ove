@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OVEException, OVEExceptionSchema, ResponseSchema } from "./ove-types";
+import { OVEExceptionSchema, ResponseSchema } from "./ove-types";
 
 // Type aliases for API
 export type Image = string;
@@ -83,19 +83,12 @@ export type Device = z.infer<typeof DeviceSchema>;
 // Bridge types
 export const BridgeMetadataSchema =
   z.object({ bridge: z.string() });
-export type BridgeMetadata = z.infer<typeof BridgeMetadataSchema>;
-export type BridgeResponse<Response> = {
-  meta: BridgeMetadata
-  response: Response
-};
 export const getBridgeResponseSchema = <T extends z.ZodTypeAny>(schema: T) => {
   return z.object({
     meta: BridgeMetadataSchema,
     response: schema
   });
 };
-
-export type DeviceResponse<Type> = Type | OVEException;
 
 export const getDeviceResponseSchema =
   <T extends z.ZodTypeAny>(schema: T):
@@ -225,7 +218,7 @@ type ServiceKeys = keyof ServiceAPIType;
 type ArgsShape<Key extends keyof ServiceAPIType> =
   ServiceAPIType[Key]["args"]["shape"]
 
-type ClientAPIRoutesType = {
+export type ClientAPIRoutesType = {
   [Key in ServiceKeys]: ClientAPIRoute<
     ArgsShape<Key>,
     typeof ServiceAPI[Key]["returns"]
@@ -242,7 +235,7 @@ const addDeviceSchema = z.object({ device: DeviceSchema }).strict();
 type ClientArgsShape<Key extends keyof ClientAPIRoutesType> =
   ClientAPIRoutesType[Key]["args"]["shape"];
 
-type BridgeAPIRoutesType = {
+export type BridgeAPIRoutesType = {
   getDevice: BridgeAPIRoute<
     typeof deviceIDSchema["shape"],
     typeof DeviceSchema
@@ -355,38 +348,21 @@ type CoreAPIRoutesType = {
   >, BridgeAPIRoutesType[Key]["returns"]>
 }
 
-type GetObjectOutput<Key extends keyof BridgeAPIRoutesType> =
-  BridgeAPIRoutesType[Key]["args"] extends z.ZodObject<
-    BridgeAPIRoutesType[Key]["args"]["shape"],
-    "strict",
-    z.ZodTypeAny,
-    infer O
-  > ? O : unknown
-
 export type BridgeAPI = {
   [Key in keyof BridgeAPIRoutesType]: (
-    args: GetObjectOutput<Key>,
-    callback: APICallback<z.infer<BridgeAPIRoutesType[Key]["bridge"]>>
+    args: z.infer<BridgeAPIRoutesType[Key]["args"]>,
+    callback: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
   ) => void
 };
-
-type APICallback<T> = (response: T) => void;
-
-type ClientArgs<T extends keyof ClientAPIRoutesType> = z.infer<
-  ClientAPIRoutesType[T]["args"]
->;
-type Client<T extends keyof ClientAPIRoutesType> = z.infer<
-  ClientAPIRoutesType[T]["client"]
->;
 
 export type DS = {
   [Key in keyof ClientAPIRoutesType]?: (
     device: Device,
-    args: ClientArgs<Key>
-  ) => Promise<Optional<Client<Key>>>
+    args: z.infer<ClientAPIRoutesType[Key]["args"]>
+  ) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
 };
 
-export type DSArgs<Key extends keyof DS> = Parameters<NonNullable<DS[Key]>>[1];
+export type DSArgs<Key extends keyof DS> = z.infer<ClientAPIRoutesType[Key]["args"]>;
 
 export type ClientToServerEvents = Record<string, unknown>;
 
