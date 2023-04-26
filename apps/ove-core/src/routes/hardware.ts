@@ -1,15 +1,15 @@
 import { procedure, router } from "../trpc";
 import { logger } from "../app";
 import { io as SocketServer } from "../sockets";
-import { ClientToServerEvents, BridgeAPI, CoreAPIRoutes } from "@ove/ove-types";
+import { HardwareServerToClientEvents, HardwareClientToServerEvents, CoreAPIRoutes } from "@ove/ove-types";
 import { Namespace, Socket } from "socket.io";
 
-const getSocket: (socketId: string) => Socket<ClientToServerEvents, BridgeAPI> =
+const getSocket: (socketId: string) => Socket<HardwareClientToServerEvents, HardwareServerToClientEvents> =
   (socketId: string) => io.sockets.get(state.clients[socketId]);
 
 const state = { clients: {} };
 logger.info("Initialising Hardware");
-const io: Namespace<ClientToServerEvents, BridgeAPI> =
+const io: Namespace<HardwareClientToServerEvents, HardwareServerToClientEvents> =
   SocketServer.of("/hardware");
 
 io.on("connection", socket => {
@@ -51,8 +51,14 @@ export const hardwareRouter = router({
         bridgeId,
         tag
       }
-    }) => new Promise(resolve =>
-      getSocket(bridgeId).emit("getStatusAll", { tag }, resolve))),
+    }) => {
+      console.log(bridgeId);
+      const response = await new Promise(resolve =>
+        getSocket(bridgeId).emit("getStatusAll", { tag }, resolve))
+      console.log(response);
+      CoreAPIRoutes.getStatusAll.bridge.parse(response);
+      return response;
+    }),
   getInfo: procedure
     .meta({
       openapi: {
@@ -71,11 +77,14 @@ export const hardwareRouter = router({
     .meta({ openapi: { method: "GET", path: "/hardware/{bridgeId}/info" } })
     .input(CoreAPIRoutes.getInfoAll.args)
     .output(CoreAPIRoutes.getInfoAll.bridge)
-    .query(async ({ input: { bridgeId, tag, type } }) =>
-      new Promise(resolve => getSocket(bridgeId).emit("getInfoAll", {
+    .query(async ({ input: { bridgeId, tag, type } }) => {
+      const response = await new Promise(resolve => getSocket(bridgeId).emit("getInfoAll", {
         tag,
         type
-      }, resolve))),
+      }, resolve))
+      console.log(response);
+      return response;
+      }),
   getBrowserStatus: procedure
     .meta({
       openapi: {

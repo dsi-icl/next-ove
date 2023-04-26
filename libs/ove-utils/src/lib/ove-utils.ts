@@ -10,9 +10,3 @@ export const replaceAll = (s: string, xs: any[]): string => {
 export const raise = (error: string): OVEException => {
   return { oveError: error };
 };
-
-export const omit = <T extends object>(key: keyof T, obj: T): Omit<T, typeof key> => {
-  const nObj: T = Object.assign(obj);
-  delete nObj[key];
-  return nObj;
-};
