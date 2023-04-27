@@ -9,8 +9,6 @@ import {
   CoreAPIMethod, CoreAPIType, CoreAPIReturns
 } from "@ove/ove-types";
 import { Namespace, Socket } from "socket.io";
-import { inferParser } from "@trpc/server/dist/core/parser";
-import { ProcedureBuilder, ProcedureParams } from "@trpc/server";
 
 const getSocket: (socketId: string) => Socket<HardwareClientToServerEvents, HardwareServerToClientEvents> =
   (socketId: string) => io.sockets.get(state.clients[socketId]);
