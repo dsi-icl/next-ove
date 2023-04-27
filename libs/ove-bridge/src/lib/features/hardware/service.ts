@@ -1,5 +1,5 @@
 import {
-  BridgeAPIRoutesType,
+  BridgeAPIType,
   BridgeService,
   BridgeServiceArgs,
   Device,
@@ -19,8 +19,8 @@ import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
 import MDCService from "./mdc-service";
 
-const wrapCallback = <Key extends keyof BridgeAPIRoutesType>(cb: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void) => {
-  return (response: z.infer<BridgeAPIRoutesType[Key]["client"]>) => cb({
+const wrapCallback = <Key extends keyof BridgeAPIType>(cb: (response: z.infer<BridgeAPIType[Key]["bridge"]>) => void) => {
+  return (response: z.infer<BridgeAPIType[Key]["client"]>) => cb({
     bridgeResponse: response,
     meta: { bridge: env.BRIDGE_NAME }
   });
@@ -80,7 +80,7 @@ const getServiceForProtocol = (protocol: ServiceTypes) => {
   }
 };
 
-const applyService = async <Key extends keyof DeviceService>(service: DeviceService, k: Key, args: DeviceServiceArgs<Key>, device: Device): Promise<Optional<z.infer<BridgeAPIRoutesType[Key]["client"]>>> => {
+const applyService = async <Key extends keyof DeviceService>(service: DeviceService, k: Key, args: DeviceServiceArgs<Key>, device: Device): Promise<Optional<z.infer<BridgeAPIType[Key]["client"]>>> => {
   if ((Object.keys(service) as Array<keyof DeviceService>).includes(k)) {
     return await service[k](device, args);
   } else return undefined;
@@ -88,8 +88,8 @@ const applyService = async <Key extends keyof DeviceService>(service: DeviceServ
 
 export const deviceHandler = async <Key extends keyof DeviceService>(
   k: Key,
-  args: z.infer<BridgeAPIRoutesType[Key]["args"]>,
-  cb: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
+  args: z.infer<BridgeAPIType[Key]["args"]>,
+  cb: (response: z.infer<BridgeAPIType[Key]["bridge"]>) => void
 ) => {
   const callback = wrapCallback(cb);
   const device = await getDevice(args);
@@ -112,8 +112,8 @@ export const deviceHandler = async <Key extends keyof DeviceService>(
 
 export const multiDeviceHandler = async <Key extends keyof DeviceService>(
   k: Key,
-  args: z.infer<BridgeAPIRoutesType[`${Key}All`]["args"]>,
-  cb: (response: z.infer<BridgeAPIRoutesType[`${Key}All`]["bridge"]>) => void
+  args: z.infer<BridgeAPIType[`${Key}All`]["args"]>,
+  cb: (response: z.infer<BridgeAPIType[`${Key}All`]["bridge"]>) => void
 ) => {
   const callback = wrapCallback(cb);
   const devices = await getDevices(args);

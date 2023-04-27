@@ -3,11 +3,50 @@
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
 import { Service } from "@ove/ove-client-control";
-import { Browser, ClientAPIRoutes, ID } from "@ove/ove-types";
+import {
+  Browser,
+  ClientAPI,
+  ClientAPIKeys,
+  ClientAPIMethod, ClientAPIType,
+  ClientServiceAPIType,
+  ClientServiceArgs,
+  ClientServiceReturns,
+  ID
+} from "@ove/ove-types";
 
 const service = Service.default();
 
 const state: { browsers: { [browserId: ID]: Browser } } = { browsers: {} };
+
+const controller: ClientServiceAPIType = {
+  getStatus: async () => true,
+  getInfo: async ({type}) => service.getInfo(type),
+  getBrowserStatus: async ({browserId}) => (Object.keys(state.browsers).includes(browserId.toString())),
+  getBrowsers: async () => Object.keys(state.browsers).map(parseInt),
+  reboot: async () => service.reboot(),
+  shutdown: async () => service.shutdown(),
+  execute: async ({command}) => service.execute(command),
+  screenshot: async ({method, screens}) => service.screenshot(method, screens),
+  openBrowser: async ({displayId, url}) => {
+    const idx = service.openBrowser(url, displayId);
+    const browserId = Object.keys(state.browsers).length;
+    state.browsers[browserId] = { idx };
+
+    return browserId;
+  },
+  closeBrowser: async ({ browserId }) => {
+    service.closeBrowser(state.browsers[browserId]);
+    delete state.browsers[browserId];
+    return true;
+  },
+  closeBrowsers: async () => {
+    service.closeBrowsers(Object.values(state.browsers));
+    state.browsers = {};
+    return true;
+  }
+}
+
+const applyController = async <Key extends keyof ClientServiceAPIType>(k: Key, args: ClientServiceArgs<Key>): ClientServiceReturns<Key> => controller[k](args);
 
 export const init = (
   createWindow: (url?: string, displayId?: ID) => string,
@@ -17,95 +56,30 @@ export const init = (
   service.init(createWindow, takeScreenshots, closeWindow);
 };
 
-export const appRouter = router({
-  getStatus: procedure
-    .meta({ openapi: { method: "GET", path: "/status" } })
-    .input(ClientAPIRoutes.getStatus.args)
-    .output(ClientAPIRoutes.getStatus.client)
-    .query(() => {
-      return true;
-    }),
-  getInfo: procedure
-    .meta({ openapi: { method: "GET", path: "/info" } })
-    .input(ClientAPIRoutes.getInfo.args)
-    .output(ClientAPIRoutes.getInfo.client)
-    .query(({ input: { type } }) => {
-      return service.getInfo(type);
-    }),
-  getBrowserStatus: procedure
-    .meta({ openapi: { method: "GET", path: "/browser/{browserId}/status" } })
-    .input(ClientAPIRoutes.getBrowserStatus.args)
-    .output(ClientAPIRoutes.getBrowserStatus.client)
-    .query(({ input: { browserId } }) => {
-      return (Object.keys(state.browsers).includes(browserId.toString()));
-    }),
-  getBrowsers: procedure
-    .meta({ openapi: { method: "GET", path: "/browsers" } })
-    .input(ClientAPIRoutes.getBrowsers.args)
-    .output(ClientAPIRoutes.getBrowsers.client)
-    .query(() => {
-      return Object.keys(state.browsers).map(parseInt);
-    }),
-  reboot: procedure
-    .meta({ openapi: { method: "POST", path: "/reboot" } })
-    .input(ClientAPIRoutes.reboot.args)
-    .output(ClientAPIRoutes.reboot.client)
-    .mutation(() => {
-      return service.reboot();
-    }),
-  shutdown: procedure
-    .meta({ openapi: { method: "GET", path: "/start" } })
-    .input(ClientAPIRoutes.shutdown.args)
-    .output(ClientAPIRoutes.shutdown.client)
-    .mutation(() => {
-      return service.shutdown();
-    }),
-  execute: procedure
-    .meta({ openapi: { method: "GET", path: "/execute" } })
-    .input(ClientAPIRoutes.execute.args)
-    .output(ClientAPIRoutes.execute.client)
-    .mutation(({ input: { command } }) => {
-      return service.execute(command);
-    }),
-  screenshot: procedure
-    .meta({ openapi: { method: "POST", path: "/screenshot" } })
-    .input(ClientAPIRoutes.screenshot.args)
-    .output(ClientAPIRoutes.screenshot.client)
-    .mutation(({ input: { method, screens } }) => {
-      return service.screenshot(method, screens);
-    }),
-  openBrowser: procedure
-    .meta({ openapi: { method: "POST", path: "/browser" } })
-    .input(ClientAPIRoutes.openBrowser.args)
-    .output(ClientAPIRoutes.openBrowser.client)
-    .mutation(async ({ input: { displayId, url } }) => {
-      const idx = service.openBrowser(url, displayId);
-      const browserId = Object.keys(state.browsers).length;
-      state.browsers[browserId] = { idx };
-      console.log(`Opening browsers: ${JSON.stringify(state.browsers)}`);
+const generateProcedure = (k: ClientAPIKeys) =>
+  procedure
+    .meta(ClientAPI[k].meta)
+    .input<ClientAPIType[typeof k]["args"]>(ClientAPI[k].args)
+    .output<ClientAPIType[typeof k]["client"]>(ClientAPI[k].client)
 
-      return browserId;
-    }),
-  closeBrowser: procedure
-    .meta({ openapi: { method: "DELETE", path: "/browser/{browserId}" } })
-    .input(ClientAPIRoutes.closeBrowser.args)
-    .output(ClientAPIRoutes.closeBrowser.client)
-    .mutation(async ({ input: { browserId } }) => {
-      console.log(`Closing browsers: ${JSON.stringify(state.browsers)}`);
-      service.closeBrowser(state.browsers[browserId]);
-      delete state.browsers[browserId];
-      return true;
-    }),
-  closeBrowsers: procedure
-    .meta({ openapi: { method: "DELETE", path: "/browsers" } })
-    .input(ClientAPIRoutes.closeBrowsers.args)
-    .output(ClientAPIRoutes.closeBrowsers.client)
-    .mutation(async () => {
-      service.closeBrowsers(Object.values(state.browsers));
-      state.browsers = {};
-      return true;
-    })
-});
+const generateQuery = (k: ClientAPIKeys) =>
+  generateProcedure(k)
+    .query<ClientServiceReturns<typeof k>>(async ({ input }) => applyController(k, input));
+
+const generateMutation = (k: ClientAPIKeys) =>
+  generateProcedure(k)
+    .mutation<ClientServiceReturns<typeof k>>(async ({ input }) => applyController<typeof k>(k, input));
+
+type Router = {
+  [Key in ClientAPIKeys]: ClientAPIMethod<Key> extends "GET" ? ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
+}
+
+const routes = (Object.keys(ClientAPI) as Array<keyof ClientServiceAPIType>).reduce((acc, k) => ({
+  ...acc,
+  [k]: ClientAPI[k].meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)
+}), {} as Router);
+
+export const appRouter = router(routes);
 
 // noinspection JSUnusedGlobalSymbols
 export type AppRouter = typeof appRouter;

@@ -1,12 +1,13 @@
-import { z } from "zod";
 import {
+  RouteMethod,
   ServiceAPI,
-  ServiceAPIArgs,
+  ServiceAPIArgs, ServiceAPIMethod,
   ServiceAPIReturns,
   ServiceAPIRoute,
-  ServiceAPIType
-} from "./hardware-service-api";
+  ServiceAPIRoutesType
+} from "./service";
 import { OVEExceptionSchema } from "@ove/ove-types";
+import { z } from "zod";
 
 /* Utility Types */
 
@@ -18,12 +19,16 @@ export const getDeviceResponseSchema = <T extends z.ZodTypeAny>(schema: T): Devi
 
 /* API Route Types */
 
-export type ClientAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny> = {
-  client: DeviceResponse<U>;
-} & { [Key in keyof ServiceAPIRoute<A, U>]: ServiceAPIRoute<A, U>[Key] };
+export type ClientAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny, M extends RouteMethod> =
+  {
+    client: DeviceResponse<U>;
+  }
+  & { [Key in keyof ServiceAPIRoute<A, U, M>]: ServiceAPIRoute<A, U, M>[Key] };
+
+/* API Type */
 
 export type ClientAPIRoutesType = {
-  [Key in keyof ServiceAPIType]: ClientAPIRoute<ServiceAPIArgs<Key>, ServiceAPIReturns<Key>>
+  [Key in keyof ServiceAPIRoutesType]: ClientAPIRoute<ServiceAPIArgs<Key>, ServiceAPIReturns<Key>, ServiceAPIMethod<Key>>
 };
 
 /* API */
@@ -32,6 +37,7 @@ export const ClientAPIRoutes: ClientAPIRoutesType = (Object.keys(ServiceAPI) as 
   return {
     ...acc,
     [k]: {
+      meta: ServiceAPI[k].meta,
       returns: ServiceAPI[k].returns,
       args: ServiceAPI[k].args,
       client: getDeviceResponseSchema(ServiceAPI[k].returns)
@@ -41,6 +47,6 @@ export const ClientAPIRoutes: ClientAPIRoutesType = (Object.keys(ServiceAPI) as 
 
 /* API Utility Types */
 
+export type ClientAPIMethod<Key extends keyof ClientAPIRoutesType> = ClientAPIRoutesType[Key]["meta"]["openapi"]["method"];
 export type ClientAPIArgs<Key extends keyof ClientAPIRoutesType> = ClientAPIRoutesType[Key]["args"]["shape"];
 export type ClientAPIReturns<Key extends keyof ClientAPIRoutesType> = ClientAPIRoutesType[Key]["returns"];
-export type ClientAPIResponse<Key extends keyof ClientAPIRoutesType> = ClientAPIRoutesType[Key]["client"];

@@ -1,9 +1,8 @@
 /* global console */
 
 import {
-  BridgeService,
-  BridgeServiceAPIRoutes,
-  ClientAPIRoutes,
+  ClientAPIKeys,
+  DeviceServiceKeys,
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
 } from "@ove/ove-types";
@@ -28,11 +27,11 @@ export default () => {
     console.log(socket.id);
   });
 
-  (Object.keys(BridgeServiceAPIRoutes) as Array<keyof BridgeService>).forEach(k => {
+  DeviceServiceKeys.forEach(k => {
     socket.on(k, (args, callback) => Service[k](args, callback));
   });
 
-  (Object.keys(ClientAPIRoutes) as Array<keyof typeof ClientAPIRoutes>).forEach(k => {
+  ClientAPIKeys.forEach(k => {
     socket.on(k, (args, callback) => deviceHandler(k, args, callback));
 
     socket.on(`${k}All` as const, (args, callback) => multiDeviceHandler(k, args, callback));
