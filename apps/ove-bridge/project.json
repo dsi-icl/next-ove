@@ -30,7 +30,7 @@
     "serve": {
       "executor": "nx-electron:execute",
       "options": {
-        "buildTarget": "ove-bridge-electron:build"
+        "buildTarget": "ove-bridge:build"
       }
     },
     "package": {

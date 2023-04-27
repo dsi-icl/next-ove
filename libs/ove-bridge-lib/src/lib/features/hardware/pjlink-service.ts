@@ -1,30 +1,35 @@
 /* global setTimeout */
 
-import * as PJLink from "@ove/pjlink-control";
+import * as PJLink from '@ove/pjlink-control';
 import {
   Device,
   is,
   OVEExceptionSchema,
   PJLinkSourceSchema,
   DeviceService,
-  DeviceServiceArgs
-} from "@ove/ove-types";
-import { z } from "zod";
+  DeviceServiceArgs,
+} from '@ove/ove-types';
+import { z } from 'zod';
 
-const reboot = async (device: Device, args: DeviceServiceArgs<"reboot">) => {
+const reboot = async (device: Device, args: DeviceServiceArgs<'reboot'>) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower(device, PJLink.POWER.OFF);
-  return await new Promise<boolean>(resolve => setTimeout(async () => {
-    await PJLink.setPower(device, PJLink.POWER.ON);
-    resolve(true);
-  }, 1000));
+  return await new Promise<boolean>((resolve) =>
+    setTimeout(async () => {
+      await PJLink.setPower(device, PJLink.POWER.ON);
+      resolve(true);
+    }, 1000)
+  );
 };
 
-const shutdown = async (device: Device, args: DeviceServiceArgs<"shutdown">) => {
+const shutdown = async (
+  device: Device,
+  args: DeviceServiceArgs<'shutdown'>
+) => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(args);
 
@@ -34,7 +39,7 @@ const shutdown = async (device: Device, args: DeviceServiceArgs<"shutdown">) => 
   return true;
 };
 
-const start = async (device: Device, args: DeviceServiceArgs<"start">) => {
+const start = async (device: Device, args: DeviceServiceArgs<'start'>) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
@@ -49,7 +54,7 @@ const start = async (device: Device, args: DeviceServiceArgs<"start">) => {
   return true;
 };
 
-const getInfo = async (device: Device, args: DeviceServiceArgs<"getInfo">) => {
+const getInfo = async (device: Device, args: DeviceServiceArgs<'getInfo'>) => {
   const infoOptsSchema = z.object({}).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
 
@@ -67,7 +72,8 @@ const getInfo = async (device: Device, args: DeviceServiceArgs<"getInfo">) => {
   const product = await PJLink.getProduct(device);
   const sources = await PJLink.getInputs(device);
 
-  if (is(OVEExceptionSchema, info) ||
+  if (
+    is(OVEExceptionSchema, info) ||
     is(OVEExceptionSchema, source) ||
     is(OVEExceptionSchema, power) ||
     is(OVEExceptionSchema, pjlinkClass) ||
@@ -77,8 +83,9 @@ const getInfo = async (device: Device, args: DeviceServiceArgs<"getInfo">) => {
     is(OVEExceptionSchema, name) ||
     is(OVEExceptionSchema, manufacturer) ||
     is(OVEExceptionSchema, product) ||
-    is(OVEExceptionSchema, sources)) {
-    return { oveError: "Unable to gather system information" };
+    is(OVEExceptionSchema, sources)
+  ) {
+    return { oveError: 'Unable to gather system information' };
   }
 
   return {
@@ -92,11 +99,14 @@ const getInfo = async (device: Device, args: DeviceServiceArgs<"getInfo">) => {
     name,
     manufacturer,
     product,
-    sources
+    sources,
   };
 };
 
-const getStatus = async (device: Device, args: DeviceServiceArgs<"getStatus">) => {
+const getStatus = async (
+  device: Device,
+  args: DeviceServiceArgs<'getStatus'>
+) => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(args);
 
@@ -111,11 +121,16 @@ const getStatus = async (device: Device, args: DeviceServiceArgs<"getStatus">) =
   return true;
 };
 
-const setSource = async (device: Device, args: DeviceServiceArgs<"setSource">) => {
-  const setSourceOptsSchema = z.object({
-    source: PJLinkSourceSchema.keyof(),
-    channel: z.number().optional()
-  }).strict();
+const setSource = async (
+  device: Device,
+  args: DeviceServiceArgs<'setSource'>
+) => {
+  const setSourceOptsSchema = z
+    .object({
+      source: PJLinkSourceSchema.keyof(),
+      channel: z.number().optional(),
+    })
+    .strict();
   const parsedOpts = setSourceOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
@@ -131,7 +146,7 @@ const setSource = async (device: Device, args: DeviceServiceArgs<"setSource">) =
   return true;
 };
 
-const mute = async (device: Device, args: DeviceServiceArgs<"mute">) => {
+const mute = async (device: Device, args: DeviceServiceArgs<'mute'>) => {
   const muteOptsSchema = z.object({}).strict();
   const parsedOpts = muteOptsSchema.safeParse(args);
 
@@ -144,7 +159,7 @@ const mute = async (device: Device, args: DeviceServiceArgs<"mute">) => {
   return true;
 };
 
-const unmute = async (device: Device, args: DeviceServiceArgs<"unmute">) => {
+const unmute = async (device: Device, args: DeviceServiceArgs<'unmute'>) => {
   const unmuteOptsSchema = z.object({}).strict();
   const parsedOpts = unmuteOptsSchema.safeParse(args);
 
@@ -157,7 +172,10 @@ const unmute = async (device: Device, args: DeviceServiceArgs<"unmute">) => {
   return true;
 };
 
-const muteAudio = async (device: Device, args: DeviceServiceArgs<"muteAudio">) => {
+const muteAudio = async (
+  device: Device,
+  args: DeviceServiceArgs<'muteAudio'>
+) => {
   const muteAudioOptsSchema = z.object({}).strict();
   const parsedOpts = muteAudioOptsSchema.safeParse(args);
 
@@ -170,7 +188,10 @@ const muteAudio = async (device: Device, args: DeviceServiceArgs<"muteAudio">) =
   return true;
 };
 
-const unmuteAudio = async (device: Device, args: DeviceServiceArgs<"unmuteAudio">) => {
+const unmuteAudio = async (
+  device: Device,
+  args: DeviceServiceArgs<'unmuteAudio'>
+) => {
   const unmuteAudioOptsSchema = z.object({}).strict();
   const parsedOpts = unmuteAudioOptsSchema.safeParse(args);
 
@@ -183,7 +204,10 @@ const unmuteAudio = async (device: Device, args: DeviceServiceArgs<"unmuteAudio"
   return true;
 };
 
-const muteVideo = async (device: Device, args: DeviceServiceArgs<"muteVideo">) => {
+const muteVideo = async (
+  device: Device,
+  args: DeviceServiceArgs<'muteVideo'>
+) => {
   const muteVideoOptsSchema = z.object({}).strict();
   const parsedOpts = muteVideoOptsSchema.safeParse(args);
 
@@ -196,7 +220,10 @@ const muteVideo = async (device: Device, args: DeviceServiceArgs<"muteVideo">) =
   return true;
 };
 
-const unmuteVideo = async (device: Device, args: DeviceServiceArgs<"unmuteVideo">) => {
+const unmuteVideo = async (
+  device: Device,
+  args: DeviceServiceArgs<'unmuteVideo'>
+) => {
   const unmuteVideoOptsSchema = z.object({}).strict();
   const parsedOpts = unmuteVideoOptsSchema.safeParse(args);
 
@@ -221,7 +248,7 @@ const PJLinkService: DeviceService = {
   muteAudio,
   unmuteAudio,
   muteVideo,
-  unmuteVideo
+  unmuteVideo,
 };
 
 export default PJLinkService;

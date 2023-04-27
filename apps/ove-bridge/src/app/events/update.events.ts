@@ -3,7 +3,7 @@
 
 import { dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { env } from '@ove/ove-bridge';
+import { env } from '@ove/ove-bridge-lib';
 
 export default () => {
   if (env.NODE_ENV !== 'production') {

@@ -10,11 +10,11 @@ const setupTRPC = async () => {
   return appRouter.createCaller(ctx);
 };
 
-describe("TRPC Router", () => {
+describe("OVE Client Router", () => {
   it("can provide a status", async () => {
     const caller = await setupTRPC();
     expect(await caller.getStatus({}))
-      .toStrictEqual({ status: "running" });
+      .toStrictEqual(true);
   });
 
   it("can provide general information on the device", async () => {
@@ -170,7 +170,7 @@ describe("TRPC Router", () => {
     jest.spyOn(cp, "execSync").mockImplementationOnce(mocked);
     const caller = await setupTRPC();
     const res = await caller.shutdown({});
-    expect(res).toBe("This is a mocked shutdown");
+    expect(res).toBe(true);
   });
 
   it("can reboot the device", async () => {
@@ -180,7 +180,7 @@ describe("TRPC Router", () => {
     jest.spyOn(cp, "execSync").mockImplementationOnce(mocked);
     const caller = await setupTRPC();
     const res = await caller.reboot({});
-    expect(res).toBe("This is a mocked reboot");
+    expect(res).toBe(true);
   });
 
   it("can execute arbitrary code on the device", async () => {
@@ -192,7 +192,7 @@ describe("TRPC Router", () => {
     const caller = await setupTRPC();
     const res = await caller.execute({ command: "echo hello world" });
 
-    expect(res).toBe("This is a mocked execution");
+    expect(res).toStrictEqual({ response: "This is a mocked execution" });
   });
 
   it("can take a screenshot of one screen of the device", async () => {

@@ -16,7 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@ove/mdc-control": ["libs/mdc-control/src/index.ts"],
-      "@ove/ove-bridge": ["libs/ove-bridge/src/index.ts"],
+      "@ove/ove-bridge-lib": ["libs/ove-bridge-lib/src/index.ts"],
       "@ove/ove-client-control": ["libs/ove-client-control/src/index.ts"],
       "@ove/ove-client-display": ["libs/ove-client-display/src/index.ts"],
       "@ove/ove-client-router": ["libs/ove-client-router/src/index.ts"],

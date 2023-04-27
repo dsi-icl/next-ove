@@ -2,7 +2,7 @@ import App from './app/app';
 import { app, BrowserWindow, screen } from 'electron';
 import SquirrelEvents from './app/events/squirrel.events';
 import { bootstrapElectronEvents } from './app/events/electron.events';
-import { env, fileSetup, initHardware } from '@ove/ove-bridge';
+import { env, fileSetup, initHardware } from '@ove/ove-bridge-lib';
 
 const initialize = () => {
   if (!SquirrelEvents.handleEvents()) return;

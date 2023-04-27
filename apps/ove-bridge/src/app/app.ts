@@ -2,7 +2,7 @@
 
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { env } from '@ove/ove-bridge';
+import { env } from '@ove/ove-bridge-lib';
 import initAutoUpdate from './events/update.events';
 import { rendererAppName, rendererAppPort } from './constants';
 import { type BrowserWindow as BW, type App, type Screen } from 'electron';
