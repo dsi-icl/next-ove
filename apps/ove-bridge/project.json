@@ -1,17 +1,17 @@
 {
-  "name": "ove-client",
+  "name": "ove-bridge",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/ove-client/src",
+  "sourceRoot": "apps/ove-bridge/src",
   "projectType": "application",
   "targets": {
     "build": {
       "executor": "nx-electron:build",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/ove-client",
-        "main": "apps/ove-client/src/main.ts",
-        "tsConfig": "apps/ove-client/tsconfig.app.json",
-        "assets": ["apps/ove-client/src/assets"]
+        "outputPath": "dist/apps/ove-bridge",
+        "main": "apps/ove-bridge/src/main.ts",
+        "tsConfig": "apps/ove-bridge/tsconfig.app.json",
+        "assets": ["apps/ove-bridge/src/assets"]
       },
       "configurations": {
         "production": {
@@ -20,8 +20,8 @@
           "inspect": false,
           "fileReplacements": [
             {
-              "replace": "apps/ove-client/src/environments/environment.ts",
-              "with": "apps/ove-client/src/environments/environment.prod.ts"
+              "replace": "apps/ove-bridge/src/environments/environment.ts",
+              "with": "apps/ove-bridge/src/environments/environment.prod.ts"
             }
           ]
         }
@@ -30,15 +30,14 @@
     "serve": {
       "executor": "nx-electron:execute",
       "options": {
-        "buildTarget": "ove-client:build"
+        "buildTarget": "ove-bridge-electron:build"
       }
     },
     "package": {
       "executor": "nx-electron:package",
       "options": {
-        "name": "ove-client",
-        "platform": ["mac", "windows", "linux"],
-        "frontendProject": "ove-client-ui",
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true
       }
@@ -46,9 +45,8 @@
     "make": {
       "executor": "nx-electron:make",
       "options": {
-        "name": "ove-client",
-        "platform": ["mac", "windows", "linux"],
-        "frontendProject": "ove-data",
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables"
       }
     },
@@ -56,14 +54,14 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/ove-client/**/*.ts"]
+        "lintFilePatterns": ["apps/ove-bridge/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/apps/ove-client"],
+      "outputs": ["coverage/apps/ove-bridge"],
       "options": {
-        "jestConfig": "apps/ove-client/jest.config.js",
+        "jestConfig": "apps/ove-bridge/jest.config.js",
         "passWithNoTests": true
       }
     }

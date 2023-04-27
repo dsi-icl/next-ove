@@ -6,6 +6,10 @@ import { pathToFileURL } from "url";
 import { logger } from "../utils";
 import * as Electron from "electron";
 import { ID } from "@ove/ove-types";
+import {
+  rendererAppName,
+  rendererAppPort
+} from "./constants";
 
 export default (
   App: Electron.App,
@@ -64,11 +68,21 @@ export default (
     return idx;
   };
 
+  const loadUIWindow = (idx: string, url?: `/${string}`) => {
+    if (!App.isPackaged) {
+      windows[idx]
+        .loadURL(`http://localhost:${rendererAppPort}${url === undefined ? "" : url}`)
+        .then(() => console.log("Loaded URL"));
+    } else {
+      windows[idx]
+        .loadURL(pathToFileURL(join(__dirname, "..", rendererAppName, `${url === undefined ? "index" : url}.html`)).toString())
+        .then(() => console.log("Loaded URL"));
+    }
+  };
+
   const loadMainWindow = (idx: string) => {
-    const url = pathToFileURL(join(__dirname, "assets", "about.html"));
-    windows[idx]?.loadURL(
-      url.toString()
-    ).then(() => logger.info("Loaded"));
+    if (windows[idx] === null) throw new Error("Main window should not be null");
+    loadUIWindow(idx);
   };
 
   const onReady = () => {
@@ -103,10 +117,7 @@ export default (
       delete windows[idx];
     },
     loadDisplayWindow: (idx: string) => {
-      const url = pathToFileURL(join(__dirname, "assets", "index.html"));
-      windows[idx]?.loadURL(
-        url.toString()
-      ).then(() => logger.info("Loaded"));
+      loadUIWindow(idx);
     },
     loadCustomWindow: (url: string, idx: string) => {
       windows[idx]?.loadURL(
