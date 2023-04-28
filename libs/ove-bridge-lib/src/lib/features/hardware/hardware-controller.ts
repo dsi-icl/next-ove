@@ -4,11 +4,11 @@ import {
   ClientAPIKeys,
   DeviceServiceKeys,
   HardwareClientToServerEvents,
-  HardwareServerToClientEvents,
-} from '@ove/ove-types';
-import { env } from '@ove/ove-bridge-lib';
-import { io, Socket } from 'socket.io-client';
-import { deviceHandler, multiDeviceHandler, Service } from './service';
+  HardwareServerToClientEvents
+} from "@ove/ove-types";
+import { env } from "../../environments/env";
+import { io, Socket } from "socket.io-client";
+import { deviceHandler, multiDeviceHandler, Service } from "./service";
 
 export default () => {
   console.log(`connecting to - ws://${env.CORE_URL}/hardware`);
@@ -20,21 +20,21 @@ export default () => {
   socket.connect();
   console.log(`Testing: ${env.CORE_URL}`);
 
-  socket.on('connect', () => {
-    console.log('Connected');
+  socket.on("connect", () => {
+    console.log("Connected");
     console.log(socket.id);
   });
 
-  socket.on('disconnect', () => {
-    console.log('Disconnected');
+  socket.on("disconnect", () => {
+    console.log("Disconnected");
     console.log(socket.id);
   });
 
-  DeviceServiceKeys.forEach((k) => {
+  DeviceServiceKeys.forEach(k => {
     socket.on(k, (args, callback) => Service[k](args, callback));
   });
 
-  ClientAPIKeys.forEach((k) => {
+  ClientAPIKeys.forEach(k => {
     socket.on(k, (args, callback) => deviceHandler(k, args, callback));
 
     socket.on(`${k}All` as const, (args, callback) =>
@@ -42,8 +42,8 @@ export default () => {
     );
   });
 
-  socket.on('connect_error', (err) =>
+  socket.on("connect_error", err =>
     console.error(`connect_error due to ${err.message}`)
   );
-  console.log('Hardware component started!');
+  console.log("Hardware component started!");
 };

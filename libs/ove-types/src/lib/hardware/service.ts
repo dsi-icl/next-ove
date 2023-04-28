@@ -3,11 +3,11 @@ import {
   DeviceSchema,
   IDSchema,
   ImageSchema,
-  ResponseSchema,
   ScreenshotMethodSchema,
   SourceSchemas,
   StatusSchema
-} from "@ove/ove-types";
+} from "../hardware";
+import { ResponseSchema } from "../ove-types";
 
 /* Utility Types */
 
@@ -15,7 +15,11 @@ export type RouteMethod = "GET" | "POST" | "DELETE";
 
 /* API Route Types */
 
-export type ServiceAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny, M extends RouteMethod> = {
+export type ServiceAPIRoute<
+  A extends z.ZodRawShape,
+  U extends z.ZodTypeAny,
+  M extends RouteMethod
+> = {
   meta: { openapi: { method: M, path: `/${string}` } }
   args: z.ZodObject<A, "strict", z.ZodTypeAny>
   returns: U
@@ -24,16 +28,18 @@ export type ServiceAPIRoute<A extends z.ZodRawShape, U extends z.ZodTypeAny, M e
 /* API Type */
 
 export type ServiceAPIRoutesType = {
-  getStatus: ServiceAPIRoute<{}, z.ZodBoolean, "GET">
+  getStatus: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "GET">
   getInfo: ServiceAPIRoute<{
     type: z.ZodOptional<z.ZodString>
   }, z.ZodUnknown, "GET">
   getBrowserStatus: ServiceAPIRoute<{
     browserId: z.ZodNumber
   }, z.ZodBoolean, "GET">
-  getBrowsers: ServiceAPIRoute<{}, z.ZodArray<z.ZodNumber>, "GET">
-  reboot: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  shutdown: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
+  getBrowsers: ServiceAPIRoute<
+    Record<string, never>,
+    z.ZodArray<z.ZodNumber>, "GET">
+  reboot: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
+  shutdown: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
   execute: ServiceAPIRoute<{
     command: z.ZodString
   }, typeof ResponseSchema, "POST">
@@ -48,19 +54,19 @@ export type ServiceAPIRoutesType = {
   closeBrowser: ServiceAPIRoute<{
     browserId: z.ZodNumber
   }, z.ZodBoolean, "DELETE">
-  closeBrowsers: ServiceAPIRoute<{}, z.ZodBoolean, "DELETE">
-  start: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
+  closeBrowsers: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "DELETE">
+  start: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
   setVolume: ServiceAPIRoute<{ volume: z.ZodNumber }, z.ZodBoolean, "POST">
   setSource: ServiceAPIRoute<{
     source: typeof SourceSchemas,
     channel: z.ZodOptional<z.ZodNumber>
   }, z.ZodBoolean, "POST">
-  mute: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  unmute: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  muteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  unmuteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  muteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  unmuteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
+  mute: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
+  unmute: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
+  muteAudio: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
+  unmuteAudio: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
+  muteVideo: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
+  unmuteVideo: ServiceAPIRoute<Record<string, never>, z.ZodBoolean, "POST">
   getDevice: ServiceAPIRoute<
     { deviceId: z.ZodString },
     typeof DeviceSchema,
@@ -229,6 +235,9 @@ export const ServiceAPI: ServiceAPIRoutesType = {
 
 /* API Utility Types */
 
-export type ServiceAPIMethod<Key extends keyof ServiceAPIRoutesType> = ServiceAPIRoutesType[Key]["meta"]["openapi"]["method"];
-export type ServiceAPIArgs<Key extends keyof ServiceAPIRoutesType> = ServiceAPIRoutesType[Key]["args"]["shape"];
-export type ServiceAPIReturns<Key extends keyof ServiceAPIRoutesType> = ServiceAPIRoutesType[Key]["returns"];
+export type ServiceAPIMethod<Key extends keyof ServiceAPIRoutesType> =
+  ServiceAPIRoutesType[Key]["meta"]["openapi"]["method"];
+export type ServiceAPIArgs<Key extends keyof ServiceAPIRoutesType> =
+  ServiceAPIRoutesType[Key]["args"]["shape"];
+export type ServiceAPIReturns<Key extends keyof ServiceAPIRoutesType> =
+  ServiceAPIRoutesType[Key]["returns"];

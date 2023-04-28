@@ -1,7 +1,14 @@
-import BrowserControl from "./browser-control";
+import browsers from "./browser-control";
 
 describe("OVE Browser Control", () => {
   it("can get system information", async () => {
-    expect(Object.keys(BrowserControl())).toStrictEqual(["init", "openBrowser", "closeBrowser", "closeBrowsers", "screenshot"]);
+    expect(Object.keys(browsers()))
+      .toStrictEqual([
+        "init",
+        "openBrowser",
+        "closeBrowser",
+        "closeBrowsers",
+        "screenshot"
+      ]);
   });
 });

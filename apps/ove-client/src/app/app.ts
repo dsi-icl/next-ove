@@ -1,4 +1,4 @@
-/* global __dirname */
+/* global __dirname, console */
 
 import { nanoid } from "nanoid";
 import { join } from "path";
@@ -70,18 +70,22 @@ export default (
 
   const loadUIWindow = (idx: string, url?: `/${string}`) => {
     if (!App.isPackaged) {
+      const formattedUrl = url === undefined ? "" : url;
       windows[idx]
-        .loadURL(`http://localhost:${rendererAppPort}${url === undefined ? "" : url}`)
+        .loadURL(`http://localhost:${rendererAppPort}${formattedUrl}`)
         .then(() => console.log("Loaded URL"));
     } else {
       windows[idx]
-        .loadURL(pathToFileURL(join(__dirname, "..", rendererAppName, `${url === undefined ? "index" : url}.html`)).toString())
+        .loadURL(pathToFileURL(join(__dirname, "..", rendererAppName,
+          `${url === undefined ? "index" : url}.html`)).toString())
         .then(() => console.log("Loaded URL"));
     }
   };
 
   const loadMainWindow = (idx: string) => {
-    if (windows[idx] === null) throw new Error("Main window should not be null");
+    if (windows[idx] === null) {
+      throw new Error("Main window should not be null");
+    }
     loadUIWindow(idx);
   };
 

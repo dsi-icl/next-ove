@@ -1,8 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import styles from './app.module.scss';
+// import styles from "./app.module.scss";
 
-import NxWelcome from './nx-welcome';
+import NxWelcome from "./nx-welcome";
 
+/**
+ * Main application
+ * @constructor
+ */
 export function App() {
   return (
     <>

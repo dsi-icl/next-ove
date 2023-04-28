@@ -193,7 +193,7 @@ export const COMMAND = {
   GET_CLASS: "%1CLSS ?\r"
 };
 
-const runCommand = (command: string, device: Device, ...args: any[]) => {
+const runCommand = (command: string, device: Device, ...args: string[]) => {
   return new Promise<PJLinkResponse>(resolve => {
     if (args.length > 0) {
       command = Utils.replaceAll(command, args);
@@ -209,7 +209,7 @@ const runCommand = (command: string, device: Device, ...args: any[]) => {
 };
 
 export const setPower = (device: Device, power: number) => {
-  return runCommand(COMMAND.SET_POWER, device, power);
+  return runCommand(COMMAND.SET_POWER, device, power.toString());
 };
 
 export const getPower = (device: Device) => {
@@ -217,8 +217,8 @@ export const getPower = (device: Device) => {
 };
 
 export const setInput = (device: Device, input: number, channel?: number) => {
-  return runCommand(COMMAND.SET_INPUT, device, input,
-    channel === undefined ? 1 : channel);
+  return runCommand(COMMAND.SET_INPUT, device, input.toString(),
+    (channel === undefined ? 1 : channel).toString());
 };
 
 export const getInput = (device: Device) => {

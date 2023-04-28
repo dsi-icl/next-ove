@@ -5,16 +5,16 @@
  * events that is submitted by squirrel.
  */
 
-import { app } from 'electron';
-import { spawn } from 'child_process';
-import { resolve, join, basename } from 'path';
-import { environment } from '../../environments/environment';
+import { app } from "electron";
+import { spawn } from "child_process";
+import { resolve, join, basename } from "path";
+import { environment } from "../../environments/environment";
 
 export default (() => {
   let isAppFirstRun = false;
-  const appFolder = resolve(process.execPath, '..');
-  const appRootFolder = resolve(appFolder, '..');
-  const updateExe = resolve(join(appRootFolder, 'Update.exe'));
+  const appFolder = resolve(process.execPath, "..");
+  const appRootFolder = resolve(appFolder, "..");
+  const updateExe = resolve(join(appRootFolder, "Update.exe"));
   const exeName = resolve(
     join(
       appRootFolder,
@@ -27,7 +27,7 @@ export default (() => {
 
   const update = (args: Array<string>) => {
     try {
-      spawn(updateExe, args, { detached: true }).on('close', () =>
+      spawn(updateExe, args, { detached: true }).on("close", () =>
         setTimeout(app.quit, 1000)
       );
     } catch (error) {
@@ -36,29 +36,29 @@ export default (() => {
   };
 
   const handleEvents = (): boolean => {
-    if (process.argv.length === 1 || process.platform !== 'win32') {
+    if (process.argv.length === 1 || process.platform !== "win32") {
       return false;
     }
 
     switch (process.argv[1]) {
-      case '--squirrel-install':
-      case '--squirrel-updated':
+      case "--squirrel-install":
+      case "--squirrel-updated":
         // Install desktop and start menu shortcuts
-        update(['--createShortcut', exeName]);
+        update(["--createShortcut", exeName]);
 
         return true;
 
-      case '--squirrel-uninstall':
+      case "--squirrel-uninstall":
         // Remove desktop and start menu shortcuts
-        update(['--removeShortcut', exeName]);
+        update(["--removeShortcut", exeName]);
 
         return true;
 
-      case '--squirrel-obsolete':
+      case "--squirrel-obsolete":
         app.quit();
         return true;
 
-      case '--squirrel-firstrun':
+      case "--squirrel-firstrun":
         // Check if it is the first run of the software
         isAppFirstRun = true;
         return false;
@@ -71,6 +71,6 @@ export default (() => {
     handleEvents,
     update,
     isFirstRun,
-    appRootFolder,
+    appRootFolder
   };
 })();

@@ -1,5 +1,8 @@
 import { Server } from "socket.io";
-import { HardwareServerToClientEvents, HardwareClientToServerEvents } from "@ove/ove-types";
+import {
+  HardwareServerToClientEvents,
+  HardwareClientToServerEvents
+} from "@ove/ove-types";
 import { logger, server } from "./app";
 
 export const io: Server | undefined = new Server<

@@ -34,7 +34,7 @@ describe("mdcControl", () => {
       done();
     });
 
-    io.on("connection", (socket) => {
+    io.on("connection", socket => {
       serverSocket = socket;
       serverSocket.on("message", m => {
         serverSocket.send("running");

@@ -1,12 +1,10 @@
-/* global console */
-
 import { procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
 import { Service } from "@ove/ove-client-control";
 import {
   Browser,
   ClientAPI,
-  ClientAPIKeys,
+  ClientAPIKeysType,
   ClientAPIMethod, ClientAPIType,
   ClientServiceAPIType,
   ClientServiceArgs,
@@ -20,14 +18,20 @@ const state: { browsers: { [browserId: ID]: Browser } } = { browsers: {} };
 
 const controller: ClientServiceAPIType = {
   getStatus: async () => true,
-  getInfo: async ({type}) => service.getInfo(type),
-  getBrowserStatus: async ({browserId}) => (Object.keys(state.browsers).includes(browserId.toString())),
-  getBrowsers: async () => Object.keys(state.browsers).map(parseInt),
+  getInfo: async ({ type }) => service.getInfo(type),
+  getBrowserStatus: async ({ browserId }) =>
+    (Object.keys(state.browsers).includes(browserId.toString())),
+  getBrowsers: async () => Object
+    .keys(state.browsers)
+    .map(parseInt),
   reboot: async () => service.reboot(),
   shutdown: async () => service.shutdown(),
-  execute: async ({command}) => service.execute(command),
-  screenshot: async ({method, screens}) => service.screenshot(method, screens),
-  openBrowser: async ({displayId, url}) => {
+  execute: async ({ command }) => service.execute(command),
+  screenshot: async ({
+    method,
+    screens
+  }) => service.screenshot(method, screens),
+  openBrowser: async ({ displayId, url }) => {
     const idx = service.openBrowser(url, displayId);
     const browserId = Object.keys(state.browsers).length;
     state.browsers[browserId] = { idx };
@@ -44,9 +48,12 @@ const controller: ClientServiceAPIType = {
     state.browsers = {};
     return true;
   }
-}
+};
 
-const applyController = async <Key extends keyof ClientServiceAPIType>(k: Key, args: ClientServiceArgs<Key>): ClientServiceReturns<Key> => controller[k](args);
+const applyController = async <
+  Key extends keyof ClientServiceAPIType
+>(k: Key, args: ClientServiceArgs<Key>): ClientServiceReturns<Key> =>
+  controller[k](args);
 
 export const init = (
   createWindow: (url?: string, displayId?: ID) => string,
@@ -56,28 +63,31 @@ export const init = (
   service.init(createWindow, takeScreenshots, closeWindow);
 };
 
-const generateProcedure = (k: ClientAPIKeys) =>
+const generateProcedure = (k: ClientAPIKeysType) =>
   procedure
     .meta(ClientAPI[k].meta)
     .input<ClientAPIType[typeof k]["args"]>(ClientAPI[k].args)
-    .output<ClientAPIType[typeof k]["client"]>(ClientAPI[k].client)
+    .output<ClientAPIType[typeof k]["client"]>(ClientAPI[k].client);
 
-const generateQuery = (k: ClientAPIKeys) =>
-  generateProcedure(k)
-    .query<ClientServiceReturns<typeof k>>(async ({ input }) => applyController(k, input));
+const generateQuery = (k: ClientAPIKeysType) => generateProcedure(k)
+  .query<ClientServiceReturns<typeof k>>(async ({ input }) =>
+    applyController(k, input));
 
-const generateMutation = (k: ClientAPIKeys) =>
-  generateProcedure(k)
-    .mutation<ClientServiceReturns<typeof k>>(async ({ input }) => applyController<typeof k>(k, input));
+const generateMutation = (k: ClientAPIKeysType) => generateProcedure(k)
+  .mutation<ClientServiceReturns<typeof k>>(async ({ input }) =>
+    applyController<typeof k>(k, input));
 
 type Router = {
-  [Key in ClientAPIKeys]: ClientAPIMethod<Key> extends "GET" ? ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
+  [Key in ClientAPIKeysType]: ClientAPIMethod<Key> extends "GET" ?
+    ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
 }
 
-const routes = (Object.keys(ClientAPI) as Array<keyof ClientServiceAPIType>).reduce((acc, k) => ({
-  ...acc,
-  [k]: ClientAPI[k].meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)
-}), {} as Router);
+const routes = (Object.keys(ClientAPI) as Array<keyof ClientServiceAPIType>)
+  .reduce((acc, k) => ({
+    ...acc,
+    [k]: ClientAPI[k].meta.openapi.method === "GET" ?
+      generateQuery(k) : generateMutation(k)
+  }), {} as Router);
 
 export const appRouter = router(routes);
 

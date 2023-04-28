@@ -1,11 +1,11 @@
 /* global process, __dirname, console */
 
-import { join } from 'path';
-import { pathToFileURL } from 'url';
-import { env } from '@ove/ove-bridge-lib';
-import initAutoUpdate from './events/update.events';
-import { rendererAppName, rendererAppPort } from './constants';
-import { type BrowserWindow as BW, type App, type Screen } from 'electron';
+import { join } from "path";
+import { pathToFileURL } from "url";
+import { env } from "@ove/ove-bridge-lib";
+import initAutoUpdate from "./events/update.events";
+import { rendererAppName, rendererAppPort } from "./constants";
+import { type BrowserWindow as BW, type App, type Screen } from "electron";
 
 export default (() => {
   let mainWindow: BW | null = null;
@@ -17,11 +17,11 @@ export default (() => {
     if (process.env.ELECTRON_IS_DEV !== undefined) {
       return parseInt(process.env.ELECTRON_IS_DEV, 10) === 1;
     }
-    return env.NODE_ENV !== 'production';
+    return env.NODE_ENV !== "production";
   };
 
   const onWindowAllClosed = () => {
-    if (process.platform !== 'darwin') {
+    if (process.platform !== "darwin") {
       application.quit();
     }
   };
@@ -51,35 +51,35 @@ export default (() => {
       webPreferences: {
         contextIsolation: true,
         backgroundThrottling: false,
-        preload: join(__dirname, 'main.preload.js'),
-      },
+        preload: join(__dirname, "main.preload.js")
+      }
     });
     mainWindow.setMenu(null);
     mainWindow.center();
 
-    mainWindow.once('ready-to-show', () => {
+    mainWindow.once("ready-to-show", () => {
       mainWindow?.show();
     });
 
-    mainWindow.on('closed', () => {
+    mainWindow.on("closed", () => {
       mainWindow = null;
     });
   };
 
   const loadMainWindow = () => {
-    if (mainWindow === null) throw new Error('Main window should not be null');
+    if (mainWindow === null) throw new Error("Main window should not be null");
     if (!application.isPackaged) {
       mainWindow
         .loadURL(`http://localhost:${rendererAppPort}`)
-        .then(() => console.log('Loaded URL'));
+        .then(() => console.log("Loaded URL"));
     } else {
       mainWindow
         .loadURL(
           pathToFileURL(
-            join(__dirname, '..', rendererAppName, 'index.html')
+            join(__dirname, "..", rendererAppName, "index.html")
           ).toString()
         )
-        .then(() => console.log('Loaded URL'));
+        .then(() => console.log("Loaded URL"));
     }
   };
 
@@ -88,13 +88,13 @@ export default (() => {
     application = app;
     screen = sc;
 
-    application.on('window-all-closed', onWindowAllClosed);
-    application.on('ready', onReady);
-    application.on('activate', onActivate);
+    application.on("window-all-closed", onWindowAllClosed);
+    application.on("ready", onReady);
+    application.on("activate", onActivate);
   };
 
   return {
     isDevelopmentMode,
-    init,
+    init
   };
 })();

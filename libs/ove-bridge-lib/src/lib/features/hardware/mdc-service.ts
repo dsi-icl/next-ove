@@ -1,29 +1,29 @@
 /* global setTimeout */
 
-import * as mdc from '@ove/mdc-control';
+import * as mdc from "@ove/mdc-control";
 import {
   Device,
   Status,
   DeviceService,
   DeviceServiceArgs,
-  MDCSourceSchema,
-} from '@ove/ove-types';
-import { z } from 'zod';
-import { sources } from '@ove/mdc-control';
+  MDCSourceSchema
+} from "@ove/ove-types";
+import { z } from "zod";
+import { sources } from "@ove/mdc-control";
 
 const reboot = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'reboot'>
+  args: DeviceServiceArgs<"reboot">
 ) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setPower(0x01, ip, port, 'off');
-  return await new Promise<Status>((resolve) =>
+  await mdc.setPower(0x01, ip, port, "off");
+  return await new Promise<Status>(resolve =>
     setTimeout(async () => {
-      await mdc.setPower(0x01, ip, port, 'on');
+      await mdc.setPower(0x01, ip, port, "on");
       resolve(true);
     }, 1000)
   );
@@ -31,33 +31,33 @@ const reboot = async (
 
 const shutdown = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'shutdown'>
+  args: DeviceServiceArgs<"shutdown">
 ) => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setPower(0x01, ip, port, 'off');
+  await mdc.setPower(0x01, ip, port, "off");
   return true;
 };
 
 const start = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'start'>
+  args: DeviceServiceArgs<"start">
 ) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setPower(0x01, ip, port, 'on');
+  await mdc.setPower(0x01, ip, port, "on");
   return true;
 };
 
 const getInfo = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'getInfo'>
+  args: DeviceServiceArgs<"getInfo">
 ) => {
   const infoOptsSchema = z.object({}).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
@@ -75,13 +75,13 @@ const getInfo = async (
     volume,
     source,
     isMuted,
-    model,
+    model
   };
 };
 
 const getStatus = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'getStatus'>
+  args: DeviceServiceArgs<"getStatus">
 ) => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(args);
@@ -92,7 +92,7 @@ const getStatus = async (
   return true;
 };
 
-const mute = async ({ ip, port }: Device, args: DeviceServiceArgs<'mute'>) => {
+const mute = async ({ ip, port }: Device, args: DeviceServiceArgs<"mute">) => {
   const muteOptsSchema = z.object({}).strict();
   const parsedOpts = muteOptsSchema.safeParse(args);
 
@@ -104,7 +104,7 @@ const mute = async ({ ip, port }: Device, args: DeviceServiceArgs<'mute'>) => {
 
 const unmute = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'unmute'>
+  args: DeviceServiceArgs<"unmute">
 ) => {
   const unmuteOptsSchema = z.object({}).strict();
   const parsedOpts = unmuteOptsSchema.safeParse(args);
@@ -117,7 +117,7 @@ const unmute = async (
 
 const setVolume = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'setVolume'>
+  args: DeviceServiceArgs<"setVolume">
 ) => {
   const setVolumeOptsSchema = z.object({ volume: z.number() }).strict();
   const parsedOpts = setVolumeOptsSchema.safeParse(args);
@@ -130,7 +130,7 @@ const setVolume = async (
 
 const setSource = async (
   { ip, port }: Device,
-  args: DeviceServiceArgs<'setSource'>
+  args: DeviceServiceArgs<"setSource">
 ) => {
   const setSourceOptsSchema = z
     .object({ source: MDCSourceSchema.keyof() })
@@ -152,7 +152,7 @@ const MDCService: DeviceService = {
   mute,
   unmute,
   setVolume,
-  setSource,
+  setSource
 };
 
 export default MDCService;

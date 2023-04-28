@@ -10,13 +10,17 @@ import {
 } from "@ove/ove-types";
 import { Namespace, Socket } from "socket.io";
 
-const getSocket: (socketId: string) => Socket<HardwareClientToServerEvents, HardwareServerToClientEvents> =
-  (socketId: string) => io.sockets.get(state.clients[socketId]);
+const getSocket: (socketId: string) => Socket<
+  HardwareClientToServerEvents,
+  HardwareServerToClientEvents
+> = (socketId: string) => io.sockets.get(state.clients[socketId]);
 
 const state = { clients: {} };
 logger.info("Initialising Hardware");
-const io: Namespace<HardwareClientToServerEvents, HardwareServerToClientEvents> =
-  SocketServer.of("/hardware");
+const io: Namespace<
+  HardwareClientToServerEvents,
+  HardwareServerToClientEvents
+> = SocketServer.of("/hardware");
 
 io.on("connection", socket => {
   logger.info(`${socket.id} connected via /hardware`);
@@ -34,21 +38,34 @@ io.on("connection", socket => {
 const generateProcedure = (k: CoreAPIKeys) => procedure
   .meta(CoreAPI[k].meta)
   .input<CoreAPIType[typeof k]["args"]>(CoreAPI[k].args)
-  .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge)
+  .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge);
 
 const generateQuery = (k: CoreAPIKeys) => generateProcedure(k)
-  .query<CoreAPIReturns<typeof k>>(({input: {bridgeId, ...args}}) => new Promise(resolve => getSocket(bridgeId).emit(k, args, resolve)));
+  .query<CoreAPIReturns<typeof k>>(({
+    input: {
+      bridgeId,
+      ...args
+    }
+  }) => new Promise(resolve => getSocket(bridgeId).emit(k, args, resolve)));
 
 const generateMutation = (k: CoreAPIKeys) => generateProcedure(k)
-  .mutation<CoreAPIReturns<typeof k>>(({input: {bridgeId, ...args}}) => new Promise(resolve => getSocket(bridgeId).emit(k, args, resolve)));
+  .mutation<CoreAPIReturns<typeof k>>(({
+    input: {
+      bridgeId,
+      ...args
+    }
+  }) => new Promise(resolve => getSocket(bridgeId).emit(k, args, resolve)));
 
 type Router = {
-  [Key in CoreAPIKeys]: CoreAPIMethod<Key> extends "GET" ? ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
+  [Key in CoreAPIKeys]: CoreAPIMethod<Key> extends "GET" ?
+    ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
 }
 
-const routes = (Object.keys(CoreAPI) as Array<CoreAPIKeys>).reduce((acc, k) => ({
-  ...acc,
-  [k]: CoreAPI[k].meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)
-}), {} as Router);
+const routes = (Object.keys(CoreAPI) as Array<CoreAPIKeys>)
+  .reduce((acc, k) => ({
+    ...acc,
+    [k]: CoreAPI[k].meta.openapi.method === "GET" ?
+      generateQuery(k) : generateMutation(k)
+  }), {} as Router);
 
 export const hardwareRouter = router(routes);

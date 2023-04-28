@@ -1,7 +1,7 @@
 /* global process, __dirname */
 
-import { initEnv } from './env';
-import { envPath, toAsset, writeEnv, safeFileDelete } from '../utils/utils';
+import { initEnv } from "./env";
+import { envPath, toAsset, writeEnv, safeFileDelete } from "../utils/utils";
 
 export default () => {
   if (process.env.NODE_ENV !== "production") {
@@ -13,13 +13,13 @@ export default () => {
   }
 
   const initialEnv = {
-    CORE_URL: 'localhost:3333',
-    BRIDGE_NAME: 'main',
+    CORE_URL: "localhost:3333",
+    BRIDGE_NAME: "main"
   };
 
   writeEnv(initialEnv, false);
   initEnv(envPath);
 
-  toAsset('hardware.json', [], false);
-  toAsset('spaces.json', {}, false);
+  toAsset("hardware.json", [], false);
+  toAsset("spaces.json", {}, false);
 };
