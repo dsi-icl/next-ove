@@ -1,17 +1,34 @@
-// import styles from "./app.module.scss";
+import "../styles.scss";
+import "github-markdown-css/github-markdown-light.css";
+import { useEffect, useState } from "react";
 
-import NxWelcome from "./nx-welcome";
+declare global {
+  // noinspection JSUnusedGlobalSymbols
+  interface Window {
+    electron: {
+      getNotifications: () => Promise<string[]>
+      getInfo: (type?: string) => Promise<unknown>
+      getAppVersion: () => Promise<string>
+    };
+  }
+}
 
 /**
  * Main application
  * @constructor
  */
 export function App() {
+  const [appVersion, setAppVersion] = useState("");
+
+  useEffect(() => {
+    window.electron.getAppVersion().then(setAppVersion);
+  }, []);
+
   return (
     <>
-      <NxWelcome title="ove-client-ui" />
-
-      <div />
+      <article className="markdown-body">
+        <h1>OVE Client - v{appVersion}</h1>
+      </article>
     </>
   );
 }

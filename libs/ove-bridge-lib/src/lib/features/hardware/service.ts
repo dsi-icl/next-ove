@@ -12,7 +12,7 @@ import {
   ServiceTypes
 } from "@ove/ove-types";
 import { z } from "zod";
-import { env } from "../../environments/setup";
+import { env } from "../../environments/env";
 import * as Utils from "../../utils/utils";
 import { Utils as OVEUtils } from "@ove/ove-utils";
 import NodeService from "./node-service";
@@ -72,7 +72,7 @@ const filterUndefinedResponse = <T>(obj: {
   response: T | undefined;
 }): obj is { deviceId: string; response: T } => obj.response !== undefined;
 
-const getServiceForProtocol = (protocol: ServiceTypes) => {
+const getServiceForProtocol = (protocol: ServiceTypes): DeviceService => {
   switch (protocol) {
     case "node":
       return NodeService;

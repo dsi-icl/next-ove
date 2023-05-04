@@ -1,7 +1,7 @@
 /* global process, __dirname */
 
 import { initEnv } from "./env";
-import { envPath, toAsset, writeEnv, safeFileDelete } from "../utils/utils";
+import { envPath, safeFileDelete, toAsset, writeEnv } from "@ove/file-utils";
 
 export default () => {
   if (process.env.NODE_ENV !== "production") {

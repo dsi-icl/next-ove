@@ -64,4 +64,4 @@ export type HardwareClientToServerEvents = Record<string, unknown>;
 export type BridgeServiceArgs<Key extends keyof BridgeService> =
   z.infer<BridgeAPIRoutesType[Key]["args"]>;
 export type DeviceServiceArgs<Key extends keyof DeviceService> =
-  z.infer<BridgeAPIRoutesType[Key]["args"]>;
+  z.infer<ClientAPIRoutesType[Key]["args"]>;

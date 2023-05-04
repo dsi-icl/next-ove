@@ -1,4 +1,4 @@
-import { procedure, router } from "./trpc";
+import { mergeRouters, procedure, router } from "./trpc";
 import { DesktopCapturerSource } from "electron";
 import { Service } from "@ove/ove-client-control";
 import {
@@ -9,12 +9,22 @@ import {
   ClientServiceAPIType,
   ClientServiceArgs,
   ClientServiceReturns,
-  ID
+  ID, StatusSchema
 } from "@ove/ove-types";
+import { z } from "zod";
+import { readAsset, toAsset } from "@ove/file-utils";
 
 const service = Service.default();
 
-const state: { browsers: { [browserId: ID]: Browser } } = { browsers: {} };
+type State = {
+  browsers: { [browserId: ID]: Browser }
+  authorisedCredentials: string[]
+};
+
+const state: State = {
+  browsers: {},
+  authorisedCredentials: []
+};
 
 const controller: ClientServiceAPIType = {
   getStatus: async () => true,
@@ -89,7 +99,21 @@ const routes = (Object.keys(ClientAPI) as Array<keyof ClientServiceAPIType>)
       generateQuery(k) : generateMutation(k)
   }), {} as Router);
 
-export const appRouter = router(routes);
+const authRouter = router({
+  register: procedure
+    .meta({ openapi: { method: "POST", path: "/register" } })
+    .input(z.object({ pin: z.string(), key: z.string() }))
+    .output(StatusSchema)
+    .mutation(({ input: { pin, key } }) => {
+      const notifications = readAsset("notifications.json", JSON.stringify([]));
+      toAsset("notifications.json", [...notifications, { pin, key }]);
+      return true;
+    })
+});
+
+const hardwareRouter = router(routes);
+
+export const appRouter = mergeRouters(hardwareRouter, authRouter);
 
 // noinspection JSUnusedGlobalSymbols
 export type AppRouter = typeof appRouter;
