@@ -1,14 +1,18 @@
 /* global console */
 
 import {
-  ClientAPIKeys,
   DeviceServiceKeys,
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
 } from "@ove/ove-types";
 import { env } from "../../environments/env";
 import { io, Socket } from "socket.io-client";
-import { deviceHandler, multiDeviceHandler, Service } from "./service";
+import {
+  addDevice,
+  deviceHandler, getDevice, getDevices,
+  multiDeviceHandler, removeDevice,
+  wrapCallback
+} from "./service";
 
 export default () => {
   console.log(`connecting to - ws://${env.CORE_URL}/hardware`);
@@ -30,16 +34,29 @@ export default () => {
     console.log(socket.id);
   });
 
-  DeviceServiceKeys.forEach(k => {
-    socket.on(k, (args, callback) => Service[k](args, callback));
+  socket.on("getDevice", async (args, cb) => {
+    wrapCallback(cb)(await getDevice(args));
   });
 
-  ClientAPIKeys.forEach(k => {
-    socket.on(k, (args, callback) => deviceHandler(k, args, callback));
+  socket.on("getDevices", async (args, cb) => {
+    wrapCallback(cb)(await getDevices(args));
+  });
 
-    socket.on(`${k}All` as const, (args, callback) =>
-      multiDeviceHandler(k, args, callback)
-    );
+  socket.on("addDevice", async (args, cb) => {
+    wrapCallback(cb)(await addDevice(args));
+  });
+
+  socket.on("removeDevice", async (args, cb) => {
+    wrapCallback(cb)(await removeDevice(args));
+  });
+
+  DeviceServiceKeys.forEach(k => {
+    socket.on(k, async (args, callback) => {
+      await deviceHandler(k, args, callback);
+    });
+    socket.on(`${k}All`, async (args, callback) => {
+      await multiDeviceHandler(k, args, callback);
+    });
   });
 
   socket.on("connect_error", err =>

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { RouteMethod } from "./service";
+import { ExposureLevel, RouteMethod } from "./service";
 import {
-  BridgeAPIArgs, BridgeAPIMethod, BridgeAPIReturns,
+  BridgeAPIArgs, BridgeAPIExposure, BridgeAPIMethod, BridgeAPIReturns,
   BridgeAPIRoute,
   BridgeAPIRouteAll, BridgeAPIRoutes,
   BridgeAPIRoutesType
@@ -13,17 +13,19 @@ import { BridgeServiceKeys } from "./bridge";
 type CoreAPIRoute<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
-  M extends RouteMethod
+  M extends RouteMethod,
+  E extends ExposureLevel
 > = {
-  [Key in keyof BridgeAPIRoute<A, U, M>]: BridgeAPIRoute<A, U, M>[Key]
+  [Key in keyof BridgeAPIRoute<A, U, M, E>]: BridgeAPIRoute<A, U, M, E>[Key]
 };
 
 type CoreAPIRouteAll<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
-  M extends RouteMethod
+  M extends RouteMethod,
+  E extends ExposureLevel
 > = {
-  [Key in keyof BridgeAPIRouteAll<A, U, M>]: BridgeAPIRouteAll<A, U, M>[Key]
+  [Key in keyof BridgeAPIRouteAll<A, U, M, E>]: BridgeAPIRouteAll<A, U, M, E>[Key]
 };
 
 /* API Type */
@@ -33,14 +35,16 @@ export type CoreAPIRoutesType = {
   BridgeAPIRoutesType[Key] extends BridgeAPIRoute<
     BridgeAPIArgs<Key>,
     BridgeAPIReturns<Key>,
-    BridgeAPIMethod<Key>
+    BridgeAPIMethod<Key>,
+    BridgeAPIExposure<Key>
   > ? CoreAPIRoute<
     z.extendShape<BridgeAPIArgs<Key>, {
       bridgeId: z.ZodString
-    }>, BridgeAPIReturns<Key>, BridgeAPIMethod<Key>> : CoreAPIRouteAll<
+    }>, BridgeAPIReturns<Key>, BridgeAPIMethod<Key>, BridgeAPIExposure<Key>> : CoreAPIRouteAll<
     z.extendShape<BridgeAPIArgs<Key>, { bridgeId: z.ZodString }>,
     BridgeAPIReturns<Key>,
-    BridgeAPIMethod<Key>
+    BridgeAPIMethod<Key>,
+    BridgeAPIExposure<Key>
   >
 }
 

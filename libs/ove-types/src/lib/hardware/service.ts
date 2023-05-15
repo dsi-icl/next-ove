@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  DeviceSchema,
   IDSchema,
   ImageSchema,
   ScreenshotMethodSchema,
@@ -12,81 +11,64 @@ import { ResponseSchema } from "../ove-types";
 /* Utility Types */
 
 export type RouteMethod = "GET" | "POST" | "DELETE";
+export type ExposureLevel = "client" | "bridge" | "core";
 
 /* API Route Types */
 
 export type ServiceAPIRoute<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
-  M extends RouteMethod
+  M extends RouteMethod,
+  E extends ExposureLevel
 > = {
   meta: { openapi: { method: M, path: `/${string}` } }
   args: z.ZodObject<A, "strict", z.ZodTypeAny>
   returns: U
+  exposed: E
 };
 
 /* API Type */
 
 export type ServiceAPIRoutesType = {
-  getStatus: ServiceAPIRoute<{}, z.ZodBoolean, "GET">
+  getStatus: ServiceAPIRoute<{}, z.ZodBoolean, "GET", "client">
   getInfo: ServiceAPIRoute<{
     type: z.ZodOptional<z.ZodString>
-  }, z.ZodUnknown, "GET">
+  }, z.ZodUnknown, "GET", "client">
   getBrowserStatus: ServiceAPIRoute<{
     browserId: z.ZodNumber
-  }, z.ZodBoolean, "GET">
+  }, z.ZodBoolean, "GET", "client">
   getBrowsers: ServiceAPIRoute<
     {},
-    z.ZodArray<z.ZodNumber>, "GET">
-  reboot: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  shutdown: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
+    z.ZodArray<z.ZodNumber>, "GET", "client">
+  reboot: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "client">
+  shutdown: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "client">
   execute: ServiceAPIRoute<{
     command: z.ZodString
-  }, typeof ResponseSchema, "POST">
+  }, typeof ResponseSchema, "POST", "client">
   screenshot: ServiceAPIRoute<{
     method: typeof ScreenshotMethodSchema,
     screens: z.ZodArray<z.ZodNumber>
-  }, z.ZodArray<typeof ImageSchema>, "POST">
+  }, z.ZodArray<typeof ImageSchema>, "POST", "client">
   openBrowser: ServiceAPIRoute<{
     url: z.ZodOptional<z.ZodString>,
     displayId: z.ZodOptional<z.ZodNumber>
-  }, z.ZodNumber, "POST">
+  }, z.ZodNumber, "POST", "client">
   closeBrowser: ServiceAPIRoute<{
     browserId: z.ZodNumber
-  }, z.ZodBoolean, "DELETE">
-  closeBrowsers: ServiceAPIRoute<{}, z.ZodBoolean, "DELETE">
-  start: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  setVolume: ServiceAPIRoute<{ volume: z.ZodNumber }, z.ZodBoolean, "POST">
+  }, z.ZodBoolean, "DELETE", "client">
+  closeBrowsers: ServiceAPIRoute<{}, z.ZodBoolean, "DELETE", "client">
+  start: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  setVolume: ServiceAPIRoute<{ volume: z.ZodNumber }, z.ZodBoolean, "POST", "bridge">
   setSource: ServiceAPIRoute<{
     source: typeof SourceSchemas,
     channel: z.ZodOptional<z.ZodNumber>
-  }, z.ZodBoolean, "POST">
-  mute: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  unmute: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  muteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  unmuteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  muteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  unmuteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST">
-  getDevice: ServiceAPIRoute<
-    { deviceId: z.ZodString },
-    typeof DeviceSchema,
-    "GET"
-  >
-  getDevices: ServiceAPIRoute<
-    { tag: z.ZodOptional<z.ZodString> },
-    z.ZodArray<typeof DeviceSchema>,
-    "GET"
-  >
-  addDevice: ServiceAPIRoute<
-    { device: typeof DeviceSchema },
-    z.ZodBoolean,
-    "POST"
-  >
-  removeDevice: ServiceAPIRoute<
-    { deviceId: z.ZodString },
-    z.ZodBoolean,
-    "DELETE"
-  >
+  }, z.ZodBoolean, "POST", "bridge">
+  mute: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  unmute: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  muteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  unmuteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  muteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  unmuteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
 }
 
 /* API */
@@ -95,12 +77,14 @@ export const ServiceAPI: ServiceAPIRoutesType = {
   getStatus: {
     meta: { openapi: { method: "GET" as const, path: "/status" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "client" as const
   },
   getInfo: {
     meta: { openapi: { method: "GET" as const, path: "/info" } },
     args: z.object({ type: z.string().optional() }).strict(),
-    returns: z.unknown()
+    returns: z.unknown(),
+    exposed: "client"
   },
   getBrowserStatus: {
     meta: {
@@ -110,27 +94,32 @@ export const ServiceAPI: ServiceAPIRoutesType = {
       }
     },
     args: z.object({ browserId: IDSchema }).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "client"
   },
   getBrowsers: {
     meta: { openapi: { method: "GET" as const, path: "/browsers" } },
     args: z.object({}).strict(),
-    returns: z.array(IDSchema)
+    returns: z.array(IDSchema),
+    exposed: "client"
   },
   reboot: {
     meta: { openapi: { method: "POST" as const, path: "/reboot" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "client"
   },
   shutdown: {
     meta: { openapi: { method: "POST" as const, path: "/shutdown" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "client"
   },
   execute: {
     meta: { openapi: { method: "POST" as const, path: "/execute" } },
     args: z.object({ command: z.string() }).strict(),
-    returns: ResponseSchema
+    returns: ResponseSchema,
+    exposed: "client"
   },
   screenshot: {
     meta: { openapi: { method: "POST" as const, path: "/screenshot" } },
@@ -138,7 +127,8 @@ export const ServiceAPI: ServiceAPIRoutesType = {
       method: ScreenshotMethodSchema,
       screens: z.array(IDSchema)
     }).strict(),
-    returns: z.array(ImageSchema)
+    returns: z.array(ImageSchema),
+    exposed: "client"
   },
   openBrowser: {
     meta: { openapi: { method: "POST" as const, path: "/browser" } },
@@ -146,7 +136,8 @@ export const ServiceAPI: ServiceAPIRoutesType = {
       url: z.string().optional(),
       displayId: IDSchema.optional()
     }).strict(),
-    returns: IDSchema
+    returns: IDSchema,
+    exposed: "client"
   },
   closeBrowser: {
     meta: {
@@ -156,22 +147,26 @@ export const ServiceAPI: ServiceAPIRoutesType = {
       }
     },
     args: z.object({ browserId: IDSchema }).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "client"
   },
   closeBrowsers: {
     meta: { openapi: { method: "DELETE" as const, path: "/browsers" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "client"
   },
   start: {
     meta: { openapi: { method: "POST" as const, path: "/start" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   setVolume: {
     meta: { openapi: { method: "POST" as const, path: "/volume" } },
     args: z.object({ volume: z.number() }).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   setSource: {
     meta: { openapi: { method: "POST" as const, path: "/source" } },
@@ -179,57 +174,44 @@ export const ServiceAPI: ServiceAPIRoutesType = {
       source: SourceSchemas,
       channel: z.number().optional()
     }).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   mute: {
     meta: { openapi: { method: "POST" as const, path: "/mute" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   unmute: {
     meta: { openapi: { method: "POST" as const, path: "/unmute" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   muteAudio: {
     meta: { openapi: { method: "POST" as const, path: "/muteAudio" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   unmuteAudio: {
     meta: { openapi: { method: "POST" as const, path: "/unmuteAudio" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   muteVideo: {
     meta: { openapi: { method: "POST" as const, path: "/muteVideo" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   },
   unmuteVideo: {
     meta: { openapi: { method: "POST" as const, path: "/unmuteVideo" } },
     args: z.object({}).strict(),
-    returns: StatusSchema
-  },
-  getDevice: {
-    meta: { openapi: { method: "GET", path: "/device/{deviceId}" } },
-    args: z.object({ deviceId: z.string() }).strict(),
-    returns: DeviceSchema
-  },
-  getDevices: {
-    meta: { openapi: { method: "GET", path: "/devices" } },
-    args: z.object({ tag: z.string().optional() }).strict(),
-    returns: z.array(DeviceSchema)
-  },
-  addDevice: {
-    meta: { openapi: { method: "POST", path: "/device" } },
-    args: z.object({ device: DeviceSchema }).strict(),
-    returns: StatusSchema
-  },
-  removeDevice: {
-    meta: { openapi: { method: "DELETE", path: "/device/{deviceId}" } },
-    args: z.object({ deviceId: z.string() }).strict(),
-    returns: StatusSchema
+    returns: StatusSchema,
+    exposed: "bridge"
   }
 };
 
@@ -241,3 +223,5 @@ export type ServiceAPIArgs<Key extends keyof ServiceAPIRoutesType> =
   ServiceAPIRoutesType[Key]["args"]["shape"];
 export type ServiceAPIReturns<Key extends keyof ServiceAPIRoutesType> =
   ServiceAPIRoutesType[Key]["returns"];
+export type ServiceAPIExposure<Key extends keyof ServiceAPIRoutesType> =
+  ServiceAPIRoutesType[Key]["exposed"];

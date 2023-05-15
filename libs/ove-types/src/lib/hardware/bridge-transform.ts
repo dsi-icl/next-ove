@@ -1,13 +1,13 @@
 import { z } from "zod";
 import {
-  ClientAPIArgs, ClientAPIMethod, ClientAPIReturns,
+  ClientAPIArgs, ClientAPIExposure, ClientAPIMethod, ClientAPIReturns,
   ClientAPIRoute, ClientAPIRoutes, ClientAPIRoutesType,
   DeviceResponse,
   getDeviceResponseSchema
 } from "./client-transform";
-import { DeviceIDSchema } from "../hardware";
+import { DeviceIDSchema, DeviceSchema, StatusSchema } from "../hardware";
 import { OVEExceptionSchema } from "../ove-types";
-import { RouteMethod } from "./service";
+import { ExposureLevel, RouteMethod } from "./service";
 
 /* Utility Schemas */
 
@@ -44,39 +44,103 @@ type BridgeResponse<T extends z.ZodTypeAny> = z.ZodObject<{
 export type BridgeAPIRoute<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
-  M extends RouteMethod
+  M extends RouteMethod,
+  E extends ExposureLevel
 > =
   {
-    bridge: BridgeResponse<ClientAPIRoute<A, U, M>["client"]>
+    bridge: BridgeResponse<ClientAPIRoute<A, U, M, E>["client"]>
   }
-  & { [Key in keyof ClientAPIRoute<A, U, M>]: ClientAPIRoute<A, U, M>[Key] };
+  & { [Key in keyof ClientAPIRoute<A, U, M, E>]: ClientAPIRoute<A, U, M, E>[Key] };
 
 export type BridgeAPIRouteAll<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
-  M extends RouteMethod
+  M extends RouteMethod,
+  E extends ExposureLevel
 > = {
     bridge: BridgeResponse<
-      MultiDeviceResponse<ClientAPIRoute<A, U, M>["returns"]>>
+      MultiDeviceResponse<ClientAPIRoute<A, U, M, E>["returns"]>>
   }
-  & { [Key in keyof ClientAPIRoute<A, U, M>]: ClientAPIRoute<A, U, M>[Key] };
+  & { [Key in keyof ClientAPIRoute<A, U, M, E>]: ClientAPIRoute<A, U, M, E>[Key] };
+
+export type BridgeOnlyAPIRoutesType = {
+  getDevice: BridgeAPIRoute<
+    {deviceId: z.ZodString},
+    typeof DeviceSchema,
+    "GET",
+    "bridge"
+  >
+  getDevices: BridgeAPIRoute<
+    {tag: z.ZodOptional<z.ZodString>},
+    z.ZodArray<typeof DeviceSchema>,
+    "GET",
+    "bridge"
+  >
+  addDevice: BridgeAPIRoute<
+    { device: typeof DeviceSchema },
+    z.ZodBoolean,
+    "POST",
+    "bridge"
+  >
+  removeDevice: BridgeAPIRoute<
+    {deviceId: z.ZodString},
+    z.ZodBoolean,
+    "DELETE",
+    "bridge"
+  >
+}
 
 /* API Type */
 
 export type BridgeAPIRoutesType = {
     [Key in keyof ClientAPIRoutesType]: BridgeAPIRoute<z.extendShape<
       ClientAPIArgs<Key>, { deviceId: z.ZodString }
-    >, ClientAPIReturns<Key>, ClientAPIMethod<Key>>
+    >, ClientAPIReturns<Key>, ClientAPIMethod<Key>, ClientAPIExposure<Key>>
   }
   & {
   [Key in keyof ClientAPIRoutesType as `${Key}All`]: BridgeAPIRouteAll<
     z.extendShape<
       ClientAPIArgs<Key>,
       { tag: z.ZodOptional<z.ZodString> }
-    >, ClientAPIReturns<Key>, ClientAPIMethod<Key>>
-};
+    >, ClientAPIReturns<Key>, ClientAPIMethod<Key>, ClientAPIExposure<Key>>
+} & { [Key in keyof BridgeOnlyAPIRoutesType]: BridgeOnlyAPIRoutesType[Key] };
 
 /* API */
+
+export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
+  getDevice: {
+    meta: {openapi: {method: "GET" as const, path: "/device/{deviceId}"}},
+    args: z.object({deviceId: z.string()}).strict(),
+    returns: DeviceSchema,
+    client: getDeviceResponseSchema(DeviceSchema),
+    bridge: getBridgeResponseSchema(getDeviceResponseSchema(DeviceSchema)),
+    exposed: "bridge"
+  },
+  getDevices: {
+    meta: {openapi: {method: "GET" as const, path: "/devices"}},
+    args: z.object({tag: z.string().optional()}).strict(),
+    returns: z.array(DeviceSchema),
+    client: getDeviceResponseSchema(z.array(DeviceSchema)),
+    bridge: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema))),
+    exposed: "bridge"
+  },
+  addDevice: {
+    meta: {openapi: {method: "POST" as const, path: "/device"}},
+    args: z.object({device: DeviceSchema}).strict(),
+    returns: StatusSchema,
+    client: getDeviceResponseSchema(StatusSchema),
+    bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
+    exposed: "bridge"
+  },
+  removeDevice: {
+    meta: {openapi: {method: "DELETE" as const, path: "/device/{deviceId}"}},
+    args: z.object({deviceId: z.string()}).strict(),
+    returns: StatusSchema,
+    client: getDeviceResponseSchema(StatusSchema),
+    bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
+    exposed: "bridge"
+  }
+}
 
 export const BridgeAPIRoutes: BridgeAPIRoutesType =
   (Object.keys(ClientAPIRoutes) as Array<keyof ClientAPIRoutesType>)
@@ -103,7 +167,7 @@ export const BridgeAPIRoutes: BridgeAPIRoutesType =
             getMultiDeviceResponseSchema(ClientAPIRoutes[k].client))
         }
       };
-    }, {} as BridgeAPIRoutesType);
+    }, BridgeOnlyAPIRoutes as BridgeAPIRoutesType);
 
 /* API Utility Types */
 
@@ -113,3 +177,5 @@ export type BridgeAPIArgs<Key extends keyof BridgeAPIRoutesType> =
   BridgeAPIRoutesType[Key]["args"]["shape"];
 export type BridgeAPIReturns<Key extends keyof BridgeAPIRoutesType> =
   BridgeAPIRoutesType[Key]["returns"];
+export type BridgeAPIExposure<Key extends keyof BridgeAPIRoutesType> =
+  BridgeAPIRoutesType[Key]["exposed"];

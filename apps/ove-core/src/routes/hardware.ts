@@ -6,7 +6,7 @@ import {
   HardwareClientToServerEvents,
   CoreAPI,
   CoreAPIKeys,
-  CoreAPIMethod, CoreAPIType, CoreAPIReturns
+  CoreAPIMethod, CoreAPIType, CoreAPIReturns, BridgeSocketArgs
 } from "@ove/ove-types";
 import { Namespace, Socket } from "socket.io";
 
@@ -40,13 +40,14 @@ const generateProcedure = (k: CoreAPIKeys) => procedure
   .input<CoreAPIType[typeof k]["args"]>(CoreAPI[k].args)
   .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge);
 
+// @ts-ignore
 const generateQuery = (k: CoreAPIKeys) => generateProcedure(k)
   .query<CoreAPIReturns<typeof k>>(({
     input: {
       bridgeId,
       ...args
     }
-  }) => new Promise(resolve => getSocket(bridgeId).emit(k, args, resolve)));
+  }) => new Promise(resolve => getSocket(bridgeId).emit<typeof k>(k, args, resolve)));
 
 const generateMutation = (k: CoreAPIKeys) => generateProcedure(k)
   .mutation<CoreAPIReturns<typeof k>>(({
@@ -54,7 +55,10 @@ const generateMutation = (k: CoreAPIKeys) => generateProcedure(k)
       bridgeId,
       ...args
     }
-  }) => new Promise(resolve => getSocket(bridgeId).emit(k, args, resolve)));
+  }) => new Promise(resolve => {
+    // @ts-ignore
+    getSocket(bridgeId).emit(k, args, resolve);
+  }));
 
 type Router = {
   [Key in CoreAPIKeys]: CoreAPIMethod<Key> extends "GET" ?

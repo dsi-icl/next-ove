@@ -1,43 +1,27 @@
 import { z } from "zod";
 import { Device, Optional } from "../hardware";
-import { ClientAPIKeysType } from "./client";
-import { BridgeAPIRoutesType } from "./bridge-transform";
-import { ServiceAPIRoutesType } from "./service";
-import { ClientAPIRoutesType } from "./client-transform";
+import {
+  BridgeAPIRoutes,
+  BridgeAPIRoutesType,
+  BridgeOnlyAPIRoutes,
+  BridgeOnlyAPIRoutesType
+} from "./bridge-transform";
+import { ClientAPIRoutes, ClientAPIRoutesType } from "./client-transform";
+import { ClientAPI, ClientAPIKeysType } from "./client";
 
 /* API Keys */
 
-type BridgeServiceKeysType = keyof Pick<ServiceAPIRoutesType,
-  "getDevice" | "getDevices" | "addDevice" | "removeDevice">;
-export const BridgeServiceKeys: readonly BridgeServiceKeysType[] =
-  ["getDevice", "getDevices", "addDevice", "removeDevice"] as const;
+export type BridgeServiceKeysType = keyof BridgeOnlyAPIRoutesType;
+export const BridgeServiceKeys: readonly BridgeServiceKeysType[] = Object.keys(BridgeOnlyAPIRoutes) as Array<BridgeServiceKeysType>;
 
-type DeviceServiceKeysType = keyof Pick<ServiceAPIRoutesType,
-  "start" | "setSource" | "setVolume" | "mute" | "unmute" | "muteAudio" |
-  "unmuteAudio" | "muteVideo" | "unmuteVideo">;
-export const DeviceServiceKeys: readonly DeviceServiceKeysType[] = [
-  "start",
-  "setSource",
-  "setVolume",
-  "mute",
-  "unmute",
-  "muteAudio",
-  "unmuteAudio",
-  "muteVideo",
-  "unmuteVideo"
-] as const;
+export const DeviceServiceKeys: readonly (keyof ClientAPIRoutesType)[] = Object.keys(ClientAPIRoutes).filter(k => Object.keys(BridgeOnlyAPIRoutes).includes(k)) as Array<keyof ClientAPIRoutesType>;
 
 /* API Type */
 
 export { type BridgeAPIRoutesType as BridgeAPIType } from "./bridge-transform";
 
 export type DeviceService = {
-  [Key in ClientAPIKeysType]?: (
-    device: Device,
-    args: z.infer<ClientAPIRoutesType[Key]["args"]>
-  ) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
-} & {
-  [Key in DeviceServiceKeysType]?: (
+  [Key in keyof ClientAPIRoutesType]?: (
     device: Device,
     args: z.infer<ClientAPIRoutesType[Key]["args"]>
   ) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
@@ -45,7 +29,7 @@ export type DeviceService = {
 
 export type BridgeService = {
   [Key in BridgeServiceKeysType]: (
-    args: z.infer<ClientAPIRoutesType[Key]["args"]>,
+    args: z.infer<BridgeAPIRoutesType[Key]["args"]>,
     callback: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
   ) => void
 };
@@ -62,6 +46,12 @@ export type HardwareClientToServerEvents = Record<string, unknown>;
 /* API Utility Types */
 
 export type BridgeServiceArgs<Key extends keyof BridgeService> =
-  z.infer<BridgeAPIRoutesType[Key]["args"]>;
+  z.infer<BridgeOnlyAPIRoutesType[Key]["args"]>;
 export type DeviceServiceArgs<Key extends keyof DeviceService> =
   z.infer<ClientAPIRoutesType[Key]["args"]>;
+export type SocketCallback<Key extends keyof HardwareServerToClientEvents> =
+  (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
+export type BridgeSocketArgs<Key extends keyof BridgeService> =
+  Parameters<HardwareServerToClientEvents[Key]>[0]
+export type BridgeSocketCallback<Key extends keyof BridgeService> =
+  Parameters<HardwareServerToClientEvents[Key]>[1]

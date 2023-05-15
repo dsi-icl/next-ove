@@ -3,6 +3,13 @@ import NxWelcome from "./nx-welcome";
 
 import { Route, Routes, Link } from "react-router-dom";
 
+declare global {
+  interface Window {
+    getAppVersion: () => Promise<string>
+    platform: string
+  }
+}
+
 /**
  * OVE Bridge App
  * @constructor

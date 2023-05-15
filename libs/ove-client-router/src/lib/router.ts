@@ -73,23 +73,23 @@ export const init = (
   service.init(createWindow, takeScreenshots, closeWindow);
 };
 
-const generateProcedure = (k: ClientAPIKeysType) =>
+const generateProcedure = <Key extends ClientAPIKeysType>(k: Key) =>
   procedure
     .meta(ClientAPI[k].meta)
     .input<ClientAPIType[typeof k]["args"]>(ClientAPI[k].args)
-    .output<ClientAPIType[typeof k]["client"]>(ClientAPI[k].client);
+    .output<ClientAPIType[typeof k]["returns"]>(ClientAPI[k].returns);
 
-const generateQuery = (k: ClientAPIKeysType) => generateProcedure(k)
-  .query<ClientServiceReturns<typeof k>>(async ({ input }) =>
-    applyController(k, input));
+const generateQuery = <Key extends ClientAPIKeysType>(k: Key) => generateProcedure<Key>(k)
+  .query<ClientServiceReturns<Key>>(async ({ input }) =>
+    applyController<Key>(k, input as ClientServiceArgs<Key>));
 
-const generateMutation = (k: ClientAPIKeysType) => generateProcedure(k)
-  .mutation<ClientServiceReturns<typeof k>>(async ({ input }) =>
+const generateMutation = <Key extends ClientAPIKeysType>(k: Key) => generateProcedure<Key>(k)
+  .mutation<ClientServiceReturns<Key>>(async ({ input }) =>
     applyController<typeof k>(k, input));
 
 type Router = {
   [Key in ClientAPIKeysType]: ClientAPIMethod<Key> extends "GET" ?
-    ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
+    ReturnType<typeof generateQuery<Key>> : ReturnType<typeof generateMutation<Key>>
 }
 
 const routes = (Object.keys(ClientAPI) as Array<keyof ClientServiceAPIType>)

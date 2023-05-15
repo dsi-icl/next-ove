@@ -1,7 +1,7 @@
 import {
   BridgeAPIType,
   BridgeService,
-  BridgeServiceArgs,
+  BridgeServiceArgs, BridgeServiceKeysType,
   Device,
   DeviceService,
   DeviceServiceArgs,
@@ -19,7 +19,7 @@ import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
 import MDCService from "./mdc-service";
 
-const wrapCallback = <Key extends keyof BridgeAPIType>(
+export const wrapCallback = <Key extends keyof BridgeAPIType>(
   cb: (response: z.infer<BridgeAPIType[Key]["bridge"]>) => void
 ) => {
   return (response: z.infer<BridgeAPIType[Key]["client"]>) =>
@@ -29,7 +29,7 @@ const wrapCallback = <Key extends keyof BridgeAPIType>(
     });
 };
 
-const getDevices = async ({ tag }: BridgeServiceArgs<"getDevices">) => {
+export const getDevices = async ({ tag }: BridgeServiceArgs<"getDevices">) => {
   const devices = Utils
     .getDevices()
     .filter(({ tags }) => tag === undefined || tags.includes(tag));
@@ -42,7 +42,7 @@ const getDevices = async ({ tag }: BridgeServiceArgs<"getDevices">) => {
   return devices;
 };
 
-const getDevice = async ({ deviceId }: BridgeServiceArgs<"getDevice">) => {
+export const getDevice = async ({ deviceId }: BridgeServiceArgs<"getDevice">) => {
   const device = Utils.getDevices().find(({ id }) => deviceId === id);
 
   if (device === undefined) {
@@ -52,14 +52,14 @@ const getDevice = async ({ deviceId }: BridgeServiceArgs<"getDevice">) => {
   return device;
 };
 
-const addDevice = async ({ device }: BridgeServiceArgs<"addDevice">) => {
+export const addDevice = async ({ device }: BridgeServiceArgs<"addDevice">) => {
   const curDevices = Utils.getDevices();
   const devices = { ...curDevices, device };
   Utils.saveDevices(devices);
   return true;
 };
 
-const removeDevice = async ({
+export const removeDevice = async ({
   deviceId
 }: BridgeServiceArgs<"removeDevice">) => {
   const devices = Utils.getDevices().filter(({ id }) => id === deviceId);
@@ -90,7 +90,7 @@ const applyService = async <Key extends keyof DeviceService>(
   device: Device
 ): Promise<Optional<z.infer<BridgeAPIType[Key]["client"]>>> => {
   if ((Object.keys(service) as Array<keyof DeviceService>).includes(k)) {
-    return await service[k](device, args);
+    return await service[k]!!(device, args);
   } else return undefined;
 };
 
@@ -107,11 +107,11 @@ export const deviceHandler = async <Key extends keyof DeviceService>(
     return;
   }
 
-  delete args["deviceId"];
+  const serviceArgs: DeviceServiceArgs<Key> = {...args, deviceId: undefined};
   const response = await applyService<typeof k>(
     getServiceForProtocol(device.protocol),
     k,
-    args as DeviceServiceArgs<Key>,
+    serviceArgs as DeviceServiceArgs<Key>,
     device
   );
 
@@ -165,11 +165,11 @@ export const multiDeviceHandler = async <Key extends keyof DeviceService>(
 
 export const Service: BridgeService = {
   getDevice: async (args, callback) =>
-    wrapCallback(callback)({ response: await getDevice(args) }),
+    wrapCallback<"getDevice">(callback)(await getDevice(args)),
   getDevices: async (args, callback) =>
-    wrapCallback(callback)({ response: await getDevices(args) }),
+    wrapCallback<"getDevices">(callback)(await getDevices(args)),
   addDevice: async (args, callback) =>
-    wrapCallback(callback)({ response: await addDevice(args) }),
+    wrapCallback<"addDevice">(callback)(await addDevice(args)),
   removeDevice: async (args, callback) =>
-    wrapCallback(callback)({ response: await removeDevice(args) })
+    wrapCallback<"removeDevice">(callback)(await removeDevice(args))
 };
