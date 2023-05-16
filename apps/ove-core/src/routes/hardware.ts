@@ -2,11 +2,13 @@ import { procedure, router } from "../trpc";
 import { logger } from "../app";
 import { io as SocketServer } from "../sockets";
 import {
-  HardwareServerToClientEvents,
-  HardwareClientToServerEvents,
   CoreAPI,
   CoreAPIKeys,
-  CoreAPIMethod, CoreAPIType, CoreAPIReturns, BridgeSocketArgs
+  CoreAPIMethod,
+  CoreAPIReturns,
+  CoreAPIType,
+  HardwareClientToServerEvents,
+  HardwareServerToClientEvents
 } from "@ove/ove-types";
 import { Namespace, Socket } from "socket.io";
 
@@ -40,24 +42,27 @@ const generateProcedure = (k: CoreAPIKeys) => procedure
   .input<CoreAPIType[typeof k]["args"]>(CoreAPI[k].args)
   .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge);
 
-// @ts-ignore
 const generateQuery = (k: CoreAPIKeys) => generateProcedure(k)
-  .query<CoreAPIReturns<typeof k>>(({
+  .query<CoreAPIReturns<typeof k>>(async ({
     input: {
       bridgeId,
       ...args
     }
-  }) => new Promise(resolve => getSocket(bridgeId).emit<typeof k>(k, args, resolve)));
+  }) =>
+    await new Promise<CoreAPIReturns<typeof k>>(resolve => {
+      // @ts-ignore
+      getSocket(bridgeId).emit<typeof k>(k, args, resolve);
+    }));
 
 const generateMutation = (k: CoreAPIKeys) => generateProcedure(k)
-  .mutation<CoreAPIReturns<typeof k>>(({
+  .mutation<CoreAPIReturns<typeof k>>(async ({
     input: {
       bridgeId,
       ...args
     }
-  }) => new Promise(resolve => {
+  }) => new Promise<CoreAPIReturns<typeof k>>(resolve => {
     // @ts-ignore
-    getSocket(bridgeId).emit(k, args, resolve);
+    getSocket(bridgeId).emit<typeof k>(k, args, resolve);
   }));
 
 type Router = {

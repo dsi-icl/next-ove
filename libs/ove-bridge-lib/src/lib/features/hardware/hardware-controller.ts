@@ -1,6 +1,7 @@
 /* global console */
 
 import {
+  BridgeAPIType, BridgeServiceKeys,
   DeviceServiceKeys,
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
@@ -8,11 +9,11 @@ import {
 import { env } from "../../environments/env";
 import { io, Socket } from "socket.io-client";
 import {
-  addDevice,
-  deviceHandler, getDevice, getDevices,
-  multiDeviceHandler, removeDevice,
-  wrapCallback
+  deviceHandler,
+  multiDeviceHandler,
+  Service
 } from "./service";
+import {z} from "zod";
 
 export default () => {
   console.log(`connecting to - ws://${env.CORE_URL}/hardware`);
@@ -34,33 +35,24 @@ export default () => {
     console.log(socket.id);
   });
 
-  socket.on("getDevice", async (args, cb) => {
-    wrapCallback(cb)(await getDevice(args));
-  });
-
-  socket.on("getDevices", async (args, cb) => {
-    wrapCallback(cb)(await getDevices(args));
-  });
-
-  socket.on("addDevice", async (args, cb) => {
-    wrapCallback(cb)(await addDevice(args));
-  });
-
-  socket.on("removeDevice", async (args, cb) => {
-    wrapCallback(cb)(await removeDevice(args));
+  BridgeServiceKeys.forEach(k => {
+    // @ts-ignore
+    socket.on(k, async (args: z.infer<BridgeAPIType[typeof k]["args"]>, cb: (response: z.infer<BridgeAPIType[typeof k]["bridge"]>) => void) => {
+      // @ts-ignore
+      Service[k](args, cb);
+    });
   });
 
   DeviceServiceKeys.forEach(k => {
-    socket.on(k, async (args, callback) => {
-      await deviceHandler(k, args, callback);
+    socket.on(k, (args: z.infer<BridgeAPIType[typeof k]["args"]>, callback: (response: z.infer<BridgeAPIType[typeof k]["bridge"]>) => void) => {
+      deviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}`));
     });
-    socket.on(`${k}All`, async (args, callback) => {
-      await multiDeviceHandler(k, args, callback);
+    socket.on(`${k}All`, (args: z.infer<BridgeAPIType[`${typeof k}All`]["args"]>, callback: (response: z.infer<BridgeAPIType[`${typeof k}All`]["bridge"]>) => void) => {
+      multiDeviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}All`));
     });
   });
 
   socket.on("connect_error", err =>
     console.error(`connect_error due to ${err.message}`)
   );
-  console.log("Hardware component started!");
 };

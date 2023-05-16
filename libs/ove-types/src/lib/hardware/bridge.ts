@@ -1,20 +1,18 @@
 import { z } from "zod";
 import { Device, Optional } from "../hardware";
 import {
-  BridgeAPIRoutes,
   BridgeAPIRoutesType,
   BridgeOnlyAPIRoutes,
   BridgeOnlyAPIRoutesType
 } from "./bridge-transform";
 import { ClientAPIRoutes, ClientAPIRoutesType } from "./client-transform";
-import { ClientAPI, ClientAPIKeysType } from "./client";
 
 /* API Keys */
 
 export type BridgeServiceKeysType = keyof BridgeOnlyAPIRoutesType;
 export const BridgeServiceKeys: readonly BridgeServiceKeysType[] = Object.keys(BridgeOnlyAPIRoutes) as Array<BridgeServiceKeysType>;
 
-export const DeviceServiceKeys: readonly (keyof ClientAPIRoutesType)[] = Object.keys(ClientAPIRoutes).filter(k => Object.keys(BridgeOnlyAPIRoutes).includes(k)) as Array<keyof ClientAPIRoutesType>;
+export const DeviceServiceKeys: readonly (keyof ClientAPIRoutesType)[] = Object.keys(ClientAPIRoutes) as Array<keyof ClientAPIRoutesType>;
 
 /* API Type */
 
@@ -49,9 +47,3 @@ export type BridgeServiceArgs<Key extends keyof BridgeService> =
   z.infer<BridgeOnlyAPIRoutesType[Key]["args"]>;
 export type DeviceServiceArgs<Key extends keyof DeviceService> =
   z.infer<ClientAPIRoutesType[Key]["args"]>;
-export type SocketCallback<Key extends keyof HardwareServerToClientEvents> =
-  (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
-export type BridgeSocketArgs<Key extends keyof BridgeService> =
-  Parameters<HardwareServerToClientEvents[Key]>[0]
-export type BridgeSocketCallback<Key extends keyof BridgeService> =
-  Parameters<HardwareServerToClientEvents[Key]>[1]

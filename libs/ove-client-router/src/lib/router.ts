@@ -5,11 +5,13 @@ import {
   Browser,
   ClientAPI,
   ClientAPIKeysType,
-  ClientAPIMethod, ClientAPIType,
+  ClientAPIMethod,
+  ClientAPIType,
   ClientServiceAPIType,
   ClientServiceArgs,
   ClientServiceReturns,
-  ID, StatusSchema
+  ID,
+  StatusSchema
 } from "@ove/ove-types";
 import { z } from "zod";
 import { readAsset, toAsset } from "@ove/file-utils";
@@ -62,7 +64,7 @@ const controller: ClientServiceAPIType = {
 
 const applyController = async <
   Key extends keyof ClientServiceAPIType
->(k: Key, args: ClientServiceArgs<Key>): ClientServiceReturns<Key> =>
+>(k: Key, args: ClientServiceArgs<Key>): Promise<ClientServiceReturns<Key>> =>
   controller[k](args);
 
 export const init = (
@@ -80,12 +82,11 @@ const generateProcedure = <Key extends ClientAPIKeysType>(k: Key) =>
     .output<ClientAPIType[typeof k]["returns"]>(ClientAPI[k].returns);
 
 const generateQuery = <Key extends ClientAPIKeysType>(k: Key) => generateProcedure<Key>(k)
-  .query<ClientServiceReturns<Key>>(async ({ input }) =>
-    applyController<Key>(k, input as ClientServiceArgs<Key>));
+  .query<ClientServiceReturns<Key>>(async ({ input }) => await applyController<Key>(k, input as ClientServiceArgs<Key>));
 
 const generateMutation = <Key extends ClientAPIKeysType>(k: Key) => generateProcedure<Key>(k)
   .mutation<ClientServiceReturns<Key>>(async ({ input }) =>
-    applyController<typeof k>(k, input));
+    await applyController<typeof k>(k, input));
 
 type Router = {
   [Key in ClientAPIKeysType]: ClientAPIMethod<Key> extends "GET" ?

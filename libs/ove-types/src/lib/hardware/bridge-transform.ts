@@ -65,13 +65,13 @@ export type BridgeAPIRouteAll<
 
 export type BridgeOnlyAPIRoutesType = {
   getDevice: BridgeAPIRoute<
-    {deviceId: z.ZodString},
+    { deviceId: z.ZodString },
     typeof DeviceSchema,
     "GET",
     "bridge"
   >
   getDevices: BridgeAPIRoute<
-    {tag: z.ZodOptional<z.ZodString>},
+    { tag: z.ZodOptional<z.ZodString> },
     z.ZodArray<typeof DeviceSchema>,
     "GET",
     "bridge"
@@ -83,7 +83,7 @@ export type BridgeOnlyAPIRoutesType = {
     "bridge"
   >
   removeDevice: BridgeAPIRoute<
-    {deviceId: z.ZodString},
+    { deviceId: z.ZodString },
     z.ZodBoolean,
     "DELETE",
     "bridge"
@@ -109,38 +109,43 @@ export type BridgeAPIRoutesType = {
 
 export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
   getDevice: {
-    meta: {openapi: {method: "GET" as const, path: "/device/{deviceId}"}},
-    args: z.object({deviceId: z.string()}).strict(),
+    meta: { openapi: { method: "GET" as const, path: "/device/{deviceId}" } },
+    args: z.object({ deviceId: z.string() }).strict(),
     returns: DeviceSchema,
     client: getDeviceResponseSchema(DeviceSchema),
     bridge: getBridgeResponseSchema(getDeviceResponseSchema(DeviceSchema)),
     exposed: "bridge"
   },
   getDevices: {
-    meta: {openapi: {method: "GET" as const, path: "/devices"}},
-    args: z.object({tag: z.string().optional()}).strict(),
+    meta: { openapi: { method: "GET" as const, path: "/devices" } },
+    args: z.object({ tag: z.string().optional() }).strict(),
     returns: z.array(DeviceSchema),
     client: getDeviceResponseSchema(z.array(DeviceSchema)),
     bridge: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema))),
     exposed: "bridge"
   },
   addDevice: {
-    meta: {openapi: {method: "POST" as const, path: "/device"}},
-    args: z.object({device: DeviceSchema}).strict(),
+    meta: { openapi: { method: "POST" as const, path: "/device" } },
+    args: z.object({ device: DeviceSchema }).strict(),
     returns: StatusSchema,
     client: getDeviceResponseSchema(StatusSchema),
     bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
     exposed: "bridge"
   },
   removeDevice: {
-    meta: {openapi: {method: "DELETE" as const, path: "/device/{deviceId}"}},
-    args: z.object({deviceId: z.string()}).strict(),
+    meta: {
+      openapi: {
+        method: "DELETE" as const,
+        path: "/device/{deviceId}"
+      }
+    },
+    args: z.object({ deviceId: z.string() }).strict(),
     returns: StatusSchema,
     client: getDeviceResponseSchema(StatusSchema),
     bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
     exposed: "bridge"
   }
-}
+};
 
 export const BridgeAPIRoutes: BridgeAPIRoutesType =
   (Object.keys(ClientAPIRoutes) as Array<keyof ClientAPIRoutesType>)

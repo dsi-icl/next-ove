@@ -1,7 +1,7 @@
 import {
   BridgeAPIType,
   BridgeService,
-  BridgeServiceArgs, BridgeServiceKeysType,
+  BridgeServiceArgs,
   Device,
   DeviceService,
   DeviceServiceArgs,
@@ -94,6 +94,15 @@ const applyService = async <Key extends keyof DeviceService>(
   } else return undefined;
 };
 
+const without = <T extends object, U extends object>(object: T) => <K extends keyof T>(...parts: Array<K>): U => {
+  return (Object.keys(object) as Array<keyof T>).reduce((acc, key) => {
+    if (!parts.includes(key as any)) {
+      acc[key] = object[key];
+    }
+    return acc;
+  }, {} as T) as unknown as U;
+};
+
 export const deviceHandler = async <Key extends keyof DeviceService>(
   k: Key,
   args: z.infer<BridgeAPIType[Key]["args"]>,
@@ -107,13 +116,15 @@ export const deviceHandler = async <Key extends keyof DeviceService>(
     return;
   }
 
-  const serviceArgs: DeviceServiceArgs<Key> = {...args, deviceId: undefined};
+  const serviceArgs: DeviceServiceArgs<Key> = without<typeof args, DeviceServiceArgs<Key>>(args)("deviceId");
   const response = await applyService<typeof k>(
     getServiceForProtocol(device.protocol),
     k,
     serviceArgs as DeviceServiceArgs<Key>,
     device
   );
+
+  console.log(`Service response: ${JSON.stringify(response)}`);
 
   if (response === undefined) {
     callback({ response: OVEUtils.raise("Command not available on device") });

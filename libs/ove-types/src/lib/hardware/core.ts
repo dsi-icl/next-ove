@@ -1,11 +1,9 @@
 import { CoreAPIRoutes, type CoreAPIRoutesType } from "./core-transform";
-import { BridgeServiceKeys } from "./bridge";
 import { z } from "zod";
 
 /* API Keys */
 
-export type CoreAPIKeys = keyof Omit<CoreAPIRoutesType,
-  "getDeviceAll" | "getDevicesAll" | "addDeviceAll" | "removeDeviceAll">;
+export type CoreAPIKeys = keyof CoreAPIRoutesType;
 
 /* API Type */
 
@@ -15,17 +13,7 @@ export type CoreAPIType = {
 
 /* API */
 
-export const CoreAPI =
-  (Object.keys(CoreAPIRoutes) as Array<keyof CoreAPIRoutesType>)
-    .reduce((acc, k) => {
-      if (BridgeServiceKeys.map(key => `${key}All`).includes(k)) {
-        return acc;
-      }
-      return {
-        ...acc,
-        [k]: CoreAPIRoutes[k]
-      };
-    }, {} as CoreAPIType);
+export {CoreAPIRoutes as CoreAPI}
 
 /* API Utility Types*/
 
