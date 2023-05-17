@@ -1,54 +1,63 @@
 {
   "name": "ove-core-ui",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/ove-core-ui",
+  "sourceRoot": "apps/ove-core-ui/src",
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nrwl/next:build",
+      "executor": "@nrwl/vite:build",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "root": "",
         "outputPath": "dist/apps/ove-core-ui"
       },
       "configurations": {
         "development": {
-          "outputPath": "apps/ove-core-ui"
+          "mode": "development"
         },
-        "production": {}
+        "production": {
+          "mode": "production"
+        }
       }
     },
     "serve": {
-      "executor": "@nrwl/next:server",
+      "executor": "@nrwl/vite:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "ove-core-ui:build",
-        "dev": true
+        "buildTarget": "ove-core-ui:build"
       },
       "configurations": {
         "development": {
           "buildTarget": "ove-core-ui:build:development",
-          "dev": true
+          "hmr": true
         },
         "production": {
           "buildTarget": "ove-core-ui:build:production",
-          "dev": false
+          "hmr": false
         }
       }
     },
-    "export": {
-      "executor": "@nrwl/next:export",
+    "preview": {
+      "executor": "@nrwl/vite:preview-server",
+      "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "ove-core-ui:build:production"
+        "buildTarget": "ove-core-ui:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "ove-core-ui:build:development"
+        },
+        "production": {
+          "buildTarget": "ove-core-ui:build:production"
+        }
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "@nrwl/vite:test",
+      "outputs": ["coverage/apps/ove-core-ui"],
       "options": {
-        "jestConfig": "apps/ove-core-ui/jest.config.ts",
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "reportsDirectory": "../../coverage/apps/ove-core-ui"
       }
     },
     "lint": {
@@ -56,6 +65,12 @@
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/ove-core-ui/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "serve-static": {
+      "executor": "@nrwl/web:file-server",
+      "options": {
+        "buildTarget": "ove-core-ui:build"
       }
     }
   },

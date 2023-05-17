@@ -1,4 +1,13 @@
-export const channels = {
-  GET_NOTIFICATIONS: "get_notifications",
-  GET_INFO: "get_info"
+export const channels: APIChannels = {
+  getInfo: "get-info",
+  getAppVersion: "get-app-version"
 };
+
+export type APIChannels = {
+  [Key in keyof API]: string
+}
+
+export type API = {
+  getInfo: (type?: string) => Promise<unknown>
+  getAppVersion: () => Promise<string>
+}

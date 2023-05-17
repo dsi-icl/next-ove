@@ -14,24 +14,23 @@ import {
   Service
 } from "./service";
 import {z} from "zod";
+import { readAsset } from "@ove/file-utils";
 
 export default () => {
-  console.log(`connecting to - ws://${env.CORE_URL}/hardware`);
   const socket: Socket<
     HardwareServerToClientEvents,
     HardwareClientToServerEvents
   > = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false });
-  socket.auth = { name: `${env.BRIDGE_NAME}` };
+  socket.auth = { username: env.BRIDGE_NAME, password: readAsset("public_key") };
   socket.connect();
-  console.log(`Testing: ${env.CORE_URL}`);
 
   socket.on("connect", () => {
-    console.log("Connected");
+    console.log("Connected to /hardware");
     console.log(socket.id);
   });
 
   socket.on("disconnect", () => {
-    console.log("Disconnected");
+    console.log("Disconnected from /hardware");
     console.log(socket.id);
   });
 

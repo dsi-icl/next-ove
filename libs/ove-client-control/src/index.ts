@@ -1,1 +1,1 @@
-export * as Service from "./lib/service";
+export {default} from "./lib/service";

@@ -1,15 +1,12 @@
 /* global process */
 
-import { app, BrowserWindow, desktopCapturer, ipcMain, screen } from "electron";
+import { app, BrowserWindow, desktopCapturer, screen } from "electron";
 import oveApp from "./app/app";
 import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
 import { environment } from "./environments/environment";
 import { ID } from "@ove/ove-types";
-import { channels } from "@ove/ove-client-shared";
-import { readAsset } from "@ove/file-utils";
-import service from "../../../libs/ove-client-control/src/lib/service";
 
 let appController: ReturnType<typeof oveApp> | null = null;
 
@@ -38,6 +35,13 @@ export const closeWindow = (idx: string) => {
   appController.closeWindow(idx);
 };
 
+export const triggerIPC = (event: string, ...args: any[]) => {
+  if (appController === null) {
+    throw new Error("App Controller not initialised");
+  }
+  appController.triggerIPC(event, ...args);
+};
+
 export const takeScreenshots = async () =>
   desktopCapturer.getSources({ types: ["screen"] });
 
@@ -62,8 +66,3 @@ export const initializeElectronEvents = () => {
     initUpdates();
   }
 };
-
-const getNotifications = () => readAsset("notifications.json", JSON.stringify([]));
-
-ipcMain.handle(channels.GET_NOTIFICATIONS, getNotifications);
-ipcMain.handle(channels.GET_INFO, (_event, args) => service().getInfo(args));

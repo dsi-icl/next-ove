@@ -1,1 +1,16 @@
 /* Your styles goes here. */
+.nav {
+  background-color: #002147;
+  width: 100vw;
+  height: 10vh;
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+  align-content: center;
+}
+
+.logo {
+  width: 9vmin;
+  height: 9vmin;
+  padding: 1vmin;
+}

@@ -1,5 +1,3 @@
-import { env } from "./lib/environments/env";
-import fileSetup from "./lib/environments/setup";
-import initHardware from "./lib/features/hardware/hardware-controller";
-
-export { env, fileSetup, initHardware };
+export { env } from "./lib/environments/env";
+export {default as fileSetup} from "./lib/environments/setup";
+export {default as initHardware} from "./lib/features/hardware/hardware-controller";

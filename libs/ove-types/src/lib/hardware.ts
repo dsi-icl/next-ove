@@ -70,7 +70,8 @@ export const DeviceSchema = z.object({
   port: z.number(),
   protocol: ServiceTypesSchema,
   mac: z.string(),
-  tags: z.array(z.string())
+  tags: z.array(z.string()),
+  auth: z.union([z.object({username: z.string(), password: z.string()}), z.boolean()]).nullable()
 });
 
 export type Device = z.infer<typeof DeviceSchema>;

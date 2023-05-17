@@ -127,6 +127,11 @@ export default (
       windows[idx]?.loadURL(
         url.toString()
       ).then(() => logger.info("Loaded"));
+    },
+    triggerIPC: (event: string, ...args: any[]) => {
+      if (defaultIdx !== null) {
+        windows[defaultIdx].webContents.send(event, ...args);
+      }
     }
   };
 };

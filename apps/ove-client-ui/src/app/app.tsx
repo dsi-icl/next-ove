@@ -1,15 +1,12 @@
 import "../styles.scss";
 import "github-markdown-css/github-markdown-light.css";
 import { useEffect, useState } from "react";
+import { API } from "@ove/ove-client-shared";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols
   interface Window {
-    electron: {
-      getNotifications: () => Promise<string[]>
-      getInfo: (type?: string) => Promise<unknown>
-      getAppVersion: () => Promise<string>
-    };
+    electron: API & {receive: (event: string, listener: (...args: any[]) => void) => void}
   }
 }
 
@@ -19,15 +16,18 @@ declare global {
  */
 export function App() {
   const [appVersion, setAppVersion] = useState("");
+  const [pin, setPin] = useState<string>("");
 
   useEffect(() => {
     window.electron.getAppVersion().then(setAppVersion);
+    window.electron.receive("update-pin", setPin);
   }, []);
 
   return (
     <>
       <article className="markdown-body">
         <h1>OVE Client - v{appVersion}</h1>
+        <p>{pin}</p>
       </article>
     </>
   );

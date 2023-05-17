@@ -8,12 +8,12 @@
       "executor": "@mands/nx-playwright:playwright-executor",
       "options": {
         "e2eFolder": "apps/ove-core-ui-e2e",
-        "devServerTarget": "core-ui:serve",
+        "devServerTarget": "ove-core-ui:serve",
         "packageRunner": "yarn"
       },
       "configurations": {
         "production": {
-          "devServerTarget": "core-ui:serve:production"
+          "devServerTarget": "ove-core-ui:serve:production"
         }
       }
     },

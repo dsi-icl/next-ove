@@ -109,7 +109,7 @@ export type BridgeAPIRoutesType = {
 
 export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
   getDevice: {
-    meta: { openapi: { method: "GET" as const, path: "/device/{deviceId}" } },
+    meta: { openapi: { method: "GET" as const, path: "/device/{deviceId}", protected: true } },
     args: z.object({ deviceId: z.string() }).strict(),
     returns: DeviceSchema,
     client: getDeviceResponseSchema(DeviceSchema),
@@ -117,7 +117,7 @@ export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
     exposed: "bridge"
   },
   getDevices: {
-    meta: { openapi: { method: "GET" as const, path: "/devices" } },
+    meta: { openapi: { method: "GET" as const, path: "/devices", protected: true } },
     args: z.object({ tag: z.string().optional() }).strict(),
     returns: z.array(DeviceSchema),
     client: getDeviceResponseSchema(z.array(DeviceSchema)),
@@ -125,7 +125,7 @@ export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
     exposed: "bridge"
   },
   addDevice: {
-    meta: { openapi: { method: "POST" as const, path: "/device" } },
+    meta: { openapi: { method: "POST" as const, path: "/device", protected: true } },
     args: z.object({ device: DeviceSchema }).strict(),
     returns: StatusSchema,
     client: getDeviceResponseSchema(StatusSchema),
@@ -136,7 +136,8 @@ export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
     meta: {
       openapi: {
         method: "DELETE" as const,
-        path: "/device/{deviceId}"
+        path: "/device/{deviceId}",
+        protected: true
       }
     },
     args: z.object({ deviceId: z.string() }).strict(),

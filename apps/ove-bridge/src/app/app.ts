@@ -95,6 +95,11 @@ export default (() => {
 
   return {
     isDevelopmentMode,
-    init
+    init,
+    triggerIPC: (event: string, ...args: any[]) => {
+      if (mainWindow !== null) {
+        mainWindow.webContents.send(event, ...args);
+      }
+    }
   };
 })();

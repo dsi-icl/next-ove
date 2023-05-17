@@ -15,12 +15,13 @@ import { logger } from "./utils";
 import {
   createWindow,
   takeScreenshots,
-  closeWindow
+  closeWindow,
+  triggerIPC
 } from "./electron";
 
 export const start = () => {
   const app = express();
-  init(createWindow, takeScreenshots, closeWindow);
+  init(createWindow, takeScreenshots, closeWindow, triggerIPC);
 
   app.use(cors({ origin: "*" }));
 

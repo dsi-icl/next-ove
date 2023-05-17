@@ -7,6 +7,8 @@
 
 import { app, ipcMain, type IpcMain } from "electron";
 import { environment } from "../../environments/environment";
+import { API, channels } from "@ove/ove-client-shared";
+import Service from "@ove/ove-client-control";
 
 /**
  * Electron events
@@ -21,11 +23,13 @@ export default class ElectronEvents {
   }
 }
 
-// Retrieve app version
-ipcMain.handle("get-app-version", () => {
-  console.log(`Fetching application version... [v${environment.version}]`);
+const IPCService: API = {
+  getAppVersion: async () => environment.version,
+  getInfo: async type => Service().getInfo(type)
+};
 
-  return environment.version;
+(Object.keys(channels) as Array<keyof API>).forEach(k => {
+  ipcMain.handle(channels[k], (_event, ...args) => IPCService[k](...args));
 });
 
 // Handle App termination
