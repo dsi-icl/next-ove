@@ -12,6 +12,7 @@ import {
   ScreenshotMethodSchema
 } from "@ove/ove-types";
 import { z } from "zod";
+import { readAsset } from "@ove/file-utils";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
@@ -19,11 +20,18 @@ globalAny.AbortController = AbortController;
 globalAny.fetch = fetch;
 globalAny.WebSocket = ws;
 
+const fixedEncodeURIComponent = (str: string) => encodeURIComponent(str).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16));
+
 const createClient = (device: Device) =>
   createTRPCProxyClient<AppRouter>({
     links: [
       httpLink({
-        url: `http://${device.ip}:${device.port}/api/v1/trpc`
+        url: `http://${device.ip}:${device.port}/api/v1/trpc`,
+        headers: () => {
+          return {
+            Authorization: fixedEncodeURIComponent(`Bearer ${readAsset("public_key")}`)
+          };
+        }
       })
     ],
     transformer: undefined

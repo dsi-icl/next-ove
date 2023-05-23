@@ -285,3 +285,7 @@ Temporary Items
 
 # Sandworm
 sandworm
+
+# REST Calls
+*.rest
+*.http

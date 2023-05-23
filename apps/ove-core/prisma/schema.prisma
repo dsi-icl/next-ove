@@ -8,8 +8,16 @@ datasource db {
 }
 
 model auth {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  password String
-  role     String
-  username String
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  password     String
+  role         String
+  username     String   @unique
+  refreshToken refresh?
+}
+
+model refresh {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  token  String @unique
+  userId String @unique @db.ObjectId
+  user   auth   @relation(fields: [userId], references: [id])
 }

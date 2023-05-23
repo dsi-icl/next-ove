@@ -14,13 +14,14 @@ export const io: Namespace<
 
 io.use(async (socket, next) => {
   const { username, password } = socket.handshake.auth;
-  const authorisedUsers = await new PrismaClient().auth.findMany({
+  const prisma = new PrismaClient();
+  const user = await prisma.auth.findUnique({
     where: {
-      role: "bridge"
+      username
     }
   });
 
-  if (authorisedUsers.find(user => user.username === username && user.password === password)) {
+  if (user?.role === "bridge" && password === user.password) {
     next();
   } else {
     next(new Error("UNAUTHORIZED"));

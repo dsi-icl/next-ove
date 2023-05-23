@@ -11,16 +11,14 @@ export const procedure = trpc.procedure;
 
 const isAuthed = trpc.middleware((opts) => {
   const { ctx } = opts;
-  if (ctx.user !== null && state.authorisedCredentials.includes(ctx.user)) {
-    return opts.next({
-      ctx: {
-        user: ctx.user,
-      },
-    });
-  }
 
-  throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (ctx.user === null || !state.authorisedCredentials.includes(ctx.user)) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+  return opts.next({
+    ctx: {
+      user: ctx.user
+    }
+  });
 });
 
 // you can reuse this for any procedure

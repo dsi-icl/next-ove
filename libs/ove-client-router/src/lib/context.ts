@@ -9,7 +9,7 @@ export const createContext = async ({
   req
 }: NodeHTTPCreateContextFnOptions<any, any>) => {
   const contextInner = await createInnerContext();
-  const user = req.headers.authorization ? req.headers.authorization.split(" ")[1] : null;
+  const user = req.headers.authorization ? decodeURIComponent(req.headers.authorization).split(" ").slice(1).join(" ") : null;
 
   return { user, ...contextInner };
 };

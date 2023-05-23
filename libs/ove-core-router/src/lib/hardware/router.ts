@@ -1,4 +1,4 @@
-import { procedure, router } from "../trpc";
+import { protectedProcedure, router } from "../trpc";
 import { io } from "./sockets";
 import {
   CoreAPI,
@@ -19,7 +19,7 @@ const getSocket: (socketId: string) => Socket<
   HardwareServerToClientEvents
 > = (socketId: string) => io.sockets.get(state.clients[socketId]);
 
-const generateProcedure = (k: CoreAPIKeys) => procedure
+const generateProcedure = (k: CoreAPIKeys) => protectedProcedure
   .meta(CoreAPI[k].meta)
   .input<CoreAPIType[typeof k]["args"]>(CoreAPI[k].args)
   .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge);
