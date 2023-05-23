@@ -1,5 +1,5 @@
-import { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 
 /**
  * Only allows navigation to a route if a condition is met.
@@ -8,7 +8,7 @@ import { Navigate } from 'react-router-dom'
 export default ({
   condition,
   redirectTo,
-  children,
+  children
 }: ConditionalRouteProps): JSX.Element => condition ? <>{children}</> :
   <Navigate to={redirectTo} replace />
 
