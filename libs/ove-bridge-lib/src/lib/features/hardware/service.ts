@@ -9,7 +9,7 @@ import {
   isAll,
   Optional,
   OVEExceptionSchema,
-  ServiceTypes
+  ServiceType
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../environments/env";
@@ -72,7 +72,7 @@ const filterUndefinedResponse = <T>(obj: {
   response: T | undefined;
 }): obj is { deviceId: string; response: T } => obj.response !== undefined;
 
-const getServiceForProtocol = (protocol: ServiceTypes): DeviceService => {
+const getServiceForProtocol = (protocol: ServiceType): DeviceService => {
   switch (protocol) {
     case "node":
       return NodeService;

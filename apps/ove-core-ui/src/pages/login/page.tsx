@@ -1,7 +1,6 @@
 import { FormEvent, useCallback } from "react";
-import { createTRPCProxyClient, httpLink } from "@trpc/client";
-import { AppRouter } from "@ove/ove-core-router";
 import { useNavigate } from "react-router-dom";
+import {createAuthClient} from "../../utils";
 
 export type Tokens = {
   access: string,
@@ -15,25 +14,6 @@ type PageProps = {
 export default ({ setTokens }: PageProps) => {
   const navigate = useNavigate();
 
-  const fixedEncodeURI = useCallback((str: string) =>
-    encodeURI(str).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16)), []);
-
-  const createClient = useCallback((username: string, password: string) =>
-    createTRPCProxyClient<AppRouter>({
-      links: [
-        httpLink({
-          url: `http://localhost:3333/api/v1/trpc`,
-          async headers() {
-            const auth = fixedEncodeURI(window.btoa(`${username}:${password}`));
-            return {
-              authorization: `Basic ${auth}`
-            };
-          }
-        })
-      ],
-      transformer: undefined
-    }), []);
-
   const handleAuth = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -45,7 +25,7 @@ export default ({ setTokens }: PageProps) => {
       return;
     }
 
-    const login = await createClient(username.toString(), password.toString()).login.mutate();
+    const login = await createAuthClient(username.toString(), password.toString()).login.mutate();
 
     if (login === undefined) {
       console.log("Incorrect login");

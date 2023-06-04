@@ -30,12 +30,12 @@ export const PJLinkSourceSchema = z.object({
 
 export type PJLinkSource = z.infer<typeof PJLinkSourceSchema>;
 
-export const ServiceTypesSchema = z.union([
+export const ServiceTypeSchema = z.union([
   z.literal("node"),
   z.literal("mdc"),
   z.literal("pjlink")
 ]);
-export type ServiceTypes = z.infer<typeof ServiceTypesSchema>;
+export type ServiceType = z.infer<typeof ServiceTypeSchema>;
 
 export const MDCSourceSchema = z.object({
   UNKNOWN: z.number(),
@@ -68,7 +68,7 @@ export const DeviceSchema = z.object({
   description: z.string(),
   ip: z.string(),
   port: z.number(),
-  protocol: ServiceTypesSchema,
+  protocol: ServiceTypeSchema,
   mac: z.string(),
   tags: z.array(z.string()),
   auth: z.union([z.object({username: z.string(), password: z.string()}), z.boolean()]).nullable()

@@ -1,36 +1,28 @@
-import { useCallback, useEffect } from "react";
-import { createTRPCProxyClient, httpLink } from "@trpc/client";
-import { AppRouter } from "@ove/ove-core-router";
-import { Helmet } from "react-helmet";
+import { useEffect, useState } from "react";
+import { createClient } from "../../utils";
+import Observatory from "./components/observatory";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
 export default () => {
-  const createClient = useCallback(() =>
-    createTRPCProxyClient<AppRouter>({
-      links: [
-        httpLink({
-          url: `http://localhost:3333/api/v1/trpc`,
-          async headers() {
-            const token: string = JSON.parse(localStorage.getItem("tokens")!!)["access"];
-            return {
-              authorization: `Bearer ${token}`
-            };
-          }
-        })
-      ],
-      transformer: undefined
-    }), []);
+  const [observatories, setObservatories] = useState<{
+    name: string,
+    isOnline: boolean
+  }[] | null>(null);
 
   useEffect(() => {
-    createClient().hardware.getStatus.query({
-      bridgeId: "dev",
-      deviceId: "0"
-    }).then(result => console.log(result));
+    const client = createClient();
+    client.hardware.getObservatories.query().then(setObservatories).catch(console.error);
   }, []);
 
-  return <main>
-    <Helmet>
-      <title>Next-OVE Hardware</title>
-    </Helmet>
-    <h1>Hardware Manager</h1>
-  </main>;
+  return <HelmetProvider>
+    <main>
+      <Helmet>
+        <title>Next-OVE Hardware</title>
+      </Helmet>
+      <h1>Hardware Manager</h1>
+      {observatories?.map(({ name, isOnline }) => <Observatory name={name}
+                                                               isOnline={isOnline}
+                                                               key={name} />)}
+    </main>
+  </HelmetProvider>;
 }

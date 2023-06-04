@@ -1,4 +1,4 @@
-import { protectedProcedure, router } from "../trpc";
+import { mergeRouters, protectedProcedure, router } from "../trpc";
 import { io } from "./sockets";
 import {
   CoreAPI,
@@ -11,6 +11,8 @@ import {
 } from "@ove/ove-types";
 import { Socket } from "socket.io";
 import { state } from "./state";
+import { z } from "zod";
+import { PrismaClient } from "@prisma/client";
 
 console.log("Initialising hardware component");
 
@@ -59,4 +61,28 @@ const routes = (Object.keys(CoreAPI) as Array<CoreAPIKeys>)
       generateQuery(k) : generateMutation(k)
   }), {} as Router);
 
-export const hardwareRouter = router(routes);
+const toBridgeRouter = router(routes);
+
+const coreRouter = router({
+  getObservatories: protectedProcedure
+    .meta({ openapi: { method: "GET", path: "/bridges", protect: true } })
+    .input(z.void())
+    .output(z.array(z.object({ name: z.string(), isOnline: z.boolean() })))
+    .query(async () => {
+      const prisma = new PrismaClient();
+      const observatories = await prisma.auth.findMany({
+        where: {
+          role: "bridge"
+        },
+        select: {
+          username: true
+        }
+      });
+      return observatories.map(({username}) => ({
+        name: username,
+        isOnline: Object.keys(state.clients).includes(username)
+      }));
+    })
+});
+
+export const hardwareRouter = mergeRouters(toBridgeRouter, coreRouter);
