@@ -33,14 +33,16 @@ export default ({ setTokens }: PageProps) => {
     }
 
     console.log("Logging in");
-    localStorage.setItem("tokens", JSON.stringify(login));
+    sessionStorage.setItem("tokens", JSON.stringify(login));
     setTokens(login);
     navigate("/", { replace: true });
   }, []);
 
   return <main>
     <h1>Login</h1>
-    <form method="post" spellCheck="false" onSubmit={e => handleAuth(e)}>
+    <form method="post" spellCheck="false" onSubmit={e => {
+      handleAuth(e).catch(console.error);
+    }}>
       <h4>Enter credentials:</h4>
       <label htmlFor="username">Enter Username:</label>
       <input id="username" type="text" name="username" />

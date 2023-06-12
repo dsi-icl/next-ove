@@ -26,7 +26,7 @@ export const createClient = () =>
       httpLink({
         url: `http://localhost:3333/api/v1/trpc`,
         async headers() {
-          const token: string = JSON.parse(localStorage.getItem("tokens")!!)["access"];
+          const token: string = JSON.parse(sessionStorage.getItem("tokens")!!)["access"];
           return {
             authorization: `Bearer ${token}`
           };

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 
 export function App() {
   const [tokens, setTokens] = useState<Tokens | null>(() => {
-    const stored = localStorage.getItem("tokens");
+    const stored = sessionStorage.getItem("tokens");
     if (stored === null) return stored;
     return JSON.parse(stored);
   });

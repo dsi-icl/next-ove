@@ -1,6 +1,17 @@
-import styles from "./nav.module.scss";
-import { Tokens } from "../pages/login/page";
+import * as React from "react";
+import {
+  cn,
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@ove/ui-base-components";
+import {HddStack} from "react-bootstrap-icons";
+import Icon from "../assets/icon.svg";
 import { Link, useLocation } from "react-router-dom";
+import { Tokens } from "../pages/login/page";
 
 export type NavProps = {
   tokens: Tokens | null
@@ -8,21 +19,93 @@ export type NavProps = {
   logout: () => void
 }
 
-export default ({tokens, login, logout}: NavProps) => {
+const Nav = ({ tokens, login, logout }: NavProps) => {
   const location = useLocation();
-  return <nav className={styles.nav}>
-    {location.pathname !== "/login" ?
-      <div style={{ display: "flex" }}>
-        <ul>
-          <li><Link to="/hardware" style={{
-            textDecoration: "none",
-            color: "white"
-          }}>Hardware</Link></li>
-        </ul>
-        {tokens === null ?
-          <button className={styles.login} onClick={() => login()}>Log
-            in</button> :
-          <button className={styles.login} onClick={() => logout()}>Log
-            out</button>}</div> : null}
-  </nav>
-}
+  return (
+    <>
+      <NavigationMenu
+        className={`items-center${location.pathname !== "/login" ? "" : " justify-start"} list-none`}>
+        <h1 className="z-50"></h1>
+        <Link to="/" className="mr-auto ml-2">
+          <NavigationMenuItem>
+            <img src={Icon} alt="OVE Core Icon" className="max-h-[10vh]" />
+          </NavigationMenuItem>
+        </Link>
+        {location.pathname !== "/login" ?
+          <NavigationMenuList className="mr-2">
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Hardware</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul
+                  className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                  <li className="row-span-3">
+                    <NavigationMenuLink asChild>
+                      <a
+                        className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+                        href="/hardware"
+                      >
+                        <HddStack />
+                        <h4 className="mb-2 mt-4 text-lg font-medium">
+                          Hardware Manager
+                        </h4>
+                        <p
+                          className="text-sm leading-tight text-muted-foreground">
+                          Manage all connected hardware.
+                        </p>
+                      </a>
+                    </NavigationMenuLink>
+                  </li>
+                  <ListItem href="/spaces" title="Spaces">
+                    Manage the OVE canvas.
+                  </ListItem>
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+            {tokens === null ?
+              <button onClick={() => login()}>
+                <NavigationMenuItem
+                  className="text-white p-[0.5rem] hover:bg-accent/50 rounded-md">
+                  <NavigationMenuLink>Log in</NavigationMenuLink>
+                </NavigationMenuItem>
+              </button> :
+              <button onClick={() => logout()}>
+                <NavigationMenuItem
+                  className="text-white p-[0.5rem] hover:bg-accent/50 rounded-md">
+                  <NavigationMenuLink>Log out</NavigationMenuLink>
+                </NavigationMenuItem>
+              </button>}
+
+          </NavigationMenuList> : null}
+      </NavigationMenu>
+    </>
+  );
+};
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p
+            className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
+
+export default Nav;
