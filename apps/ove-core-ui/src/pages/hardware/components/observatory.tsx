@@ -1,6 +1,6 @@
 import "react-data-grid/lib/styles.css";
 import DataGrid from "react-data-grid";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Device, is, OVEExceptionSchema, ServiceType } from "@ove/ove-types";
 import { createClient } from "../../../utils";
 
@@ -15,10 +15,13 @@ import {
   FileEarmarkCode,
   GpuCard
 } from "react-bootstrap-icons";
+import InfoDialog from "./info-dialog";
+import Snackbar from "./snackbar";
 
 export type ObservatoryProps = {
   name: string
   isOnline: boolean
+  style: object
 }
 
 const columns = [
@@ -31,16 +34,29 @@ const columns = [
   { key: "actions", name: "Actions" }
 ];
 
-export default ({ name, isOnline }: ObservatoryProps) => {
-  const [hardware, setHardware] = useState<Device[]>([]);
+type HardwareInfo = {
+  device: Device
+  status: boolean | null
+}
+
+type DeviceInfo = {
+  deviceId: string
+  data: object
+}
+
+export default ({ name, isOnline, style }: ObservatoryProps) => {
+  const [hardware, setHardware] = useState<HardwareInfo[]>([]);
+  const [info, setInfo] = useState<DeviceInfo | null>(null);
+  const dialog = useRef<HTMLDialogElement | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
   const getProtocolIcon = (protocol: ServiceType) => {
     switch (protocol) {
       case "node":
-        return <HddNetwork />;
+        return <HddNetwork style={{ margin: "0.6rem 0" }} />;
       case "mdc":
-        return <Display />;
+        return <Display style={{ margin: "0.6rem 0" }} />;
       case "pjlink":
-        return <Projector />;
+        return <Projector style={{ margin: "0.6rem 0" }} />;
     }
   };
 
@@ -50,35 +66,104 @@ export default ({ name, isOnline }: ObservatoryProps) => {
       if (!result || is(OVEExceptionSchema, result["bridgeResponse"])) {
         return;
       }
-      setHardware(result["bridgeResponse"]);
-    });
+      // @ts-ignore
+      setHardware(result["bridgeResponse"].map(device => ({
+        device,
+        status: null,
+        info: null
+      })));
+    }).catch(console.error);
   }, []);
 
-  return <section>
-    <h2>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
+  const updateStatus = async (deviceId: string) => {
+    const status = (await createClient().hardware.getStatus.query({
+      bridgeId: name,
+      deviceId
+    }))["bridgeResponse"] ? "running" : "off";
+    setHardware(cur => {
+      const idx = cur.findIndex(({ device: { id } }) => id === deviceId);
+      const copy = JSON.parse(JSON.stringify(cur));
+      copy[idx] = { ...copy[idx], status };
+      return copy;
+    });
+  };
+
+  useEffect(() => {
+    if (info === null) {
+      dialog.current?.close();
+    } else {
+      dialog.current?.showModal();
+    }
+  }, [info]);
+
+  const showNotification = (text: string) => {
+    setNotification(text);
+    setTimeout(() => {
+      setNotification(null);
+    }, 1_500);
+  };
+
+  const flatten = (obj: object): object => {
+    return (Object.keys(obj) as Array<keyof typeof obj>).reduce((acc, k) => {
+      if (typeof obj[k] === "object") {
+        return {
+          ...acc,
+          ...flatten(obj[k])
+        };
+      } else {
+        acc[k] = obj[k];
+        return acc;
+      }
+    }, {});
+  };
+
+  const updateInfo = async (deviceId: string) => {
+    const i = (await createClient().hardware.getInfo.query({
+      bridgeId: name,
+      deviceId
+    }))["bridgeResponse"];
+    console.log(JSON.stringify(i));
+    // @ts-ignore
+    delete i["type"];
+    // @ts-ignore
+    setInfo({ deviceId, data: flatten(i) });
+    showNotification("showing info");
+  };
+
+  return <section style={{ ...style, marginLeft: "2rem", marginRight: "2rem" }}>
+    <h2
+      style={{ fontWeight: "700" }}>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
+    {info === null ? null : <InfoDialog ref={dialog} info={info} setInfo={setInfo} />}
     {!isOnline ? null :
       <DataGrid className="rdg-light" columns={columns}
-                rows={hardware.map(device => ({
+                rows={hardware.map(({ device, status }) => ({
                   protocol: getProtocolIcon(device.protocol),
                   id: device.id,
                   hostname: device.ip,
                   mac: device.mac,
                   tags: device.tags,
-                  status: null,
-                  actions: <div>
-                    <div>
-                      <button><ArrowRepeat /></button>
-                      <button><InfoCircle /></button>
-                    </div>
-                    <div>
-                      <button><PlayCircle /></button>
-                      <button><StopCircle /></button>
-                      <button><FileEarmarkCode /></button>
-                    </div>
-                    <div>
-                      <button><GpuCard /></button>
-                    </div>
+                  status: status,
+                  actions: <div
+                    style={{ display: "flex", justifyContent: "space-around" }}>
+                    <button style={{ margin: "0.6rem 0" }}
+                            onClick={() => {
+                              updateStatus(device.id).catch(console.error);
+                            }} title="status">
+                      <ArrowRepeat /></button>
+                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
+                      updateInfo(device.id).catch(console.error);
+                    }} title="info">
+                      <InfoCircle /></button>
+                    <button style={{ margin: "0.6rem 0" }} title="start">
+                      <PlayCircle /></button>
+                    <button style={{ margin: "0.6rem 0" }} title="stop">
+                      <StopCircle /></button>
+                    <button style={{ margin: "0.6rem 0" }} title="execute">
+                      <FileEarmarkCode /></button>
+                    <button style={{ margin: "0.6rem 0" }} title="display">
+                      <GpuCard /></button>
                   </div>
                 }))} />}
+    {notification !== null ? <Snackbar text={notification} /> : null}
   </section>;
 }
