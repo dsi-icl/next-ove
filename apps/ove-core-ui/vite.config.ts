@@ -5,41 +5,25 @@ import viteTsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
   cacheDir: '../../node_modules/.vite/ove-core-ui',
-
   server: {
     port: 4202,
-    host: 'localhost',
+    host: '0.0.0.0',
       fs: {
         allow: [
-          // search up for workspace root
           searchForWorkspaceRoot(process.cwd()),
-          // your custom rules
-          // '/path/to/custom/allow',
         ],
       },
   },
-
   preview: {
     port: 4302,
-    host: 'localhost',
+    host: '0.0.0.0',
   },
-
   plugins: [
     react(),
     viteTsConfigPaths({
       root: '../../',
     }),
   ],
-
-  // Uncomment this if you are using workers.
-  // worker: {
-  //  plugins: [
-  //    viteTsConfigPaths({
-  //      root: '../../',
-  //    }),
-  //  ],
-  // },
-
   test: {
     globals: true,
     cache: {
