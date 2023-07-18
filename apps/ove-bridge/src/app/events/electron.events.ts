@@ -8,8 +8,14 @@
 import { app, ipcMain, type IpcMain } from "electron";
 import { environment } from "../../environments/environment";
 import { API, channels } from "@ove/ove-bridge-shared";
-import { readAsset, toAsset } from "@ove/file-utils";
+import { envPath, readAsset, toAsset, writeEnv } from "@ove/file-utils";
 import { Device } from "@ove/ove-types";
+import {
+  closeHardwareSocket,
+  env,
+  initEnv,
+  initHardware
+} from "@ove/ove-bridge-lib";
 
 export const bootstrapElectronEvents = (): IpcMain => ipcMain;
 
@@ -25,7 +31,16 @@ const IPCService: API = {
     devices[idx].auth = true;
 
     toAsset("hardware.json", devices);
-  }
+  },
+  updateEnv: async (coreURL, bridgeName) => {
+    process.env.CORE_URL = coreURL;
+    process.env.BRIDGE_NAME = bridgeName;
+    writeEnv({...env, CORE_URL: coreURL, BRIDGE_NAME: bridgeName});
+    initEnv(envPath);
+    closeHardwareSocket();
+    initHardware();
+  },
+  getEnv: async () => ({bridgeName: env.BRIDGE_NAME, coreURL: env.CORE_URL})
 };
 
 (Object.keys(channels) as Array<keyof API>).forEach(k => {

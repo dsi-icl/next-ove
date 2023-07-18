@@ -3,9 +3,17 @@
   background-color: #002147;
   width: 100vw;
   height: 10vh;
+  display: flex;
+}
+
+.logo-container {
+  width: 10vmin;
+  height: 10vmin;
+  display: block;
 }
 
 .logo {
+  display: block;
   width: 9vmin;
   height: 9vmin;
   padding: 1vmin;

@@ -1,4 +1,5 @@
 import "../styles.scss";
+import styles from "./app.module.scss";
 import "github-markdown-css/github-markdown-light.css";
 import { useEffect, useState } from "react";
 import { API } from "@ove/ove-client-shared";
@@ -15,22 +16,13 @@ declare global {
  * @constructor
  */
 export function App() {
-  const [appVersion, setAppVersion] = useState("");
   const [pin, setPin] = useState<string>("");
 
   useEffect(() => {
-    window.electron.getAppVersion().then(setAppVersion);
     window.electron.receive("update-pin", setPin);
   }, []);
 
-  return (
-    <>
-      <article className="markdown-body">
-        <h1>OVE Client - v{appVersion}</h1>
-        <p>{pin}</p>
-      </article>
-    </>
-  );
+  return <h1 className={styles.pin}>{pin}</h1>;
 }
 
 export default App;

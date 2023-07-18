@@ -4,7 +4,9 @@ export const channels: APIChannels = {
   getDevicesToAuth: "get-auth",
   getAppVersion: "get-app-version",
   getPublicKey: "get-public-key",
-  registerAuth: "register-auth"
+  registerAuth: "register-auth",
+  updateEnv: "update-env",
+  getEnv: "get-env",
 };
 
 export type APIChannels = {
@@ -16,4 +18,6 @@ export type API = {
   getDevicesToAuth: () => Promise<Device[]>
   getPublicKey: () => Promise<string>
   registerAuth: (id: string) => Promise<void>
+  updateEnv: (coreURL: string, bridgeName: string) => Promise<void>
+  getEnv: () => Promise<{bridgeName: string, coreURL: string}>
 }

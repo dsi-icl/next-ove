@@ -21,9 +21,8 @@ const server = z.object({
  *  @ts-ignore - can't type this properly in jsdoc */
 let env: z.infer<typeof server> = process.env;
 
-export const initEnv = (path: string) => {
+const initEnv = (path: string) => {
   dotenv.config({ path });
-  console.log(process.env.CORE_URL);
   if (process.env.SKIP_ENV_VALIDATION) return;
   const processEnv = {
     NODE_ENV: process.env.NODE_ENV,
@@ -51,4 +50,4 @@ export const initEnv = (path: string) => {
   });
 };
 
-export { env };
+export { env, initEnv };
