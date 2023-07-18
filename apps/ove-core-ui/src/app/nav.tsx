@@ -32,6 +32,7 @@ const Nav = ({ auth, icon: { asset, alt } }: NavProps) => {
   if (auth === null) {
     loginSection = null;
   }
+
   return (
     <>
       <NavigationMenu

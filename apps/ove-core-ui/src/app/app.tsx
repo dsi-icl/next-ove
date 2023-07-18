@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Tokens } from "../pages/login/page";
 import { useNavigate } from "react-router-dom";
 
+import Logo from "../assets/icon.svg";
+
 
 export function App() {
   const [tokens, setTokens] = useState<Tokens | null>(() => {
@@ -26,7 +28,7 @@ export function App() {
 
   return (
     <>
-      <Nav tokens={tokens} login={login} logout={logout} />
+      <Nav auth={{tokens, login, logout}} icon={{asset: Logo, alt: "OVE Core Logo"}} />
       <Router tokens={tokens} setTokens={(tokens) => setTokens(tokens)} />
     </>
   );
