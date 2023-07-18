@@ -6,32 +6,43 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
+  NavigationMenuTrigger
 } from "@ove/ui-base-components";
-import {HddStack} from "react-bootstrap-icons";
-import Icon from "../assets/icon.svg";
+import { HddStack } from "react-bootstrap-icons";
 import { Link, useLocation } from "react-router-dom";
 import { Tokens } from "../pages/login/page";
 
 export type NavProps = {
-  tokens: Tokens | null
-  login: () => void
-  logout: () => void
+  auth: {
+    tokens: Tokens | null
+    login: () => void
+    logout: () => void
+  } | null
+  icon: {
+    asset: string
+    alt: string
+  }
 }
 
-const Nav = ({ tokens, login, logout }: NavProps) => {
+const Nav = ({ auth, icon: { asset, alt } }: NavProps) => {
   const location = useLocation();
+  const isLogin = auth !== null && location.pathname === "/login";
+  let loginSection = null;
+
+  if (auth === null) {
+    loginSection = null;
+  }
   return (
     <>
       <NavigationMenu
-        className={`items-center${location.pathname !== "/login" ? "" : " justify-start"} list-none`}>
+        className={`items-center${isLogin ? "" : " justify-start"} list-none`}>
         <h1 className="z-50"></h1>
         <Link to="/" className="mr-auto ml-2">
           <NavigationMenuItem>
-            <img src={Icon} alt="OVE Core Icon" className="max-h-[10vh]" />
+            <img src={asset} alt={alt} className="max-h-[10vh]" />
           </NavigationMenuItem>
         </Link>
-        {location.pathname !== "/login" ?
+        {isLogin ? null :
           <NavigationMenuList className="mr-2">
             <NavigationMenuItem>
               <NavigationMenuTrigger>Hardware</NavigationMenuTrigger>
@@ -61,21 +72,9 @@ const Nav = ({ tokens, login, logout }: NavProps) => {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
-            {tokens === null ?
-              <button onClick={() => login()}>
-                <NavigationMenuItem
-                  className="text-white p-[0.5rem] hover:bg-accent/50 rounded-md">
-                  <NavigationMenuLink>Log in</NavigationMenuLink>
-                </NavigationMenuItem>
-              </button> :
-              <button onClick={() => logout()}>
-                <NavigationMenuItem
-                  className="text-white p-[0.5rem] hover:bg-accent/50 rounded-md">
-                  <NavigationMenuLink>Log out</NavigationMenuLink>
-                </NavigationMenuItem>
-              </button>}
+            {}
 
-          </NavigationMenuList> : null}
+          </NavigationMenuList>}
       </NavigationMenu>
     </>
   );

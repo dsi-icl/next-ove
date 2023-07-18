@@ -17,6 +17,7 @@ import {
 } from "react-bootstrap-icons";
 import InfoDialog from "./info-dialog";
 import Snackbar from "./snackbar";
+import ConsoleDialog from "./console-dialog";
 
 export type ObservatoryProps = {
   name: string
@@ -49,6 +50,8 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
   const [info, setInfo] = useState<DeviceInfo | null>(null);
   const dialog = useRef<HTMLDialogElement | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const consoleDialog = useRef<HTMLDialogElement | null>(null);
+  const [openConsole, setOpenConsole] = useState<boolean>(false);
   const getProtocolIcon = (protocol: ServiceType) => {
     switch (protocol) {
       case "node":
@@ -127,13 +130,43 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
     delete i["type"];
     // @ts-ignore
     setInfo({ deviceId, data: flatten(i) });
-    showNotification("showing info");
+  };
+
+  const startDevice = async (deviceId: string) => {
+    /*await createClient().hardware.start.mutate({
+      bridgeId: name,
+      deviceId
+    });*/
+    showNotification(`Started ${deviceId}`);
+  };
+
+  const stopDevice = async (deviceId: string) => {
+    /*await createClient().hardware.stop.mutate({
+      bridgeId: name,
+      deviceId
+    });*/
+    showNotification(`Stopped ${deviceId}`);
+  };
+
+  const openTerminal = async (deviceId: string) => {
+    setOpenConsole(true);
+  };
+
+  useEffect(() => {
+    if (!openConsole) return;
+    consoleDialog.current?.showModal();
+  }, [openConsole]);
+
+  const closeTerminal = () => {
+    consoleDialog.current?.close();
+    setOpenConsole(false);
   };
 
   return <section style={{ ...style, marginLeft: "2rem", marginRight: "2rem" }}>
     <h2
       style={{ fontWeight: "700" }}>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
     {info === null ? null : <InfoDialog ref={dialog} info={info} setInfo={setInfo} />}
+    {openConsole ? <ConsoleDialog ref={consoleDialog} close={closeTerminal} /> : null}
     {!isOnline ? null :
       <DataGrid className="rdg-light" columns={columns}
                 rows={hardware.map(({ device, status }) => ({
@@ -154,11 +187,17 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
                       updateInfo(device.id).catch(console.error);
                     }} title="info">
                       <InfoCircle /></button>
-                    <button style={{ margin: "0.6rem 0" }} title="start">
+                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
+                      startDevice(device.id).catch(console.error);
+                    }} title="start">
                       <PlayCircle /></button>
-                    <button style={{ margin: "0.6rem 0" }} title="stop">
+                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
+                      stopDevice(device.id).catch(console.error);
+                    }} title="stop">
                       <StopCircle /></button>
-                    <button style={{ margin: "0.6rem 0" }} title="execute">
+                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
+                      openTerminal(device.id).catch(console.error);
+                    }} title="execute">
                       <FileEarmarkCode /></button>
                     <button style={{ margin: "0.6rem 0" }} title="display">
                       <GpuCard /></button>
