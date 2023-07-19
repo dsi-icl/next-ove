@@ -2,8 +2,6 @@ import { z } from "zod";
 
 export const ResponseSchema = z.object({ response: z.string() });
 
-export type Response = z.infer<typeof ResponseSchema>;
-
 export const OVEExceptionSchema = z.object({
   oveError: z.string()
 });
@@ -19,3 +17,8 @@ export const isAll = <T extends z.ZodTypeAny>(
   schema: T,
   obj: unknown[]
 ): obj is z.infer<T>[] => z.array(schema).safeParse(obj).success;
+
+export type Tokens = {
+  access: string,
+  refresh: string
+}

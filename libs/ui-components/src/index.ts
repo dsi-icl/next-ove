@@ -1,1 +1,3 @@
-export * from './lib/ui-components';
+import { default as Nav } from "./lib/nav";
+
+export { Nav };

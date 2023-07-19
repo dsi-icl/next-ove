@@ -1,7 +1,8 @@
 import Home from "../pages/home/page";
+import Login from "../pages/login/page";
+import { Tokens } from "@ove/ove-types";
 import Hardware from "../pages/hardware/page";
 import { Route, Routes } from "react-router-dom";
-import Login, { Tokens } from "../pages/login/page";
 import ProtectedRoute from "../components/protected-route";
 
 export type RouterProps = {

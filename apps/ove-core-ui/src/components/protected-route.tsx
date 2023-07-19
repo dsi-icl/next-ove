@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
 /**
@@ -22,5 +21,5 @@ export type ConditionalRouteProps = {
   /** The route to redirect to if `condition` is false */
   redirectTo: string
 
-  children?: ReactNode
+  children?: JSX.Element
 }
