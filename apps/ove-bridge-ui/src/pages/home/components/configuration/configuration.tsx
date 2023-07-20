@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 
+import styles from "./configuration.module.scss";
+
 const Configuration = () => {
   const [displayCoreURL, setDisplayCoreURL] = useState("");
   const [displayBridgeName, setDisplayBridgeName] = useState("");
@@ -23,30 +25,14 @@ const Configuration = () => {
     });
   }, []);
 
-  return <section style={{margin: "2rem 0 0", width: "50vw", display: "flex", flexDirection: "column", alignItems: "center"}}>
-    <h2 style={{ fontWeight: 700, fontSize: "24px" }}>Update Environment</h2>
-    <form method="post" onSubmit={e => updateCoreURL(e)} style={{marginTop: "1rem", display: "flex", flexDirection: "column", width: "20vw"}}>
-      <label htmlFor="core-url"
-             style={{ fontWeight: "700", marginTop: "2rem" }}>Core URL</label>
-      <input id="core-url" type="text" name="core-url" style={{
-        border: "1px solid black",
-        padding: "0.5rem",
-        borderRadius: "20px"
-      }} defaultValue={displayCoreURL} />
-      <label htmlFor="bridge-name"
-             style={{ fontWeight: "700", marginTop: "1rem" }}>Bridge Name</label>
-      <input id="bridge-name" type="text" name="bridge-name" style={{
-        border: "1px solid black",
-        padding: "0.5rem",
-        borderRadius: "20px"
-      }} defaultValue={displayBridgeName} />
-      <button type="submit" style={{
-        color: "white",
-        backgroundColor: "#002147",
-        marginTop: "3rem",
-        padding: "0.5rem",
-        borderRadius: "20px"
-      }}>Update
+  return <section className={styles.section}>
+    <h2>Update Environment</h2>
+    <form method="post" onSubmit={e => updateCoreURL(e)} className={styles.form}>
+      <label htmlFor="core-url">Core URL</label>
+      <input id="core-url" type="text" name="core-url" defaultValue={displayCoreURL} />
+      <label htmlFor="bridge-name">Bridge Name</label>
+      <input id="bridge-name" type="text" name="bridge-name" defaultValue={displayBridgeName} />
+      <button type="submit">Update
       </button>
     </form>
   </section>;

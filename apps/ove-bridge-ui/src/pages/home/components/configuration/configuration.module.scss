@@ -1,0 +1,38 @@
+.section {
+  margin: 2rem 0 0;
+  width: 50vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h2 {
+    font-weight: 700;
+    font-size: 24px;
+  }
+}
+
+.form {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: 20vw;
+
+  label {
+    font-weight: 700;
+    margin-top: 2rem;
+  }
+
+  input {
+    border: 1px solid black;
+    padding: 0.5rem;
+    border-radius: 20px;
+  }
+
+  button {
+    color: white;
+    background-color: #002147;
+    margin-top: 3rem;
+    padding: 0.5rem;
+    border-radius: 20px;
+  }
+}
