@@ -1,5 +1,5 @@
 .section {
-  width: 50vw;
+  width: 40vw;
   margin: 2rem 0 0;
 
   h2 {
@@ -13,7 +13,7 @@
 .key-container {
   display: flex;
 
-  button {
+  * {
     margin: auto;
   }
 }
