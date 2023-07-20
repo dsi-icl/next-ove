@@ -4,7 +4,7 @@
  * This module is responsible on handling all the inter process communications
  * between the frontend to the electron backend.
  */
-
+import * as schedule from "node-schedule";
 import { app, ipcMain, type IpcMain } from "electron";
 import { environment } from "../../environments/environment";
 import { API, channels } from "@ove/ove-bridge-shared";
@@ -18,6 +18,10 @@ import {
 } from "@ove/ove-bridge-lib";
 
 export const bootstrapElectronEvents = (): IpcMain => ipcMain;
+
+process.on("SIGINT", () => {
+  schedule.gracefulShutdown().then(() => process.exit(0));
+});
 
 const IPCService: API = {
   getAppVersion: async () => environment.version,
@@ -55,7 +59,18 @@ const IPCService: API = {
   },
   deleteDevice: async deviceId => {
     toAsset("hardware.json", (readAsset("hardware.json") as Device[]).filter(({id}) => id !== deviceId), true);
-  }
+  },
+  setAutoSchedule: async (autoSchedule) => {
+    await schedule.gracefulShutdown();
+    console.log(JSON.stringify(autoSchedule));
+    schedule.scheduleJob(new Date(Date.now() + 5000), () => console.log("Triggered Auto"));
+  },
+  setEcoSchedule: async (ecoSchedule) => {
+    await schedule.gracefulShutdown();
+    console.log(JSON.stringify(ecoSchedule));
+    schedule.scheduleJob(new Date(Date.now() + 5000), () => console.log("Triggered Eco"));
+  },
+  clearSchedule: () => schedule.gracefulShutdown().catch(console.error)
 };
 
 (Object.keys(channels) as Array<keyof API>).forEach(k => {

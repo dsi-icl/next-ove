@@ -9,7 +9,10 @@ export const channels: APIChannels = {
   getEnv: "get-env",
   getDevices: "get-devices",
   saveDevice: "save-device",
-  deleteDevice: "delete-device"
+  deleteDevice: "delete-device",
+  setAutoSchedule: "set-auto-schedule",
+  setEcoSchedule: "set-eco-schedule",
+  clearSchedule: "clear-schedule"
 };
 
 export type APIChannels = {
@@ -26,4 +29,7 @@ export type API = {
   getDevices: () => Promise<Device[]>
   saveDevice: (device: Device) => Promise<void>
   deleteDevice: (deviceId: string) => Promise<void>
+  setAutoSchedule: (schedule: object) => Promise<void>
+  setEcoSchedule: (schedule: object) => Promise<void>
+  clearSchedule: () => Promise<void>
 }

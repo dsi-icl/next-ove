@@ -54,11 +54,25 @@ const Calendar = () => {
     }))));
   }, []);
 
+  useEffect(() => {
+    switch (mode) {
+      case "manual":
+        window.electron.clearSchedule().catch(console.error);
+        break;
+      case "auto":
+        window.electron.setAutoSchedule({}).catch(console.error);
+        break;
+      case "eco":
+        window.electron.setEcoSchedule({}).catch(console.error);
+        break;
+    }
+  }, [mode]);
+
   return <section className={styles.section}>
     <div className={styles["mode-container"]}>
-      <button style={{backgroundColor: mode === "manual" ? "lightgreen" : "lightgrey"}}>Manual</button>
-      <button style={{backgroundColor: mode === "auto" ? "lightgreen" : "lightgrey"}}>Auto</button>
-      <button style={{backgroundColor: mode === "auto" ? "lightgreen" : "lightgrey"}}>Eco</button>
+      <button style={{backgroundColor: mode === "manual" ? "lightgreen" : "lightgrey"}} onClick={() => setMode("manual")}>Manual</button>
+      <button style={{backgroundColor: mode === "auto" ? "lightgreen" : "lightgrey"}} onClick={() => setMode("auto")}>Auto</button>
+      <button style={{backgroundColor: mode === "eco" ? "lightgreen" : "lightgrey"}} onClick={() => setMode("eco")}>Eco</button>
     </div>
     <CalendarDisplay
       localizer={localizer}
