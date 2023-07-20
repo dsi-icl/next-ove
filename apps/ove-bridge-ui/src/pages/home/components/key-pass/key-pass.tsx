@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {Clipboard} from "react-bootstrap-icons";
 import { Snackbar } from "@ove/ui-components";
+import styles from "./key-pass.module.scss";
 
 const KeyPass = () => {
   const [displayPublicKey, setDisplayPublicKey] = useState("");
@@ -18,11 +19,11 @@ const KeyPass = () => {
     };
   }, [isCopied]);
 
-  return <section style={{width: "50vw", margin: "2rem 0 0"}}>
-    <h2 style={{fontSize: "24px", fontWeight: 700, width: "100%", textAlign: "center"}}>Public Key</h2>
-    <div style={{display: "flex"}}>
+  return <section className={styles.section}>
+    <h2>Public Key</h2>
+    <div className={styles["key-container"]}>
       <p>{displayPublicKey.slice(0, 50)} .....</p>
-      <button style={{margin: "auto"}} onClick={async () => {
+      <button onClick={async () => {
         await navigator.clipboard.writeText(JSON.stringify(displayPublicKey));
         setIsCopied(true);
       }}><Clipboard /></button>
