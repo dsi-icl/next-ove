@@ -1,12 +1,15 @@
 import { Device } from "@ove/ove-types";
 
 export const channels: APIChannels = {
-  getDevicesToAuth: "get-auth",
+  getDevicesToAuth: "get-devices-auth",
   getAppVersion: "get-app-version",
   getPublicKey: "get-public-key",
-  registerAuth: "register-auth",
+  registerAuth: "edit-device-hardware-auth",
   updateEnv: "update-env",
   getEnv: "get-env",
+  getDevices: "get-devices",
+  saveDevice: "save-device",
+  deleteDevice: "delete-device"
 };
 
 export type APIChannels = {
@@ -20,4 +23,7 @@ export type API = {
   registerAuth: (id: string) => Promise<void>
   updateEnv: (coreURL: string, bridgeName: string) => Promise<void>
   getEnv: () => Promise<{bridgeName: string, coreURL: string}>
+  getDevices: () => Promise<Device[]>
+  saveDevice: (device: Device) => Promise<void>
+  deleteDevice: (deviceId: string) => Promise<void>
 }

@@ -21,7 +21,8 @@ export type NavProps = {
   }
   content: {
     title: string
-    card: JSX.Element
+    card: JSX.Element | null
+    item: JSX.Element | null
   }[]
 }
 
@@ -46,11 +47,11 @@ const Nav = ({ auth, icon: { asset, alt }, content }: NavProps) => {
         </Link>
         {isLogin ? null :
           <NavigationMenuList className="mr-2">
-            {content.map(({title, card}) => <NavigationMenuItem>
-              <NavigationMenuTrigger>{title}</NavigationMenuTrigger>
+            {content.map(({title, card, item}) => <NavigationMenuItem key={title}>
+              {card !== null ? <><NavigationMenuTrigger>{title}</NavigationMenuTrigger>
               <NavigationMenuContent>
                 {card}
-              </NavigationMenuContent>
+              </NavigationMenuContent></> : item}
             </NavigationMenuItem>)}
           </NavigationMenuList>}
       </NavigationMenu>

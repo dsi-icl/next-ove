@@ -41,7 +41,7 @@ const closeBrowser = (browser: Browser) => {
 
 const openBrowser = (url?: string, displayId?: ID) => {
   if (controller.createWindow === null) {
-    throw new Error("Cannot create window as missing function");
+    throw new Error("Cannot edit-device window as missing function");
   }
   return controller.createWindow(url, displayId);
 };

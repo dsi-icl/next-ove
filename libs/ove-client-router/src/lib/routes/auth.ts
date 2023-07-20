@@ -6,7 +6,7 @@ import { toAsset } from "@ove/file-utils";
 
 export const authRouter = router({
   register: procedure
-    .meta({ openapi: { method: "POST", path: "/register" } })
+    .meta({ openapi: { method: "POST", path: "/edit-device" } })
     .input(z.object({ pin: z.string(), key: z.string() }))
     .output(StatusSchema)
     .mutation(({ input: { pin, key } }) => {

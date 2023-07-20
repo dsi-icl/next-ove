@@ -1,13 +1,15 @@
-import { Route, Routes, Link } from "react-router-dom";
+import Router from "./router";
+import Logo from "../assets/icon.svg";
+import { Nav } from "@ove/ui-components";
 import { API } from "@ove/ove-bridge-shared";
-import styles from "./app.module.scss";
-import Home from "../pages/home/home";
-import Auth from "../pages/auth/auth";
+import { NavigationMenuLink } from "@ove/ui-base-components";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols
   interface Window {
-    electron: API & {receive: (event: string, listener: (...args: any[]) => void) => void};
+    electron: API & {
+      receive: (event: string, listener: (...args: any[]) => void) => void
+    };
   }
 }
 
@@ -16,28 +18,20 @@ declare global {
  * @constructor
  */
 export function App() {
+  const navContent = [{
+    title: "Hardware",
+    card: null,
+    item: <NavigationMenuLink asChild style={{margin: "0 2rem"}}><a href="/hardware" style={{color: "white"}}>Hardware</a></NavigationMenuLink>
+  }];
+
   return (
     <>
-      <nav className={styles.nav}>
-        <Link to="/" className={styles["logo-container"]}><img src={"/icon.svg"} alt={"OVE Client Logo"}
-                          className={styles.logo}></img></Link>
-        <ul>
-          <li><Link to="/auth" style={{
-            color: "white",
-            textDecoration: "none"
-          }}>Auth</Link></li>
-        </ul>
-      </nav>
-      <Routes>
-        <Route
-          path="/"
-          element={<Home />}
-        />
-        <Route
-          path="/auth"
-          element={<Auth />}
-        />
-      </Routes>
+      <Nav auth={{
+        tokens: null, login: () => {
+        }, logout: () => {
+        }
+      }} icon={{ asset: Logo, alt: "OVE Bridge Icon" }} content={navContent} />
+      <Router />
     </>
   );
 }

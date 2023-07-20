@@ -40,7 +40,22 @@ const IPCService: API = {
     closeHardwareSocket();
     initHardware();
   },
-  getEnv: async () => ({bridgeName: env.BRIDGE_NAME, coreURL: env.CORE_URL})
+  getEnv: async () => ({bridgeName: env.BRIDGE_NAME, coreURL: env.CORE_URL}),
+  getDevices: async () => readAsset("hardware.json") as Device[],
+  saveDevice: async (device: Device) => {
+    const devices = readAsset("hardware.json") as Device[];
+    const existingDevice = devices.findIndex(({id}) => id === device.id);
+    if (existingDevice === -1) {
+      devices.push(device);
+    } else {
+      devices[existingDevice] = device;
+    }
+
+    toAsset("hardware.json", devices, true);
+  },
+  deleteDevice: async deviceId => {
+    toAsset("hardware.json", (readAsset("hardware.json") as Device[]).filter(({id}) => id !== deviceId), true);
+  }
 };
 
 (Object.keys(channels) as Array<keyof API>).forEach(k => {

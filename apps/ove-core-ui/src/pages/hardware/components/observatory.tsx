@@ -16,8 +16,8 @@ import {
   GpuCard
 } from "react-bootstrap-icons";
 import InfoDialog from "./info-dialog";
-import Snackbar from "./snackbar";
 import ConsoleDialog from "./console-dialog";
+import { Snackbar } from "@ove/ui-components";
 
 export type ObservatoryProps = {
   name: string
