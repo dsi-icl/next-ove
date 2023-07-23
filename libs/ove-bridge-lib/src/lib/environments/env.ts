@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { z } from "zod";
 import * as dotenv from "dotenv";
+import { PowerModeSchema } from "@ove/ove-types";
 
 /**
  * Specify your server-side environment variables schema here.
@@ -11,7 +12,8 @@ import * as dotenv from "dotenv";
 const server = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   CORE_URL: z.string(),
-  BRIDGE_NAME: z.string()
+  BRIDGE_NAME: z.string(),
+  POWER_MODE: PowerModeSchema
 });
 
 // Don't touch the part below
@@ -27,7 +29,8 @@ const initEnv = (path: string) => {
   const processEnv = {
     NODE_ENV: process.env.NODE_ENV,
     CORE_URL: process.env.CORE_URL,
-    BRIDGE_NAME: process.env.BRIDGE_NAME
+    BRIDGE_NAME: process.env.BRIDGE_NAME,
+    POWER_MODE: process.env.POWER_MODE ?? "manual"
   };
   const parsed = server.safeParse(processEnv);
 

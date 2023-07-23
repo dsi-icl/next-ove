@@ -6,7 +6,8 @@ import { envPath, toAsset, writeEnv } from "@ove/file-utils";
 export default () => {
   const initialEnv = {
     CORE_URL: "",
-    BRIDGE_NAME: ""
+    BRIDGE_NAME: "",
+    POWER_MODE: "manual"
   };
 
   writeEnv(initialEnv, false);

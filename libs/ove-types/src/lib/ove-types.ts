@@ -22,3 +22,12 @@ export type Tokens = {
   access: string,
   refresh: string
 }
+
+export const PowerModeSchema = z.union([z.literal("manual"), z.literal("auto"), z.literal("eco")]);
+export type PowerMode = z.infer<typeof PowerModeSchema>
+
+export type CalendarEvent = {
+  title: string
+  start: Date
+  end: Date
+}

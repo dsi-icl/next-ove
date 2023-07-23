@@ -11,6 +11,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parseISO } from "date-fns";
 import styles from "./calendar.module.scss";
 import { useEffect, useState } from "react";
+import { PowerMode } from "@ove/ove-types";
 
 const locales = {
   "en-GB": enGB
@@ -44,17 +45,23 @@ type CalendarEvent = {
 
 const Calendar = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [mode, setMode] = useState<"manual" | "auto" | "eco">("manual");
+  const [mode, setMode] = useState<PowerMode | null>(null);
 
   useEffect(() => {
-    fetch("/test.json").then(res => res.json() as unknown as OutlookEvents).then(data => setEvents(data["value"].map(event => ({
-      title: event["subject"],
-      start: parseISO(event["start"]["dateTime"]),
-      end: parseISO(event["end"]["dateTime"])
-    }))));
+    fetch("/test.json").then(res => res.json() as unknown as OutlookEvents).then(data => {
+      setEvents(data["value"].map(event => {
+        return ({
+          title: event["subject"],
+          start: parseISO(`${event["start"]["dateTime"]}Z`),
+          end: parseISO(`${event["end"]["dateTime"]}Z`)
+        });
+      }));
+      window.electron.getMode().then(setMode);
+    });
   }, []);
 
   useEffect(() => {
+    if (mode === null) return;
     switch (mode) {
       case "manual":
         window.electron.clearSchedule().catch(console.error);
@@ -63,7 +70,7 @@ const Calendar = () => {
         window.electron.setAutoSchedule({}).catch(console.error);
         break;
       case "eco":
-        window.electron.setEcoSchedule({}).catch(console.error);
+        window.electron.setEcoSchedule(events).catch(console.error);
         break;
     }
   }, [mode]);

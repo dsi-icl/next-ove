@@ -1,4 +1,4 @@
-import { Device } from "@ove/ove-types";
+import { CalendarEvent, Device, PowerMode } from "@ove/ove-types";
 
 export const channels: APIChannels = {
   getDevicesToAuth: "get-devices-auth",
@@ -12,7 +12,8 @@ export const channels: APIChannels = {
   deleteDevice: "delete-device",
   setAutoSchedule: "set-auto-schedule",
   setEcoSchedule: "set-eco-schedule",
-  clearSchedule: "clear-schedule"
+  clearSchedule: "clear-schedule",
+  getMode: "get-mode"
 };
 
 export type APIChannels = {
@@ -30,6 +31,7 @@ export type API = {
   saveDevice: (device: Device) => Promise<void>
   deleteDevice: (deviceId: string) => Promise<void>
   setAutoSchedule: (schedule: object) => Promise<void>
-  setEcoSchedule: (schedule: object) => Promise<void>
+  setEcoSchedule: (schedule: CalendarEvent[]) => Promise<void>
   clearSchedule: () => Promise<void>
+  getMode: () => Promise<PowerMode>
 }
