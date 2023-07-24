@@ -9,7 +9,7 @@
 .mode-container {
   width: calc(60vw - 2rem);
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
   margin-bottom: 1rem;
 
   button {
