@@ -32,7 +32,7 @@ const buildRebootCommand = () => {
   } else if (isWindows()) {
     return "shutdown.exe /r /f";
   } else {
-    throw Error("Unknown operating system");
+    throw new Error("Unknown operating system");
   }
 };
 

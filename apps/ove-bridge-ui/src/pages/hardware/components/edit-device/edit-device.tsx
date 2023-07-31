@@ -1,18 +1,12 @@
 import { FormEvent, forwardRef, useState } from "react";
 import { Mode } from "../../utils";
-import { Device, ServiceType } from "@ove/ove-types";
+import { Device, NativeEvent, ServiceType } from "@ove/ove-types";
 
 import styles from "./edit-device.module.scss";
 
 type EditDeviceProps = {
   setMode: (mode: Mode) => void
   device: Device | null
-}
-
-type NativeEvent = {
-  submitter: {
-    name: string
-  }
 }
 
 const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
@@ -60,7 +54,8 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
     }
   };
 
-  return <dialog ref={ref} className={styles.dialog} onClick={() => setMode("overview")}>
+  return <dialog ref={ref} className={styles.dialog}
+                 onClick={() => setMode("overview")}>
     <div className={styles.hidden} onClick={e => e.stopPropagation()}>
       <h2>{device === null ? "Register Device" : "Edit Device"}</h2>
       <form method="post" onSubmit={handleSubmit} className={styles.form}>
@@ -98,8 +93,10 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
                  name="device-auth-password" />
         </> : null}
         <div className={styles["action-container"]}>
-        <button type="submit" name="save" value="save">{device === null ? "Save" : "Update"}</button>
-          {device !== null ? <button type="submit" name="delete" value="delete" id={styles["delete"]}>Delete</button> : null}
+          <button type="submit" name="save"
+                  value="save">{device === null ? "Save" : "Update"}</button>
+          {device !== null ? <button type="submit" name="delete" value="delete"
+                                     id={styles["delete"]}>Delete</button> : null}
         </div>
       </form>
     </div>

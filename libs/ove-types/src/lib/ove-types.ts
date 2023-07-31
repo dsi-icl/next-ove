@@ -31,3 +31,28 @@ export type CalendarEvent = {
   start: Date
   end: Date
 }
+
+export type OutlookEvents = {
+  value: {
+    subject: string
+    start: {
+      dateTime: string
+    }
+    end: {
+      dateTime: string
+    }
+  }[]
+  lastUpdated: string | null
+}
+
+export type NativeEvent = {
+  submitter: {
+    name: string
+  }
+}
+
+export type AutoSchedule = {
+  wake: string | null
+  sleep: string | null
+  schedule: boolean[]
+}

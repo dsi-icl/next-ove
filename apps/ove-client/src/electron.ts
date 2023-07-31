@@ -1,45 +1,43 @@
 /* global process */
 
 import { app, BrowserWindow, desktopCapturer, screen } from "electron";
-import oveApp from "./app/app";
+import App from "./app/app";
 import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
 import { environment } from "./environments/environment";
 import { ID } from "@ove/ove-types";
 
-let appController: ReturnType<typeof oveApp> | null = null;
-
 export const start = (closeServer: () => void) => {
-  appController = oveApp(app, BrowserWindow, screen, {}, closeServer);
+  App.init(app, BrowserWindow, screen, closeServer);
 };
 
 export const createWindow = (url?: string, displayId?: ID) => {
-  if (appController === null) throw new Error("App Controller not initialised");
+  if (!App.isInitialised()) throw new Error("App Controller not initialised");
   if (url === undefined) {
-    return appController.openWindow(appController.loadDisplayWindow, displayId);
+    return App.openWindow(App.loadDisplayWindow, displayId);
   } else {
-    return appController.openWindow((idx: string) => {
-      if (appController === null) {
+    return App.openWindow((idx: string) => {
+      if (!App.isInitialised()) {
         throw new Error("App Controller not initialised");
       }
-      appController.loadCustomWindow(url, idx);
+      App.loadCustomWindow(url, idx);
     }, displayId);
   }
 };
 
 export const closeWindow = (idx: string) => {
-  if (appController === null) {
+  if (!App.isInitialised()) {
     throw new Error("App Controller not initialised");
   }
-  appController.closeWindow(idx);
+  App.closeWindow(idx);
 };
 
 export const triggerIPC = (event: string, ...args: any[]) => {
-  if (appController === null) {
+  if (!App.isInitialised()) {
     throw new Error("App Controller not initialised");
   }
-  appController.triggerIPC(event, ...args);
+  App.triggerIPC(event, ...args);
 };
 
 export const takeScreenshots = async () =>

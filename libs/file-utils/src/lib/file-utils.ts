@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 
-export const readAsset = (filename: string, defaultAsset: string | null = null) => {
+export const readAsset = <T>(filename: string, defaultAsset: string | null = null) => {
   const file = path.join(__dirname, "assets", filename);
 
   if (!exists(file) && defaultAsset !== null) {
@@ -10,7 +10,7 @@ export const readAsset = (filename: string, defaultAsset: string | null = null) 
 
   return JSON.parse(
     fs.readFileSync(path.join(__dirname, "assets", filename)).toString()
-  );
+  ) as T;
 };
 
 export const toAsset = (filename: string, obj: unknown, overwrite = true) =>

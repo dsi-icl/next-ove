@@ -12,11 +12,29 @@
   justify-content: flex-end;
   margin-bottom: 1rem;
 
-  button {
+  .button {
     max-width: 9vw;
     flex: 1 1 0;
     padding: 1rem;
     border: 1px solid black;
     border-radius: 10px;
   }
+}
+
+.refresh {
+  margin-top: auto;
+}
+
+.last-updated {
+  margin-right: auto;
+  margin-top: auto;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.calendar {
+  height: 70svh;
+  width: calc(60vw - 2rem);
 }

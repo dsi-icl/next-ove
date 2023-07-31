@@ -13,7 +13,9 @@ const server = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
   CORE_URL: z.string(),
   BRIDGE_NAME: z.string(),
-  POWER_MODE: PowerModeSchema
+  POWER_MODE: PowerModeSchema,
+  ELECTRON_IS_DEV: z.string().optional(),
+  CALENDAR_URL: z.string().optional()
 });
 
 // Don't touch the part below
@@ -30,7 +32,8 @@ const initEnv = (path: string) => {
     NODE_ENV: process.env.NODE_ENV,
     CORE_URL: process.env.CORE_URL,
     BRIDGE_NAME: process.env.BRIDGE_NAME,
-    POWER_MODE: process.env.POWER_MODE ?? "manual"
+    POWER_MODE: process.env.POWER_MODE ?? "manual",
+    CALENDAR_URL: process.env.CALENDAR_URL ? process.env.CALENDAR_URL : undefined
   };
   const parsed = server.safeParse(processEnv);
 

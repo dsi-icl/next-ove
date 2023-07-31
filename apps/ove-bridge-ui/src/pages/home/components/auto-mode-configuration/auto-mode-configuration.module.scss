@@ -1,0 +1,64 @@
+.active {
+  background-color: #002147;
+  color: white;
+}
+
+.dialog {
+  border-radius: 20px;
+
+  h2 {
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  label {
+    font-weight: 700;
+    margin-top: 1rem;
+  }
+
+  input {
+    border: 1px solid black;
+    padding: 0.5rem;
+    border-radius: 20px;
+  }
+
+  input:focus {
+    border: 1px solid black;
+  }
+
+  .time {
+    display: flex;
+
+    button {
+      margin-left: 1rem;
+    }
+  }
+
+  .day-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .day {
+    border-radius: 20px;
+    padding: 0.2rem;
+  }
+
+  .submit {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid white;
+    color: white;
+    background-color: #002147;
+    border-radius: 20px;
+  }
+}

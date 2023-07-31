@@ -15,4 +15,6 @@ export default () => {
 
   toAsset("hardware.json", [], false);
   toAsset("spaces.json", {}, false);
+  toAsset("calendar.json", {lastUpdated: null, value: []}, false);
+  toAsset("auto-schedule.json", {wake: null, sleep: null, schedule: [false, false, false, false, false, false, false]}, false);
 };

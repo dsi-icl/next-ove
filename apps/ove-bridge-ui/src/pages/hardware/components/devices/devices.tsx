@@ -81,8 +81,6 @@ const Devices = () => {
     }
   }, [mode]);
 
-  useEffect(() => console.log(id), [id]);
-
   return <section className={styles.body}>
     <div className={styles.main}>
       <h1 className={styles.header}>Devices</h1>

@@ -27,6 +27,19 @@ export const closeHardwareSocket = () => {
   socket = null;
 };
 
+const socketConnectListeners: (() => void)[] = [];
+const socketDisconnectListeners: (() => void)[] = [];
+
+export const registerSocketConnectedListener = (listener: () => void) => {
+  socketConnectListeners.push(listener);
+};
+
+export const registerSocketDisconnectListener = (listener: () => void) => {
+  socketDisconnectListeners.push(listener);
+};
+
+export const getSocketStatus = () => socket?.connected ?? false;
+
 export const initHardware = () => {
   if (env.CORE_URL === "" || env.BRIDGE_NAME === "") return;
   socket = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false });
@@ -39,11 +52,13 @@ export const initHardware = () => {
   socket.on("connect", () => {
     console.log("Connected to /hardware");
     console.log(socket!!.id);
+    socketConnectListeners.forEach(x => x());
   });
 
   socket.on("disconnect", () => {
     console.log("Disconnected from /hardware");
     console.log(socket!!.id);
+    socketDisconnectListeners.forEach(x => x());
   });
 
   BridgeServiceKeys.forEach(k => {

@@ -31,8 +31,15 @@
   button {
     color: white;
     background-color: #002147;
-    margin-top: 3rem;
+    margin-top: 0.5rem;
     padding: 0.5rem;
     border-radius: 20px;
+  }
+
+  #auto-mode {
+    margin-top: 2rem;
+    background-color: white;
+    border: 1px solid black;
+    color: black;
   }
 }

@@ -1,4 +1,10 @@
-import { CalendarEvent, Device, PowerMode } from "@ove/ove-types";
+import {
+  AutoSchedule,
+  CalendarEvent,
+  Device,
+  OutlookEvents,
+  PowerMode
+} from "@ove/ove-types";
 
 export const channels: APIChannels = {
   getDevicesToAuth: "get-devices-auth",
@@ -13,7 +19,12 @@ export const channels: APIChannels = {
   setAutoSchedule: "set-auto-schedule",
   setEcoSchedule: "set-eco-schedule",
   clearSchedule: "clear-schedule",
-  getMode: "get-mode"
+  getMode: "get-mode",
+  getSocketStatus: "get-socket-status",
+  getCalendar: "get-calendar",
+  updateCalendar: "update-calendar",
+  hasCalendar: "has-calendar",
+  getAutoSchedule: "get-auto-schedule"
 };
 
 export type APIChannels = {
@@ -25,13 +36,18 @@ export type API = {
   getDevicesToAuth: () => Promise<Device[]>
   getPublicKey: () => Promise<string>
   registerAuth: (id: string) => Promise<void>
-  updateEnv: (coreURL: string, bridgeName: string) => Promise<void>
-  getEnv: () => Promise<{bridgeName: string, coreURL: string}>
+  updateEnv: (coreURL: string, bridgeName: string, calendarURL: string | undefined) => Promise<void>
+  getEnv: () => Promise<{bridgeName: string, coreURL: string, calendarURL?: string}>
   getDevices: () => Promise<Device[]>
   saveDevice: (device: Device) => Promise<void>
   deleteDevice: (deviceId: string) => Promise<void>
-  setAutoSchedule: (schedule: object) => Promise<void>
+  setAutoSchedule: (schedule?: AutoSchedule) => Promise<void>
   setEcoSchedule: (schedule: CalendarEvent[]) => Promise<void>
   clearSchedule: () => Promise<void>
   getMode: () => Promise<PowerMode>
+  getSocketStatus: () => Promise<boolean>
+  getCalendar: () => Promise<OutlookEvents>
+  updateCalendar: (accessToken: string) => Promise<OutlookEvents | null>
+  hasCalendar: () => Promise<boolean>
+  getAutoSchedule: () => Promise<AutoSchedule>
 }
