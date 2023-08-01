@@ -25,18 +25,15 @@ export type DeviceService = {
   ) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
 };
 
-export type BridgeService = {
-  [Key in BridgeServiceKeysType]: (
-    args: z.infer<BridgeAPIRoutesType[Key]["args"]>,
-    callback: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
-  ) => void
-};
-
 export type HardwareServerToClientEvents = {
   [Key in keyof BridgeAPIRoutesType]: (
     args: z.infer<BridgeAPIRoutesType[Key]["args"]>,
     callback: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
   ) => void
+};
+
+export type BridgeService = {
+  [Key in BridgeServiceKeysType]: HardwareServerToClientEvents[Key]
 };
 
 export type HardwareClientToServerEvents = Record<string, unknown>;

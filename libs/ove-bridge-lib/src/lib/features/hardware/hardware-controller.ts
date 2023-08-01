@@ -1,7 +1,7 @@
 /* global console */
 
 import {
-  BridgeAPIType, BridgeServiceKeys,
+  BridgeServiceKeys,
   DeviceServiceKeys,
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
@@ -13,7 +13,6 @@ import {
   multiDeviceHandler,
   Service
 } from "./service";
-import { z } from "zod";
 import { readAsset } from "@ove/file-utils";
 
 let socket: Socket<
@@ -62,20 +61,15 @@ export const initHardware = () => {
   });
 
   BridgeServiceKeys.forEach(k => {
-    // @ts-ignore
-    socket!!.on(k, async (args: z.infer<BridgeAPIType[typeof k]["args"]>, cb: (response: z.infer<BridgeAPIType[typeof k]["bridge"]>) => void) => {
-      // @ts-ignore
-      Service[k](args, cb);
-    });
+    socket!!.on(k, Service[k]);
   });
 
+
   DeviceServiceKeys.forEach(k => {
-    socket!!.on(k, (args: z.infer<BridgeAPIType[typeof k]["args"]>, callback: (response: z.infer<BridgeAPIType[typeof k]["bridge"]>) => void) => {
-      deviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}`));
-    });
-    socket!!.on(`${k}All`, (args: z.infer<BridgeAPIType[`${typeof k}All`]["args"]>, callback: (response: z.infer<BridgeAPIType[`${typeof k}All`]["bridge"]>) => void) => {
-      multiDeviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}All`));
-    });
+    const deviceHandlerInterface = (args: Parameters<typeof deviceHandler>[1], callback: Parameters<typeof deviceHandler>[2]) => deviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}`));
+    const multiDeviceHandlerInterface = (args: Parameters<typeof multiDeviceHandler>[1], callback: Parameters<typeof multiDeviceHandler>[2]) => multiDeviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}All`));
+    socket!!.on(k, deviceHandlerInterface as HardwareServerToClientEvents[typeof k]);
+    socket!!.on(`${k}All`, multiDeviceHandlerInterface as HardwareServerToClientEvents[`${typeof k}All`]);
   });
 
   socket.on("connect_error", err => console.error(`connect_error due to ${err.message}`));
