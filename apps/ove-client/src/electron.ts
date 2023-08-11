@@ -1,12 +1,12 @@
 /* global process */
 
-import { app, BrowserWindow, desktopCapturer, screen } from "electron";
 import App from "./app/app";
+import { ID } from "@ove/ove-types";
 import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
-import { environment } from "./environments/environment";
-import { ID } from "@ove/ove-types";
+import { app, BrowserWindow, desktopCapturer, screen } from "electron";
+import { env } from "@ove/ove-client-env";
 
 export const start = (closeServer: () => void) => {
   App.init(app, BrowserWindow, screen, closeServer);
@@ -49,18 +49,11 @@ export const initializeElectron = () => {
   }
 };
 
-const isDevelopmentMode = () => {
-  const isEnvironmentSet: boolean = "ELECTRON_IS_DEV" in process.env;
-  const getFromEnvironment: boolean =
-    parseInt(process.env.ELECTRON_IS_DEV || "1", 10) === 1;
-
-  return isEnvironmentSet ? getFromEnvironment : !environment.production;
-};
-
 export const initializeElectronEvents = () => {
+  const isDevelopment = env.RENDER_CONFIG === undefined;
   ElectronEvents.bootstrapElectronEvents();
 
-  if (!isDevelopmentMode()) {
+  if (isDevelopment) {
     initUpdates();
   }
 };

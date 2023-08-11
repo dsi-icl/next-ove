@@ -1,5 +1,4 @@
-/* global __dirname, process, console */
-// noinspection DuplicatedCode
+/* global __dirname, process  */
 
 import cors from "cors";
 import * as path from "path";
@@ -11,13 +10,13 @@ import * as swaggerUi from "swagger-ui-express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
-import { logger } from "./utils";
 import {
   createWindow,
   takeScreenshots,
   closeWindow,
   triggerIPC
 } from "./electron";
+import { env, logger } from "@ove/ove-client-env";
 
 export const start = () => {
   const app = express();
@@ -25,12 +24,12 @@ export const start = () => {
 
   app.use(cors({ origin: "*" }));
 
-  app.use("/api/v1/trpc", trpcExpress.createExpressMiddleware({
+  app.use(`/api/v${env.API_VERSION}/trpc`, trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext
   }));
 
-  app.use("/api/v1", createOpenApiExpressMiddleware({
+  app.use(`/api/v${env.API_VERSION}`, createOpenApiExpressMiddleware({
     router: appRouter,
     createContext
   }));
@@ -40,14 +39,12 @@ export const start = () => {
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-  const port = process.env.port || 3335;
-  const server = app.listen(port, () => {
-    logger.info(`Listening at http://localhost:${port}`);
+  const port = env.PORT ?? 8080;
+  const server = app.listen(port, env.HOSTNAME ?? "127.0.0.1", () => {
+    logger.info(`Listening at ${env.PROTOCOL ?? "http"}://${env.HOSTNAME}:${port}`);
   });
 
-  server.on("error", console.error);
+  server.on("error", logger.error);
 
-  return () => {
-    server.close();
-  };
+  return (): void => { server.close() };
 };

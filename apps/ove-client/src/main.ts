@@ -7,20 +7,9 @@ import {
   initializeElectronEvents
 } from "./electron";
 
-process.on("SIGINT", () => {
-  console.log("Received SIGINT");
-});
+const serverCloseHandler = startServer();
 
-const serverClose = startServer();
-startElectron(() => {
-  serverClose();
-  console.log(`Killing process with PID: ${process.pid}`);
-  setTimeout(() => {
-    console.log("Exiting");
-    process.exit(0);
-  }, 100);
-  // noinspection TypeScriptValidateJSTypes
-  process.kill(process.pid, "SIGINT");
-});
+startElectron(() => serverCloseHandler());
+
 initializeElectron();
 initializeElectronEvents();

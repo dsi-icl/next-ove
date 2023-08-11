@@ -9,25 +9,48 @@ import { DesktopCapturerSource } from "electron";
 import { protectedProcedure, router } from "../trpc";
 import Service from "@ove/ove-client-control";
 import { state, updatePin } from "../state";
+import { env, logger } from "@ove/ove-client-env";
 
 const service = Service();
 
 const controller: ClientServiceAPIType = {
-  getStatus: async () => true,
-  getInfo: async ({ type }) => service.getInfo(type),
-  getBrowserStatus: async ({ browserId }) =>
-    (Object.keys(state.browsers).includes(browserId.toString())),
-  getBrowsers: async () => Object
-    .keys(state.browsers)
-    .map(parseInt),
-  reboot: async () => service.reboot(),
-  shutdown: async () => service.shutdown(),
-  execute: async ({ command }) => service.execute(command),
+  getStatus: async () => {
+    logger.info("GET /status - getting service's status");
+    return true;
+  },
+  getInfo: async ({ type }) => {
+    logger.info("GET /info - getting device information");
+    return service.getInfo(type);
+  },
+  getBrowserStatus: async ({ browserId }) => {
+    logger.info(`GET /browser/${browserId}/status - getting browser status`);
+    return (Object.keys(state.browsers).includes(browserId.toString()));
+  },
+  getBrowsers: async () => {
+    logger.info("GET /browsers - getting active browsers");
+    return Object.keys(state.browsers).map(parseInt);
+  },
+  reboot: async () => {
+    logger.info("POST /reboot - rebooting device");
+    return service.reboot();
+  },
+  shutdown: async () => {
+    logger.info("POST /shutdown - shutting down device");
+    return service.shutdown();
+  },
+  execute: async ({ command }) => {
+    logger.info(`POST /execute - executing command ${command}`);
+    return service.execute(command);
+  },
   screenshot: async ({
     method,
     screens
-  }) => service.screenshot(method, screens),
+  }) => {
+    logger.info(`POST /screenshot - taking screenshot of screens ${screens.join(", ")} via the ${method} method`);
+    return service.screenshot(method, screens);
+  },
   openBrowser: async ({ displayId, url }) => {
+    logger.info(`POST /browser - opening browser on display ${displayId} with url ${url}`);
     const idx = service.openBrowser(url, displayId);
     const browserId = Object.keys(state.browsers).length;
     state.browsers[browserId] = { idx };
@@ -35,11 +58,13 @@ const controller: ClientServiceAPIType = {
     return browserId;
   },
   closeBrowser: async ({ browserId }) => {
+    logger.info(`DELETE /browser/${browserId} - closing browser`);
     service.closeBrowser(state.browsers[browserId]);
     delete state.browsers[browserId];
     return true;
   },
   closeBrowsers: async () => {
+    logger.info("DELETE /browsers - closing all browsers");
     service.closeBrowsers(Object.values(state.browsers));
     state.browsers = {};
     return true;
@@ -59,8 +84,7 @@ export const init = (
 ) => {
   service.init(createWindow, takeScreenshots, closeWindow);
   state.pinUpdateCallback = (pin: string) => triggerIPC("update-pin", pin);
-  setTimeout(updatePin, 5_000);
-  setInterval(updatePin, 30_000);
+  setInterval(updatePin, env.PIN_UPDATE_DELAY);
 };
 
 const generateProcedure = <Key extends ClientAPIKeysType>(k: Key) =>

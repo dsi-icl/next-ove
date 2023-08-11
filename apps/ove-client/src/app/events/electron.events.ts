@@ -3,10 +3,7 @@
  * between the frontend to the electron backend.
  */
 
-/* global console */
-
 import { app, ipcMain, type IpcMain } from "electron";
-import { environment } from "../../environments/environment";
 import { API, channels } from "@ove/ove-client-shared";
 import Service from "@ove/ove-client-control";
 
@@ -24,7 +21,7 @@ export default class ElectronEvents {
 }
 
 const IPCService: API = {
-  getAppVersion: async () => environment.version,
+  getAppVersion: async () => app.getVersion(),
   getInfo: async type => Service().getInfo(type)
 };
 

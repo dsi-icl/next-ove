@@ -192,25 +192,25 @@ export const ServiceAPI: ServiceAPIRoutesType = {
     exposed: "bridge"
   },
   muteAudio: {
-    meta: { openapi: { method: "POST" as const, path: "/muteAudio", protected: true } },
+    meta: { openapi: { method: "POST" as const, path: "/audio/mute", protected: true } },
     args: z.object({}).strict(),
     returns: StatusSchema,
     exposed: "bridge"
   },
   unmuteAudio: {
-    meta: { openapi: { method: "POST" as const, path: "/unmuteAudio", protected: true } },
+    meta: { openapi: { method: "POST" as const, path: "/audio/unmute", protected: true } },
     args: z.object({}).strict(),
     returns: StatusSchema,
     exposed: "bridge"
   },
   muteVideo: {
-    meta: { openapi: { method: "POST" as const, path: "/muteVideo", protected: true } },
+    meta: { openapi: { method: "POST" as const, path: "/video/mute", protected: true } },
     args: z.object({}).strict(),
     returns: StatusSchema,
     exposed: "bridge"
   },
   unmuteVideo: {
-    meta: { openapi: { method: "POST" as const, path: "/unmuteVideo", protected: true } },
+    meta: { openapi: { method: "POST" as const, path: "/video/unmute", protected: true } },
     args: z.object({}).strict(),
     returns: StatusSchema,
     exposed: "bridge"

@@ -1,6 +1,7 @@
-/* global process, console */
+/* global process */
 
 import { execSync } from "child_process";
+import { logger } from "@ove/ove-client-env";
 
 const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"]
   .includes(process.platform);
@@ -21,7 +22,7 @@ const shutdown = () => {
     execSync(buildShutdownCommand());
     return true;
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     return false;
   }
 };
@@ -41,7 +42,7 @@ const reboot = () => {
     execSync(buildRebootCommand());
     return true;
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     return false;
   }
 };

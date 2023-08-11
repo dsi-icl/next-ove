@@ -1,9 +1,7 @@
 import { Browser, ID } from "@ove/ove-types";
-import { readAsset } from "@ove/file-utils";
 
 type State = {
   browsers: { [browserId: ID]: Browser }
-  authorisedCredentials: string[]
   pin: string
   pinUpdateCallback: ((event: string, ...args: any[]) => void) | null
 };
@@ -15,7 +13,6 @@ const generatePin = () => Array(4)
 
 export const state: State = {
   browsers: {},
-  authorisedCredentials: readAsset("credentials.json", JSON.stringify([])),
   pin: "initialising",
   pinUpdateCallback: null
 };

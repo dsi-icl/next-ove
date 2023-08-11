@@ -1,9 +1,11 @@
+import { app } from "electron";
+import { env } from "@ove/ove-client-env";
 import { appRouter } from "@ove/ove-client-router";
 import { generateOpenApiDocument } from "trpc-openapi";
 
 export const openApiDocument = generateOpenApiDocument(appRouter, {
-  title: "OVE Control Client",
-  description: "Client for controlling nodes within an observatory",
-  version: "1.0.0",
-  baseUrl: "http://localhost:3335/api/v1",
+  title: "Next-OVE Client",
+  description: "Hardware control interface for observatory rendering nodes.",
+  version: app.getVersion(),
+  baseUrl: `${env.PROTOCOL ?? "http"}://${env.HOSTNAME ?? "localhost"}:${env.PORT ?? "8080"}/api/v${env.API_VERSION}`
 });

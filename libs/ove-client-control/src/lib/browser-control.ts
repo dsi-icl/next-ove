@@ -1,4 +1,4 @@
-/* global Buffer, __dirname, console */
+/* global Buffer, __dirname */
 
 import * as fs from "fs";
 import * as path from "path";
@@ -7,6 +7,8 @@ import { DesktopCapturerSource } from "electron";
 import { Systeminformation } from "systeminformation";
 import { Browser, ID, Image, ScreenshotMethod } from "@ove/ove-types";
 import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
+import { Json } from "@ove/ove-utils";
+import { logger } from "@ove/ove-client-env";
 
 const controller = <{
   createWindow: ((url?: string, displayId?: ID) => string) | null,
@@ -35,7 +37,7 @@ const closeBrowser = (browser: Browser) => {
   if (controller.closeWindow === null) {
     throw new Error("Controller not initialised");
   }
-  console.log(`Browser being closed: ${JSON.stringify(browser)}`);
+  logger.info(`Browser being closed: ${Json.stringify(browser)}`);
   controller.closeWindow(browser.idx);
 };
 

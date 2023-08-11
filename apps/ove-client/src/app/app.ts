@@ -1,15 +1,11 @@
-/* global __dirname, console */
+/* global __dirname */
 
-import { nanoid } from "nanoid";
 import { join } from "path";
+import { nanoid } from "nanoid";
 import { pathToFileURL } from "url";
-import {
-  rendererAppName,
-  rendererAppPort
-} from "./constants";
 import { App, BrowserWindow as BW, Screen } from "electron";
 import { ID } from "@ove/ove-types";
-import { logger } from "../utils";
+import { env, logger } from "@ove/ove-client-env";
 
 let application: App;
 let BrowserWindow: typeof BW;
@@ -70,15 +66,12 @@ const initWindow = (displayId?: number) => {
 
 const loadUIWindow = (idx: string, url?: `/${string}`) => {
   if (!application.isPackaged) {
-    const formattedUrl = url === undefined ? "" : url;
-    windows[idx]
-      .loadURL(`http://localhost:${rendererAppPort}${formattedUrl}`)
-      .then(() => console.log("Loaded URL"));
+    const formattedUrl = `${env.RENDER_CONFIG!.PROTOCOL}://${env.RENDER_CONFIG!.HOSTNAME}:${env.RENDER_CONFIG!.PORT}${url ?? ""}`;
+    windows[idx].loadURL(formattedUrl).then(() => logger.info(`Loaded url: ${formattedUrl}`));
   } else {
-    windows[idx]
-      .loadURL(pathToFileURL(join(__dirname, "..", rendererAppName,
-        `${url === undefined ? "index" : url}.html`)).toString())
-      .then(() => console.log("Loaded URL"));
+    const formattedUrl = pathToFileURL(join(__dirname, "..", env.UI_ALIAS,
+      `${url === undefined ? "index" : url}.html`)).toString();
+    windows[idx].loadURL(formattedUrl).then(() => logger.info(`Loaded url: ${formattedUrl}`));
   }
 };
 
@@ -135,7 +128,7 @@ export default {
   loadCustomWindow: (url: string, idx: string) => {
     windows[idx]?.loadURL(
       url.toString()
-    ).then(() => logger.info("Loaded"));
+    ).then(() => logger.info(`Loaded custom window with url: ${url}`));
   },
   triggerIPC: (event: string, ...args: any[]) => {
     if (defaultIdx !== null) {

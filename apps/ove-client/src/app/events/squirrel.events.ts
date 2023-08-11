@@ -7,7 +7,6 @@
 import { app } from "electron";
 import { spawn } from "child_process";
 import { resolve, join, basename } from "path";
-import { environment } from "../../environments/environment";
 
 // noinspection JSUnusedGlobalSymbols
 /**
@@ -25,7 +24,7 @@ export default class SquirrelEvents {
   private static exeName = resolve(
     join(
       SquirrelEvents.appRootFolder,
-      "app-" + environment.version,
+      "app-" + app.getVersion(),
       basename(process.execPath)
     )
   );

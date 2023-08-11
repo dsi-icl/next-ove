@@ -1,6 +1,6 @@
 import { mergeRouters } from "./trpc";
-import { hardwareRouter } from "./routes/hardware";
 import { authRouter } from "./routes/auth";
+import { hardwareRouter } from "./routes/hardware";
 
 export const appRouter = mergeRouters(hardwareRouter, authRouter);
 

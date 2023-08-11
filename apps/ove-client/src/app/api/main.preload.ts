@@ -11,6 +11,7 @@ const ExposedAPI: API = (Object.keys(channels) as Array<keyof API>).reduce((acc,
   };
 }, {} as API);
 
+// TODO: replace receive with typesafe version
 contextBridge.exposeInMainWorld("electron", {
   receive: (channel: string, listener: (...args: any[]) => void) => {
     ipcRenderer.on(channel, (_event, ...args) => {

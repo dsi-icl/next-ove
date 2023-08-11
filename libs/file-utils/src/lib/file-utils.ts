@@ -1,34 +1,34 @@
 import * as fs from "fs";
 import * as path from "path";
+import { readFileSync, writeFileSync } from "atomically";
+import { Json } from "@ove/ove-utils";
 
-export const readAsset = <T>(filename: string, defaultAsset: string | null = null) => {
-  const file = path.join(__dirname, "assets", filename);
+export const readAsset = <T>(filename: string, defaultAsset: string | null = null) => readFile<T>(path.join(__dirname, "assets", filename), defaultAsset);
 
-  if (!exists(file) && defaultAsset !== null) {
-    fs.writeFileSync(file, defaultAsset);
+export const readFile = <T>(filePath: string, defaultAsset: string | null = null) => {
+  if (!exists(filePath) && defaultAsset !== null) {
+    writeFileSync(filePath, defaultAsset);
   }
 
-  return JSON.parse(
-    fs.readFileSync(path.join(__dirname, "assets", filename)).toString()
-  ) as T;
+  return Json.parse<T>(readFileSync(filePath).toString());
 };
 
 export const toAsset = (filename: string, obj: unknown, overwrite = true) =>
   safeWriteFile(
     path.join(__dirname, "assets", filename),
-    JSON.stringify(obj, null, 2),
+    Json.stringify(obj, undefined, 2),
     overwrite
   );
 
 export const safeWriteFile = (path: string, data: string, overwrite: boolean) => {
   if (overwrite) {
-    fs.writeFileSync(path, data);
+    writeFileSync(path, data);
     return true;
   } else {
     const fileExists = exists(path);
 
     if (!fileExists) {
-      fs.writeFileSync(path, data);
+      writeFileSync(path, data);
     }
 
     return !fileExists;
@@ -41,7 +41,7 @@ export const writeEnv = (env: object, overwrite = true) => {
   safeWriteFile(
     envPath,
     Object.keys(env)
-      .map(k => `${k}=${JSON.stringify(env[k as keyof typeof env])}`)
+      .map(k => `${k}=${Json.stringify(env[k as keyof typeof env])}`)
       .join("\n"),
     overwrite
   );

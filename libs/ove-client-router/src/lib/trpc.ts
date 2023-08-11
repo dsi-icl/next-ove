@@ -1,7 +1,7 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { OpenApiMeta } from "trpc-openapi";
 import { Context } from "./context";
-import { state } from "./state";
+import { env } from "@ove/ove-client-env";
+import { OpenApiMeta } from "trpc-openapi";
+import { initTRPC, TRPCError } from "@trpc/server";
 
 const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create();
 export const router = trpc.router;
@@ -12,7 +12,7 @@ export const procedure = trpc.procedure;
 const isAuthed = trpc.middleware((opts) => {
   const { ctx } = opts;
 
-  if (ctx.user === null || !state.authorisedCredentials.includes(ctx.user)) throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (ctx.user === null || !env.AUTHORISED_CREDENTIALS.includes(ctx.user)) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   return opts.next({
     ctx: {
