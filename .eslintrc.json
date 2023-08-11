@@ -48,6 +48,7 @@
       ],
       "rules": {
         "comma-dangle": "off",
+        "new-cap": "off",
         "object-curly-spacing": [
           "error",
           "always"

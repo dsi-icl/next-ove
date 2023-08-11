@@ -4,7 +4,7 @@
  */
 
 import { app, ipcMain, type IpcMain } from "electron";
-import { API, channels } from "@ove/ove-client-shared";
+import { inboundChannels, InboundAPI } from "@ove/ove-client-shared";
 import Service from "@ove/ove-client-control";
 
 /**
@@ -20,13 +20,14 @@ export default class ElectronEvents {
   }
 }
 
-const IPCService: API = {
+const IPCService: InboundAPI = {
   getAppVersion: async () => app.getVersion(),
   getInfo: async type => Service().getInfo(type)
 };
 
-(Object.keys(channels) as Array<keyof API>).forEach(k => {
-  ipcMain.handle(channels[k], (_event, ...args) => IPCService[k](...args));
+(Object.keys(inboundChannels) as Array<keyof InboundAPI>).forEach(k => {
+  ipcMain.handle(inboundChannels[k], (_event, ...args) =>
+    IPCService[k](...args));
 });
 
 // Handle App termination

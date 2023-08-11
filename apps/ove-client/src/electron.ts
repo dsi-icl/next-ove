@@ -1,5 +1,3 @@
-/* global process */
-
 import App from "./app/app";
 import { ID } from "@ove/ove-types";
 import SquirrelEvents from "./app/events/squirrel.events";
@@ -7,6 +5,7 @@ import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
 import { app, BrowserWindow, desktopCapturer, screen } from "electron";
 import { env } from "@ove/ove-client-env";
+import { OutboundAPI } from "@ove/ove-client-shared";
 
 export const start = (closeServer: () => void) => {
   App.init(app, BrowserWindow, screen, closeServer);
@@ -33,12 +32,17 @@ export const closeWindow = (idx: string) => {
   App.closeWindow(idx);
 };
 
-export const triggerIPC = (event: string, ...args: any[]) => {
-  if (!App.isInitialised()) {
-    throw new Error("App Controller not initialised");
-  }
-  App.triggerIPC(event, ...args);
-};
+export const triggerIPC: OutboundAPI =
+  (Object.keys(App.triggerIPC) as Array<keyof OutboundAPI>)
+    .reduce((acc, x) => {
+      acc[x] = (...args: Parameters<OutboundAPI[typeof x]>) => {
+        if (!App.isInitialised()) {
+          throw new Error("App Controller not initialised");
+        }
+        App.triggerIPC[x](...args);
+      };
+      return acc;
+    }, {} as OutboundAPI);
 
 export const takeScreenshots = async () =>
   desktopCapturer.getSources({ types: ["screen"] });

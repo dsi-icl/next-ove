@@ -1,7 +1,7 @@
 import * as net from "net";
 import * as crypto from "crypto";
 import { Device, OVEException, PJLinkSource } from "@ove/ove-types";
-import { Utils } from "@ove/ove-utils";
+import { replaceAll } from "@ove/ove-utils";
 import { z } from "zod";
 
 /* global Buffer, console */
@@ -196,7 +196,7 @@ export const COMMAND = {
 const runCommand = (command: string, device: Device, ...args: string[]) => {
   return new Promise<PJLinkResponse>(resolve => {
     if (args.length > 0) {
-      command = Utils.replaceAll(command, args);
+      command = replaceAll(command, args);
     }
 
     const state = init(

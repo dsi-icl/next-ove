@@ -1,4 +1,4 @@
-/* global __dirname, process  */
+/* global __dirname */
 
 import cors from "cors";
 import * as path from "path";
@@ -46,5 +46,7 @@ export const start = () => {
 
   server.on("error", logger.error);
 
-  return (): void => { server.close() };
+  return (): void => {
+    server.close();
+  };
 };

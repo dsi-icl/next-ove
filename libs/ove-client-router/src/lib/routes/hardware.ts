@@ -10,6 +10,7 @@ import { protectedProcedure, router } from "../trpc";
 import Service from "@ove/ove-client-control";
 import { state, updatePin } from "../state";
 import { env, logger } from "@ove/ove-client-env";
+import { OutboundAPI } from "@ove/ove-client-shared";
 
 const service = Service();
 
@@ -80,10 +81,10 @@ export const init = (
   createWindow: (url?: string, displayId?: ID) => string,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
   closeWindow: (idx: string) => void,
-  triggerIPC: (event: string, ...args: any[]) => void
+  triggerIPC: OutboundAPI
 ) => {
   service.init(createWindow, takeScreenshots, closeWindow);
-  state.pinUpdateCallback = (pin: string) => triggerIPC("update-pin", pin);
+  state.pinUpdateCallback = triggerIPC["updatePin"];
   setInterval(updatePin, env.PIN_UPDATE_DELAY);
 };
 

@@ -1,21 +1,27 @@
-/* global process */
-
 import { contextBridge, ipcRenderer } from "electron";
-import { API, channels } from "@ove/ove-client-shared";
+import {
+  InboundAPI,
+  inboundChannels,
+  OutboundAPI, OutboundAPIChannels
+} from "@ove/ove-client-shared";
 
 // noinspection DuplicatedCode
-const ExposedAPI: API = (Object.keys(channels) as Array<keyof API>).reduce((acc, k) => {
-  return {
-    ...acc,
-    [k]: async (...args: any[]) => ipcRenderer.invoke(channels[k], ...args)
-  };
-}, {} as API);
+const ExposedAPI: InboundAPI =
+  (Object.keys(inboundChannels) as Array<keyof InboundAPI>)
+    .reduce((acc, k) => ({
+      ...acc,
+      [k]: async (...args: Parameters<InboundAPI[typeof k]>[]) =>
+        ipcRenderer.invoke(inboundChannels[k], ...args)
+    }), {} as InboundAPI);
 
-// TODO: replace receive with typesafe version
 contextBridge.exposeInMainWorld("electron", {
-  receive: (channel: string, listener: (...args: any[]) => void) => {
+  receive: <Key extends keyof OutboundAPI>(
+    channel: OutboundAPIChannels[Key],
+    listener: (...args: Parameters<OutboundAPI[Key]>)
+      => ReturnType<OutboundAPI[Key]>
+  ) => {
     ipcRenderer.on(channel, (_event, ...args) => {
-      listener(...args);
+      listener(...args as Parameters<OutboundAPI[Key]>);
     });
   },
   ...ExposedAPI

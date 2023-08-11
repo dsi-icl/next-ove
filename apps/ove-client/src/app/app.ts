@@ -6,6 +6,8 @@ import { pathToFileURL } from "url";
 import { App, BrowserWindow as BW, Screen } from "electron";
 import { ID } from "@ove/ove-types";
 import { env, logger } from "@ove/ove-client-env";
+import { OutboundAPI, outboundChannels } from "@ove/ove-client-shared";
+import { assert } from "@ove/ove-utils";
 
 let application: App;
 let BrowserWindow: typeof BW;
@@ -66,12 +68,14 @@ const initWindow = (displayId?: number) => {
 
 const loadUIWindow = (idx: string, url?: `/${string}`) => {
   if (!application.isPackaged) {
-    const formattedUrl = `${env.RENDER_CONFIG!.PROTOCOL}://${env.RENDER_CONFIG!.HOSTNAME}:${env.RENDER_CONFIG!.PORT}${url ?? ""}`;
-    windows[idx].loadURL(formattedUrl).then(() => logger.info(`Loaded url: ${formattedUrl}`));
+    const formattedUrl = `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}${url ?? ""}`;
+    windows[idx].loadURL(formattedUrl)
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
   } else {
     const formattedUrl = pathToFileURL(join(__dirname, "..", env.UI_ALIAS,
       `${url === undefined ? "index" : url}.html`)).toString();
-    windows[idx].loadURL(formattedUrl).then(() => logger.info(`Loaded url: ${formattedUrl}`));
+    windows[idx].loadURL(formattedUrl)
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
   }
 };
 
@@ -93,7 +97,19 @@ const onActivate = () => {
   }
 };
 
-const init = (app: App, browserWindow: typeof BW, sc: Screen, cs: () => void) => {
+const triggerIPC: OutboundAPI = {
+  updatePin: async pin => {
+    if (defaultIdx === null) return;
+    windows[defaultIdx].webContents.send(outboundChannels["updatePin"], pin);
+  }
+};
+
+const init = (
+  app: App,
+  browserWindow: typeof BW,
+  sc: Screen,
+  cs: () => void
+) => {
   BrowserWindow = browserWindow;
   application = app;
   screen = sc;
@@ -130,11 +146,7 @@ export default {
       url.toString()
     ).then(() => logger.info(`Loaded custom window with url: ${url}`));
   },
-  triggerIPC: (event: string, ...args: any[]) => {
-    if (defaultIdx !== null) {
-      windows[defaultIdx].webContents.send(event, ...args);
-    }
-  },
+  triggerIPC,
   isInitialised: () => initialised,
   init
 };

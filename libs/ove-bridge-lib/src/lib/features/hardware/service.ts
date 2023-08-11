@@ -14,7 +14,7 @@ import {
 import { z } from "zod";
 import { env } from "../../environments/env";
 import * as Utils from "../../utils/utils";
-import { Utils as OVEUtils } from "@ove/ove-utils";
+import {raise} from "@ove/ove-utils";
 import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
 import MDCService from "./mdc-service";
@@ -36,7 +36,7 @@ export const getDevices = async ({ tag }: BridgeServiceArgs<"getDevices">) => {
 
   if (devices.length === 0) {
     const tagStatus = tag !== undefined ? ` with tag: ${tag}` : "";
-    return OVEUtils.raise(`No devices found${tagStatus}`);
+    return raise(`No devices found${tagStatus}`);
   }
 
   return devices;
@@ -46,7 +46,7 @@ export const getDevice = async ({ deviceId }: BridgeServiceArgs<"getDevice">) =>
   const device = Utils.getDevices().find(({ id }) => deviceId === id);
 
   if (device === undefined) {
-    return OVEUtils.raise(`No device found with id: ${deviceId}`);
+    return raise(`No device found with id: ${deviceId}`);
   }
 
   return device;
@@ -127,7 +127,7 @@ export const deviceHandler = async <Key extends keyof DeviceService>(
   console.log(`Service response: ${JSON.stringify(response)}`);
 
   if (response === undefined) {
-    callback({ response: OVEUtils.raise("Command not available on device") });
+    callback({ response: raise("Command not available on device") });
     return;
   }
 
@@ -160,7 +160,7 @@ export const multiDeviceHandler = async <Key extends keyof DeviceService>(
   );
 
   if (isAll(z.undefined(), result)) {
-    callback({ response: OVEUtils.raise("Command not available on devices") });
+    callback({ response: raise("Command not available on devices") });
     return;
   }
 
