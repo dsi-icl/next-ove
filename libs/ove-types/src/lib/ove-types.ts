@@ -32,18 +32,16 @@ export type CalendarEvent = {
   end: Date
 }
 
-export type OutlookEvents = {
-  value: {
-    subject: string
-    start: {
-      dateTime: string
-    }
-    end: {
-      dateTime: string
-    }
-  }[]
-  lastUpdated: string | null
-}
+export const CalendarSchema = z.strictObject({
+  value: z.array(z.strictObject({
+    subject: z.string(),
+    start: z.string(),
+    end: z.string()
+  })),
+  lastUpdated: z.string().nullable()
+});
+
+export type Calendar = z.infer<typeof CalendarSchema>;
 
 export type NativeEvent = {
   submitter: {
@@ -51,8 +49,10 @@ export type NativeEvent = {
   }
 }
 
-export type AutoSchedule = {
-  wake: string | null
-  sleep: string | null
-  schedule: boolean[]
-}
+export const AutoScheduleSchema = z.strictObject({
+  wake: z.string().nullable(),
+  sleep: z.string().nullable(),
+  schedule: z.array(z.boolean())
+});
+
+export type AutoSchedule = z.infer<typeof AutoScheduleSchema>;

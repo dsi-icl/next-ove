@@ -12,8 +12,8 @@ import { Tokens } from "@ove/ove-types";
 export type NavProps = {
   auth: {
     tokens: Tokens | null
-    login: () => void
-    logout: () => void
+    login: () => void | null
+    logout: () => void | null
   } | null
   icon: {
     asset: string
@@ -29,11 +29,6 @@ export type NavProps = {
 const Nav = ({ auth, icon: { asset, alt }, content }: NavProps) => {
   const location = useLocation();
   const isLogin = auth !== null && location.pathname === "/login";
-  let loginSection = null;
-
-  if (auth === null) {
-    loginSection = null;
-  }
 
   return (
     <>

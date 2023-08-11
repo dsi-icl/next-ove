@@ -3,6 +3,7 @@ import { Mode } from "../../utils";
 import { Device, NativeEvent, ServiceType } from "@ove/ove-types";
 
 import styles from "./edit-device.module.scss";
+import { assert } from "@ove/ove-utils";
 
 type EditDeviceProps = {
   setMode: (mode: Mode) => void
@@ -13,7 +14,7 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
   device,
   setMode
 }, ref) => {
-  const [protocol, setProtocol] = useState<ServiceType>(device?.protocol ?? "node");
+  const [type, setType] = useState<ServiceType>(device?.type ?? "node");
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -21,12 +22,13 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
 
     if (id === "" || id.length < 1) return false;
     if ((e.nativeEvent as unknown as NativeEvent).submitter.name === "delete") {
-      window.electron.deleteDevice(device!!.id).catch(console.error).then(() => setMode("overview"));
+      window.electron.deleteDevice(assert(device).id)
+        .catch(console.error).then(() => setMode("overview"));
       return;
     }
     let auth = null;
 
-    if (protocol === "node") {
+    if (type === "node") {
       auth = false;
     } else {
       const username = (formData.get("device-auth-username") ?? "").toString();
@@ -40,7 +42,8 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
     const updatedDevice: Device = {
       id,
       description: (formData.get("device-description") ?? "").toString(),
-      protocol: (formData.get("device-protocol") ?? "").toString() as ServiceType,
+      type: (formData.get("device-type") ?? "").toString() as ServiceType,
+      protocol: (formData.get("device-protocol") ?? "").toString(),
       ip: (formData.get("device-ip") ?? "").toString(),
       port: parseInt((formData.get("device-port") ?? 3333).toString()),
       mac: (formData.get("device-mac") ?? "").toString(),
@@ -50,12 +53,15 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
     if (JSON.stringify(updatedDevice) === JSON.stringify(device)) {
       setMode("overview");
     } else {
-      window.electron.saveDevice(updatedDevice).catch(console.error).then(() => setMode("overview"));
+      window.electron.saveDevice(updatedDevice)
+        .catch(console.error)
+        .then(() => setMode("overview"));
     }
   };
 
-  return <dialog ref={ref} className={styles.dialog}
-                 onClick={() => setMode("overview")}>
+  return <dialog
+    ref={ref} className={styles.dialog}
+    onClick={() => setMode("overview")}>
     <div className={styles.hidden} onClick={e => e.stopPropagation()}>
       <h2>{device === null ? "Register Device" : "Edit Device"}</h2>
       <form method="post" onSubmit={handleSubmit} className={styles.form}>
@@ -64,39 +70,53 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
           <input id="device-id" type="text" name="device-id" />
         </> : null}
         <label htmlFor="device-description">Description</label>
-        <input id="device-description" type="text" name="device-description"
-               defaultValue={device?.description} />
-        <label htmlFor="device-protocol">Protocol</label>
-        <select id="device-protocol" name="device-protocol"
-                defaultValue={protocol}
-                onChange={e => setProtocol(e.currentTarget.value as ServiceType)}>
+        <input
+          id="device-description" type="text" name="device-description"
+          defaultValue={device?.description} />
+        <label htmlFor="device-type">Protocol</label>
+        <select
+          id="device-type" name="device-type"
+          defaultValue={type}
+          onChange={e =>
+            setType(e.currentTarget.value as ServiceType)}>
           <option value="node">Node</option>
           <option value="pjlink">Protocol</option>
           <option value="mdc">Screen</option>
         </select>
+        <label htmlFor="device-protocol">Protocol</label>
+        <input
+          id="device-protocol" type="text" name="device-protocol"
+          defaultValue={device?.protocol} />
         <label htmlFor="device-ip">IP</label>
-        <input id="device-ip" type="text" name="device-ip"
-               defaultValue={device?.ip} />
+        <input
+          id="device-ip" type="text" name="device-ip"
+          defaultValue={device?.ip} />
         <label htmlFor="device-port">Port</label>
-        <input id="device-port" type="number" name="device-port"
-               defaultValue={device?.port} />
+        <input
+          id="device-port" type="number" name="device-port"
+          defaultValue={device?.port} />
         <label htmlFor="device-mac">MAC Address</label>
-        <input id="device-mac" type="text" name="device-mac"
-               defaultValue={device?.mac} />
-        {protocol !== "node" ? <>
+        <input
+          id="device-mac" type="text" name="device-mac"
+          defaultValue={device?.mac} />
+        {type !== "node" ? <>
           <h4>Authentication</h4>
           <label htmlFor="device-auth-username">Username</label>
-          <input id="device-auth-username" type="text"
-                 name="device-auth-username" />
+          <input
+            id="device-auth-username" type="text"
+            name="device-auth-username" />
           <label htmlFor="device-auth-password">Password</label>
-          <input id="device-auth-password" type="password"
-                 name="device-auth-password" />
+          <input
+            id="device-auth-password" type="password"
+            name="device-auth-password" />
         </> : null}
         <div className={styles["action-container"]}>
-          <button type="submit" name="save"
-                  value="save">{device === null ? "Save" : "Update"}</button>
-          {device !== null ? <button type="submit" name="delete" value="delete"
-                                     id={styles["delete"]}>Delete</button> : null}
+          <button
+            type="submit" name="save"
+            value="save">{device === null ? "Save" : "Update"}</button>
+          {device !== null ? <button
+            type="submit" name="delete" value="delete"
+            id={styles["delete"]}>Delete</button> : null}
         </div>
       </form>
     </div>

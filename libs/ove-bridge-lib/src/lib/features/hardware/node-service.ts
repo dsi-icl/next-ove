@@ -12,7 +12,7 @@ import {
   ScreenshotMethodSchema
 } from "@ove/ove-types";
 import { z } from "zod";
-import { readAsset } from "@ove/file-utils";
+import { env } from "@ove/ove-bridge-env";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
@@ -22,14 +22,14 @@ globalAny.WebSocket = ws;
 
 const fixedEncodeURIComponent = (str: string) => encodeURIComponent(str).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16));
 
-const createClient = (device: Device) =>
+export const createClient = (device: Device) =>
   createTRPCProxyClient<AppRouter>({
     links: [
       httpLink({
-        url: `http://${device.ip}:${device.port}/api/v1/trpc`,
+        url: `${device.protocol}://${device.ip}:${device.port}/api/v${env.CLIENT_VERSION}/trpc`,
         headers: () => {
           return {
-            Authorization: fixedEncodeURIComponent(`Bearer ${readAsset("public_key")}`)
+            Authorization: fixedEncodeURIComponent(`Bearer ${env.PUBLIC_KEY}`)
           };
         }
       })

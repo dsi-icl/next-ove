@@ -12,12 +12,11 @@ import {
   ServiceType
 } from "@ove/ove-types";
 import { z } from "zod";
-import { env } from "../../environments/env";
-import * as Utils from "../../utils/utils";
-import {raise} from "@ove/ove-utils";
+import { raise, assert } from "@ove/ove-utils";
 import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
 import MDCService from "./mdc-service";
+import { env, saveEnv } from "@ove/ove-bridge-env";
 
 export const wrapCallback = <Key extends keyof BridgeAPIType>(
   cb: (response: z.infer<BridgeAPIType[Key]["bridge"]>) => void
@@ -30,9 +29,7 @@ export const wrapCallback = <Key extends keyof BridgeAPIType>(
 };
 
 export const getDevices = async ({ tag }: BridgeServiceArgs<"getDevices">) => {
-  const devices = Utils
-    .getDevices()
-    .filter(({ tags }) => tag === undefined || tags.includes(tag));
+  const devices = env.HARDWARE.filter(({ tags }) => tag === undefined || tags.includes(tag));
 
   if (devices.length === 0) {
     const tagStatus = tag !== undefined ? ` with tag: ${tag}` : "";
@@ -43,7 +40,7 @@ export const getDevices = async ({ tag }: BridgeServiceArgs<"getDevices">) => {
 };
 
 export const getDevice = async ({ deviceId }: BridgeServiceArgs<"getDevice">) => {
-  const device = Utils.getDevices().find(({ id }) => deviceId === id);
+  const device = env.HARDWARE.find(({ id }) => deviceId === id);
 
   if (device === undefined) {
     return raise(`No device found with id: ${deviceId}`);
@@ -53,17 +50,16 @@ export const getDevice = async ({ deviceId }: BridgeServiceArgs<"getDevice">) =>
 };
 
 export const addDevice = async ({ device }: BridgeServiceArgs<"addDevice">) => {
-  const curDevices = Utils.getDevices();
-  const devices = { ...curDevices, device };
-  Utils.saveDevices(devices);
+  env.HARDWARE.push(device);
+  saveEnv(env);
   return true;
 };
 
 export const removeDevice = async ({
   deviceId
 }: BridgeServiceArgs<"removeDevice">) => {
-  const devices = Utils.getDevices().filter(({ id }) => id === deviceId);
-  Utils.saveDevices(devices);
+  env.HARDWARE = env.HARDWARE.filter(({ id }) => id === deviceId);
+  saveEnv(env);
   return true;
 };
 
@@ -90,7 +86,7 @@ const applyService = async <Key extends keyof DeviceService>(
   device: Device
 ): Promise<Optional<z.infer<BridgeAPIType[Key]["client"]>>> => {
   if ((Object.keys(service) as Array<keyof DeviceService>).includes(k)) {
-    return await service[k]!!(device, args);
+    return await assert(service[k])(device, args);
   } else return undefined;
 };
 
@@ -118,13 +114,11 @@ export const deviceHandler = async <Key extends keyof DeviceService>(
 
   const serviceArgs: DeviceServiceArgs<Key> = without<typeof args, DeviceServiceArgs<Key>>(args)("deviceId");
   const response = await applyService<typeof k>(
-    getServiceForProtocol(device.protocol),
+    getServiceForProtocol(device.type),
     k,
     serviceArgs as DeviceServiceArgs<Key>,
     device
   );
-
-  console.log(`Service response: ${JSON.stringify(response)}`);
 
   if (response === undefined) {
     callback({ response: raise("Command not available on device") });
@@ -151,7 +145,7 @@ export const multiDeviceHandler = async <Key extends keyof DeviceService>(
   const result = await Promise.all(
     devices.map(device =>
       applyService<Key>(
-        getServiceForProtocol(device.protocol),
+        getServiceForProtocol(device.type),
         k,
         args as DeviceServiceArgs<Key>,
         device

@@ -2,11 +2,11 @@ import {
   AutoSchedule,
   CalendarEvent,
   Device,
-  OutlookEvents,
+  Calendar,
   PowerMode
 } from "@ove/ove-types";
 
-export const channels: APIChannels = {
+export const inboundChannels: InboundAPIChannels = {
   getDevicesToAuth: "get-devices-auth",
   getAppVersion: "get-app-version",
   getPublicKey: "get-public-key",
@@ -27,17 +27,18 @@ export const channels: APIChannels = {
   getAutoSchedule: "get-auto-schedule"
 };
 
-export type APIChannels = {
-  [Key in keyof API]: string
+export type InboundAPIChannels = {
+  [Key in keyof InboundAPI]: string
 }
 
-export type API = {
+// client -> server
+export type InboundAPI = {
   getAppVersion: () => Promise<string>
   getDevicesToAuth: () => Promise<Device[]>
   getPublicKey: () => Promise<string>
-  registerAuth: (id: string) => Promise<void>
+  registerAuth: (id: string, pin: string) => Promise<boolean>
   updateEnv: (coreURL: string, bridgeName: string, calendarURL: string | undefined) => Promise<void>
-  getEnv: () => Promise<{bridgeName: string, coreURL: string, calendarURL?: string}>
+  getEnv: () => Promise<{bridgeName?: string, coreURL?: string, calendarURL?: string}>
   getDevices: () => Promise<Device[]>
   saveDevice: (device: Device) => Promise<void>
   deleteDevice: (deviceId: string) => Promise<void>
@@ -46,8 +47,23 @@ export type API = {
   clearSchedule: () => Promise<void>
   getMode: () => Promise<PowerMode>
   getSocketStatus: () => Promise<boolean>
-  getCalendar: () => Promise<OutlookEvents>
-  updateCalendar: (accessToken: string) => Promise<OutlookEvents | null>
+  getCalendar: () => Promise<Calendar | undefined>
+  updateCalendar: (accessToken: string) => Promise<Calendar | null>
   hasCalendar: () => Promise<boolean>
-  getAutoSchedule: () => Promise<AutoSchedule>
+  getAutoSchedule: () => Promise<AutoSchedule | undefined>
+}
+
+export const outboundChannels: OutboundAPIChannels = {
+  socketConnect: "socket-connect",
+  socketDisconnect: "socket-disconnect"
+};
+
+export type OutboundAPIChannels = {
+  [Key in keyof OutboundAPI]: string
+}
+
+// server -> client
+export type OutboundAPI = {
+  socketConnect: () => void
+  socketDisconnect: () => void
 }

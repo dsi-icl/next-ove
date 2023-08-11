@@ -19,21 +19,23 @@ const Home = () => {
       dialogRef.current?.close();
       dialogRef.current?.removeEventListener("close", close);
     }
-  }, [dialogOpen]);
+  }, [dialogOpen, close]);
 
   useEffect(() => {
-    window.electron.hasCalendar().then(hasCalendar => setHasCalendar(hasCalendar));
+    window.electron.hasCalendar().then(setHasCalendar);
   }, []);
 
   return <main style={{ display: "flex", flexDirection: "row" }}>
     <div>
-      <Configuration setHasCalendar={setHasCalendar}
-                     openDialog={() => setDialogOpen(true)} />
+      <Configuration
+        setHasCalendar={setHasCalendar}
+        openDialog={() => setDialogOpen(true)} />
       <KeyPass />
     </div>
     {hasCalendar ? <Calendar /> : null}
-    {dialogOpen ? <AutoModeConfiguration ref={dialogRef}
-                                         closeDialog={() => setDialogOpen(false)} /> : null}
+    {dialogOpen ? <AutoModeConfiguration
+      ref={dialogRef}
+      closeDialog={() => setDialogOpen(false)} /> : null}
   </main>;
 };
 

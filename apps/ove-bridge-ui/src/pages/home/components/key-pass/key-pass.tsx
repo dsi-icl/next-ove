@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import {Clipboard} from "react-bootstrap-icons";
+import { Clipboard } from "react-bootstrap-icons";
 import { Snackbar } from "@ove/ui-components";
 import styles from "./key-pass.module.scss";
+import { Json } from "@ove/ove-utils";
 
 const KeyPass = () => {
   const [displayPublicKey, setDisplayPublicKey] = useState("");
@@ -24,7 +25,7 @@ const KeyPass = () => {
     <div className={styles["key-container"]}>
       <p>{displayPublicKey.slice(0, 50)} .....</p>
       <button onClick={async () => {
-        await navigator.clipboard.writeText(JSON.stringify(displayPublicKey));
+        await navigator.clipboard.writeText(Json.stringify(displayPublicKey));
         setIsCopied(true);
       }}><Clipboard /></button>
     </div>

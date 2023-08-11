@@ -1,19 +1,17 @@
-/* global console */
-
+import {
+  deviceHandler,
+  multiDeviceHandler,
+  Service
+} from "./service";
 import {
   BridgeServiceKeys,
   DeviceServiceKeys,
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
 } from "@ove/ove-types";
-import { env } from "../../environments/env";
+import { assert } from "@ove/ove-utils";
 import { io, Socket } from "socket.io-client";
-import {
-  deviceHandler,
-  multiDeviceHandler,
-  Service
-} from "./service";
-import { readAsset } from "@ove/file-utils";
+import { env, logger } from "@ove/ove-bridge-env";
 
 let socket: Socket<
   HardwareServerToClientEvents,
@@ -40,37 +38,35 @@ export const registerSocketDisconnectListener = (listener: () => void) => {
 export const getSocketStatus = () => socket?.connected ?? false;
 
 export const initHardware = () => {
-  if (env.CORE_URL === "" || env.BRIDGE_NAME === "") return;
+  if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
   socket = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false });
   socket.auth = {
     username: env.BRIDGE_NAME,
-    password: readAsset("public_key")
+    password: env.PUBLIC_KEY
   };
   socket.connect();
 
   socket.on("connect", () => {
-    console.log("Connected to /hardware");
-    console.log(socket!!.id);
+    logger.info(`${assert(socket).id} connected to /hardware`);
     socketConnectListeners.forEach(x => x());
   });
 
   socket.on("disconnect", () => {
-    console.log("Disconnected from /hardware");
-    console.log(socket!!.id);
+    console.log(`${assert(socket).id} disconnected from /hardware`);
     socketDisconnectListeners.forEach(x => x());
   });
 
   BridgeServiceKeys.forEach(k => {
-    socket!!.on(k, Service[k]);
+    assert(socket).on(k, Service[k]);
   });
 
 
   DeviceServiceKeys.forEach(k => {
-    const deviceHandlerInterface = (args: Parameters<typeof deviceHandler>[1], callback: Parameters<typeof deviceHandler>[2]) => deviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}`));
-    const multiDeviceHandlerInterface = (args: Parameters<typeof multiDeviceHandler>[1], callback: Parameters<typeof multiDeviceHandler>[2]) => multiDeviceHandler(k, args, callback).then(() => console.log(`Handled: ${k}All`));
-    socket!!.on(k, deviceHandlerInterface as HardwareServerToClientEvents[typeof k]);
-    socket!!.on(`${k}All`, multiDeviceHandlerInterface as HardwareServerToClientEvents[`${typeof k}All`]);
+    const deviceHandlerInterface = (args: Parameters<typeof deviceHandler>[1], callback: Parameters<typeof deviceHandler>[2]) => deviceHandler(k, args, callback).then(() => logger.info(`Handled: ${k}`));
+    const multiDeviceHandlerInterface = (args: Parameters<typeof multiDeviceHandler>[1], callback: Parameters<typeof multiDeviceHandler>[2]) => multiDeviceHandler(k, args, callback).then(() => logger.info(`Handled: ${k}All`));
+    assert(socket).on(k, deviceHandlerInterface as HardwareServerToClientEvents[typeof k]);
+    assert(socket).on(`${k}All`, multiDeviceHandlerInterface as HardwareServerToClientEvents[`${typeof k}All`]);
   });
 
-  socket.on("connect_error", err => console.error(`connect_error due to ${err.message}`));
+  socket.on("connect_error", err => logger.error(`connection error due to ${err.message}`));
 };

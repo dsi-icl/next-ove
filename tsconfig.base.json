@@ -17,6 +17,7 @@
     "paths": {
       "@ove/file-utils": ["libs/file-utils/src/index.ts"],
       "@ove/mdc-control": ["libs/mdc-control/src/index.ts"],
+      "@ove/ove-bridge-env": ["libs/ove-bridge-env/src/index.ts"],
       "@ove/ove-bridge-lib": ["libs/ove-bridge-lib/src/index.ts"],
       "@ove/ove-bridge-shared": ["libs/ove-bridge-shared/src/index.ts"],
       "@ove/ove-client-control": ["libs/ove-client-control/src/index.ts"],

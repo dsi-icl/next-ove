@@ -1,10 +1,8 @@
-import { FormEvent, forwardRef, useCallback, useEffect, useState } from "react";
-import { Device } from "@ove/ove-types";
-import { createTRPCProxyClient, httpLink } from "@trpc/client";
-import { AppRouter } from "@ove/ove-client-router";
 import { Mode } from "../../utils";
+import { Device } from "@ove/ove-types";
 import styles from "./auth.module.scss";
 import { Snackbar } from "@ove/ui-components";
+import { FormEvent, forwardRef, useEffect, useState } from "react";
 
 type AuthProps = {
   device: Device
@@ -17,45 +15,17 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
 }, ref) => {
   const [status, setStatus] = useState<boolean | null>(null);
 
-  const createClient = useCallback(() =>
-    createTRPCProxyClient<AppRouter>({
-      links: [
-        httpLink({
-          url: `http://${device.ip}:${device.port}/api/v1/trpc`,
-          async headers() {
-            return {
-              authorization: ""
-            };
-          }
-        })
-      ],
-      transformer: undefined
-    }), []);
-
-  useEffect(() => console.log(status), [status]);
-
   const handleAuth = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
-    const key = await window.electron.getPublicKey();
-
-    let registered;
-    try {
-      registered = await createClient().register.mutate({
-        pin: (formData.get("pin") ?? "").toString(),
-        key
-      });
-    } catch (e) {
-      registered = false;
-    }
-
+    const registered =
+      await window.electron.registerAuth(device.id, (formData.get("pin") ?? "")
+        .toString());
     setStatus(registered);
 
-    if (registered) {
-      await window.electron.registerAuth(device.id);
-      setMode("overview");
-    }
+    if (!registered) return;
+    setMode("overview");
   };
 
   useEffect(() => {
@@ -66,7 +36,9 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
     };
   }, [status]);
 
-  return <dialog ref={ref} onClick={() => setMode("overview")} className={styles.dialog}>
+  return <dialog
+    ref={ref} onClick={() => setMode("overview")}
+    className={styles.dialog}>
     <div className={styles.hidden} onClick={e => e.stopPropagation()}>
       <h2>Authorise: {device.id}</h2>
       <form method="post" className={styles.form} onSubmit={e => handleAuth(e)}>

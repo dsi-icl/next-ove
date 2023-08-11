@@ -11,6 +11,7 @@ import Auth from "../auth/auth";
 import { Mode } from "../../utils";
 
 import styles from "./devices.module.scss";
+import { assert } from "@ove/ove-utils";
 
 type DeviceCardProps = {
   device: Device
@@ -21,7 +22,7 @@ const DeviceCard = ({ device, setMode }: DeviceCardProps) => {
   const getProtocolIcon = (protocol: ServiceType) => {
     switch (protocol) {
       case "node":
-        return <HddNetwork className={styles["device-icon"]}/>;
+        return <HddNetwork className={styles["device-icon"]} />;
       case "mdc":
         return <Display className={styles["device-icon"]} />;
       case "pjlink":
@@ -30,7 +31,7 @@ const DeviceCard = ({ device, setMode }: DeviceCardProps) => {
   };
   const needsAuth = device.auth === false;
   return <article className={styles["device-card"]} key={device.id}>
-    {getProtocolIcon(device.protocol)}
+    {getProtocolIcon(device.type)}
     <h4>{device.id}</h4>
     <div className={styles["action-container"]}>
       <button
@@ -79,20 +80,29 @@ const Devices = () => {
         authRef.current?.addEventListener?.("close", close);
         break;
     }
-  }, [mode]);
+  }, [mode, close]);
 
   return <section className={styles.body}>
     <div className={styles.main}>
       <h1 className={styles.header}>Devices</h1>
-      {mode === "edit" ? <EditDevice ref={editRef} setMode={mode => setMode(mode)}
-                                     device={id === null ? null : (devices.find(({ id: deviceId }) => deviceId === id) ?? null)} /> : null}
-      {mode === "auth" ? <Auth ref={authRef} device={devices.find(({id: deviceId}) => deviceId === id)!!} setMode={mode => setMode(mode)} /> : null}
+      {mode === "edit" ?
+        <EditDevice
+          ref={editRef}
+          setMode={mode => setMode(mode)}
+          device={id === null ? null : (devices.find(({ id: deviceId }) =>
+            deviceId === id) ?? null)} /> : null}
+      {mode === "auth" ? <Auth
+        ref={authRef}
+        device={assert(devices.find(({ id: deviceId }) =>
+          deviceId === id))}
+        setMode={mode => setMode(mode)} /> : null}
       <div className={styles["devices-container"]}>
-        {devices.map(device => <DeviceCard key={device.id} device={device}
-                                           setMode={mode => {
-                                             setId(device.id);
-                                             setMode(mode);
-                                           }} />)}
+        {devices.map(device => <DeviceCard
+          key={device.id} device={device}
+          setMode={mode => {
+            setId(device.id);
+            setMode(mode);
+          }} />)}
       </div>
     </div>
     <button className={styles.fab} onClick={e => {

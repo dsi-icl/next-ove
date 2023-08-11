@@ -68,7 +68,8 @@ export const DeviceSchema = z.object({
   description: z.string(),
   ip: z.string(),
   port: z.number(),
-  protocol: ServiceTypeSchema,
+  protocol: z.string(),
+  type: ServiceTypeSchema,
   mac: z.string(),
   tags: z.array(z.string()),
   auth: z.union([z.object({username: z.string(), password: z.string()}), z.boolean()]).nullable()

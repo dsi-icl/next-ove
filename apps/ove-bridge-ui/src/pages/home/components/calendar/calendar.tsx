@@ -37,16 +37,14 @@ const Calendar = () => {
 
   useEffect(() => {
     window.electron.getCalendar().then(data => {
-      if (data["lastUpdated"] === null) return;
+      if (data === undefined || data.lastUpdated === null) return;
       window.electron.getMode().then(setMode);
       setLastUpdated(new Date(data["lastUpdated"]));
-      setEvents(data["value"].map(event => {
-        return ({
-          title: event["subject"],
-          start: parseISO(`${event["start"]["dateTime"]}Z`),
-          end: parseISO(`${event["end"]["dateTime"]}Z`)
-        });
-      }));
+      setEvents(data["value"].map(event => ({
+        title: event["subject"],
+        start: parseISO(`${event["start"]}Z`),
+        end: parseISO(`${event["end"]}Z`)
+      })));
     });
   }, []);
 
@@ -63,7 +61,7 @@ const Calendar = () => {
         window.electron.setEcoSchedule(events).catch(console.error);
         break;
     }
-  }, [mode]);
+  }, [mode, events]);
 
   useEffect(() => {
     if (dialogOpen) {
@@ -73,19 +71,17 @@ const Calendar = () => {
       dialogRef.current?.close();
       dialogRef.current?.removeEventListener("close", close);
     }
-  }, [dialogOpen]);
+  }, [dialogOpen, close]);
 
   const updateCalendar = (accessToken: string) => {
     window.electron.updateCalendar(accessToken).then(calendar => {
       if (calendar === null || calendar["lastUpdated"] === null) return;
       setLastUpdated(new Date(calendar["lastUpdated"]));
-      setEvents(calendar["value"].map(event => {
-        return ({
-          title: event["subject"],
-          start: parseISO(`${event["start"]["dateTime"]}Z`),
-          end: parseISO(`${event["end"]["dateTime"]}Z`)
-        });
-      }));
+      setEvents(calendar["value"].map(event => ({
+        title: event["subject"],
+        start: parseISO(`${event["start"]}Z`),
+        end: parseISO(`${event["end"]}Z`)
+      })));
     });
   };
 
@@ -93,27 +89,40 @@ const Calendar = () => {
 
   const getLastUpdatedTime = (lastUpdated: Date | null) => {
     if (lastUpdated === null) return "";
-    return ` ${padTime(lastUpdated.getHours())}:${padTime(lastUpdated.getMinutes())}:${padTime(lastUpdated.getSeconds())}`;
+    const hours = padTime(lastUpdated.getHours());
+    const minutes = padTime(lastUpdated.getMinutes());
+    const seconds = padTime(lastUpdated.getSeconds());
+    return ` ${hours}:${minutes}:${seconds}`;
   };
+
+  const lastUpdatedText = `${lastUpdated?.toDateString()}
+  ${getLastUpdatedTime(lastUpdated)}`;
 
   return <section className={styles.section}>
     <div className={styles["mode-container"]}>
-      <p className={styles["last-updated"]}><span
-        className={styles.bold}>Last updated</span> - {lastUpdated?.toDateString()}{getLastUpdatedTime(lastUpdated)}
+      <p className={styles["last-updated"]}>
+        <span className={styles.bold}>Last updated</span> - {lastUpdatedText}
       </p>
       <button className={styles.refresh} onClick={() => setDialogOpen(true)}>
         <RefreshCcw /></button>
-      <button className={styles.button}
-              style={{ backgroundColor: mode === "manual" ? "lightgreen" : "lightgrey" }}
-              onClick={() => setMode("manual")}>Manual
+      <button
+        className={styles.button}
+        style={{
+          backgroundColor: mode === "manual" ? "lightgreen" : "lightgrey"
+        }}
+        onClick={() => setMode("manual")}>Manual
       </button>
-      <button className={styles.button}
-              style={{ backgroundColor: mode === "auto" ? "lightgreen" : "lightgrey" }}
-              onClick={() => setMode("auto")}>Auto
+      <button
+        className={styles.button}
+        style={{
+          backgroundColor: mode === "auto" ? "lightgreen" : "lightgrey"
+        }}
+        onClick={() => setMode("auto")}>Auto
       </button>
-      <button className={styles.button}
-              style={{ backgroundColor: mode === "eco" ? "lightgreen" : "lightgrey" }}
-              onClick={() => setMode("eco")}>Eco
+      <button
+        className={styles.button}
+        style={{ backgroundColor: mode === "eco" ? "lightgreen" : "lightgrey" }}
+        onClick={() => setMode("eco")}>Eco
       </button>
     </div>
     <CalendarDisplay
@@ -123,8 +132,10 @@ const Calendar = () => {
       endAccessor="end"
       className={styles.calendar}
     />
-    {dialogOpen ? <UpdateForm ref={dialogRef} updateCalendar={updateCalendar}
-                              closeDialog={() => setDialogOpen(false)} /> : null}
+    {dialogOpen ? <UpdateForm
+      ref={dialogRef}
+      updateCalendar={updateCalendar}
+      closeDialog={() => setDialogOpen(false)} /> : null}
   </section>;
 };
 

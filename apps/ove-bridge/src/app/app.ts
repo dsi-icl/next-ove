@@ -1,23 +1,19 @@
-/* global process, __dirname, console */
+/* global process, __dirname */
 
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { env } from "@ove/ove-bridge-lib";
+import { env, logger } from "@ove/ove-bridge-env";
 import initAutoUpdate from "./events/update.events";
-import { rendererAppHost, rendererAppName, rendererAppPort } from "./constants";
 import { type BrowserWindow as BW, type App, type Screen } from "electron";
+import { OutboundAPI, outboundChannels } from "@ove/ove-bridge-shared";
+import { assert } from "@ove/ove-utils";
 
 let mainWindow: BW | null = null;
 let application: App;
 let BrowserWindow: typeof BW;
 let screen: Screen;
 
-const isDevelopmentMode = () => {
-  if (env.ELECTRON_IS_DEV !== undefined) {
-    return parseInt(env.ELECTRON_IS_DEV, 10) === 1;
-  }
-  return env.NODE_ENV !== "production";
-};
+const isDevelopmentMode = () => env.RENDER_CONFIG === undefined;
 
 const onWindowAllClosed = () => {
   if (process.platform !== "darwin") {
@@ -68,17 +64,14 @@ const initMainWindow = () => {
 const loadMainWindow = () => {
   if (mainWindow === null) throw new Error("Main window should not be null");
   if (!application.isPackaged) {
-    mainWindow
-      .loadURL(`http://${rendererAppHost}:${rendererAppPort}`)
-      .then(() => console.log("Loaded URL"));
+    const formattedUrl = `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}`;
+    mainWindow.loadURL(formattedUrl)
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
   } else {
-    mainWindow
-      .loadURL(
-        pathToFileURL(
-          join(__dirname, "..", rendererAppName, "index.html")
-        ).toString()
-      )
-      .then(() => console.log("Loaded URL"));
+    const formattedUrl = pathToFileURL(
+      join(__dirname, "..", env.UI_ALIAS, "index.html")).toString();
+    mainWindow.loadURL(formattedUrl)
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
   }
 };
 
@@ -92,12 +85,18 @@ const init = (app: App, browserWindow: typeof BW, sc: Screen) => {
   application.on("activate", onActivate);
 };
 
+const triggerIPC: OutboundAPI =
+  (Object.keys(outboundChannels) as Array<keyof OutboundAPI>)
+    .reduce((acc, k) => {
+      acc[k] = (...args: Parameters<OutboundAPI[typeof k]>) => {
+        if (mainWindow === null) return;
+        mainWindow.webContents.send(outboundChannels[k], ...args);
+      };
+      return acc;
+    }, {} as OutboundAPI);
+
 export default {
   isDevelopmentMode,
   init,
-  triggerIPC: (event: string, ...args: any[]) => {
-    if (mainWindow !== null) {
-      mainWindow.webContents.send(event, ...args);
-    }
-  }
+  triggerIPC
 };
