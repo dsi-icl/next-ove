@@ -1,18 +1,18 @@
 import { app } from "electron";
-import { InboundAPI } from "@ove/ove-bridge-shared";
-import { Calendar, CalendarEvent, Device } from "@ove/ove-types";
 import {
-  closeHardwareSocket, createClient,
+  closeHardwareSocket,
+  createClient,
   getSocketStatus,
   initHardware
 } from "@ove/ove-bridge-lib";
-import { env, logger, saveEnv } from "@ove/ove-bridge-env";
-import * as schedule from "node-schedule";
-import subHours from "date-fns/subHours";
 import min from "date-fns/min";
-import addHours from "date-fns/addHours";
 import max from "date-fns/max";
-import { Json } from "@ove/ove-utils";
+import subHours from "date-fns/subHours";
+import addHours from "date-fns/addHours";
+import * as schedule from "node-schedule";
+import { InboundAPI } from "@ove/ove-bridge-shared";
+import { env, logger, saveEnv } from "@ove/ove-bridge-env";
+import { Calendar, CalendarEvent, Device } from "@ove/ove-types";
 
 export const IPCService: InboundAPI = {
   getAppVersion: async () => app.getVersion(),
@@ -164,10 +164,10 @@ export const IPCService: InboundAPI = {
   updateCalendar: async accessToken => {
     if (env.CALENDAR_URL === undefined) return null;
     try {
-      const calendar = await Json.fetch<Calendar>(
+      const calendar = await (await fetch(
         env.CALENDAR_URL,
         { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
+      )).json() as Calendar;
       calendar["lastUpdated"] = new Date().toISOString();
       env.CALENDAR = calendar;
       saveEnv(env);

@@ -8,7 +8,6 @@
 import { app } from "electron";
 import { spawn } from "child_process";
 import { resolve, join, basename } from "path";
-import { environment } from "../../environments/environment";
 
 export default (() => {
   let isAppFirstRun = false;
@@ -18,7 +17,7 @@ export default (() => {
   const exeName = resolve(
     join(
       appRootFolder,
-      `app-${environment.version}`,
+      `app-${app.getVersion()}`,
       basename(process.execPath)
     )
   );

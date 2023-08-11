@@ -24,7 +24,7 @@ export const wrapCallback = <Key extends keyof BridgeAPIType>(
   return (response: z.infer<BridgeAPIType[Key]["client"]>) =>
     cb({
       bridgeResponse: response,
-      meta: { bridge: env.BRIDGE_NAME }
+      meta: { bridge: assert(env.BRIDGE_NAME) }
     });
 };
 
