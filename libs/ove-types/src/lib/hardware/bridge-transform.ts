@@ -5,9 +5,10 @@ import {
   DeviceResponse,
   getDeviceResponseSchema
 } from "./client-transform";
-import { DeviceIDSchema, DeviceSchema, StatusSchema } from "../hardware";
+import { DeviceIDSchema } from "../hardware";
 import { OVEExceptionSchema } from "../ove-types";
 import { ExposureLevel, RouteMethod } from "./service";
+import { mapObject } from "@ove/ove-utils";
 
 /* Utility Schemas */
 
@@ -63,33 +64,6 @@ export type BridgeAPIRouteAll<
   }
   & { [Key in keyof ClientAPIRoute<A, U, M, E>]: ClientAPIRoute<A, U, M, E>[Key] };
 
-export type BridgeOnlyAPIRoutesType = {
-  getDevice: BridgeAPIRoute<
-    { deviceId: z.ZodString },
-    typeof DeviceSchema,
-    "GET",
-    "bridge"
-  >
-  getDevices: BridgeAPIRoute<
-    { tag: z.ZodOptional<z.ZodString> },
-    z.ZodArray<typeof DeviceSchema>,
-    "GET",
-    "bridge"
-  >
-  addDevice: BridgeAPIRoute<
-    { device: typeof DeviceSchema },
-    z.ZodBoolean,
-    "POST",
-    "bridge"
-  >
-  removeDevice: BridgeAPIRoute<
-    { deviceId: z.ZodString },
-    z.ZodBoolean,
-    "DELETE",
-    "bridge"
-  >
-}
-
 /* API Type */
 
 export type BridgeAPIRoutesType = {
@@ -103,77 +77,25 @@ export type BridgeAPIRoutesType = {
       ClientAPIArgs<Key>,
       { tag: z.ZodOptional<z.ZodString> }
     >, ClientAPIReturns<Key>, ClientAPIMethod<Key>, ClientAPIExposure<Key>>
-} & { [Key in keyof BridgeOnlyAPIRoutesType]: BridgeOnlyAPIRoutesType[Key] };
-
-/* API */
-
-export const BridgeOnlyAPIRoutes: BridgeOnlyAPIRoutesType = {
-  getDevice: {
-    meta: { openapi: { method: "GET" as const, path: "/device/{deviceId}", protected: true } },
-    args: z.object({ deviceId: z.string() }).strict(),
-    returns: DeviceSchema,
-    client: getDeviceResponseSchema(DeviceSchema),
-    bridge: getBridgeResponseSchema(getDeviceResponseSchema(DeviceSchema)),
-    exposed: "bridge"
-  },
-  getDevices: {
-    meta: { openapi: { method: "GET" as const, path: "/devices", protected: true } },
-    args: z.object({ tag: z.string().optional() }).strict(),
-    returns: z.array(DeviceSchema),
-    client: getDeviceResponseSchema(z.array(DeviceSchema)),
-    bridge: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema))),
-    exposed: "bridge"
-  },
-  addDevice: {
-    meta: { openapi: { method: "POST" as const, path: "/device", protected: true } },
-    args: z.object({ device: DeviceSchema }).strict(),
-    returns: StatusSchema,
-    client: getDeviceResponseSchema(StatusSchema),
-    bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
-    exposed: "bridge"
-  },
-  removeDevice: {
-    meta: {
-      openapi: {
-        method: "DELETE" as const,
-        path: "/device/{deviceId}",
-        protected: true
-      }
-    },
-    args: z.object({ deviceId: z.string() }).strict(),
-    returns: StatusSchema,
-    client: getDeviceResponseSchema(StatusSchema),
-    bridge: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
-    exposed: "bridge"
-  }
 };
 
-export const BridgeAPIRoutes: BridgeAPIRoutesType =
-  (Object.keys(ClientAPIRoutes) as Array<keyof ClientAPIRoutesType>)
-    .reduce((acc, k) => {
-      return {
-        ...acc,
-        [k]: {
-          meta: ClientAPIRoutes[k].meta,
-          returns: ClientAPIRoutes[k].returns,
-          args: ClientAPIRoutes[k].args.extend({
-            deviceId: DeviceIDSchema
-          }),
-          client: ClientAPIRoutes[k].client,
-          bridge: getBridgeResponseSchema(ClientAPIRoutes[k].client)
-        },
-        [`${k}All`]: {
-          meta: ClientAPIRoutes[k].meta,
-          returns: ClientAPIRoutes[k].returns,
-          args: ClientAPIRoutes[k].args.extend({
-            tag: z.string().optional()
-          }),
-          client: ClientAPIRoutes[k].client,
-          bridge: getBridgeResponseSchema(
-            getMultiDeviceResponseSchema(ClientAPIRoutes[k].client))
-        }
-      };
-    }, BridgeOnlyAPIRoutes as BridgeAPIRoutesType);
+export const BridgeAPIRoutes: BridgeAPIRoutesType = mapObject(ClientAPIRoutes, (k, route, m) => {
+  m[k] = {
+    meta: route.meta,
+    returns: route.returns,
+    args: route.args.extend({deviceId: DeviceIDSchema}),
+    client: route.client,
+    bridge: getBridgeResponseSchema(route.client),
+    exposed: route.exposed
+  } as unknown as BridgeAPIRoutesType[typeof k];
+  m[`${k}All`] = {
+    meta: route.meta,
+    returns: route.returns,
+    args: route.args.extend({tag: z.string().optional()}),
+    client: route.client,
+    bridge: getBridgeResponseSchema(getMultiDeviceResponseSchema(route.returns))
+  } as unknown as BridgeAPIRoutesType[`${typeof k}All`];
+});
 
 /* API Utility Types */
 

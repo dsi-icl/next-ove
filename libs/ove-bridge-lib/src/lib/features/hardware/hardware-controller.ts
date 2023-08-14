@@ -1,10 +1,8 @@
 import {
   deviceHandler,
   multiDeviceHandler,
-  Service
 } from "./service";
 import {
-  BridgeServiceKeys,
   DeviceServiceKeys,
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
@@ -54,10 +52,6 @@ export const initHardware = () => {
   socket.on("disconnect", () => {
     console.log(`${assert(socket).id} disconnected from /hardware`);
     socketDisconnectListeners.forEach(x => x());
-  });
-
-  BridgeServiceKeys.forEach(k => {
-    assert(socket).on(k, Service[k]);
   });
 
 

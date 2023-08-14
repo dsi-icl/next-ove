@@ -19,10 +19,16 @@ export default () => {
       <Helmet>
         <title>Next-OVE Hardware</title>
       </Helmet>
-      <h1 style={{fontWeight: "700", fontSize: "24px", marginTop: "1rem", width: "100vw", textAlign: "center"}}>Hardware Manager</h1>
-      {observatories?.map(({ name, isOnline }) => <Observatory name={name}
-                                                               isOnline={isOnline}
-                                                               key={name} style={{marginTop: "2rem"}} />)}
+      <h1 style={{
+        fontWeight: 700,
+        fontSize: "24px",
+        marginTop: "1rem",
+        width: "100vw",
+        textAlign: "center"
+      }}>Hardware Manager</h1>
+      {observatories?.map(({ name, isOnline }) => <Observatory
+        name={name} isOnline={isOnline} key={name}
+        style={{ marginTop: "2rem" }} />)}
     </main>
   </HelmetProvider>;
 }

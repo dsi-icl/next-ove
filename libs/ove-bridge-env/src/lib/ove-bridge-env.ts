@@ -1,17 +1,17 @@
-import { z } from "zod";
 import {
   AutoScheduleSchema,
   CalendarSchema,
   DeviceSchema,
   PowerModeSchema
 } from "@ove/ove-types";
+import { z } from "zod";
 import { nanoid } from "nanoid";
 import * as path from "path";
 import { app } from "electron";
-import { Json } from "@ove/ove-utils";
 import { Logger } from "@ove/ove-logging";
 import { generateKeyPairSync } from "crypto";
-import { readFile, safeWriteFile } from "@ove/file-utils";
+import { DeepProxy } from "@ove/ove-utils";
+import { saveConfig, updateConfig } from "@ove/ove-env-utils";
 
 const schema = z.strictObject({
   LOGGING_SERVER: z.string().optional(),
@@ -37,11 +37,11 @@ const staticConfig = {
   APP_NAME: "ove-bridge",
   UI_ALIAS: "ove-bridge-ui",
   CLIENT_VERSION: "1"
-};
+} as const;
 
 const passPhrase = nanoid(16);
 
-const {publicKey, privateKey} = generateKeyPairSync("rsa", {
+const { publicKey, privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 4096,
   publicKeyEncoding: {
     type: "spki",
@@ -65,31 +65,21 @@ const defaultConfig: z.infer<typeof schema> = {
 
 const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");
 
-const rawConfig: Record<string, unknown> = readFile(configPath, Json.stringify(defaultConfig));
+const {rawConfig, isUpdate} = updateConfig(
+  configPath,
+  defaultConfig,
+  Object.keys(schema.shape)
+);
 
-let updateConfig = false;
+type Environment = z.infer<typeof schema> & typeof staticConfig
 
-for (let key of Object.keys(defaultConfig)) {
-  if (key in rawConfig) continue;
-  updateConfig = true;
-  rawConfig[key as keyof typeof defaultConfig] = defaultConfig[key as keyof typeof defaultConfig];
-}
-
-export const env = {
+export const env: Environment = DeepProxy({
   ...schema.parse(rawConfig),
   ...staticConfig
-};
+}, target => saveConfig(configPath, target, Object.keys(staticConfig)));
 
-/**
- * Only updates env on application reload.
- * @param updatedEnv
- */
-export const saveEnv = (updatedEnv: typeof env) => {
-  safeWriteFile(configPath, Json.stringify(updatedEnv), true);
-};
-
-if (updateConfig) {
-  saveEnv(env);
+if (isUpdate) {
+  saveConfig(configPath, env, Object.keys(staticConfig));
 }
 
 export const logger = Logger(env.APP_NAME, env.LOG_LEVEL, env.LOGGING_SERVER);

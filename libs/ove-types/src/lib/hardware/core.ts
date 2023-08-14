@@ -13,7 +13,7 @@ export type CoreAPIType = {
 
 /* API */
 
-export {CoreAPIRoutes as CoreAPI}
+export { CoreAPIRoutes as CoreAPI };
 
 /* API Utility Types*/
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { state } from "../state";
 import { procedure, router } from "../trpc";
 import { StatusSchema } from "@ove/ove-types";
-import { env, logger, saveEnv } from "@ove/ove-client-env";
+import { env, logger } from "@ove/ove-client-env";
 
 export const authRouter = router({
   register: procedure
@@ -13,7 +13,6 @@ export const authRouter = router({
       logger.info("/register endpoint hit - authenticating device");
       if (pin === state.pin && !env.AUTHORISED_CREDENTIALS.includes(key)) {
         env.AUTHORISED_CREDENTIALS.push(key);
-        saveEnv(env);
       }
       return pin === state.pin;
     })

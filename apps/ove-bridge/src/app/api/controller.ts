@@ -7,11 +7,12 @@ import {
 } from "@ove/ove-bridge-lib";
 import min from "date-fns/min";
 import max from "date-fns/max";
+import fetch from "node-fetch";
 import subHours from "date-fns/subHours";
 import addHours from "date-fns/addHours";
 import * as schedule from "node-schedule";
 import { InboundAPI } from "@ove/ove-bridge-shared";
-import { env, logger, saveEnv } from "@ove/ove-bridge-env";
+import { env, logger } from "@ove/ove-bridge-env";
 import { Calendar, CalendarEvent, Device } from "@ove/ove-types";
 
 export const IPCService: InboundAPI = {
@@ -33,15 +34,12 @@ export const IPCService: InboundAPI = {
     }
 
     env.HARDWARE[idx].auth = true;
-
-    saveEnv(env);
     return true;
   },
   updateEnv: async (coreURL, bridgeName, calendarURL) => {
     env.CORE_URL = coreURL;
     env.BRIDGE_NAME = bridgeName;
     env.CALENDAR_URL = calendarURL ?? env.CALENDAR_URL;
-    saveEnv(env);
     closeHardwareSocket();
     initHardware();
   },
@@ -61,24 +59,19 @@ export const IPCService: InboundAPI = {
     } else {
       env.HARDWARE[existingDevice] = device;
     }
-
-    saveEnv(env);
   },
   deleteDevice: async deviceId => {
     env.HARDWARE = env.HARDWARE.filter(({ id }) => id !== deviceId);
-    saveEnv(env);
   },
   setAutoSchedule: async autoSchedule => {
     if (autoSchedule !== undefined) {
       env.AUTO_SCHEDULE = autoSchedule;
-      saveEnv(env);
       if (env.POWER_MODE !== "auto") return;
     } else {
       autoSchedule = env.AUTO_SCHEDULE;
     }
 
     env.POWER_MODE = "auto";
-    saveEnv(env);
     await schedule.gracefulShutdown();
 
     if (autoSchedule === undefined) return;
@@ -114,7 +107,6 @@ export const IPCService: InboundAPI = {
   setEcoSchedule: async ecoSchedule => {
     logger.info(`Setting eco schedule for ${ecoSchedule.length} events!`);
     env.POWER_MODE = "eco";
-    saveEnv(env);
     const groups =
       Object.values(ecoSchedule.reduce((acc, event) => {
         const date = event.start.getDate();
@@ -154,7 +146,6 @@ export const IPCService: InboundAPI = {
   },
   clearSchedule: async () => {
     env.POWER_MODE = "manual";
-    saveEnv(env);
     schedule.gracefulShutdown().catch(logger.error);
   },
   getMode: async () => env.POWER_MODE,
@@ -170,7 +161,6 @@ export const IPCService: InboundAPI = {
       )).json() as Calendar;
       calendar["lastUpdated"] = new Date().toISOString();
       env.CALENDAR = calendar;
-      saveEnv(env);
       return calendar;
     } catch (_e) {
       return null;

@@ -9,6 +9,7 @@ import {
 } from "./service";
 import { OVEExceptionSchema } from "../ove-types";
 import { z } from "zod";
+import { mapObject } from "@ove/ove-utils";
 
 /* Utility Types */
 
@@ -40,19 +41,14 @@ export type ClientAPIRoutesType = {
 
 /* API */
 
-export const ClientAPIRoutes: ClientAPIRoutesType =
-  (Object.keys(ServiceAPI) as Array<keyof typeof ServiceAPI>)
-    .reduce((acc, k) => {
-      return {
-        ...acc,
-        [k]: {
-          meta: ServiceAPI[k].meta,
-          returns: ServiceAPI[k].returns,
-          args: ServiceAPI[k].args,
-          client: getDeviceResponseSchema(ServiceAPI[k].returns)
-        }
-      };
-    }, {} as ClientAPIRoutesType);
+export const ClientAPIRoutes: ClientAPIRoutesType = mapObject(ServiceAPI, (k, route, m) => {
+  m[k] = {
+    meta: route.meta,
+    returns: route.returns,
+    args: route.args,
+    client: getDeviceResponseSchema(route.returns)
+  } as ClientAPIRoutesType[typeof k];
+});
 
 /* API Utility Types */
 

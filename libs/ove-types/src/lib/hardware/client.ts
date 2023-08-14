@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ClientAPIRoutes, ClientAPIRoutesType } from "./client-transform";
-import { ServiceAPI, ServiceAPIRoutesType } from "./service";
+import { ServiceAPIRoutesType } from "./service";
 
 export { type ClientAPIMethod } from "./client-transform";
 
@@ -25,8 +25,8 @@ export type ClientAPIType = {
 /* API */
 
 export const ClientAPI: ClientAPIType =
-  (Object.keys(ServiceAPI) as Array<keyof ServiceAPIRoutesType>)
-    .filter(key => ServiceAPI[key].exposed === "client")
+  (Object.keys(ClientAPIRoutes) as Array<keyof ServiceAPIRoutesType>)
+    .filter(key => ClientAPIRoutes[key].exposed === "client")
     .reduce((acc, k) => {
       return {
         ...acc,

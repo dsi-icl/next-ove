@@ -1,39 +1,39 @@
+/* global Proxy, process, console */
+
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { z } from "zod";
 import * as path from "path";
-import { app } from "electron";
 import { Logger } from "@ove/ove-logging";
 import { DeepProxy } from "@ove/ove-utils";
 import { saveConfig, updateConfig } from "@ove/ove-env-utils";
 
+/**
+ * Specify your server-side environment variables schema here.
+ * This way you can ensure the app isn't built with invalid env vars.
+ */
 const schema = z.strictObject({
-  LOGGING_SERVER: z.string().optional(),
-  HOSTNAME: z.string(),
-  PORT: z.number(),
-  PROTOCOL: z.string(),
-  RENDER_CONFIG: z.strictObject({
-    PORT: z.number(),
-    HOSTNAME: z.string(),
-    PROTOCOL: z.string()
-  }).optional(),
   LOG_LEVEL: z.number().optional(),
-  AUTHORISED_CREDENTIALS: z.array(z.string())
+  LOGGING_SERVER: z.string().optional(),
+  PORT: z.number(),
+  HOSTNAME: z.string(),
+  PROTOCOL: z.string(),
+  ACCESS_TOKEN_SECRET: z.string().optional(),
+  REFRESH_TOKEN_SECRET: z.string().optional()
 });
 
 const staticConfig = {
-  API_VERSION: 1,
-  APP_NAME: "ove-client",
-  UI_ALIAS: "ove-client-ui",
-  PIN_UPDATE_DELAY: 30_000
+  APP_NAME: "ove-core",
+  VERSION: "0.0.0",
+  API_VERSION: 1
 } as const;
 
 const defaultConfig: z.infer<typeof schema> = {
-  AUTHORISED_CREDENTIALS: [],
-  PORT: 3334,
+  PORT: 3333,
   HOSTNAME: "127.0.0.1",
   PROTOCOL: "http"
 };
 
-const configPath = path.join(app.getPath("userData"), "ove-client-config.json");
+const configPath = path.join(".", "config.json");
 
 const { rawConfig, isUpdate } = updateConfig(
   configPath,

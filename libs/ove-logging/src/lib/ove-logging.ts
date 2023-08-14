@@ -1,4 +1,4 @@
-import * as chalk from "chalk";
+import chalk from "chalk";
 import format from "date-fns/format";
 import { default as Constants } from "./constants";
 

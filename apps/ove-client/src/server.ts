@@ -4,8 +4,6 @@ import cors from "cors";
 import * as path from "path";
 import express from "express";
 import { appRouter, init, createContext } from "@ove/ove-client-router";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import * as swaggerUi from "swagger-ui-express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
@@ -39,9 +37,8 @@ export const start = () => {
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-  const port = env.PORT ?? 8080;
-  const server = app.listen(port, env.HOSTNAME ?? "127.0.0.1", () => {
-    logger.info(`Listening at ${env.PROTOCOL ?? "http"}://${env.HOSTNAME}:${port}`);
+  const server = app.listen(env.PORT, env.HOSTNAME, () => {
+    logger.info(`Listening at ${env.HOSTNAME}:${env.PORT}`);
   });
 
   server.on("error", logger.error);

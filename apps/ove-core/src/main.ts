@@ -1,28 +1,29 @@
-/* global process, __dirname */
+/* global __dirname */
 
 import * as path from "path";
-import * as cors from "cors";
-import * as express from "express";
-import * as swaggerUi from "swagger-ui-express";
-import * as trpcExpress from "@trpc/server/adapters/express";
-import { createOpenApiExpressMiddleware } from "trpc-openapi";
+import cors from "cors";
 import {
   app,
   appRouter,
   createContext,
   openApiDocument,
-  server
 } from "@ove/ove-core-router";
+import * as express from "express";
+import {env} from "@ove/ove-core-env";
+import * as swaggerUi from "swagger-ui-express";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { createOpenApiExpressMiddleware } from "trpc-openapi";
+
 
 // noinspection DuplicatedCode
 app.use(cors({ origin: "*" }));
 
-app.use("/api/v1/trpc", trpcExpress.createExpressMiddleware({
+app.use(`/api/v${env.API_VERSION}/trpc`, trpcExpress.createExpressMiddleware({
   router: appRouter,
   createContext
 }));
 
-app.use("/api/v1", createOpenApiExpressMiddleware({
+app.use(`/api/v${env.API_VERSION}`, createOpenApiExpressMiddleware({
   router: appRouter,
   createContext
 }));
@@ -31,6 +32,3 @@ app.use("/", swaggerUi.serve);
 app.get("/", swaggerUi.setup(openApiDocument));
 
 app.use("/assets", express.static(path.join(__dirname, "assets")));
-
-const port = process.env.PORT || 3333;
-server.listen(port, () => console.log(`Listening at http://localhost:${port}`)).on("error", console.error);
