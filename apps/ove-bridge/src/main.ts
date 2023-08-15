@@ -1,5 +1,5 @@
 import App from "./app/app";
-import { initHardware } from "@ove/ove-bridge-lib";
+import { initBridge, initHardware } from "@ove/ove-bridge-lib";
 import { app, BrowserWindow, screen } from "electron";
 import SquirrelEvents from "./app/events/squirrel.events";
 import { bootstrapElectronEvents } from "./app/events/electron.events";
@@ -22,3 +22,4 @@ bootstrapApp();
 bootstrapEvents();
 
 initHardware();
+initBridge();

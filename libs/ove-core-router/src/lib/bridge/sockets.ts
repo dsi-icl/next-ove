@@ -1,14 +1,12 @@
 import { Namespace } from "socket.io";
 import {
-  HardwareClientToServerEvents,
-  HardwareServerToClientEvents
+  TSocketInEvents, TSocketOutEvents
 } from "@ove/ove-types";
 import { io as SocketServer } from "../sockets";
 import { setupNamespace } from "../socket-setup";
 
 export const io: Namespace<
-  HardwareClientToServerEvents,
-  HardwareServerToClientEvents
-> = SocketServer.of("/hardware");
+  TSocketInEvents, TSocketOutEvents
+> = SocketServer.of("/bridge");
 
-setupNamespace("/hardware");
+setupNamespace("/bridge");

@@ -63,6 +63,8 @@ export const SourceSchemas = z.union([
   PJLinkSourceSchema.keyof()
 ]);
 
+export type Source = z.infer<typeof SourceSchemas>
+
 export const DeviceSchema = z.object({
   id: z.string(),
   description: z.string(),

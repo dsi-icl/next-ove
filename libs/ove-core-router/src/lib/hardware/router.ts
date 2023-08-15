@@ -10,56 +10,52 @@ import {
   HardwareServerToClientEvents
 } from "@ove/ove-types";
 import { Socket } from "socket.io";
-import { state } from "./state";
+import { state } from "../state";
 import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
-
-console.log("Initialising hardware component");
+import { mapObject } from "@ove/ove-utils";
 
 const getSocket: (socketId: string) => Socket<
   HardwareClientToServerEvents,
   HardwareServerToClientEvents
-> = (socketId: string) => io.sockets.get(state.clients[socketId]);
+> = (socketId: string) => io.sockets.get(state.hardwareClients.get(socketId));
 
-const generateProcedure = (k: CoreAPIKeys) => protectedProcedure
+const generateProcedure = <Key extends CoreAPIKeys>(k: Key) => protectedProcedure
   .meta(CoreAPI[k].meta)
-  .input<CoreAPIType[typeof k]["args"]>(CoreAPI[k].args)
-  .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge);
+  .input<CoreAPIType[Key]["args"]>(CoreAPI[k].args)
+  .output<CoreAPIType[Key]["bridge"]>(CoreAPI[k].bridge);
 
-const generateQuery = (k: CoreAPIKeys) => generateProcedure(k)
-  .query<CoreAPIReturns<typeof k>>(async ({
+const generateQuery = <Key extends CoreAPIKeys>(k: Key) => generateProcedure(k)
+  .query<CoreAPIReturns<Key>>(async ({
     input: {
       bridgeId,
       ...args
     }
   }) =>
-    await new Promise<CoreAPIReturns<typeof k>>(resolve => {
+    await new Promise<CoreAPIReturns<Key>>(resolve => {
       // @ts-ignore
-      getSocket(bridgeId).emit<typeof k>(k, args, resolve);
+      getSocket(bridgeId).emit<Key>(k, args, resolve);
     }));
 
-const generateMutation = (k: CoreAPIKeys) => generateProcedure(k)
-  .mutation<CoreAPIReturns<typeof k>>(async ({
+const generateMutation = <Key extends CoreAPIKeys>(k: Key) => generateProcedure(k)
+  .mutation<CoreAPIReturns<Key>>(async ({
     input: {
       bridgeId,
       ...args
     }
-  }) => new Promise<CoreAPIReturns<typeof k>>(resolve => {
+  }) => new Promise<CoreAPIReturns<Key>>(resolve => {
     // @ts-ignore
-    getSocket(bridgeId).emit<typeof k>(k, args, resolve);
+    getSocket(bridgeId).emit<Key>(k, args, resolve);
   }));
 
 type Router = {
   [Key in CoreAPIKeys]: CoreAPIMethod<Key> extends "GET" ?
-    ReturnType<typeof generateQuery> : ReturnType<typeof generateMutation>
+    ReturnType<typeof generateQuery<Key>> : ReturnType<typeof generateMutation<Key>>
 }
 
-const routes = (Object.keys(CoreAPI) as Array<CoreAPIKeys>)
-  .reduce((acc, k) => ({
-    ...acc,
-    [k]: CoreAPI[k].meta.openapi.method === "GET" ?
-      generateQuery(k) : generateMutation(k)
-  }), {} as Router);
+const routes: Router = mapObject(CoreAPI, (k, v, m) => {
+  m[k] = v.meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)
+});
 
 const toBridgeRouter = router(routes);
 
@@ -80,7 +76,7 @@ const coreRouter = router({
       });
       return observatories.map(({username}) => ({
         name: username,
-        isOnline: Object.keys(state.clients).includes(username)
+        isOnline: Object.keys(state.bridgeClients).includes(username)
       }));
     })
 });

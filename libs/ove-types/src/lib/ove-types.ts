@@ -56,3 +56,5 @@ export const AutoScheduleSchema = z.strictObject({
 });
 
 export type AutoSchedule = z.infer<typeof AutoScheduleSchema>;
+
+export type RouteMethod = "GET" | "POST" | "DELETE";

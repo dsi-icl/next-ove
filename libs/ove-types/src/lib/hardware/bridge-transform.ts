@@ -24,7 +24,7 @@ export const getMultiDeviceResponseSchema =
 export const getBridgeResponseSchema =
   <T extends z.ZodTypeAny>(schema: T): BridgeResponse<T> => z.object({
     meta: BridgeMetadataSchema,
-    bridgeResponse: schema
+    response: schema
   });
 
 /* Utility Types */
@@ -35,9 +35,9 @@ type MultiDeviceResponse<T extends z.ZodTypeAny> =
     response: DeviceResponse<T>
   }>>, typeof OVEExceptionSchema]>;
 
-type BridgeResponse<T extends z.ZodTypeAny> = z.ZodObject<{
+export type BridgeResponse<T extends z.ZodTypeAny> = z.ZodObject<{
   meta: typeof BridgeMetadataSchema,
-  bridgeResponse: T
+  response: T
 }>
 
 /* API Route Types */

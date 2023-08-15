@@ -65,12 +65,11 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
 
   useEffect(() => {
     if (!isOnline) return;
-    createClient().hardware.getDevices.query({ bridgeId: name }).then(result => {
-      if (!result || is(OVEExceptionSchema, result["bridgeResponse"])) {
+    createClient().bridge.getDevices.query({ bridgeId: name }).then(result => {
+      if (!result || is(OVEExceptionSchema, result.response)) {
         return;
       }
-      // @ts-ignore
-      setHardware(result["bridgeResponse"].map(device => ({
+      setHardware(result.response.map(device => ({
         device,
         status: null,
         info: null
@@ -82,7 +81,7 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
     const status = (await createClient().hardware.getStatus.query({
       bridgeId: name,
       deviceId
-    }))["bridgeResponse"] ? "running" : "off";
+    }))["response"] ? "running" : "off";
     setHardware(cur => {
       const idx = cur.findIndex(({ device: { id } }) => id === deviceId);
       const copy = JSON.parse(JSON.stringify(cur));
@@ -124,8 +123,7 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
     const i = (await createClient().hardware.getInfo.query({
       bridgeId: name,
       deviceId
-    }))["bridgeResponse"];
-    console.log(JSON.stringify(i));
+    }))["response"];
     // @ts-ignore
     delete i["type"];
     // @ts-ignore
@@ -133,18 +131,18 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
   };
 
   const startDevice = async (deviceId: string) => {
-    /*await createClient().hardware.start.mutate({
+    await createClient().hardware.start.mutate({
       bridgeId: name,
       deviceId
-    });*/
+    });
     showNotification(`Started ${deviceId}`);
   };
 
   const stopDevice = async (deviceId: string) => {
-    /*await createClient().hardware.stop.mutate({
+    await createClient().hardware.shutdown.mutate({
       bridgeId: name,
       deviceId
-    });*/
+    });
     showNotification(`Stopped ${deviceId}`);
   };
 
@@ -170,7 +168,7 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
     {!isOnline ? null :
       <DataGrid className="rdg-light" columns={columns}
                 rows={hardware.map(({ device, status }) => ({
-                  protocol: getProtocolIcon(device.protocol),
+                  protocol: getProtocolIcon(device.type),
                   id: device.id,
                   hostname: device.ip,
                   mac: device.mac,

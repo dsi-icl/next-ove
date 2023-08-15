@@ -11,7 +11,7 @@ export const DeviceServiceKeys: readonly (keyof ClientAPIRoutesType)[] = Object.
 
 /* API Type */
 
-export { type BridgeAPIRoutesType as BridgeAPIType } from "./bridge-transform";
+export { type BridgeAPIRoutesType as BridgeAPIType, type BridgeResponse } from "./bridge-transform";
 
 export type DeviceService = {
   [Key in keyof ClientAPIRoutesType]?: (

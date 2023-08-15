@@ -1,8 +1,8 @@
 import { app } from "electron";
 import {
   closeHardwareSocket,
-  createClient,
-  getSocketStatus,
+  createClient, closeSocket,
+  getSocketStatus, initBridge,
   initHardware
 } from "@ove/ove-bridge-lib";
 import min from "date-fns/min";
@@ -41,7 +41,9 @@ export const IPCService: InboundAPI = {
     env.BRIDGE_NAME = bridgeName;
     env.CALENDAR_URL = calendarURL ?? env.CALENDAR_URL;
     closeHardwareSocket();
+    closeSocket();
     initHardware();
+    initBridge();
   },
   getEnv: async () => {
     return ({

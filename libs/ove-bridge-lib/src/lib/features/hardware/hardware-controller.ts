@@ -22,19 +22,6 @@ export const closeHardwareSocket = () => {
   socket = null;
 };
 
-const socketConnectListeners: (() => void)[] = [];
-const socketDisconnectListeners: (() => void)[] = [];
-
-export const registerSocketConnectedListener = (listener: () => void) => {
-  socketConnectListeners.push(listener);
-};
-
-export const registerSocketDisconnectListener = (listener: () => void) => {
-  socketDisconnectListeners.push(listener);
-};
-
-export const getSocketStatus = () => socket?.connected ?? false;
-
 export const initHardware = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
   socket = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false });
@@ -46,12 +33,10 @@ export const initHardware = () => {
 
   socket.on("connect", () => {
     logger.info(`${assert(socket).id} connected to /hardware`);
-    socketConnectListeners.forEach(x => x());
   });
 
   socket.on("disconnect", () => {
     console.log(`${assert(socket).id} disconnected from /hardware`);
-    socketDisconnectListeners.forEach(x => x());
   });
 
 
