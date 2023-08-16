@@ -14,7 +14,7 @@ const schema = z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
-  }).optional(),
+  }),
   LOG_LEVEL: z.number().optional(),
   AUTHORISED_CREDENTIALS: z.array(z.string())
 });
@@ -30,7 +30,12 @@ const defaultConfig: z.infer<typeof schema> = {
   AUTHORISED_CREDENTIALS: [],
   PORT: 3334,
   HOSTNAME: "127.0.0.1",
-  PROTOCOL: "http"
+  PROTOCOL: "http",
+  RENDER_CONFIG: {
+    PORT: 4201,
+    HOSTNAME: "127.0.0.1",
+    PROTOCOL: "http"
+  }
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-client-config.json");
