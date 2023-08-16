@@ -29,11 +29,11 @@ const staticConfig = {
 const defaultConfig: z.infer<typeof schema> = {
   AUTHORISED_CREDENTIALS: [],
   PORT: 3334,
-  HOSTNAME: "127.0.0.1",
+  HOSTNAME: "localhost",
   PROTOCOL: "http",
   RENDER_CONFIG: {
     PORT: 4201,
-    HOSTNAME: "127.0.0.1",
+    HOSTNAME: "localhost",
     PROTOCOL: "http"
   }
 };
