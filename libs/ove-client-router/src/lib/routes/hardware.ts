@@ -11,7 +11,7 @@ import Service from "@ove/ove-client-control";
 import { state, updatePin } from "../state";
 import { env, logger } from "@ove/ove-client-env";
 import { OutboundAPI } from "@ove/ove-client-shared";
-import { mapObject } from "@ove/ove-utils";
+import { mapObject2 } from "@ove/ove-utils";
 
 const service = Service();
 
@@ -107,8 +107,8 @@ type Router = {
     ReturnType<typeof generateQuery<Key>> : ReturnType<typeof generateMutation<Key>>
 }
 
-const routes: Router = mapObject(ClientAPI, (k, route, m) => {
-  m[k] = (route.meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)) as Router[typeof k];
-})
+const routes: Router = mapObject2(ClientAPI, (k, route) => {
+  return [k, (route.meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)) as Router[typeof k]];
+});
 
 export const hardwareRouter = router(routes);

@@ -13,7 +13,6 @@ import { Socket } from "socket.io";
 import { state } from "../state";
 import { z } from "zod";
 import { PrismaClient } from "@prisma/client";
-import { mapObject } from "@ove/ove-utils";
 
 const getSocket: (socketId: string) => Socket<
   HardwareClientToServerEvents,
@@ -22,30 +21,30 @@ const getSocket: (socketId: string) => Socket<
 
 const generateProcedure = <Key extends CoreAPIKeys>(k: Key) => protectedProcedure
   .meta(CoreAPI[k].meta)
-  .input<CoreAPIType[Key]["args"]>(CoreAPI[k].args)
-  .output<CoreAPIType[Key]["bridge"]>(CoreAPI[k].bridge);
+  .input<CoreAPIType[typeof k]["args"]>(CoreAPI[k].args)
+  .output<CoreAPIType[typeof k]["bridge"]>(CoreAPI[k].bridge);
 
-const generateQuery = <Key extends CoreAPIKeys>(k: Key) => generateProcedure(k)
-  .query<CoreAPIReturns<Key>>(async ({
+const generateQuery = <Key extends CoreAPIKeys>(k: CoreAPIKeys) => generateProcedure(k)
+  .query<CoreAPIReturns<typeof k>>(async ({
     input: {
       bridgeId,
       ...args
     }
   }) =>
-    await new Promise<CoreAPIReturns<Key>>(resolve => {
+    await new Promise<CoreAPIReturns<typeof k>>(resolve => {
       // @ts-ignore
-      getSocket(bridgeId).emit<Key>(k, args, resolve);
+      getSocket(bridgeId).emit<typeof k>(k, args, resolve);
     }));
 
-const generateMutation = <Key extends CoreAPIKeys>(k: Key) => generateProcedure(k)
-  .mutation<CoreAPIReturns<Key>>(async ({
+const generateMutation = <Key extends CoreAPIKeys>(k: CoreAPIKeys) => generateProcedure(k)
+  .mutation<CoreAPIReturns<typeof k>>(async ({
     input: {
       bridgeId,
       ...args
     }
-  }) => new Promise<CoreAPIReturns<Key>>(resolve => {
+  }) => new Promise<CoreAPIReturns<typeof k>>(resolve => {
     // @ts-ignore
-    getSocket(bridgeId).emit<Key>(k, args, resolve);
+    getSocket(bridgeId).emit<typeof k>(k, args, resolve);
   }));
 
 type Router = {
@@ -53,9 +52,12 @@ type Router = {
     ReturnType<typeof generateQuery<Key>> : ReturnType<typeof generateMutation<Key>>
 }
 
-const routes: Router = mapObject(CoreAPI, (k, v, m) => {
-  m[k] = v.meta.openapi.method === "GET" ? generateQuery(k) : generateMutation(k)
-});
+const routes = (Object.keys(CoreAPI) as Array<CoreAPIKeys>)
+  .reduce((acc, k) => ({
+    ...acc,
+    [k]: CoreAPI[k].meta.openapi.method === "GET" ?
+      generateQuery(k) : generateMutation(k)
+  }), {} as Router);
 
 const toBridgeRouter = router(routes);
 
@@ -74,7 +76,7 @@ const coreRouter = router({
           username: true
         }
       });
-      return observatories.map(({username}) => ({
+      return observatories.map(({ username }) => ({
         name: username,
         isOnline: Object.keys(state.bridgeClients).includes(username)
       }));

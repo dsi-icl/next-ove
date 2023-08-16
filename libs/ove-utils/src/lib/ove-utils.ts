@@ -49,6 +49,14 @@ export const mapObject = <A, B, T extends Record<string, A>, U extends Record<ke
   return mapped;
 };
 
+export const mapObject2 = <T extends object, U extends Record<keyof T, unknown>>(obj: T, transform: <Key extends keyof T>(k: Key, old: T[Key]) => [Key, U[Key]]): U => {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => transform(k as keyof T, v))) as U;
+};
+
+export const mapObjectWithKeys = <T extends object, U extends Record<V, unknown>, V extends string>(obj: T, transform: <Key extends keyof T>(k: Key, v: T[Key]) => [V, U[V]]): U => {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => transform(k as keyof T, v))) as U;
+};
+
 export const filterObject = <A, T extends Record<string, A>, U extends Record<keyof T, A>>(obj: T, filter: (k: keyof T) => boolean): U => {
   const filtered = {} as U;
   for (let key of Object.keys(obj) as Array<keyof T>) {

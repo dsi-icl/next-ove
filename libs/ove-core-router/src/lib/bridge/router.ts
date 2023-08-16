@@ -8,7 +8,7 @@ import {
 } from "@ove/ove-types";
 import { state } from "../state";
 import { io } from "./sockets";
-import { mapObject } from "@ove/ove-utils";
+import { mapObject2 } from "@ove/ove-utils";
 
 const getSocket = (socketId: string) => io.sockets.get(state.bridgeClients.get(socketId));
 
@@ -44,10 +44,9 @@ type Router = {
   [Key in keyof TAPIRoutes]: TIsGet<Key, ReturnType<typeof generateQuery<Key>>, ReturnType<typeof generateMutation<Key>>>
 }
 
-const routes: Router = mapObject(APIRoutes, (k, v, m) => {
-  // @ts-ignore
-  m[k] = v.meta.openapi.method === "GET" ?
-    generateQuery(k) : generateMutation(k);
+const routes: Router = mapObject2(APIRoutes, (k, v) => {
+  return [k, (v.meta.openapi.method === "GET" ?
+    generateQuery(k) : generateMutation(k)) as Router[typeof k]];
 });
 
 export const bridgeRouter = router(routes);

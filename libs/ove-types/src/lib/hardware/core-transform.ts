@@ -6,7 +6,7 @@ import {
   BridgeAPIRouteAll, BridgeAPIRoutes,
   BridgeAPIRoutesType
 } from "./bridge-transform";
-import { mapObject } from "@ove/ove-utils";
+import { mapObject2 } from "@ove/ove-utils";
 
 /* API Route Types */
 
@@ -50,10 +50,10 @@ export type CoreAPIRoutesType = {
 
 /* API */
 
-export const CoreAPIRoutes: CoreAPIRoutesType = mapObject(BridgeAPIRoutes, (k, route, m) => {
+export const CoreAPIRoutes: CoreAPIRoutesType = mapObject2(BridgeAPIRoutes, (k, route) => {
   const optionalPath = `/{bridgeId}${(k as string).includes("All") ? "" : "/{deviceId}"}`;
   const path = route.meta.openapi.path;
-  m[k] = {
+  return [k, {
     meta: {
       openapi: {
         method: route.meta.openapi.method,
@@ -65,5 +65,5 @@ export const CoreAPIRoutes: CoreAPIRoutesType = mapObject(BridgeAPIRoutes, (k, r
     client: route.client,
     bridge: route.bridge,
     exposed: route.exposed
-  } as CoreAPIRoutesType[typeof k];
+  } as CoreAPIRoutesType[typeof k]];
 });

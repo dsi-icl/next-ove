@@ -8,7 +8,6 @@ import {
 import { DeviceIDSchema } from "../hardware";
 import { OVEExceptionSchema } from "../ove-types";
 import { ExposureLevel, RouteMethod } from "./service";
-import { mapObject } from "@ove/ove-utils";
 
 /* Utility Schemas */
 
@@ -66,36 +65,67 @@ export type BridgeAPIRouteAll<
 
 /* API Type */
 
-export type BridgeAPIRoutesType = {
-    [Key in keyof ClientAPIRoutesType]: BridgeAPIRoute<z.extendShape<
-      ClientAPIArgs<Key>, { deviceId: z.ZodString }
-    >, ClientAPIReturns<Key>, ClientAPIMethod<Key>, ClientAPIExposure<Key>>
-  }
-  & {
+type BridgeAPIRoutesTypeSingle = {
+  [Key in keyof ClientAPIRoutesType]: BridgeAPIRoute<z.extendShape<
+    ClientAPIArgs<Key>, { deviceId: z.ZodString }
+  >, ClientAPIReturns<Key>, ClientAPIMethod<Key>, ClientAPIExposure<Key>>
+}
+
+type BridgeAPIRoutesTypeMulti = {
   [Key in keyof ClientAPIRoutesType as `${Key}All`]: BridgeAPIRouteAll<
     z.extendShape<
       ClientAPIArgs<Key>,
       { tag: z.ZodOptional<z.ZodString> }
     >, ClientAPIReturns<Key>, ClientAPIMethod<Key>, ClientAPIExposure<Key>>
-};
+}
 
-export const BridgeAPIRoutes: BridgeAPIRoutesType = mapObject(ClientAPIRoutes, (k, route, m) => {
-  m[k] = {
-    meta: route.meta,
-    returns: route.returns,
-    args: route.args.extend({deviceId: DeviceIDSchema}),
-    client: route.client,
-    bridge: getBridgeResponseSchema(route.client),
-    exposed: route.exposed
-  } as unknown as BridgeAPIRoutesType[typeof k];
-  m[`${k}All`] = {
-    meta: route.meta,
-    returns: route.returns,
-    args: route.args.extend({tag: z.string().optional()}),
-    client: route.client,
-    bridge: getBridgeResponseSchema(getMultiDeviceResponseSchema(route.returns))
-  } as unknown as BridgeAPIRoutesType[`${typeof k}All`];
-});
+export type BridgeAPIRoutesType = BridgeAPIRoutesTypeSingle & BridgeAPIRoutesTypeMulti
+
+// export const BridgeAPIRoutes: BridgeAPIRoutesType = {...mapObject2<typeof ClientAPIRoutes, BridgeAPIRoutesTypeSingle>(ClientAPIRoutes, (k, route) => {
+//   return [k, {
+//     meta: route.meta,
+//     returns: route.returns,
+//     args: route.args.extend({deviceId: DeviceIDSchema}),
+//     client: route.client,
+//     bridge: getBridgeResponseSchema(route.client),
+//     exposed: route.exposed
+//   } as unknown as BridgeAPIRoutesType[typeof k]];
+// }), ...mapObjectWithKeys<typeof ClientAPIRoutes, BridgeAPIRoutesTypeMulti, keyof BridgeAPIRoutesTypeMulti>(ClientAPIRoutes, (k, route) => {
+//   return [`${k}All`, {
+//     meta: route.meta,
+//     returns: route.returns,
+//     args: route.args.extend({tag: z.string().optional()}),
+//     client: route.client,
+//     bridge: getBridgeResponseSchema(getMultiDeviceResponseSchema(route.returns))
+//   } as unknown as BridgeAPIRoutesType[`${typeof k}All`]];
+// })};
+
+export const BridgeAPIRoutes: BridgeAPIRoutesType =
+  (Object.keys(ClientAPIRoutes) as Array<keyof ClientAPIRoutesType>)
+    .reduce((acc, k) => {
+      return {
+        ...acc,
+        [k]: {
+          meta: ClientAPIRoutes[k].meta,
+          returns: ClientAPIRoutes[k].returns,
+          args: ClientAPIRoutes[k].args.extend({
+            deviceId: DeviceIDSchema
+          }),
+          client: ClientAPIRoutes[k].client,
+          bridge: getBridgeResponseSchema(ClientAPIRoutes[k].client)
+        },
+        [`${k}All`]: {
+          meta: ClientAPIRoutes[k].meta,
+          returns: ClientAPIRoutes[k].returns,
+          args: ClientAPIRoutes[k].args.extend({
+            tag: z.string().optional()
+          }),
+          client: ClientAPIRoutes[k].client,
+          bridge: getBridgeResponseSchema(
+            getMultiDeviceResponseSchema(ClientAPIRoutes[k].client))
+        }
+      };
+    }, {} as BridgeAPIRoutesType);
 
 /* API Utility Types */
 
