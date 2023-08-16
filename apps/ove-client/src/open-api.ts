@@ -4,8 +4,8 @@ import { appRouter } from "@ove/ove-client-router";
 import { generateOpenApiDocument } from "trpc-openapi";
 
 export const openApiDocument = generateOpenApiDocument(appRouter, {
-  title: "Next-OVE Client",
-  description: "Hardware control interface for observatory rendering nodes.",
+  title: "next-ove client",
+  description: "Control interface for observatory rendering nodes.",
   version: app.getVersion(),
-  baseUrl: `${env.PROTOCOL ?? "http"}://${env.HOSTNAME ?? "localhost"}:${env.PORT ?? "8080"}/api/v${env.API_VERSION}`
+  baseUrl: `${env.PROTOCOL}://${env.HOSTNAME}:${env.PORT}/api/v${env.API_VERSION}`
 });

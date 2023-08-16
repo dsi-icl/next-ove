@@ -4,7 +4,6 @@ import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
 import { app, BrowserWindow, desktopCapturer, screen } from "electron";
-import { env } from "@ove/ove-client-env";
 import { OutboundAPI } from "@ove/ove-client-shared";
 
 export const start = (closeServer: () => void) => {
@@ -54,10 +53,9 @@ export const initializeElectron = () => {
 };
 
 export const initializeElectronEvents = () => {
-  const isDevelopment = env.RENDER_CONFIG === undefined;
   ElectronEvents.bootstrapElectronEvents();
 
-  if (isDevelopment) {
+  if (!app.isPackaged) {
     initUpdates();
   }
 };

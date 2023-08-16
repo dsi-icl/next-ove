@@ -4,7 +4,7 @@ import { join } from "path";
 import { pathToFileURL } from "url";
 import { env, logger } from "@ove/ove-bridge-env";
 import initAutoUpdate from "./events/update.events";
-import { type BrowserWindow as BW, type App, type Screen } from "electron";
+import { type BrowserWindow as BW, type App, type Screen, app } from "electron";
 import { OutboundAPI, outboundChannels } from "@ove/ove-bridge-shared";
 import { assert } from "@ove/ove-utils";
 
@@ -13,7 +13,7 @@ let application: App;
 let BrowserWindow: typeof BW;
 let screen: Screen;
 
-const isDevelopmentMode = () => env.RENDER_CONFIG === undefined;
+const isDevelopmentMode = () => !app.isPackaged;
 
 const onWindowAllClosed = () => {
   if (process.platform !== "darwin") {

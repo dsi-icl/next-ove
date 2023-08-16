@@ -1,10 +1,10 @@
 import { autoUpdater } from "electron-updater";
-import { env, logger } from "@ove/ove-client-env";
-import { dialog } from "electron";
+import { logger } from "@ove/ove-client-env";
+import { app, dialog } from "electron";
 import { Json } from "@ove/ove-utils";
 
 export default () => {
-  if (env.RENDER_CONFIG !== undefined) {
+  if (!app.isPackaged) {
     return () => logger.info("Auto update skipped");
   }
 

@@ -1,13 +1,13 @@
 /* global process */
 // noinspection DuplicatedCode
 
-import { dialog } from "electron";
+import { app, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
-import { env, logger } from "@ove/ove-bridge-env";
+import { logger } from "@ove/ove-bridge-env";
 import { Json } from "@ove/ove-utils";
 
 export default () => {
-  if (env.RENDER_CONFIG !== undefined) {
+  if (!app.isPackaged) {
     return () => logger.info("Auto update skipped");
   }
 
