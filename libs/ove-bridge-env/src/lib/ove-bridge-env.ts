@@ -19,7 +19,7 @@ const schema = z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
-  }).optional(),
+  }),
   LOG_LEVEL: z.number().optional(),
   CORE_URL: z.string().optional(),
   BRIDGE_NAME: z.string().optional(),
@@ -60,7 +60,12 @@ const defaultConfig: z.infer<typeof schema> = {
   HARDWARE: [],
   PUBLIC_KEY: publicKey,
   PRIVATE_KEY: privateKey,
-  PASSPHRASE: passPhrase
+  PASSPHRASE: passPhrase,
+  RENDER_CONFIG: {
+    PROTOCOL: "http",
+    HOSTNAME: "localhost",
+    PORT: 4200
+  }
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");
