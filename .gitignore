@@ -289,3 +289,6 @@ sandworm
 # REST Calls
 *.rest
 *.http
+
+# Custom rules
+./config.json
