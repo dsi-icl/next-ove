@@ -33,7 +33,7 @@ const defaultConfig: z.infer<typeof schema> = {
   PROTOCOL: "http"
 };
 
-const configPath = path.join(".", "config.json");
+const configPath = path.join(__dirname, "config.json");
 
 const { rawConfig, isUpdate } = updateConfig(
   configPath,
