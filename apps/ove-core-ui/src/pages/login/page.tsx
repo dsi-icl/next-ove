@@ -1,38 +1,15 @@
-import { Tokens } from "@ove/ove-types";
-import { createAuthClient } from "../../utils";
-import { FormEvent, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks";
+import { useForm } from "react-hook-form";
 
-type PageProps = {
-  setTokens: (tokens: Tokens) => void
+type Form = {
+  username: string
+  password: string
 }
 
-export default ({ setTokens }: PageProps) => {
-  const navigate = useNavigate();
-
-  const handleAuth = useCallback(async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    const username = formData.get("username");
-    const password = formData.get("password");
-    if (username === null || password === null) {
-      console.log("Please enter username and password");
-      return;
-    }
-
-    const login = await createAuthClient(username.toString(), password.toString()).login.mutate();
-
-    if (login === undefined) {
-      console.log("Incorrect login");
-      return;
-    }
-
-    console.log("Logging in");
-    sessionStorage.setItem("tokens", JSON.stringify(login));
-    setTokens(login);
-    navigate("/", { replace: true });
-  }, []);
+export default () => {
+  const { login } = useAuth();
+  const { register, handleSubmit } = useForm<Form>();
+  const onSubmit = handleSubmit(async ({ username, password }) => await login(username, password));
 
   return <main style={{
     display: "flex",
@@ -41,9 +18,7 @@ export default ({ setTokens }: PageProps) => {
     justifyContent: "center",
     alignItems: "center"
   }}>
-    <form method="post" spellCheck="false" onSubmit={e => {
-      handleAuth(e).catch(console.error);
-    }} style={{
+    <form method="post" spellCheck="false" onSubmit={onSubmit} style={{
       display: "flex",
       flexDirection: "column",
       width: "20vw",
@@ -52,14 +27,14 @@ export default ({ setTokens }: PageProps) => {
       <h1 style={{ fontSize: "24px", fontWeight: "700" }}>Sign in</h1>
       <label htmlFor="username"
              style={{ fontWeight: "700", marginTop: "2rem" }}>Username</label>
-      <input id="username" type="text" name="username" style={{
+      <input {...register("username", {required: true})} type="text" name="username" style={{
         border: "1px solid black",
         padding: "0.5rem",
         borderRadius: "20px"
       }} />
       <label htmlFor="password"
              style={{ fontWeight: "700", marginTop: "1rem" }}>Password</label>
-      <input id="password" type="password" name="password" style={{
+      <input {...register("password", {required: true})} id="password" type="password" name="password" style={{
         border: "1px solid black",
         padding: "0.5rem",
         borderRadius: "20px"

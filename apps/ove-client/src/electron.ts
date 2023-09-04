@@ -4,46 +4,39 @@ import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
 import { app, BrowserWindow, desktopCapturer, screen } from "electron";
-import { OutboundAPI } from "@ove/ove-client-shared";
+import { OutboundAPI } from "./ipc-routes";
 
 export const start = (closeServer: () => void) => {
   App.init(app, BrowserWindow, screen, closeServer);
 };
 
-export const createWindow = (url?: string, displayId?: ID) => {
-  if (!App.isInitialised()) throw new Error("App Controller not initialised");
+export const createWindow = (url?: string, displayId?: ID): string => {
+  if (!App.isInitialised()) throw new Error("Window controller is not initialised");
   if (url === undefined) {
     return App.openWindow(App.loadDisplayWindow, displayId);
   } else {
     return App.openWindow((idx: string) => {
-      if (!App.isInitialised()) {
-        throw new Error("App Controller not initialised");
-      }
       App.loadCustomWindow(url, idx);
     }, displayId);
   }
 };
 
-export const closeWindow = (idx: string) => {
-  if (!App.isInitialised()) {
-    throw new Error("App Controller not initialised");
-  }
+export const closeWindow = (idx: string): boolean => {
+  if (!App.isInitialised()) throw new Error("Window controller is not initialised");
   App.closeWindow(idx);
+  return true;
 };
 
-export const triggerIPC: OutboundAPI =
-  (Object.keys(App.triggerIPC) as Array<keyof OutboundAPI>)
-    .reduce((acc, x) => {
-      acc[x] = (...args: Parameters<OutboundAPI[typeof x]>) => {
-        if (!App.isInitialised()) {
-          throw new Error("App Controller not initialised");
-        }
-        App.triggerIPC[x](...args);
-      };
-      return acc;
-    }, {} as OutboundAPI);
+export const triggerIPC: OutboundAPI = Object.entries(App.triggerIPC).reduce((acc, [k, v]) => {
+  acc[k] = (...args: Parameters<typeof v>) => {
+    if (!App.isInitialised()) throw new Error("Window controller is not initialised");
+    v(...args)
+    return true;
+  };
+  return acc;
+}, <Record<string, unknown>>{}) as OutboundAPI;
 
-export const takeScreenshots = async () =>
+export const takeScreenshots = () =>
   desktopCapturer.getSources({ types: ["screen"] });
 
 export const initializeElectron = () => {
@@ -54,8 +47,5 @@ export const initializeElectron = () => {
 
 export const initializeElectronEvents = () => {
   ElectronEvents.bootstrapElectronEvents();
-
-  if (!app.isPackaged) {
-    initUpdates();
-  }
+  initUpdates();
 };

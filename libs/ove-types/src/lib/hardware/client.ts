@@ -1,42 +1,64 @@
 import { z } from "zod";
-import { ClientAPIRoutes, ClientAPIRoutesType } from "./client-transform";
-import { ServiceAPIRoutesType } from "./service";
+import {
+  type TDeviceResponse,
+  ClientAPITransformSchema,
+  type TClientRoutesSchema,
+  type TClientRouteInputTransformSchema as TClientRouteInputSchema,
+  type TClientRouteOutputTransformSchema as TClientRouteOutputSchema
+} from "./client-transform";
+import {
+  type APIExposureLevel,
+  type OpenAPIMethod,
+  type TServiceRoutesSchema
+} from "./service";
+// IGNORE PATH - dependency is removed at runtime
+import {
+  type TGenerateMutation,
+  type TGenerateQuery
+} from "../../../../../apps/ove-client/src/server/hardware/router";
 
-export { type ClientAPIMethod } from "./client-transform";
+export {TDeviceResponse, TClientRouteInputSchema, TClientRouteOutputSchema}
 
-/* API Keys */
+export type TClientExposedRoutes = {
+  [Key in keyof TServiceRoutesSchema]: APIExposureLevel<Key> extends "client" ? Key : never
+}[keyof TServiceRoutesSchema]
 
-export type ClientAPIKeysType = {
-  [Key in keyof ServiceAPIRoutesType]: ServiceAPIRoutesType[Key]["exposed"] extends "client" ? Key : never
-}[keyof ServiceAPIRoutesType]
+/* Service Types */
+
+export type TClientService = {
+  [Key in TClientExposedRoutes]:
+  (args: z.infer<TClientRoutesSchema[Key]["args"]>) =>
+    Promise<z.infer<TClientRoutesSchema[Key]["client"]>>
+};
 
 /* API Types */
 
-export type ClientServiceAPIType = {
-  [Key in ClientAPIKeysType]:
-  (args: z.infer<ClientAPIRoutesType[Key]["args"]>) =>
-    Promise<z.infer<ClientAPIRoutesType[Key]["client"]>>
-};
-
-export type ClientAPIType = {
-  [Key in ClientAPIKeysType]: ClientAPIRoutesType[Key]
+export type TClientAPI = {
+  [Key in TClientExposedRoutes]: TClientRoutesSchema[Key]
 };
 
 /* API */
 
-export const ClientAPI: ClientAPIType =
-  (Object.keys(ClientAPIRoutes) as Array<keyof ServiceAPIRoutesType>)
-    .filter(key => ClientAPIRoutes[key].exposed === "client")
-    .reduce((acc, k) => {
-      return {
-        ...acc,
-        [k]: ClientAPIRoutes[k]
-      };
-    }, {} as ClientAPIType);
+/**
+ * Client API schema, only those that are exposed on the client
+ */
+export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(ClientAPITransformSchema)
+  .filter(([_k, route]) => route.exposed === "client")) as TClientRoutesSchema;
 
-/* API Utility Types */
+export type ClientRouter = {
+  [Key in keyof TClientAPI]: OpenAPIMethod<Key> extends "GET" ?
+    ReturnType<TGenerateQuery<Key>> : ReturnType<TGenerateMutation<Key>>
+}
 
-export type ClientServiceArgs<Key extends keyof ClientServiceAPIType> =
-  z.infer<ClientAPIRoutesType[Key]["args"]>;
-export type ClientServiceReturns<Key extends keyof ClientServiceAPIType> =
-  Promise<z.infer<ClientAPIRoutesType[Key]["returns"]>>;
+/* Service Utility Types */
+
+/**
+ * Arguments to client service function
+ */
+export type TClientServiceArgs<Key extends keyof TClientService> =
+  z.infer<TClientRoutesSchema[Key]["args"]>;
+/**
+ * Return type of client service function
+ */
+export type TClientServiceReturns<Key extends keyof TClientService> =
+  Promise<z.infer<TClientRoutesSchema[Key]["returns"]>>;

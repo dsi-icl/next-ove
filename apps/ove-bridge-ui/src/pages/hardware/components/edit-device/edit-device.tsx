@@ -1,6 +1,6 @@
-import { FormEvent, forwardRef, useState } from "react";
-import { Mode } from "../../utils";
-import { Device, NativeEvent, ServiceType } from "@ove/ove-types";
+import { type FormEvent, forwardRef, useState } from "react";
+import { type Mode } from "../../utils";
+import { type Device, type NativeEvent, type ServiceType } from "@ove/ove-types";
 
 import styles from "./edit-device.module.scss";
 import { assert } from "@ove/ove-utils";

@@ -1,10 +1,11 @@
 import { Navigate } from "react-router-dom";
+import { type ReactNode } from "react";
 
 /**
  * Only allows navigation to a route if a condition is met.
  * Otherwise, it redirects to a different specified route.
  */
-export default ({
+const ProtectedRoute = ({
   condition,
   redirectTo,
   children
@@ -21,5 +22,7 @@ export type ConditionalRouteProps = {
   /** The route to redirect to if `condition` is false */
   redirectTo: string
 
-  children?: JSX.Element
+  children?: ReactNode
 }
+
+export default ProtectedRoute;

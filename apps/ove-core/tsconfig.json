@@ -3,7 +3,9 @@
   "files": [],
   "include": [],
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true,
+    "strictNullChecks": true,
   },
   "references": [
     {

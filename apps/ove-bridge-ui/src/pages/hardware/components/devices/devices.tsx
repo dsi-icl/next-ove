@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Device, ServiceType } from "@ove/ove-types";
+import { type Device, type ServiceType } from "@ove/ove-types";
 import {
   Display,
   HddNetwork,

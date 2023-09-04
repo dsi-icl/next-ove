@@ -1,4 +1,4 @@
-import { FormEvent, forwardRef } from "react";
+import { type FormEvent, forwardRef } from "react";
 
 import styles from "./update-form.module.scss";
 

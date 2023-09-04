@@ -1,8 +1,8 @@
-import { Mode } from "../../utils";
-import { Device } from "@ove/ove-types";
+import { type Mode } from "../../utils";
+import { type Device } from "@ove/ove-types";
 import styles from "./auth.module.scss";
-import { Snackbar } from "@ove/ui-components";
-import { FormEvent, forwardRef, useEffect, useState } from "react";
+import { Snackbar, useSnackbar } from "@ove/ui-components";
+import { type FormEvent, forwardRef, useEffect, useState } from "react";
 
 type AuthProps = {
   device: Device
@@ -14,6 +14,7 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
   setMode
 }, ref) => {
   const [status, setStatus] = useState<boolean | null>(null);
+  const {notification, isVisible} = useSnackbar();
 
   const handleAuth = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,7 +48,7 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
         <button type="submit">Authorise</button>
       </form>
     </div>
-    {status !== null && !status ? <Snackbar text="Error" /> : null}
+    {status !== null && !status ? <Snackbar text={notification} show={isVisible} /> : null}
   </dialog>;
 });
 

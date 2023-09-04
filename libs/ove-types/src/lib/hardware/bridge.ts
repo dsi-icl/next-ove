@@ -1,35 +1,55 @@
 import { z } from "zod";
-import { Device, Optional } from "../hardware";
+import { type Device, type Optional } from "../hardware";
 import {
-  BridgeAPIRoutesType,
+  type TBridgeRoutesSchema,
 } from "./bridge-transform";
-import { ClientAPIRoutes, ClientAPIRoutesType } from "./client-transform";
+import { ClientAPITransformSchema, type TClientRoutesSchema } from "./client-transform";
 
 /* API Keys */
 
-export const DeviceServiceKeys: readonly (keyof ClientAPIRoutesType)[] = Object.keys(ClientAPIRoutes) as Array<keyof ClientAPIRoutesType>;
+/**
+ * Keys of all routes
+ */
+export const BridgeServiceKeys: readonly (keyof TClientRoutesSchema)[] = Object.keys(ClientAPITransformSchema) as Array<keyof TClientRoutesSchema>;
 
-/* API Type */
+/* API Types */
 
-export { type BridgeAPIRoutesType as BridgeAPIType, type BridgeResponse } from "./bridge-transform";
+export { type TBridgeRoutesSchema, type TBridgeResponseSchema } from "./bridge-transform";
 
-export type DeviceService = {
-  [Key in keyof ClientAPIRoutesType]?: (
+/**
+ * Bridge service type
+ */
+export type TBridgeHardwareService = {
+  [Key in keyof TClientRoutesSchema]?: (
     device: Device,
-    args: z.infer<ClientAPIRoutesType[Key]["args"]>
-  ) => Promise<Optional<z.infer<ClientAPIRoutesType[Key]["client"]>>>
+    args: z.infer<TClientRoutesSchema[Key]["args"]>
+  ) => Promise<Optional<z.infer<TClientRoutesSchema[Key]["client"]>>>
 };
 
-export type HardwareServerToClientEvents = {
-  [Key in keyof BridgeAPIRoutesType]: (
-    args: z.infer<BridgeAPIRoutesType[Key]["args"]>,
-    callback: (response: z.infer<BridgeAPIRoutesType[Key]["bridge"]>) => void
+/**
+ * Cloud -> observatory events
+ */
+export type THardwareServerToClientEvents = {
+  [Key in keyof TBridgeRoutesSchema]: (
+    args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
+    callback: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
   ) => void
 };
 
-export type HardwareClientToServerEvents = Record<string, unknown>;
+/**
+ * Observatory -> cloud events
+ */
+export type THardwareClientToServerEvents = Record<string, unknown>;
 
 /* API Utility Types */
 
-export type DeviceServiceArgs<Key extends keyof DeviceService> =
-  z.infer<ClientAPIRoutesType[Key]["args"]>;
+/**
+ * Arguments for bridge service function
+ */
+export type TBridgeServiceArgs<Key extends keyof TBridgeHardwareService> =
+  z.infer<TClientRoutesSchema[Key]["args"]>;
+/**
+ * Return type for bridge service function
+ */
+export type TBridgeServiceReturns<Key extends keyof TBridgeHardwareService> =
+  z.infer<TClientRoutesSchema[Key]["returns"]>;

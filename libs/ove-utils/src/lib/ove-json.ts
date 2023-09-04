@@ -22,5 +22,6 @@ export const Json = {
   },
   parse: <T>(obj: string) => JSON.parse(obj) as T,
   stringify: <T>(obj: T, replacer?: (this:any, key: string, value: any) => any, space?: string | number) => JSON.stringify(obj, replacer, space ?? 2),
-  getDescendent: getDescendent
+  getDescendent: getDescendent,
+  copy: <T>(obj: T): T => JSON.parse(JSON.stringify(obj)) as T
 };

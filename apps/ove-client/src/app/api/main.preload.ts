@@ -3,7 +3,7 @@ import {
   InboundAPI,
   inboundChannels,
   OutboundAPI, OutboundAPIChannels
-} from "@ove/ove-client-shared";
+} from "../../ipc-routes";
 
 // noinspection DuplicatedCode
 const ExposedAPI: InboundAPI =

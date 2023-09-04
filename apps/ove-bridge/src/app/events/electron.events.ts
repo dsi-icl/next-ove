@@ -6,11 +6,12 @@
  */
 import * as schedule from "node-schedule";
 import { app, ipcMain, type IpcMain } from "electron";
-import { InboundAPI, inboundChannels } from "@ove/ove-bridge-shared";
+import { type InboundAPI, inboundChannels } from "../../ipc-routes";
 import {
   registerSocketConnectedListener,
-  registerSocketDisconnectListener
-} from "@ove/ove-bridge-lib";
+  registerSocketDisconnectListener,
+  registerSocketEventListener
+} from "../api/features/bridge/routes";
 import App from "../app";
 import { IPCService } from "../api/controller";
 
@@ -31,6 +32,7 @@ process.on("SIGINT", () => {
 
 registerSocketConnectedListener(() => App.triggerIPC.socketConnect());
 registerSocketDisconnectListener(() => App.triggerIPC.socketDisconnect());
+registerSocketEventListener("loadVideoStream", args => App.triggerIPC.openVideoStream(args));
 
 // Handle App termination
 ipcMain.on("quit", (_event, code) => {

@@ -2,11 +2,12 @@
 
 import { join } from "path";
 import { pathToFileURL } from "url";
-import { env, logger } from "@ove/ove-bridge-env";
+import { env, logger } from "../env";
 import initAutoUpdate from "./events/update.events";
 import { type BrowserWindow as BW, type App, type Screen, app } from "electron";
-import { OutboundAPI, outboundChannels } from "@ove/ove-bridge-shared";
+import { type OutboundAPI, outboundChannels } from "../ipc-routes";
 import { assert } from "@ove/ove-utils";
+import { exit } from "process";
 
 let mainWindow: BW | null = null;
 let application: App;
@@ -61,17 +62,37 @@ const initMainWindow = () => {
   });
 };
 
+const loadErrorPage = () => {
+  const formattedUrl = pathToFileURL(
+    join(__dirname, "assets", "error.html")).toString();
+  mainWindow!.loadURL(formattedUrl)
+    .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+    .catch(reason => {
+      logger.fatal(reason);
+      app.exit(1);
+      exit(1);
+    });
+};
+
 const loadMainWindow = () => {
   if (mainWindow === null) throw new Error("Main window should not be null");
   if (!application.isPackaged) {
     const formattedUrl = `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}`;
     mainWindow.loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+      .catch(reason => {
+        logger.error(reason);
+        loadErrorPage();
+      });
   } else {
     const formattedUrl = pathToFileURL(
       join(__dirname, "..", env.UI_ALIAS, "index.html")).toString();
     mainWindow.loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+      .catch(reason => {
+        logger.error(reason);
+        loadErrorPage();
+      });
   }
 };
 
@@ -85,15 +106,14 @@ const init = (app: App, browserWindow: typeof BW, sc: Screen) => {
   application.on("activate", onActivate);
 };
 
-const triggerIPC: OutboundAPI =
-  (Object.keys(outboundChannels) as Array<keyof OutboundAPI>)
-    .reduce((acc, k) => {
-      acc[k] = (...args: Parameters<OutboundAPI[typeof k]>) => {
-        if (mainWindow === null) return;
-        mainWindow.webContents.send(outboundChannels[k], ...args);
-      };
-      return acc;
-    }, {} as OutboundAPI);
+const triggerIPC: OutboundAPI = Object.entries(outboundChannels).reduce((acc, [k, channel]) => {
+  const key = k as keyof OutboundAPI;
+  acc[k] = (args: Parameters<OutboundAPI[typeof key]>[0]) => {
+    if (mainWindow === null) return;
+    mainWindow.webContents.send(channel, args);
+  };
+  return acc;
+}, <Record<string, unknown>>{}) as OutboundAPI;
 
 export default {
   isDevelopmentMode,

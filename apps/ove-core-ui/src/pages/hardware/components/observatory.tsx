@@ -1,23 +1,18 @@
 import "react-data-grid/lib/styles.css";
 import DataGrid from "react-data-grid";
-import { useEffect, useRef, useState } from "react";
-import { Device, is, OVEExceptionSchema, ServiceType } from "@ove/ove-types";
-import { createClient } from "../../../utils";
+import { useEffect, useState } from "react";
+import { type ServiceType } from "@ove/ove-types";
 
 import {
   Projector,
   HddNetwork,
-  Display,
-  ArrowRepeat,
-  InfoCircle,
-  PlayCircle,
-  StopCircle,
-  FileEarmarkCode,
-  GpuCard
+  Display
 } from "react-bootstrap-icons";
-import InfoDialog from "./info-dialog";
-import ConsoleDialog from "./console-dialog";
-import { Snackbar } from "@ove/ui-components";
+import Info from "./info";
+import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
+import Console from "./console";
+import { useClient, useHardware } from "../hooks/hooks";
+import Actions from "./actions";
 
 export type ObservatoryProps = {
   name: string
@@ -35,137 +30,48 @@ const columns = [
   { key: "actions", name: "Actions" }
 ];
 
-type HardwareInfo = {
-  device: Device
-  status: boolean | null
-}
-
-type DeviceInfo = {
+export type DeviceInfo = {
   deviceId: string
   data: object
 }
 
-export default ({ name, isOnline, style }: ObservatoryProps) => {
-  const [hardware, setHardware] = useState<HardwareInfo[]>([]);
+const getProtocolIcon = (protocol: ServiceType) => {
+  switch (protocol) {
+    case "node":
+      return <HddNetwork style={{ margin: "0.6rem 0" }} />;
+    case "mdc":
+      return <Display style={{ margin: "0.6rem 0" }} />;
+    case "pjlink":
+      return <Projector style={{ margin: "0.6rem 0" }} />;
+  }
+};
+
+const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
+  const client = useClient();
+  const { ref: consoleDialog, closeDialog: closeConsole, openDialog: openConsole } = useDialog();
+  const { ref: infoDialog, closeDialog: closeInfo, openDialog: openInfo } = useDialog();
   const [info, setInfo] = useState<DeviceInfo | null>(null);
-  const dialog = useRef<HTMLDialogElement | null>(null);
-  const [notification, setNotification] = useState<string | null>(null);
-  const consoleDialog = useRef<HTMLDialogElement | null>(null);
-  const [openConsole, setOpenConsole] = useState<boolean>(false);
-  const getProtocolIcon = (protocol: ServiceType) => {
-    switch (protocol) {
-      case "node":
-        return <HddNetwork style={{ margin: "0.6rem 0" }} />;
-      case "mdc":
-        return <Display style={{ margin: "0.6rem 0" }} />;
-      case "pjlink":
-        return <Projector style={{ margin: "0.6rem 0" }} />;
-    }
-  };
+  const { hardware, updateHardware } = useHardware(client, isOnline, name);
+  const { notification, show: showNotification, isVisible } = useSnackbar();
 
   useEffect(() => {
-    if (!isOnline) return;
-    createClient().bridge.getDevices.query({ bridgeId: name }).then(result => {
-      if (!result || is(OVEExceptionSchema, result.response)) {
-        return;
-      }
-      setHardware(result.response.map(device => ({
-        device,
-        status: null,
-        info: null
-      })));
-    }).catch(console.error);
-  }, []);
-
-  const updateStatus = async (deviceId: string) => {
-    const status = (await createClient().hardware.getStatus.query({
-      bridgeId: name,
-      deviceId
-    }))["response"] ? "running" : "off";
-    setHardware(cur => {
-      const idx = cur.findIndex(({ device: { id } }) => id === deviceId);
-      const copy = JSON.parse(JSON.stringify(cur));
-      copy[idx] = { ...copy[idx], status };
-      return copy;
-    });
-  };
-
-  useEffect(() => {
-    if (info === null) {
-      dialog.current?.close();
-    } else {
-      dialog.current?.showModal();
-    }
+    openInfo();
   }, [info]);
-
-  const showNotification = (text: string) => {
-    setNotification(text);
-    setTimeout(() => {
-      setNotification(null);
-    }, 1_500);
-  };
-
-  const flatten = (obj: object): object => {
-    return (Object.keys(obj) as Array<keyof typeof obj>).reduce((acc, k) => {
-      if (typeof obj[k] === "object") {
-        return {
-          ...acc,
-          ...flatten(obj[k])
-        };
-      } else {
-        acc[k] = obj[k];
-        return acc;
-      }
-    }, {});
-  };
-
-  const updateInfo = async (deviceId: string) => {
-    const i = (await createClient().hardware.getInfo.query({
-      bridgeId: name,
-      deviceId
-    }))["response"];
-    // @ts-ignore
-    delete i["type"];
-    // @ts-ignore
-    setInfo({ deviceId, data: flatten(i) });
-  };
-
-  const startDevice = async (deviceId: string) => {
-    await createClient().hardware.start.mutate({
-      bridgeId: name,
-      deviceId
-    });
-    showNotification(`Started ${deviceId}`);
-  };
-
-  const stopDevice = async (deviceId: string) => {
-    await createClient().hardware.shutdown.mutate({
-      bridgeId: name,
-      deviceId
-    });
-    showNotification(`Stopped ${deviceId}`);
-  };
-
-  const openTerminal = async (deviceId: string) => {
-    setOpenConsole(true);
-  };
-
-  useEffect(() => {
-    if (!openConsole) return;
-    consoleDialog.current?.showModal();
-  }, [openConsole]);
-
-  const closeTerminal = () => {
-    consoleDialog.current?.close();
-    setOpenConsole(false);
-  };
 
   return <section style={{ ...style, marginLeft: "2rem", marginRight: "2rem" }}>
     <h2
       style={{ fontWeight: "700" }}>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
-    {info === null ? null : <InfoDialog ref={dialog} info={info} setInfo={setInfo} />}
-    {openConsole ? <ConsoleDialog ref={consoleDialog} close={closeTerminal} /> : null}
-    {!isOnline ? null :
+    {isOnline ? <>
+      {info ? <Dialog ref={infoDialog} closeDialog={closeInfo}
+                      title={"Device Information"}>
+        <Info info={info} close={() => {
+          closeInfo();
+          setInfo(null);
+        }} />
+      </Dialog> : null}
+      <Dialog ref={consoleDialog} closeDialog={closeConsole} title={"Console"}>
+        <Console close={closeConsole} />
+      </Dialog>
       <DataGrid className="rdg-light" columns={columns}
                 rows={hardware.map(({ device, status }) => ({
                   protocol: getProtocolIcon(device.type),
@@ -174,33 +80,15 @@ export default ({ name, isOnline, style }: ObservatoryProps) => {
                   mac: device.mac,
                   tags: device.tags,
                   status: status,
-                  actions: <div
-                    style={{ display: "flex", justifyContent: "space-around" }}>
-                    <button style={{ margin: "0.6rem 0" }}
-                            onClick={() => {
-                              updateStatus(device.id).catch(console.error);
-                            }} title="status">
-                      <ArrowRepeat /></button>
-                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
-                      updateInfo(device.id).catch(console.error);
-                    }} title="info">
-                      <InfoCircle /></button>
-                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
-                      startDevice(device.id).catch(console.error);
-                    }} title="start">
-                      <PlayCircle /></button>
-                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
-                      stopDevice(device.id).catch(console.error);
-                    }} title="stop">
-                      <StopCircle /></button>
-                    <button style={{ margin: "0.6rem 0" }} onClick={() => {
-                      openTerminal(device.id).catch(console.error);
-                    }} title="execute">
-                      <FileEarmarkCode /></button>
-                    <button style={{ margin: "0.6rem 0" }} title="display">
-                      <GpuCard /></button>
-                  </div>
-                }))} />}
-    {notification !== null ? <Snackbar text={notification} /> : null}
+                  actions: <Actions client={client} openConsole={openConsole}
+                                    showNotification={showNotification}
+                                    name={name} updateHardware={updateHardware}
+                                    device={device}
+                                    setInfo={info => setInfo(info as DeviceInfo)} />
+                }))} />
+      <Snackbar text={notification ?? ""} show={isVisible} />
+    </> : null}
   </section>;
-}
+};
+
+export default Observatory;

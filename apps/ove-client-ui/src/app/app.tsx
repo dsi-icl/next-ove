@@ -1,12 +1,12 @@
 import "../styles.scss";
 import styles from "./app.module.scss";
-import "github-markdown-css/github-markdown-light.css";
-import { useEffect, useState } from "react";
+// IGNORE PATH - dependency removed at runtime
 import {
-  InboundAPI,
-  OutboundAPI,
-  OutboundAPIChannels
-} from "@ove/ove-client-shared";
+  type InboundAPI,
+  type OutboundAPI,
+  type OutboundAPIChannels
+} from "../../../ove-client/src/ipc-routes";
+import { usePin } from "./app-controller";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols
@@ -26,14 +26,10 @@ declare global {
  * @constructor
  */
 export function App() {
-  const [pin, setPin] =
-    useState<string>("");
+  const pin = usePin();
 
-  useEffect(() => {
-    window.electron.receive("update-pin", setPin);
-  }, []);
-
-  return <main className={styles.main}><h1 className={styles.pin}>{pin}</h1>
+  return <main className={styles.main}>
+    <h1 className={styles.pin}>{pin}</h1>
   </main>;
 }
 

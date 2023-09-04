@@ -36,6 +36,7 @@ export const Logger = (name?: string, logLevel?: number, loggingServerURL?: stri
     const message = buildLogMessage(level, ...args);
 
     if (loggingServerURL !== undefined) {
+      // fails silently
       fetch(loggingServerURL, {
         method: "POST",
         body: message.join(" ")

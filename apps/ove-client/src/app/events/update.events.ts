@@ -1,5 +1,5 @@
 import { autoUpdater } from "electron-updater";
-import { logger } from "@ove/ove-client-env";
+import { logger } from "../../env";
 import { app, dialog } from "electron";
 import { Json } from "@ove/ove-utils";
 

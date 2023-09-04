@@ -1,62 +1,84 @@
 import {
-  ExposureLevel,
-  RouteMethod,
-  ServiceAPI,
-  ServiceAPIArgs, ServiceAPIExposure, ServiceAPIMethod,
-  ServiceAPIReturns,
-  ServiceAPIRoute,
-  ServiceAPIRoutesType
+  type ExposureLevel,
+  type RouteMethod,
+  ServiceAPISchema,
+  type ServiceRouteInputSchema,
+  type APIExposureLevel,
+  type OpenAPIMethod,
+  type ServiceRouteOutputSchema,
+  type TServiceRouteSchema,
+  type TServiceRoutesSchema
 } from "./service";
-import { OVEExceptionSchema } from "../ove-types";
 import { z } from "zod";
-import { mapObject2 } from "@ove/ove-utils";
+import { OVEExceptionSchema } from "../ove-types";
 
 /* Utility Types */
 
-export type DeviceResponse<T extends z.ZodTypeAny> =
+/**
+ * All client responses are wrapped with an exception
+ */
+export type TDeviceResponseSchema<T extends z.ZodTypeAny> =
   z.ZodUnion<readonly [T, typeof OVEExceptionSchema]>;
+
+export type TDeviceResponse<T> = z.infer<TDeviceResponseSchema<z.ZodType<T>>>
 
 /* Utility Schemas */
 
+/**
+ * Generate schema for wrapped response
+ * @param schema
+ */
 export const getDeviceResponseSchema = <
   T extends z.ZodTypeAny
->(schema: T): DeviceResponse<T> => z.union([schema, OVEExceptionSchema]);
+>(schema: T): TDeviceResponseSchema<T> => z.union([schema, OVEExceptionSchema]);
 
 /* API Route Types */
 
-export type ClientAPIRoute<
+/**
+ * Schema for each route as a type for mapping
+ */
+export type TClientRouteSchema<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
   M extends RouteMethod,
   E extends ExposureLevel
-> = { client: DeviceResponse<U>; }
-  & { [Key in keyof ServiceAPIRoute<A, U, M, E>]: ServiceAPIRoute<A, U, M, E>[Key] };
+> = { client: TDeviceResponseSchema<U>; }
+  & { [Key in keyof TServiceRouteSchema<A, U, M, E>]: TServiceRouteSchema<A, U, M, E>[Key] };
 
 /* API Type */
 
-export type ClientAPIRoutesType = {
-  [Key in keyof ServiceAPIRoutesType]: ClientAPIRoute<
-    ServiceAPIArgs<Key>, ServiceAPIReturns<Key>, ServiceAPIMethod<Key>, ServiceAPIExposure<Key>>
+/**
+ * All possible routes as schema types
+ */
+export type TClientRoutesSchema = {
+  [Key in keyof TServiceRoutesSchema]: TClientRouteSchema<
+    ServiceRouteInputSchema<Key>, ServiceRouteOutputSchema<Key>, OpenAPIMethod<Key>, APIExposureLevel<Key>>
 };
 
 /* API */
 
-export const ClientAPIRoutes: ClientAPIRoutesType = mapObject2(ServiceAPI, (k, route) => {
-  return [k, {
+/**
+ * Instantiation of the schema type above.
+ */
+export const ClientAPITransformSchema: TClientRoutesSchema = Object.entries(ServiceAPISchema).reduce((acc, [k, route]) => {
+  acc[k] = {
     meta: route.meta,
     returns: route.returns,
     args: route.args,
     client: getDeviceResponseSchema(route.returns)
-  } as ClientAPIRoutesType[typeof k]];
-});
+  };
+  return acc;
+}, <{ [key: string]: unknown }>{}) as TClientRoutesSchema;
 
 /* API Utility Types */
 
-export type ClientAPIMethod<Key extends keyof ClientAPIRoutesType> =
-  ClientAPIRoutesType[Key]["meta"]["openapi"]["method"];
-export type ClientAPIArgs<Key extends keyof ClientAPIRoutesType> =
-  ClientAPIRoutesType[Key]["args"]["shape"];
-export type ClientAPIReturns<Key extends keyof ClientAPIRoutesType> =
-  ClientAPIRoutesType[Key]["returns"];
-export type ClientAPIExposure<Key extends keyof ClientAPIRoutesType> =
-  ClientAPIRoutesType[Key]["exposed"];
+/**
+ * Input schema for a route
+ */
+export type TClientRouteInputTransformSchema<Key extends keyof TClientRoutesSchema> =
+  TClientRoutesSchema[Key]["args"]["shape"];
+/**
+ * Output schema for a route
+ */
+export type TClientRouteOutputTransformSchema<Key extends keyof TClientRoutesSchema> =
+  TClientRoutesSchema[Key]["returns"];

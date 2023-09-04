@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
     "declaration": true,
+    "strict": true,
+    "strictNullChecks": true,
     "types": []
   },
   "include": ["src/**/*.ts"],

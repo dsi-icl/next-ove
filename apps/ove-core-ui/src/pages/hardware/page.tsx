@@ -1,19 +1,9 @@
-import { useEffect, useState } from "react";
-import { createClient } from "../../utils";
+import { useObservatories } from "./hooks/hooks";
 import Observatory from "./components/observatory";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
-export default () => {
-  const [observatories, setObservatories] = useState<{
-    name: string,
-    isOnline: boolean
-  }[] | null>(null);
-
-  useEffect(() => {
-    const client = createClient();
-    client.hardware.getObservatories.query().then(setObservatories).catch(console.error);
-  }, []);
-
+const Hardware = () => {
+  const {observatories} = useObservatories();
   return <HelmetProvider>
     <main>
       <Helmet>
@@ -32,3 +22,5 @@ export default () => {
     </main>
   </HelmetProvider>;
 }
+
+export default Hardware;

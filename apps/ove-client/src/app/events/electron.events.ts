@@ -4,8 +4,8 @@
  */
 
 import { app, ipcMain, type IpcMain } from "electron";
-import { inboundChannels, InboundAPI } from "@ove/ove-client-shared";
-import Service from "@ove/ove-client-control";
+import service from "../../server/hardware/controller";
+import { inboundChannels, type InboundAPI } from "../../ipc-routes";
 
 /**
  * Electron events
@@ -22,7 +22,7 @@ export default class ElectronEvents {
 
 const IPCService: InboundAPI = {
   getAppVersion: async () => app.getVersion(),
-  getInfo: async type => Service().getInfo(type)
+  getInfo: async type => service.getInfo({ type })
 };
 
 (Object.keys(inboundChannels) as Array<keyof InboundAPI>).forEach(k => {

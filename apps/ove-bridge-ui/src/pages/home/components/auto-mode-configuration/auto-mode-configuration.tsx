@@ -1,5 +1,5 @@
 import React, {
-  FormEvent,
+  type FormEvent,
   forwardRef,
   useCallback,
   useEffect,

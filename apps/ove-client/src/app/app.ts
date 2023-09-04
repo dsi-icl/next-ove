@@ -3,11 +3,15 @@
 import { join } from "path";
 import { nanoid } from "nanoid";
 import { pathToFileURL } from "url";
-import { App, BrowserWindow as BW, Screen } from "electron";
-import { ID } from "@ove/ove-types";
-import { env, logger } from "@ove/ove-client-env";
-import { OutboundAPI, outboundChannels } from "@ove/ove-client-shared";
+import { type App, BrowserWindow as BW, type Screen } from "electron";
+import { type ID } from "@ove/ove-types";
+import { env, logger } from "../env";
+import {
+  type OutboundAPI,
+  outboundChannels
+} from "../ipc-routes";
 import { assert } from "@ove/ove-utils";
+import { exit } from "process";
 
 let application: App;
 let BrowserWindow: typeof BW;
@@ -66,16 +70,37 @@ const initWindow = (displayId?: number) => {
   return idx;
 };
 
+const loadErrorPage = (idx: string) => {
+  const formattedUrl = pathToFileURL(join(__dirname, "assets",
+    "error.html")).toString();
+  windows[idx].loadURL(formattedUrl)
+    .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+    .catch(reason => {
+      logger.fatal(reason);
+      closeServer();
+      application.exit(0);
+      exit(1);
+    });
+};
+
 const loadUIWindow = (idx: string, url?: `/${string}`) => {
   if (!application.isPackaged) {
     const formattedUrl = `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}${url ?? ""}`;
     windows[idx].loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+      .catch(reason => {
+        logger.error(reason);
+        loadErrorPage(idx);
+      });
   } else {
     const formattedUrl = pathToFileURL(join(__dirname, "..", env.UI_ALIAS,
       `${url === undefined ? "index" : url}.html`)).toString();
     windows[idx].loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`));
+      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+      .catch(reason => {
+        logger.error(reason);
+        loadErrorPage(idx);
+      });
   }
 };
 
@@ -99,7 +124,7 @@ const onActivate = () => {
 
 const triggerIPC: OutboundAPI = {
   updatePin: async pin => {
-    if (defaultIdx === null) return;
+    if (defaultIdx === null) throw new Error("Missing default ID");
     windows[defaultIdx].webContents.send(outboundChannels["updatePin"], pin);
   }
 };

@@ -1,19 +1,23 @@
 import { app } from "electron";
 import {
   closeHardwareSocket,
-  createClient, closeSocket,
-  getSocketStatus, initBridge,
   initHardware
-} from "@ove/ove-bridge-lib";
+} from "./features/hardware/hardware-controller";
+import {
+  closeSocket,
+  getSocketStatus,
+  initBridge,
+} from "./features/bridge/routes";
+import { createClient } from "./features/hardware/node-service";
 import min from "date-fns/min";
 import max from "date-fns/max";
 import fetch from "node-fetch";
 import subHours from "date-fns/subHours";
 import addHours from "date-fns/addHours";
 import * as schedule from "node-schedule";
-import { InboundAPI } from "@ove/ove-bridge-shared";
-import { env, logger } from "@ove/ove-bridge-env";
-import { Calendar, CalendarEvent, Device } from "@ove/ove-types";
+import { type InboundAPI } from "../../ipc-routes";
+import { env, logger } from "../../env";
+import { type Calendar, type CalendarEvent, type Device } from "@ove/ove-types";
 
 export const IPCService: InboundAPI = {
   getAppVersion: async () => app.getVersion(),

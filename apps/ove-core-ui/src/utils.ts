@@ -1,27 +1,21 @@
-import { Tokens } from "@ove/ove-types";
-import { Json, assert } from "@ove/ove-utils";
-import { AppRouter } from "@ove/ove-core-router";
+import { type Tokens } from "@ove/ove-types";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
-
-// noinspection JSUnusedLocalSymbols
-interface ImportMeta {
-  env: {
-    VITE_CORE_URL: string
-    VITE_CORE_API_VERSION: number
-  }
-}
+// IGNORE PATH - dependency removed at runtime
+import { type AppRouter } from "../../ove-core/src/app/router";
+import { env } from "./env";
 
 const fixedEncodeURI = (str: string) =>
   encodeURI(str).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16));
 
-export const createClient = () => createBackingClient(`Bearer ${Json.parse<Tokens>(assert(sessionStorage.getItem("tokens"))).access}`);
-export const createAuthClient = (username: string, password: string) => createBackingClient(`Basic ${fixedEncodeURI(window.btoa(`${username}:${password}`))}`);
+export const createClient = (tokens: Tokens) => createClient_(`Bearer ${tokens.access}`);
+export const createAuthClient = (username: string, password: string) => createClient_(`Basic ${fixedEncodeURI(window.btoa(`${username}:${password}`))}`);
 
-const createBackingClient = (authorization: string) =>
+export type Client = ReturnType<typeof createClient_>
+const createClient_ = (authorization: string) =>
   createTRPCProxyClient<AppRouter>({
     links: [
       httpLink({
-        url: `${import.meta.env.VITE_CORE_URL}/api/v${import.meta.env.VITE_CORE_API_VERSION}/trpc`,
+        url: env.CORE_URL,
         async headers() {
           return { authorization };
         }

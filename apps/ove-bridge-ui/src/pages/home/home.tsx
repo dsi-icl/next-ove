@@ -1,41 +1,33 @@
 import Configuration from "./components/configuration/configuration";
 import KeyPass from "./components/key-pass/key-pass";
 import Calendar from "./components/calendar/calendar";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import AutoModeConfiguration
   from "./components/auto-mode-configuration/auto-mode-configuration";
+import { useDialog } from "@ove/ui-components";
 
 const Home = () => {
   const [hasCalendar, setHasCalendar] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement | null>(null);
-  const close = useCallback(() => setDialogOpen(false), []);
-
-  useEffect(() => {
-    if (dialogOpen) {
-      dialogRef.current?.showModal();
-      dialogRef.current?.addEventListener("close", close);
-    } else {
-      dialogRef.current?.close();
-      dialogRef.current?.removeEventListener("close", close);
-    }
-  }, [dialogOpen, close]);
+  const {ref, isOpen, openDialog, closeDialog} = useDialog();
 
   useEffect(() => {
     window.electron.hasCalendar().then(setHasCalendar);
+    window.electron.receive("open-video-stream", streamURL => {
+      console.log(streamURL);
+    });
   }, []);
 
   return <main style={{ display: "flex", flexDirection: "row" }}>
     <div>
       <Configuration
         setHasCalendar={setHasCalendar}
-        openDialog={() => setDialogOpen(true)} />
+        openDialog={openDialog} />
       <KeyPass />
     </div>
     {hasCalendar ? <Calendar /> : null}
-    {dialogOpen ? <AutoModeConfiguration
-      ref={dialogRef}
-      closeDialog={() => setDialogOpen(false)} /> : null}
+    {isOpen ? <AutoModeConfiguration
+      ref={ref}
+      closeDialog={closeDialog} /> : null}
   </main>;
 };
 

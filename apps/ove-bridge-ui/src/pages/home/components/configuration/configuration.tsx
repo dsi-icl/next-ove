@@ -1,8 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 
 import styles from "./configuration.module.scss";
-import { NativeEvent } from "@ove/ove-types";
-import { outboundChannels } from "@ove/ove-bridge-shared";
+import { type NativeEvent } from "@ove/ove-types";
 
 export type ConfigurationProps = {
   setHasCalendar: (hasCalendar: boolean) => void
@@ -47,10 +46,10 @@ const Configuration = ({ setHasCalendar, openDialog }: ConfigurationProps) => {
       setDisplayCalendarURL(calendarURL ?? "");
     });
     window.electron.getSocketStatus().then(status => setConnected(status));
-    window.electron.receive(outboundChannels.socketConnect, () => {
+    window.electron.receive("socket-connect", () => {
       setConnected(true);
     });
-    window.electron.receive(outboundChannels.socketDisconnect, () => {
+    window.electron.receive("socket-disconnect", () => {
       setConnected(false);
     });
   }, []);

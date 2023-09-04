@@ -11,7 +11,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { parseISO } from "date-fns";
 import styles from "./calendar.module.scss";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CalendarEvent, PowerMode } from "@ove/ove-types";
+import { type CalendarEvent, type PowerMode } from "@ove/ove-types";
 import { RefreshCcw } from "lucide-react";
 import UpdateForm from "./update-form";
 

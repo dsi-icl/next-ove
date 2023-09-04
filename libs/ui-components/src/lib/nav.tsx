@@ -7,14 +7,8 @@ import {
   NavigationMenuTrigger
 } from "@ove/ui-base-components";
 import { Link, useLocation } from "react-router-dom";
-import { Tokens } from "@ove/ove-types";
 
 export type NavProps = {
-  auth: {
-    tokens: Tokens | null
-    login: () => void | null
-    logout: () => void | null
-  } | null
   icon: {
     asset: string
     alt: string
@@ -26,9 +20,9 @@ export type NavProps = {
   }[]
 }
 
-const Nav = ({ auth, icon: { asset, alt }, content }: NavProps) => {
+const Nav = ({ icon: { asset, alt }, content }: NavProps) => {
   const location = useLocation();
-  const isLogin = auth !== null && location.pathname === "/login";
+  const isLogin = location.pathname === "/login";
 
   return (
     <>

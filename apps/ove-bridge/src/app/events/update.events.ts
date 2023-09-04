@@ -3,7 +3,7 @@
 
 import { app, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
-import { logger } from "@ove/ove-bridge-env";
+import { logger } from "../../env";
 import { Json } from "@ove/ove-utils";
 
 export default () => {

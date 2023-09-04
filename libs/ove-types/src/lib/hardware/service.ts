@@ -10,12 +10,23 @@ import { ResponseSchema } from "../ove-types";
 
 /* Utility Types */
 
+/**
+ * For converting tRPC calls to REST
+ */
 export type RouteMethod = "GET" | "POST" | "DELETE";
-export type ExposureLevel = "client" | "bridge" | "core";
+
+/**
+ * Where functionality is exposed, allowing for hardware calls available on
+ * bridge, i.e. mute/unmute that aren't available on ove-client
+ */
+export type ExposureLevel = "client" | "bridge";
 
 /* API Route Types */
 
-export type ServiceAPIRoute<
+/**
+ * Schema for each route as a type for mapping.
+ */
+export type TServiceRouteSchema<
   A extends z.ZodRawShape,
   U extends z.ZodTypeAny,
   M extends RouteMethod,
@@ -29,51 +40,57 @@ export type ServiceAPIRoute<
 
 /* API Type */
 
-export type ServiceAPIRoutesType = {
-  getStatus: ServiceAPIRoute<{}, z.ZodBoolean, "GET", "client">
-  getInfo: ServiceAPIRoute<{
+/**
+ * All possible routes as schema types.
+ */
+export type TServiceRoutesSchema = {
+  getStatus: TServiceRouteSchema<{}, z.ZodBoolean, "GET", "client">
+  getInfo: TServiceRouteSchema<{
     type: z.ZodOptional<z.ZodString>
   }, z.ZodUnknown, "GET", "client">
-  getBrowserStatus: ServiceAPIRoute<{
+  getBrowserStatus: TServiceRouteSchema<{
     browserId: z.ZodNumber
   }, z.ZodBoolean, "GET", "client">
-  getBrowsers: ServiceAPIRoute<
+  getBrowsers: TServiceRouteSchema<
     {},
     z.ZodArray<z.ZodNumber>, "GET", "client">
-  reboot: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "client">
-  shutdown: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "client">
-  execute: ServiceAPIRoute<{
+  reboot: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "client">
+  shutdown: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "client">
+  execute: TServiceRouteSchema<{
     command: z.ZodString
   }, typeof ResponseSchema, "POST", "client">
-  screenshot: ServiceAPIRoute<{
+  screenshot: TServiceRouteSchema<{
     method: typeof ScreenshotMethodSchema,
     screens: z.ZodArray<z.ZodNumber>
   }, z.ZodArray<typeof ImageSchema>, "POST", "client">
-  openBrowser: ServiceAPIRoute<{
+  openBrowser: TServiceRouteSchema<{
     url: z.ZodOptional<z.ZodString>,
     displayId: z.ZodOptional<z.ZodNumber>
   }, z.ZodNumber, "POST", "client">
-  closeBrowser: ServiceAPIRoute<{
+  closeBrowser: TServiceRouteSchema<{
     browserId: z.ZodNumber
   }, z.ZodBoolean, "DELETE", "client">
-  closeBrowsers: ServiceAPIRoute<{}, z.ZodBoolean, "DELETE", "client">
-  start: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
-  setVolume: ServiceAPIRoute<{ volume: z.ZodNumber }, z.ZodBoolean, "POST", "bridge">
-  setSource: ServiceAPIRoute<{
+  closeBrowsers: TServiceRouteSchema<{}, z.ZodBoolean, "DELETE", "client">
+  start: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
+  setVolume: TServiceRouteSchema<{ volume: z.ZodNumber }, z.ZodBoolean, "POST", "bridge">
+  setSource: TServiceRouteSchema<{
     source: typeof SourceSchemas,
     channel: z.ZodOptional<z.ZodNumber>
   }, z.ZodBoolean, "POST", "bridge">
-  mute: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
-  unmute: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
-  muteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
-  unmuteAudio: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
-  muteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
-  unmuteVideo: ServiceAPIRoute<{}, z.ZodBoolean, "POST", "bridge">
+  mute: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
+  unmute: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
+  muteAudio: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
+  unmuteAudio: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
+  muteVideo: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
+  unmuteVideo: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
 }
 
 /* API */
 
-export const ServiceAPI: ServiceAPIRoutesType = {
+/**
+ * Instantiation of the schema type above.
+ */
+export const ServiceAPISchema: TServiceRoutesSchema = {
   getStatus: {
     meta: { openapi: { method: "GET" as const, path: "/status", protected: true } },
     args: z.object({}).strict(),
@@ -149,13 +166,13 @@ export const ServiceAPI: ServiceAPIRoutesType = {
       }
     },
     args: z.object({ browserId: IDSchema }).strict(),
-    returns: StatusSchema,
+    returns: z.boolean(),
     exposed: "client"
   },
   closeBrowsers: {
     meta: { openapi: { method: "DELETE" as const, path: "/browsers", protected: true } },
     args: z.object({}).strict(),
-    returns: StatusSchema,
+    returns: z.boolean(),
     exposed: "client"
   },
   start: {
@@ -219,11 +236,25 @@ export const ServiceAPI: ServiceAPIRoutesType = {
 
 /* API Utility Types */
 
-export type ServiceAPIMethod<Key extends keyof ServiceAPIRoutesType> =
-  ServiceAPIRoutesType[Key]["meta"]["openapi"]["method"];
-export type ServiceAPIArgs<Key extends keyof ServiceAPIRoutesType> =
-  ServiceAPIRoutesType[Key]["args"]["shape"];
-export type ServiceAPIReturns<Key extends keyof ServiceAPIRoutesType> =
-  ServiceAPIRoutesType[Key]["returns"];
-export type ServiceAPIExposure<Key extends keyof ServiceAPIRoutesType> =
-  ServiceAPIRoutesType[Key]["exposed"];
+/**
+ * Get RouteMethod for a route
+ */
+export type OpenAPIMethod<Key extends keyof TServiceRoutesSchema> =
+  TServiceRoutesSchema[Key]["meta"]["openapi"]["method"];
+/**
+ * Get ExposureLevel for a route
+ */
+export type APIExposureLevel<Key extends keyof TServiceRoutesSchema> =
+  TServiceRoutesSchema[Key]["exposed"];
+
+/**
+ * Input schema for a route
+ */
+export type ServiceRouteInputSchema<Key extends keyof TServiceRoutesSchema> =
+  TServiceRoutesSchema[Key]["args"]["shape"];
+/**
+ * Output schema for a route
+ */
+export type ServiceRouteOutputSchema<Key extends keyof TServiceRoutesSchema> =
+  TServiceRoutesSchema[Key]["returns"];
+
