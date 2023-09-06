@@ -16,11 +16,6 @@ const generateToken = (
 );
 
 const login = async (ctx: {user: string | null}): Promise<Tokens> => {
-  if (env.ACCESS_TOKEN_SECRET === undefined ||
-    env.REFRESH_TOKEN_SECRET === undefined) {
-    throw new Error("Authorization not configured");
-  }
-
   if (ctx.user === null) throw new TRPCError({
     code: "UNAUTHORIZED",
     message: "No credentials provided"
@@ -86,7 +81,7 @@ const getToken = async (ctx: {user: string | null}) => {
     }
   });
 
-  if (tokenRecord === null || env.REFRESH_TOKEN_SECRET === undefined || env.ACCESS_TOKEN_SECRET === undefined) {
+  if (tokenRecord === null) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Invalid token"

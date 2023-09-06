@@ -3,6 +3,7 @@ import { type OpenApiMeta } from "trpc-openapi";
 import { type Context } from "./context";
 import * as jwt from "jsonwebtoken";
 import { env } from "../env";
+import { Json } from "@ove/ove-utils";
 
 const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create();
 
@@ -20,7 +21,7 @@ const isAuthed = middleware((opts) => {
     let user: string;
 
     try {
-      user = jwt.verify(ctx.user, env.ACCESS_TOKEN_SECRET).toString();
+      user = Json.stringify(jwt.verify(ctx.user, env.ACCESS_TOKEN_SECRET));
     } catch (e) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

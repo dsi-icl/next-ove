@@ -4,6 +4,8 @@ import { z } from "zod";
 import * as path from "path";
 import { Logger } from "@ove/ove-logging";
 import { DeepProxy } from "@ove/ove-utils";
+import {nanoid} from "nanoid";
+import {createHmac} from "crypto";
 import { saveConfig, updateConfig } from "@ove/ove-server-utils";
 
 /**
@@ -16,8 +18,10 @@ const schema = z.strictObject({
   PORT: z.number(),
   HOSTNAME: z.string(),
   PROTOCOL: z.string(),
-  ACCESS_TOKEN_SECRET: z.string().optional(),
-  REFRESH_TOKEN_SECRET: z.string().optional()
+  ACCESS_TOKEN_SECRET: z.string(),
+  REFRESH_TOKEN_SECRET: z.string(),
+  ACCESS_TOKEN_PASSPHRASE: z.string(),
+  REFRESH_TOKEN_PASSPHRASE: z.string()
 });
 
 const staticConfig = {
@@ -28,10 +32,20 @@ const staticConfig = {
   DESCRIPTION: "The heart of next-ove."
 } as const;
 
+const accessTokenPassphrase = nanoid(16);
+const accessTokenSecret = Buffer.from(createHmac("sha256", accessTokenPassphrase).digest("hex")).toString("base64");
+
+const refreshTokenPassphrase = nanoid(16);
+const refreshTokenSecret = Buffer.from(createHmac("sha256", refreshTokenPassphrase).digest("hex")).toString("base64");
+
 const defaultConfig: z.infer<typeof schema> = {
   PORT: 3333,
   HOSTNAME: "127.0.0.1",
-  PROTOCOL: "http"
+  PROTOCOL: "http",
+  ACCESS_TOKEN_PASSPHRASE: accessTokenPassphrase,
+  ACCESS_TOKEN_SECRET: accessTokenSecret,
+  REFRESH_TOKEN_SECRET: refreshTokenSecret,
+  REFRESH_TOKEN_PASSPHRASE: refreshTokenPassphrase
 };
 
 const configPath = path.join(__dirname, "config.json");
