@@ -5,8 +5,6 @@ import {
   NavigationMenuLink,
 } from "@ove/ui-base-components";
 
-import Logo from "../assets/icon.svg";
-
 export const App = () => {
   const navContent = [
     {
@@ -42,7 +40,7 @@ export const App = () => {
   ];
 
   return <>
-    <Nav icon={{ asset: Logo, alt: "OVE Core Logo" }} content={navContent} />
+    <Nav icon={{ asset: "/logo.svg", alt: "OVE Core Logo" }} content={navContent} />
     <Router />
   </>;
 };
