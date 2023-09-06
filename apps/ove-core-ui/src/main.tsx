@@ -12,9 +12,9 @@ root.render(
     <HelmetProvider>
       <Helmet>
         <meta charSet="utf-8" />
-        <title>Next-OVE Core</title>
+        <title>next-ove</title>
       </Helmet>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <App />
       </BrowserRouter>
     </HelmetProvider>

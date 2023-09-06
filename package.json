@@ -150,6 +150,7 @@
     "tailwindcss": "^3.3.2",
     "tailwindcss-animate": "^1.0.6",
     "trpc-openapi": "^1.1.2",
+    "tsconfig-paths": "^4.2.0",
     "tslib": "^2.4.1",
     "ws": "^8.13.0",
     "yamljs": "^0.3.0",
