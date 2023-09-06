@@ -8,14 +8,8 @@ import {
 } from "./client-transform";
 import {
   type APIExposureLevel,
-  type OpenAPIMethod,
   type TServiceRoutesSchema
 } from "./service";
-// IGNORE PATH - dependency is removed at runtime
-import {
-  type TGenerateMutation,
-  type TGenerateQuery
-} from "../../../../../apps/ove-client/src/server/hardware/router";
 
 export {TDeviceResponse, TClientRouteInputSchema, TClientRouteOutputSchema}
 
@@ -44,11 +38,6 @@ export type TClientAPI = {
  */
 export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(ClientAPITransformSchema)
   .filter(([_k, route]) => route.exposed === "client")) as TClientRoutesSchema;
-
-export type ClientRouter = {
-  [Key in keyof TClientAPI]: OpenAPIMethod<Key> extends "GET" ?
-    ReturnType<TGenerateQuery<Key>> : ReturnType<TGenerateMutation<Key>>
-}
 
 /* Service Utility Types */
 

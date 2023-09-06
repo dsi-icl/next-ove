@@ -13,7 +13,13 @@ export const useObservatories = () => {
 
   useEffect(() => {
     const client = createClient(tokens!);
-    client.hardware.getObservatories.query().then(setObservatories).catch(console.error);
+    client.core.getObservatories.query().then(res => {
+      if (is(OVEExceptionSchema, res)) {
+        console.error(res.oveError);
+      } else {
+        setObservatories(res);
+      }
+    }).catch(console.error);
   }, []);
 
   return { observatories };

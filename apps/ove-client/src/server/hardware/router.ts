@@ -5,7 +5,7 @@ import {
   ClientAPISchema,
   type TClientServiceArgs,
   type TClientServiceReturns,
-  type ClientRouter
+  type OpenAPIMethod
 } from "@ove/ove-types";
 import controller from "./controller";
 import { logger } from "../../env";
@@ -35,8 +35,10 @@ const generateMutation = <Key extends keyof TClientAPI>(k: Key) => generateProce
   .mutation<TClientServiceReturns<Key>>(async ({ input }) =>
     safeCallController<typeof k>(k, input));
 
-export type TGenerateQuery<Key extends keyof TClientAPI> = typeof generateQuery<Key>
-export type TGenerateMutation<Key extends keyof TClientAPI> = typeof generateMutation<Key>
+export type ClientRouter = {
+  [Key in keyof TClientAPI]: OpenAPIMethod<Key> extends "GET" ?
+    ReturnType<typeof generateQuery<Key>> : ReturnType<typeof generateMutation<Key>>
+}
 
 const routes: ClientRouter = Object.entries(ClientAPISchema).reduce((acc, [k, route]) => {
   acc[k] = route.meta.openapi.method === "GET"

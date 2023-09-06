@@ -71,3 +71,5 @@ export const Logger = (name?: string, logLevel?: number, loggingServerURL?: stri
     trace: (...args: any[]) => log(Constants.LogLevels["trace"], ...args)
   };
 };
+
+export type TLogger = ReturnType<typeof Logger>
