@@ -40,7 +40,7 @@ export const App = () => {
   ];
 
   return <>
-    <Nav icon={{ asset: "/logo.svg", alt: "OVE Core Logo" }} content={navContent} />
+    <Nav icon={{ asset: `${import.meta.env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }} content={navContent} />
     <Router />
   </>;
 };
