@@ -20,7 +20,7 @@ const schema = z.strictObject({
 
 const parsedConfig = schema.parse({
   CORE_URL: import.meta.env.VITE_CORE_URL,
-  LOG_LEVEL: import.meta.env.VITE_LOG_LEVEL,
+  LOG_LEVEL: parseInt(import.meta.env.VITE_LOG_LEVEL),
   LOGGING_SERVER: import.meta.env.VITE_LOGGING_SERVER,
   VIDEO_STREAM_URL: import.meta.env.VITE_VIDEO_STREAM_URL
 });
