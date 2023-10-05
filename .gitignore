@@ -292,3 +292,5 @@ sandworm
 
 # Custom rules
 ./config.json
+/dev-db/*.txt
+/dev-db/database

@@ -1,31 +1,26 @@
-import { useCallback, useEffect, useState } from "react";
-import { Tokens } from "@ove/ove-types";
+import { useCallback } from "react";
 import { Json } from "@ove/ove-utils";
 import { useNavigate } from "react-router-dom";
 import { createAuthClient } from "./utils";
 import { logger } from "./env";
+import { useStore } from "./store";
 
 export const useAuth = () => {
   const navigate = useNavigate();
-  const [tokens, setTokens] = useState<Tokens | null>(() => {
-    const stored = localStorage.getItem("tokens");
-    if (stored === null) return null;
-    return Json.parse<Tokens>(stored);
-  });
-
-  useEffect(() => {
-    if (tokens === null) {
-      localStorage.removeItem("tokens");
-      navigate("/", { replace: true });
-    } else {
-      localStorage.setItem("tokens", Json.stringify(tokens));
-      navigate("/", { replace: true });
-    }
-  }, [tokens]);
+  const tokens = useStore(state => state.tokens);
+  const setTokens = useStore(state => state.setTokens);
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      setTokens(await createAuthClient(username, password).login.mutate());
+      const res = await createAuthClient(username, password).login.mutate();
+      if ("oveError" in res) {
+        logger.error(res.oveError);
+        logout();
+      } else {
+        setTokens(res);
+        localStorage.setItem("tokens", Json.stringify(res));
+        navigate("/", { replace: true });
+      }
     } catch (e) {
       logger.error(e);
       logout();
@@ -34,6 +29,8 @@ export const useAuth = () => {
 
   const logout = useCallback(() => {
     setTokens(null);
+    localStorage.removeItem("tokens");
+    navigate("/", { replace: true });
   }, []);
 
   return {

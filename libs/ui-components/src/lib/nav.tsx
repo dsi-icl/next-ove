@@ -17,12 +17,23 @@ export type NavProps = {
     title: string
     card: JSX.Element | null
     item: JSX.Element | null
+    location: string | null
   }[]
 }
 
 const Nav = ({ icon: { asset, alt }, content }: NavProps) => {
   const location = useLocation();
   const isLogin = location.pathname === "/login";
+
+  const getNavigationMenuItem = (card: JSX.Element | null, title: string, item: JSX.Element | null) => {
+    return <NavigationMenuItem key={title}>
+      {card !== null ? <>
+        <NavigationMenuTrigger>{title}</NavigationMenuTrigger>
+        <NavigationMenuContent>
+          {card}
+        </NavigationMenuContent></> : item}
+    </NavigationMenuItem>;
+  };
 
   return (
     <>
@@ -36,12 +47,14 @@ const Nav = ({ icon: { asset, alt }, content }: NavProps) => {
         </Link>
         {isLogin ? null :
           <NavigationMenuList className="mr-2">
-            {content.map(({title, card, item}) => <NavigationMenuItem key={title}>
-              {card !== null ? <><NavigationMenuTrigger>{title}</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                {card}
-              </NavigationMenuContent></> : item}
-            </NavigationMenuItem>)}
+            {content.map(({
+              title,
+              card,
+              item,
+              location
+            }) => location !== null ? <Link
+              to={location}
+              key={title}>{getNavigationMenuItem(card, title, item)}</Link> : getNavigationMenuItem(card, title, item))}
           </NavigationMenuList>}
       </NavigationMenu>
     </>

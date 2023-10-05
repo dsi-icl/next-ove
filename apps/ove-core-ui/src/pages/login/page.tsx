@@ -7,9 +7,11 @@ type Form = {
 }
 
 export default () => {
-  const { login } = useAuth();
+  const { login } = useAuth(true);
   const { register, handleSubmit } = useForm<Form>();
-  const onSubmit = handleSubmit(async ({ username, password }) => await login(username, password));
+  const onSubmit = handleSubmit(async ({ username, password }) => {
+    await login(username, password);
+  });
 
   return <main style={{
     display: "flex",

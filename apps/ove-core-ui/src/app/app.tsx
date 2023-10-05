@@ -2,10 +2,13 @@ import Router from "./router";
 import { Nav } from "@ove/ui-components";
 import { HddStack } from "react-bootstrap-icons";
 import {
-  NavigationMenuLink,
+  NavigationMenuLink
 } from "@ove/ui-base-components";
+import { env } from "../env";
+import { useAuth } from "../hooks";
 
 export const App = () => {
+  const { loggedIn, logout } = useAuth();
   const navContent = [
     {
       title: "Hardware",
@@ -16,7 +19,7 @@ export const App = () => {
           <NavigationMenuLink asChild>
             <a
               className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
-              href={`${import.meta.env.BASE_URL}/hardware`}
+              href={`${env.BASE_URL}/hardware`}
             >
               <HddStack />
               <h4 className="mb-2 mt-4 text-lg font-medium">
@@ -29,18 +32,30 @@ export const App = () => {
             </a>
           </NavigationMenuLink>
         </li>
-      </ul>
+      </ul>,
+      location: null
     },
-    // TODO: add login button
     {
-      title: "Login",
-      item: <div>Login</div>,
-      card: null
+      title: loggedIn ? "Logout" : "Login",
+      item: loggedIn ?
+        <button onClick={logout} style={{
+          color: "white",
+          padding: "1rem",
+          fontWeight: 700
+        }}>Logout</button> :
+        <div style={{
+          color: "white",
+          padding: "1rem",
+          fontWeight: 700
+        }}>Login</div>,
+      card: null,
+      location: loggedIn ? null : "/login"
     }
   ];
 
   return <>
-    <Nav icon={{ asset: `${import.meta.env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }} content={navContent} />
+    <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
+         content={navContent} />
     <Router />
   </>;
 };
