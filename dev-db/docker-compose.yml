@@ -2,7 +2,7 @@
 version: "3.8"
 services:
   mongo:
-    image: mongo:5.0
+    image: mongo:latest
     container_name: mongo
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${ROOT_USERNAME}
@@ -16,7 +16,7 @@ services:
       - ./database/dev.archive:/Databases/dev.archive
       - ./database/production:/Databases/production
   mongo-express:
-    image: mongo-express
+    image: mongo-express:latest
     container_name: mexpress
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo
@@ -32,3 +32,17 @@ services:
     restart: unless-stopped
     ports:
       - "8081:8081"
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    volumes:
+      - ./data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USERNAME}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+#      - MINIO_ADDRESS=9000
+#      - MINIO_CONSOLE_ADDRESS=9001
+    command: minio server --address ":9000" --console-address ":9001" /data
