@@ -49,7 +49,7 @@ const login = async (ctx: Context): Promise<Tokens> => {
     message: "Incorrect password"
   });
 
-  const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "10s");
+  const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "24h");
   const refreshToken = generateToken(username, env.REFRESH_TOKEN_SECRET);
 
   await ctx.prisma.refresh.upsert({
@@ -96,7 +96,7 @@ const getToken = async (ctx: Context) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid token" });
   }
 
-  return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "10s");
+  return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "24h");
 };
 
 export default {

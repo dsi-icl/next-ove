@@ -19,7 +19,6 @@ const isAuthed = middleware((opts) => {
 
   if (ctx.user !== null && env.ACCESS_TOKEN_SECRET !== undefined) {
     let user: string;
-    console.log(ctx.user);
 
     try {
       user = Json.stringify(jwt.verify(ctx.user, env.ACCESS_TOKEN_SECRET));

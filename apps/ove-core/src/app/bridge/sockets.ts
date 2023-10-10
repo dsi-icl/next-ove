@@ -4,9 +4,10 @@ import {
 } from "@ove/ove-types";
 import { io as SocketServer } from "../sockets";
 import { setupNamespace } from "../socket-setup";
+import { state } from "../state";
 
 export const io: Namespace<
   TSocketInEvents, TSocketOutEvents
 > = SocketServer.of("/bridge");
 
-setupNamespace(io);
+setupNamespace(io, state.bridgeClients);

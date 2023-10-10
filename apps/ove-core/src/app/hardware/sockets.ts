@@ -5,10 +5,11 @@ import {
 } from "@ove/ove-types";
 import { io as SocketServer } from "../sockets";
 import { setupNamespace } from "../socket-setup";
+import { state } from "../state";
 
 export const io: Namespace<
   THardwareClientToServerEvents,
   THardwareServerToClientEvents
 > = SocketServer.of("/hardware");
 
-setupNamespace(io);
+setupNamespace(io, state.hardwareClients);

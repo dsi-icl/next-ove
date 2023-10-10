@@ -1,7 +1,6 @@
 import Observatory from "./components/observatory";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { trpc } from "../../utils/api";
-// import { useFetchConfig } from "../../hooks";
 
 const Hardware = () => {
   const getObservatories = trpc.core.getObservatories.useQuery();

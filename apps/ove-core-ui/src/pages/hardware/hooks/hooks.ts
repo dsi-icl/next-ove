@@ -11,9 +11,8 @@ export type HardwareInfo = {
 }
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
-  // const fetchConfig = useFetchConfig();
   const [hardware, setHardware] = useState<HardwareInfo[]>([]);
-  const getHardware = trpc.bridge.getDevices.useQuery({bridgeId});
+  const getHardware = trpc.bridge.getDevices.useQuery({bridgeId}, {enabled: isOnline});
 
   useEffect(() => {
     if (!isOnline) return;

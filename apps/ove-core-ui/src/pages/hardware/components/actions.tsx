@@ -29,8 +29,8 @@ const Actions = ({ showNotification, openConsole, name, setInfo, device, updateH
     updateHardware(deviceId, ["info" as const, data]);
     setInfo(data);
   });
-  const startDevice = useStartDevice(device.id, name, showNotification);
-  const shutdownDevice = useShutdownDevice(device.id, name, showNotification);
+  const startDevice = useStartDevice(device.id, showNotification);
+  const shutdownDevice = useShutdownDevice(device.id, showNotification);
   return <div
     style={{ display: "flex", justifyContent: "space-around" }}>
     <button style={{ margin: "0.6rem 0" }}
@@ -43,11 +43,11 @@ const Actions = ({ showNotification, openConsole, name, setInfo, device, updateH
     }} title="info">
       <InfoCircle /></button>
     <button style={{ margin: "0.6rem 0" }} onClick={() => {
-      startDevice().catch(console.error);
+      startDevice({deviceId: device.id, bridgeId: name}).catch(console.error);
     }} title="start">
       <PlayCircle /></button>
     <button style={{ margin: "0.6rem 0" }} onClick={() => {
-      shutdownDevice().catch(console.error);
+      shutdownDevice({deviceId: device.id, bridgeId: name}).catch(console.error);
     }} title="stop">
       <StopCircle /></button>
     <button style={{ margin: "0.6rem 0" }} onClick={() => {

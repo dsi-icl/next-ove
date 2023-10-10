@@ -10,10 +10,12 @@ const getObservatories = async (ctx: Context) => {
       username: true
     }
   });
-  return observatories.map(({ username }) => ({
-    name: username,
-    isOnline: Object.keys(state.bridgeClients).includes(username)
-  }));
+  return observatories.map(({ username }) => {
+    return ({
+      name: username,
+      isOnline: state.bridgeClients.has(username)
+    });
+  });
 };
 
 export default {

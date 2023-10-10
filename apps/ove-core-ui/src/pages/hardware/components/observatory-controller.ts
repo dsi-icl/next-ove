@@ -29,7 +29,7 @@ export const useInfo = (deviceId: string, bridgeId: string, updateInfo: (deviceI
   return info.refetch;
 };
 
-export const useStartDevice = (deviceId: string, bridgeId: string, showNotification: (text: string) => void) => {
+export const useStartDevice = (deviceId: string, showNotification: (text: string) => void) => {
   const start = trpc.hardware.start.useMutation();
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export const useStartDevice = (deviceId: string, bridgeId: string, showNotificat
   return start.mutateAsync;
 };
 
-export const useShutdownDevice = (deviceId: string, bridgeId: string, showNotification: (text: string) => void) => {
+export const useShutdownDevice = (deviceId: string, showNotification: (text: string) => void) => {
   const shutdown = trpc.hardware.shutdown.useMutation();
 
   useEffect(() => {
