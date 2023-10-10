@@ -15,5 +15,5 @@ const getCurrentTokens = () => {
 
 export const useStore = create<Store>(set => ({
   tokens: getCurrentTokens(),
-  setTokens: (tokens: Tokens | null) => set({tokens})
+  setTokens: (tokens: Tokens | null) => tokens === null ? set({tokens: null}) : set({tokens: {...tokens}})
 }));

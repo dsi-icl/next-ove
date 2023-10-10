@@ -1,9 +1,10 @@
-import { useObservatories } from "./hooks/hooks";
 import Observatory from "./components/observatory";
 import { Helmet, HelmetProvider } from "react-helmet-async";
+import { trpc } from "../../utils/api";
+// import { useFetchConfig } from "../../hooks";
 
 const Hardware = () => {
-  const {observatories} = useObservatories();
+  const getObservatories = trpc.core.getObservatories.useQuery();
   return <HelmetProvider>
     <main>
       <Helmet>
@@ -16,9 +17,9 @@ const Hardware = () => {
         width: "100vw",
         textAlign: "center"
       }}>Hardware Manager</h1>
-      {observatories?.map(({ name, isOnline }) => <Observatory
+      {getObservatories.status === "success" && !("oveError" in getObservatories.data) ? getObservatories.data?.map(({ name, isOnline }) => <Observatory
         name={name} isOnline={isOnline} key={name}
-        style={{ marginTop: "2rem" }} />)}
+        style={{ marginTop: "2rem" }} />) : null}
     </main>
   </HelmetProvider>;
 }

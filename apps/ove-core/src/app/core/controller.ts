@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { type Context } from "../context";
 import { state } from "../state";
 
-const getObservatories = async () => {
-  const prisma = new PrismaClient();
-  const observatories = await prisma.auth.findMany({
+const getObservatories = async (ctx: Context) => {
+  const observatories = await ctx.prisma.auth.findMany({
     where: {
       role: "bridge"
     },

@@ -15,13 +15,15 @@ services:
       - ./database/db:/data/db
       - ./database/dev.archive:/Databases/dev.archive
       - ./database/production:/Databases/production
+      - ./mongo.keyfile:/data/mongo.keyfile
+    command: mongod --replSet rs0 --keyFile /data/mongo.keyfile
   mongo-express:
     image: mongo-express:latest
     container_name: mexpress
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo
       - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=false
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
       - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
       - ME_CONFIG_MONGODB_AUTH_USERNAME=${ROOT_USERNAME}
       - ME_CONFIG_MONGODB_AUTH_PASSWORD=${ROOT_PASSWORD}
@@ -43,6 +45,6 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USERNAME}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-#      - MINIO_ADDRESS=9000
-#      - MINIO_CONSOLE_ADDRESS=9001
+    #      - MINIO_ADDRESS=9000
+    #      - MINIO_CONSOLE_ADDRESS=9001
     command: minio server --address ":9000" --console-address ":9001" /data

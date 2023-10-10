@@ -11,8 +11,8 @@ import {
 import Info from "./info";
 import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
 import Console from "./console";
-import { useClient, useHardware } from "../hooks/hooks";
 import Actions from "./actions";
+import { useHardware } from "../hooks/hooks";
 
 export type ObservatoryProps = {
   name: string
@@ -47,11 +47,10 @@ const getProtocolIcon = (protocol: ServiceType) => {
 };
 
 const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
-  const client = useClient();
   const { ref: consoleDialog, closeDialog: closeConsole, openDialog: openConsole } = useDialog();
   const { ref: infoDialog, closeDialog: closeInfo, openDialog: openInfo } = useDialog();
   const [info, setInfo] = useState<DeviceInfo | null>(null);
-  const { hardware, updateHardware } = useHardware(client, isOnline, name);
+  const { hardware, updateHardware } = useHardware(isOnline, name);
   const { notification, show: showNotification, isVisible } = useSnackbar();
 
   useEffect(() => {
@@ -80,7 +79,7 @@ const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
                   mac: device.mac,
                   tags: device.tags,
                   status: status,
-                  actions: <Actions client={client} openConsole={openConsole}
+                  actions: <Actions openConsole={openConsole}
                                     showNotification={showNotification}
                                     name={name} updateHardware={updateHardware}
                                     device={device}

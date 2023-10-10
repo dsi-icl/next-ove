@@ -1,37 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { type Client, createClient } from "../../../utils";
-import { useAuth } from "../../../hooks";
+import { useEffect, useState } from "react";
 import { Json } from "@ove/ove-utils";
 import { type Device, is, OVEExceptionSchema } from "@ove/ove-types";
-
-export const useObservatories = () => {
-  const { tokens } = useAuth();
-  const [observatories, setObservatories] = useState<{
-    name: string,
-    isOnline: boolean
-  }[] | null>(null);
-
-  useEffect(() => {
-    const client = createClient(tokens!);
-    client.core.getObservatories.query().then(res => {
-      if (is(OVEExceptionSchema, res)) {
-        console.error(res.oveError);
-      } else {
-        setObservatories(res);
-      }
-    }).catch(console.error);
-  }, []);
-
-  return { observatories };
-};
-
-export const useClient = () => {
-  const { tokens, loggedIn } = useAuth();
-  const client = useRef(createClient(tokens!));
-
-  if (!loggedIn) throw new Error("Unable to create unauthorised client");
-  return client.current;
-};
+import { trpc } from "../../../utils/api";
+// import { useFetchConfig } from "../../../hooks";
 
 export type HardwareInfo = {
   device: Device
@@ -39,22 +10,21 @@ export type HardwareInfo = {
   info: object | null
 }
 
-export const useHardware = (client: Client, isOnline: boolean, bridgeId: string) => {
+export const useHardware = (isOnline: boolean, bridgeId: string) => {
+  // const fetchConfig = useFetchConfig();
   const [hardware, setHardware] = useState<HardwareInfo[]>([]);
+  const getHardware = trpc.bridge.getDevices.useQuery({bridgeId});
 
   useEffect(() => {
     if (!isOnline) return;
-    client.bridge.getDevices.query({ bridgeId }).then(result => {
-      if (!result || is(OVEExceptionSchema, result.response)) {
-        return;
-      }
-      setHardware(result.response.map(device => ({
-        device,
-        status: null,
-        info: null
-      })));
-    }).catch(console.error);
-  });
+    if (getHardware.status !== "success") return;
+    if (is(OVEExceptionSchema, getHardware.data.response)) return;
+    setHardware(getHardware.data.response.map(device => ({
+      device,
+      status: null,
+      info: null
+    })))
+  }, [getHardware.status]);
 
   const updateHardware = <Key extends keyof HardwareInfo>(deviceId: string, [k, v]: [Key, HardwareInfo[Key]]) => {
     setHardware(cur => {

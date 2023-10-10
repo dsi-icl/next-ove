@@ -1,9 +1,9 @@
 import { env } from "../../env";
 import { TRPCError } from "@trpc/server";
-import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { type Tokens } from "@ove/ove-types";
+import { type Context } from "../context";
 
 const generateToken = (
   username: string,
@@ -15,15 +15,14 @@ const generateToken = (
   expiresIn !== undefined ? { expiresIn } : undefined
 );
 
-const login = async (ctx: {user: string | null}): Promise<Tokens> => {
+const login = async (ctx: Context): Promise<Tokens> => {
   if (ctx.user === null) throw new TRPCError({
     code: "UNAUTHORIZED",
     message: "No credentials provided"
   });
   const [username, password] = decodeURIComponent(
     Buffer.from(ctx.user, "base64url").toString()).split(":");
-  const prisma = new PrismaClient();
-  const user = await prisma.auth.findUnique({
+  const user = await ctx.prisma.auth.findUnique({
     where: {
       username
     }
@@ -50,10 +49,10 @@ const login = async (ctx: {user: string | null}): Promise<Tokens> => {
     message: "Incorrect password"
   });
 
-  const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "24h");
+  const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "10s");
   const refreshToken = generateToken(username, env.REFRESH_TOKEN_SECRET);
 
-  await prisma.refresh.upsert({
+  await ctx.prisma.refresh.upsert({
     where: {
       userId: user.id
     },
@@ -69,13 +68,12 @@ const login = async (ctx: {user: string | null}): Promise<Tokens> => {
   return { access: accessToken, refresh: refreshToken };
 };
 
-const getToken = async (ctx: {user: string | null}) => {
+const getToken = async (ctx: Context) => {
   if (ctx.user === null) throw new TRPCError({
     code: "UNAUTHORIZED",
     message: "No credentials provided"
   });
-  const prisma = new PrismaClient();
-  const tokenRecord = await prisma.refresh.findUnique({
+  const tokenRecord = await ctx.prisma.refresh.findUnique({
     where: {
       token: ctx.user
     }
@@ -88,16 +86,18 @@ const getToken = async (ctx: {user: string | null}) => {
     });
   }
 
-  let user: {username: string};
+  let user: { username: string };
 
   try {
-    user = jwt.verify(ctx.user, env.REFRESH_TOKEN_SECRET) as {username: string};
+    user = jwt.verify(ctx.user, env.REFRESH_TOKEN_SECRET) as {
+      username: string
+    };
   } catch (e) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid token" });
   }
 
-  return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "24h");
-}
+  return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "10s");
+};
 
 export default {
   login,

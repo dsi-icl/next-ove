@@ -294,3 +294,4 @@ sandworm
 ./config.json
 /dev-db/database
 /dev-db/data
+/dev-db/mongo.keyfile

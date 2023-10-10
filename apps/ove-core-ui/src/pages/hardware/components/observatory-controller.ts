@@ -1,69 +1,58 @@
-import { createClient } from "../../../utils";
 import { type DeviceInfo } from "./observatory";
-import { logger } from "../../../env";
-import { Json } from "@ove/ove-utils";
 import { type HardwareInfo } from "../hooks/hooks";
+import { trpc } from "../../../utils/api";
+import { useEffect } from "react";
+import { is, OVEExceptionSchema } from "@ove/ove-types";
 
 export type UpdateHardware = <Key extends keyof HardwareInfo>(deviceId: string, [k, v]: [Key, HardwareInfo[Key]]) => void
 
-const updateStatus = async (client: ReturnType<typeof createClient>, deviceId: string, bridgeId: string, updateHardware: UpdateHardware) => {
-  const status = (await client.hardware.getStatus.query({
-    bridgeId,
-    deviceId
-  }))["response"] ? "running" : "off";
-  updateHardware(deviceId, ["status", status]);
+export const useStatus = (deviceId: string, bridgeId: string, updateHardware: UpdateHardware) => {
+  const status = trpc.hardware.getStatus.useQuery({ bridgeId, deviceId }, { enabled: false });
+
+  useEffect(() => {
+    if (status.status !== "success") return;
+    updateHardware(deviceId, ["status", status.data.response ? "running" : "off"]);
+  }, [status.status]);
+
+  return status.refetch;
 };
 
-// const flatten = (obj: object): object => {
-//   return (Object.keys(obj) as Array<keyof typeof obj>).reduce((acc, k) => {
-//     if (typeof obj[k] === "object") {
-//       return {
-//         ...acc,
-//         ...flatten(obj[k])
-//       };
-//     } else {
-//       acc[k] = obj[k];
-//       return acc;
-//     }
-//   }, {});
-// };
+export const useInfo = (deviceId: string, bridgeId: string, updateInfo: (deviceId: string, data: DeviceInfo) => void) => {
+  const info = trpc.hardware.getInfo.useQuery({ bridgeId, deviceId }, { enabled: false });
 
-const updateInfo = async (client: ReturnType<typeof createClient>, deviceId: string, bridgeId: string, updateInfo: (deviceId: string, data: DeviceInfo) => void) => {
-  const i = (await client.hardware.getInfo.query({
-    bridgeId,
-    deviceId
-  }));
-  logger.info(Json.stringify(i));
-  updateInfo(deviceId, i as unknown as DeviceInfo);
+  useEffect(() => {
+    if (info.status !== "success") return;
+    if (is(OVEExceptionSchema, info.data.response)) return;
+    updateInfo(deviceId, info.data.response as unknown as DeviceInfo);
+  }, [info.status]);
+
+  return info.refetch;
 };
 
-const startDevice = async (client: ReturnType<typeof createClient>, deviceId: string, bridgeId: string, showNotification: (text: string) => void) => {
-  try {
-    await client.hardware.start.mutate({
-      bridgeId,
-      deviceId
-    });
-    showNotification(`Started ${deviceId}`);
-  } catch (_e) {
-    showNotification(`Failed to start ${deviceId}`);
-  }
+export const useStartDevice = (deviceId: string, bridgeId: string, showNotification: (text: string) => void) => {
+  const start = trpc.hardware.start.useMutation();
+
+  useEffect(() => {
+    if (start.status === "error" || (start.status === "success" && is(OVEExceptionSchema, start.data.response))) {
+      showNotification(`Failed to start: ${deviceId}`);
+    } else if (start.status === "success") {
+      showNotification(`Started ${deviceId}`);
+    }
+  }, [start.status]);
+
+  return start.mutateAsync;
 };
 
-const stopDevice = async (client: ReturnType<typeof createClient>, deviceId: string, bridgeId: string, showNotification: (text: string) => void) => {
-  try {
-    await client.hardware.shutdown.mutate({
-      bridgeId,
-      deviceId
-    });
-    showNotification(`Stopped ${deviceId}`);
-  } catch (_e) {
-    showNotification(`Failed to stop ${deviceId}`);
-  }
-};
+export const useShutdownDevice = (deviceId: string, bridgeId: string, showNotification: (text: string) => void) => {
+  const shutdown = trpc.hardware.shutdown.useMutation();
 
-export default {
-  updateStatus,
-  updateInfo,
-  startDevice,
-  stopDevice
+  useEffect(() => {
+    if (shutdown.status === "error" || (shutdown.status === "success" && is(OVEExceptionSchema, shutdown.data.response))) {
+      showNotification(`Failed to stop ${deviceId}`);
+    } else if (shutdown.status === "success") {
+      showNotification(`Stopped ${deviceId}`);
+    }
+  }, [shutdown.status]);
+
+  return shutdown.mutateAsync;
 };

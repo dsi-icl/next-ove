@@ -1,29 +1,10 @@
-import {
-  type Audio,
-  type Battery,
-  type Bluetooth,
-  type CPU,
-  type Docker,
-  type FS,
-  type General,
-  type Graphics,
-  type Memory,
-  type Network,
-  type OS,
-  type Printer,
-  type Processes,
-  type System,
-  type USB,
-  type Vbox,
-  type Wifi
-} from "@ove/ove-types";
 import * as si from "systeminformation";
 import { env } from "../../../env";
 
-const general = (): General =>
+const general = () =>
   ({ version: si.version(), time: si.time(), type: "general" as const });
 
-const system = async (): Promise<System> => ({
+const system = async () => ({
   system: await si.system(),
   bios: await si.bios(),
   baseboard: await si.baseboard(),
@@ -31,7 +12,7 @@ const system = async (): Promise<System> => ({
   type: "system" as const
 });
 
-const cpu = async (): Promise<CPU> => ({
+const cpu = async () => ({
   cpu: await si.cpu(),
   flags: await si.cpuFlags(),
   cache: await si.cpuCache(),
@@ -40,23 +21,23 @@ const cpu = async (): Promise<CPU> => ({
   type: "cpu" as const
 });
 
-const memory = async (): Promise<Memory> => ({
+const memory = async () => ({
   memory: await si.mem(),
   layout: await si.memLayout(),
   type: "memory" as const
 });
 
-const battery = async (): Promise<Battery> => ({
+const battery = async () => ({
   battery: await si.battery(),
   type: "battery" as const
 });
 
-const graphics = async (): Promise<Graphics> => ({
+const graphics = async () => ({
   graphics: await si.graphics(),
   type: "graphics" as const
 });
 
-const os = async (): Promise<OS> => ({
+const os = async () => ({
   os: await si.osInfo(),
   uuid: await si.uuid(),
   versions: await si.versions(),
@@ -65,7 +46,7 @@ const os = async (): Promise<OS> => ({
   type: "os" as const
 });
 
-const processes = async (): Promise<Processes> => {
+const processes = async () => {
   const processes = await si.processes();
   const services = await si.services(processes
     .list
@@ -85,7 +66,7 @@ const processes = async (): Promise<Processes> => {
   });
 };
 
-const fs = async (): Promise<FS> => ({
+const fs = async () => ({
   diskLayout: await si.diskLayout(),
   blockDevices: await si.blockDevices(),
   disksIO: await si.disksIO(),
@@ -95,22 +76,22 @@ const fs = async (): Promise<FS> => ({
   type: "fs" as const
 });
 
-const usb = async (): Promise<USB> => ({
+const usb = async () => ({
   usb: await si.usb(),
   type: "usb" as const
 });
 
-const printer = async (): Promise<Printer> => ({
+const printer = async () => ({
   printer: await si.printer(),
   type: "printer" as const
 });
 
-const audio = async (): Promise<Audio> => ({
+const audio = async () => ({
   audio: await si.audio(),
   type: "audio" as const
 });
 
-const network = async (): Promise<Network> => ({
+const network = async () => ({
   interfaces: await si.networkInterfaces(),
   interfaceDefault: await si.networkInterfaceDefault(),
   gatewayDefault: await si.networkGatewayDefault(),
@@ -121,19 +102,19 @@ const network = async (): Promise<Network> => ({
   type: "network" as const
 });
 
-const wifi = async (): Promise<Wifi> => ({
+const wifi = async () => ({
   networks: await si.wifiNetworks(),
   interfaces: await si.wifiInterfaces(),
   connections: await si.wifiConnections(),
   type: "wifi" as const
 });
 
-const bluetooth = async (): Promise<Bluetooth> => ({
+const bluetooth = async () => ({
   devices: await si.bluetoothDevices(),
   type: "bluetooth" as const
 });
 
-const docker = async (): Promise<Docker> => ({
+const docker = async () => ({
   docker: await si.dockerInfo(),
   images: await si.dockerImages(),
   containers: await si.dockerContainers(),
@@ -143,7 +124,7 @@ const docker = async (): Promise<Docker> => ({
   type: "docker" as const
 });
 
-const vbox = async (): Promise<Vbox> => ({
+const vbox = async () => ({
   vbox: await si.vboxInfo(),
   type: "vbox" as const
 });

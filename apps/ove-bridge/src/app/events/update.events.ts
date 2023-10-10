@@ -13,7 +13,7 @@ export default () => {
 
   autoUpdater.on("update-downloaded", info => {
     const dialogOpts = {
-      type: "info",
+      type: "info" as "info" | "error" | "none" | "question" | "warning" | undefined,
       buttons: ["Restart", "Later"],
       title: "Application Update",
       message:

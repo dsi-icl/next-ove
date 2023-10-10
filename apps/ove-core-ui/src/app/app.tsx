@@ -6,9 +6,16 @@ import {
 } from "@ove/ui-base-components";
 import { env } from "../env";
 import { useAuth } from "../hooks";
+import { trpc } from "../utils/api";
+import { httpLink } from "@trpc/client";
+import {
+  QueryClient,
+  QueryClientProvider
+} from "@tanstack/react-query";
+import { useState } from "react";
 
 export const App = () => {
-  const { loggedIn, logout } = useAuth();
+  const { loggedIn, logout, tokens, refresh } = useAuth();
   const navContent = [
     {
       title: "Hardware",
@@ -53,11 +60,52 @@ export const App = () => {
     }
   ];
 
-  return <>
-    <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
-         content={navContent} />
-    <Router />
-  </>;
+  const [trpcClient] = useState(() => trpc.createClient({
+    links: [
+      httpLink({
+        url: `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/trpc`,
+        async headers() {
+          return { authorization: `Bearer ${tokens?.access}` };
+        },
+        fetch: async (url, options): Promise<Response> => {
+          const res = await fetch(url, options);
+
+          if (res.status === 207) {
+            const responses = await res.json() as {error: {data: {httpStatus: number}}}[];
+
+            if (responses.some(r => r.error.data.httpStatus === 401)) {
+              const refreshedTokens = await refresh();
+              if (options?.headers !== undefined) {
+                options.headers["authorization" as keyof HeadersInit] = `Bearer ${refreshedTokens?.access}`;
+              }
+              return await fetch(url, options);
+            }
+          }
+
+          if (res.status === 401) {
+            const refreshedTokens = await refresh();
+            if (options?.headers !== undefined) {
+              options.headers["authorization" as keyof HeadersInit] = `Bearer ${refreshedTokens?.access}`;
+            }
+            return await fetch(url, options);
+          }
+
+          return res;
+        }
+      })
+    ],
+    transformer: undefined
+  }));
+
+  const [queryClient,] = useState<QueryClient>(() => new QueryClient({defaultOptions: {queries: {}, mutations: {}}}));
+
+  return <trpc.Provider client={trpcClient} queryClient={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
+           content={navContent} />
+      <Router />
+    </QueryClientProvider>
+  </trpc.Provider>;
 };
 
 export default App;

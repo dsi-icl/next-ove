@@ -7,7 +7,7 @@ type Form = {
 }
 
 export default () => {
-  const { login } = useAuth(true);
+  const { login } = useAuth();
   const { register, handleSubmit } = useForm<Form>();
   const onSubmit = handleSubmit(async ({ username, password }) => {
     await login(username, password);

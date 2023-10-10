@@ -1,18 +1,17 @@
-import { PrismaClient } from "@prisma/client";
 import { state } from "./state";
 import { type Namespace } from "socket.io";
+import { prisma } from "./db";
 
 export const setupNamespace = <T extends Namespace>(io: T) => {
   io.use(async (socket, next) => {
     const { username, password } = socket.handshake.auth;
-    const prisma = new PrismaClient();
     const user = await prisma.auth.findUnique({
       where: {
         username
       }
     });
 
-    if (user?.role === "bridge" && password === user.password) {
+    if (user?.role === "bridge" && password.trim() === user.password.trim()) {
       next();
     } else {
       next(new Error("UNAUTHORIZED"));

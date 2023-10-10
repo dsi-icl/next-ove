@@ -13,6 +13,7 @@ import { saveConfig, updateConfig } from "@ove/ove-server-utils";
  * This way you can ensure the app isn't built with invalid env vars.
  */
 const schema = z.strictObject({
+  NODE_ENV: z.union([z.literal("development"), z.literal("production"), z.literal("test")]),
   LOG_LEVEL: z.number().optional(),
   LOGGING_SERVER: z.string().optional(),
   PORT: z.number(),
@@ -21,7 +22,8 @@ const schema = z.strictObject({
   ACCESS_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
   ACCESS_TOKEN_PASSPHRASE: z.string(),
-  REFRESH_TOKEN_PASSPHRASE: z.string()
+  REFRESH_TOKEN_PASSPHRASE: z.string(),
+  SOCKET_ADMIN: z.strictObject({USERNAME: z.string(), PASSWORD: z.string()}).optional()
 });
 
 const staticConfig = {
@@ -39,6 +41,7 @@ const refreshTokenPassphrase = nanoid(16);
 const refreshTokenSecret = Buffer.from(createHmac("sha256", refreshTokenPassphrase).digest("hex")).toString("base64");
 
 const defaultConfig: z.infer<typeof schema> = {
+  NODE_ENV: process.env.NODE_ENV,
   PORT: 3333,
   HOSTNAME: "127.0.0.1",
   PROTOCOL: "http",
