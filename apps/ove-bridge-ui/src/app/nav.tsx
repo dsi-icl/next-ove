@@ -14,7 +14,8 @@ const Nav = () => {
         <NavigationMenuLink asChild style={{ margin: "0 2rem" }}><a
           href="/live-view" style={{ color: "white" }}>Live
           View</a></NavigationMenuLink>
-      </>
+      </>,
+      location: null
     }
   ];
 

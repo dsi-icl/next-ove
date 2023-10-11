@@ -12,9 +12,6 @@ const Home = () => {
 
   useEffect(() => {
     window.electron.hasCalendar().then(setHasCalendar);
-    window.electron.receive("open-video-stream", streamURL => {
-      console.log(streamURL);
-    });
   }, []);
 
   return <main style={{ display: "flex", flexDirection: "row" }}>

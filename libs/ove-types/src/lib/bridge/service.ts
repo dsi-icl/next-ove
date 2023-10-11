@@ -25,14 +25,22 @@ export type TBridgeServiceParams = {
     args: { deviceId: string }
     returns: boolean
   }
-  loadVideoStream: {
-    args: { streamURL: string }
+  startStreams: {
+    args: {},
     returns: boolean
+  },
+  stopStreams: {
+    args: {},
+    returns: boolean
+  },
+  getStreams: {
+    args: {},
+    returns: string[] | undefined
   }
 }
 
 export type TBridgeService = {
-  [Key in keyof TBridgeServiceParams]: (args: TBridgeServiceParams[Key]["args"], listeners?: ((args: TBridgeServiceParams[Key]["args"]) => void)[]) => TBridgeServiceParams[Key]["returns"]
+  [Key in keyof TBridgeServiceParams]: (args: TBridgeServiceParams[Key]["args"]) => TBridgeServiceParams[Key]["returns"]
 }
 
 type TWrappedResponseRaw<Key extends keyof TBridgeService> =
@@ -45,18 +53,13 @@ export type TWrappedResponse<Key extends keyof TBridgeService> = {
 
 export type TParameters<Key extends keyof TBridgeService> = Parameters<TBridgeService[Key]>[0]
 export type TCallback<Key extends keyof TBridgeService> = (response: TWrappedResponse<Key>) => void
-export type TEventListener<Key extends keyof TBridgeService> = Parameters<TBridgeService[Key]>[1]
 
 export type TBridgeController = {
-  [Key in keyof TBridgeService]: (args: TParameters<Key>, listeners: TEventListener<Key>) => TWrappedResponse<Key>
+  [Key in keyof TBridgeService]: (args: TParameters<Key>) => TWrappedResponse<Key>
 }
 
 export type TSocketOutEvents = {
   [Key in keyof TBridgeService]: (args: TParameters<Key>, callback: TCallback<Key>) => void
-}
-
-export type TEventListeners = {
-  [Key in keyof TBridgeService]: NonNullable<TEventListener<Key>>
 }
 
 const wrapSchema = <T extends z.ZodTypeAny>(schema: T) => z.strictObject({
@@ -76,7 +79,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET",
-        path: "/device/{deviceId}",
+        path: "/device/{bridgeId}/{deviceId}",
         protect: true
       }
     } as OpenApiMeta<"GET">,
@@ -87,7 +90,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET",
-        path: "/devices",
+        path: "/devices/{bridgeId}",
         protect: true
       }
     } as OpenApiMeta<"GET">,
@@ -98,7 +101,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST",
-        path: "/device",
+        path: "/device/{bridgeId}",
         protect: true
       }
     } as OpenApiMeta<"POST">,
@@ -109,23 +112,45 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "DELETE",
-        path: "/device/{deviceId}",
+        path: "/device/{bridgeId}/{deviceId}",
         protect: true
       }
     } as OpenApiMeta<"DELETE">,
     input: z.strictObject({ deviceId: z.string(), bridgeId: z.string() }),
     output: wrapSchema(StatusSchema)
   },
-  loadVideoStream: {
+  startStreams: {
     meta: {
       openapi: {
         method: "POST",
-        path: "/stream",
+        path: "/streams/{bridgeId}",
         protect: true
       }
     } as OpenApiMeta<"POST">,
-    input: z.strictObject({ streamURL: z.string(), bridgeId: z.string() }),
+    input: z.strictObject({ bridgeId: z.string() }),
     output: wrapSchema(StatusSchema)
+  },
+  stopStreams: {
+    meta: {
+      openapi: {
+        method: "DELETE",
+        path: "/streams/{bridgeId}",
+        protect: true
+      }
+    } as OpenApiMeta<"DELETE">,
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: wrapSchema(StatusSchema)
+  },
+  getStreams: {
+    meta: {
+      openapi: {
+        method: "GET",
+        path: "/streams/{bridgeId}",
+        protect: true
+      }
+    } as OpenApiMeta<"GET">,
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: wrapSchema(z.array(z.string()).optional())
   }
 };
 

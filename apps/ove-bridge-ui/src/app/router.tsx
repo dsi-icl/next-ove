@@ -13,7 +13,7 @@ const Router = () => <Routes>
     element={<Hardware />}
   />
   <Route
-    path="/live-view/:streamURL"
+    path="/live-view"
     element={<LiveView />}
   />
 </Routes>;

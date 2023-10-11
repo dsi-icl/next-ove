@@ -3,7 +3,6 @@ import {
   type TSocketInEvents,
   type TParameters,
   type TCallback,
-  type TEventListeners
 } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
 import { io, type Socket } from "socket.io-client";
@@ -20,12 +19,6 @@ export const closeSocket = () => {
 
 const socketConnectListeners: (() => void)[] = [];
 const socketDisconnectListeners: (() => void)[] = [];
-const socketEventListeners = (Object.keys(controller) as Array<keyof TSocketOutEvents>).reduce((acc, k) => {
-  return {
-    ...acc,
-    [k]: []
-  };
-}, <TEventListeners>{});
 
 export const registerSocketConnectedListener = (listener: () => void) => {
   socketConnectListeners.push(listener);
@@ -33,10 +26,6 @@ export const registerSocketConnectedListener = (listener: () => void) => {
 
 export const registerSocketDisconnectListener = (listener: () => void) => {
   socketDisconnectListeners.push(listener);
-};
-
-export const registerSocketEventListener = <Key extends keyof TSocketOutEvents>(event: Key, listener: TEventListeners[Key][0]) => {
-  socketEventListeners[event].push(listener);
 };
 
 export const getSocketStatus = () => socket?.connected ?? false;
@@ -62,7 +51,7 @@ export const initBridge = () => {
 
   const getHandler = <Key extends keyof TSocketOutEvents>(k: Key) => {
     return ((args: TParameters<Key>, callback: TCallback<Key>) => {
-      const res = controller[k](args, socketEventListeners[k]);
+      const res = controller[k](args);
       callback(res);
       logger.info(`Handled: ${k}`);
     }) as TSocketOutEvents[Key];

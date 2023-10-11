@@ -13,6 +13,8 @@ Please refer to the ```.env.example``` file for an example environment configura
 
 ### Mongo Setup
 
+[Setup Guide](!https://www.mongodb.com/docs/manual/tutorial/deploy-replica-set-with-keyfile-access-control/)
+
 Please execute the following command on instantiation of the MongoDB ReplicaSet:
 
 ```shell

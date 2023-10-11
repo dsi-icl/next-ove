@@ -30,7 +30,10 @@ const schema = z.strictObject({
   AUTO_SCHEDULE: AutoScheduleSchema.optional(),
   PRIVATE_KEY: z.string(),
   PUBLIC_KEY: z.string(),
-  PASSPHRASE: z.string()
+  PASSPHRASE: z.string(),
+  VIDEO_STREAMS: z.array(z.string()).optional(),
+  START_VIDEO_SCRIPT: z.string().optional(),
+  STOP_VIDEO_SCRIPT: z.string().optional()
 });
 
 const staticConfig = {

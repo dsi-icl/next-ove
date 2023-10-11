@@ -22,9 +22,11 @@ export const inboundChannels: InboundAPIChannels = {
   getMode: "get-mode",
   getSocketStatus: "get-socket-status",
   getCalendar: "get-calendar",
-  updateCalendar: "update-calendar",
   hasCalendar: "has-calendar",
-  getAutoSchedule: "get-auto-schedule"
+  getAutoSchedule: "get-auto-schedule",
+  getStreams: "get-video-streams",
+  startStreams: "start-videos",
+  stopStreams: "stop-videos"
 };
 
 export type InboundAPIChannels = {
@@ -48,15 +50,16 @@ export type InboundAPI = {
   getMode: () => Promise<PowerMode>
   getSocketStatus: () => Promise<boolean>
   getCalendar: () => Promise<Calendar | undefined>
-  updateCalendar: (accessToken: string) => Promise<Calendar | null>
   hasCalendar: () => Promise<boolean>
   getAutoSchedule: () => Promise<AutoSchedule | undefined>
+  getStreams: () => Promise<string[] | undefined>
+  startStreams: () => Promise<boolean>
+  stopStreams: () => Promise<boolean>
 }
 
 export const outboundChannels: OutboundAPIChannels = {
   socketConnect: "socket-connect",
-  socketDisconnect: "socket-disconnect",
-  openVideoStream: "open-video-stream"
+  socketDisconnect: "socket-disconnect"
 };
 
 export type OutboundAPIChannels = {
@@ -67,5 +70,4 @@ export type OutboundAPIChannels = {
 export type OutboundAPI = {
   socketConnect: () => void
   socketDisconnect: () => void
-  openVideoStream: (args: {streamURL: string}) => void
 }

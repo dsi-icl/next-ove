@@ -3,47 +3,18 @@ import { service } from "./service";
 import { type TBridgeController } from "@ove/ove-types";
 import { assert, raise } from "@ove/ove-utils";
 
+const wrap = <T>(x: T) => ({meta: {bridge: assert(env.BRIDGE_NAME)}, response: x});
+
 export const controller: TBridgeController = {
   getDevice: (args) => {
     const res = service.getDevice(args);
-
-    if (res === undefined) return {
-      meta: { bridge: assert(env.BRIDGE_NAME) },
-      response: raise(`No device with id: ${args.deviceId}`)
-    };
-
-    return {
-      meta: { bridge: assert(env.BRIDGE_NAME) },
-      response: res
-    };
+    if (res === undefined) return wrap(raise(`No device with id: ${args.deviceId}`));
+    return wrap(res);
   },
-  getDevices: (args) => {
-    const res = service.getDevices(args);
-
-    return {
-      meta: { bridge: assert(env.BRIDGE_NAME) },
-      response: res
-    };
-  },
-  addDevice: (args) => {
-    const res = service.addDevice(args);
-    return {
-      meta: { bridge: assert(env.BRIDGE_NAME) },
-      response: res
-    };
-  },
-  removeDevice: args => {
-    const res = service.removeDevice(args);
-    return {
-      meta: { bridge: assert(env.BRIDGE_NAME) },
-      response: res
-    };
-  },
-  loadVideoStream: args => {
-    const res = service.loadVideoStream(args);
-    return {
-      meta: { bridge: assert(env.BRIDGE_NAME) },
-      response: res
-    };
-  }
+  getDevices: args => wrap(service.getDevices(args)),
+  addDevice: args => wrap(service.addDevice(args)),
+  removeDevice: args => wrap(service.removeDevice(args)),
+  startStreams: args => wrap(service.startStreams(args)),
+  stopStreams: args => wrap(service.stopStreams(args)),
+  getStreams: args => wrap(service.getStreams(args))
 };

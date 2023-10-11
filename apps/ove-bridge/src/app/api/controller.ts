@@ -6,8 +6,9 @@ import {
 import {
   closeSocket,
   getSocketStatus,
-  initBridge,
+  initBridge
 } from "./features/bridge/routes";
+import {service} from "./features/bridge/service";
 import { createClient } from "./features/hardware/node-service";
 import min from "date-fns/min";
 import max from "date-fns/max";
@@ -18,12 +19,13 @@ import * as schedule from "node-schedule";
 import { type InboundAPI } from "../../ipc-routes";
 import { env, logger } from "../../env";
 import { type Calendar, type CalendarEvent, type Device } from "@ove/ove-types";
+import { Json } from "@ove/ove-utils";
 
 export const IPCService: InboundAPI = {
   getAppVersion: async () => app.getVersion(),
   getPublicKey: async () => env.PUBLIC_KEY,
   getDevicesToAuth: async () =>
-    env.HARDWARE.filter(device => device.auth === null),
+    Json.copy(env.HARDWARE.filter(device => device.auth === null)),
   registerAuth: async (id: string, pin: string) => {
     const idx = env.HARDWARE.findIndex(device => device.id == id);
     if (idx === -1) throw new Error(`Unknown device with id: ${id}`);
@@ -56,7 +58,7 @@ export const IPCService: InboundAPI = {
       calendarURL: env.CALENDAR_URL
     });
   },
-  getDevices: async () => env.HARDWARE,
+  getDevices: async () => Json.copy(env.HARDWARE),
   saveDevice: async (device: Device) => {
     const existingDevice = env.HARDWARE
       .findIndex(({ id }) => id === device.id);
@@ -157,20 +159,31 @@ export const IPCService: InboundAPI = {
   getMode: async () => env.POWER_MODE,
   getSocketStatus: async () => getSocketStatus(),
   hasCalendar: async () => env.CALENDAR_URL !== undefined,
-  getCalendar: async () => env.CALENDAR,
-  updateCalendar: async accessToken => {
-    if (env.CALENDAR_URL === undefined) return null;
+  getCalendar: async () => {
+    // TODO: add full production integration with email service, Azure auth etc.
+    if (env.CALENDAR_URL === undefined) return undefined;
     try {
-      const calendar = await (await fetch(
-        env.CALENDAR_URL,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      )).json() as Calendar;
-      calendar["lastUpdated"] = new Date().toISOString();
+      const raw = await (await fetch(env.CALENDAR_URL)).json();
+      const calendar: Calendar = {
+        value: raw["value"].map((x: {
+          subject: string,
+          start: { dateTime: string },
+          end: { dateTime: string }
+        }) => ({
+          subject: x.subject,
+          start: x.start.dateTime,
+          end: x.end.dateTime
+        })), lastUpdated: new Date().toISOString()
+      };
       env.CALENDAR = calendar;
       return calendar;
-    } catch (_e) {
-      return null;
+    } catch (e) {
+      console.error(e);
+      return undefined;
     }
   },
-  getAutoSchedule: async () => env.AUTO_SCHEDULE
+  getAutoSchedule: async () => env.AUTO_SCHEDULE,
+  getStreams: async () => Json.copy(service.getStreams({})),
+  startStreams: async () => service.startStreams({}),
+  stopStreams: async () => service.stopStreams({})
 };

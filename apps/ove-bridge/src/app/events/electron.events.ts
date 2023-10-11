@@ -10,7 +10,6 @@ import { type InboundAPI, inboundChannels } from "../../ipc-routes";
 import {
   registerSocketConnectedListener,
   registerSocketDisconnectListener,
-  registerSocketEventListener
 } from "../api/features/bridge/routes";
 import App from "../app";
 import { IPCService } from "../api/controller";
@@ -32,7 +31,6 @@ process.on("SIGINT", () => {
 
 registerSocketConnectedListener(() => App.triggerIPC.socketConnect());
 registerSocketDisconnectListener(() => App.triggerIPC.socketDisconnect());
-registerSocketEventListener("loadVideoStream", args => App.triggerIPC.openVideoStream(args));
 
 // Handle App termination
 ipcMain.on("quit", (_event, code) => {
