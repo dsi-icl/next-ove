@@ -18,11 +18,12 @@ node_modules
 *.sublime-workspace
 
 # IDE - VSCode
+.vscode
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+#!.vscode/settings.json
+#!.vscode/tasks.json
+#!.vscode/launch.json
+#!.vscode/extensions.json
 
 # misc
 /.sass-cache
@@ -40,6 +41,8 @@ Thumbs.db
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+.idea
 
 # User-specific stuff
 .idea/**/workspace.xml
@@ -291,7 +294,7 @@ sandworm
 *.http
 
 # Custom rules
-./config.json
 /dev-db/database
 /dev-db/data
 /dev-db/mongo.keyfile
+/apps/ove-core/src/config/config.json

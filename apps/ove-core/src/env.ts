@@ -51,7 +51,7 @@ const defaultConfig: z.infer<typeof schema> = {
   REFRESH_TOKEN_PASSPHRASE: refreshTokenPassphrase
 };
 
-const configPath = path.join(__dirname, "config.json");
+const configPath = path.join(__dirname, "config", "config.json");
 
 const config = updateConfig(
   configPath,

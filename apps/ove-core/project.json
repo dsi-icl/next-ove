@@ -13,7 +13,7 @@
         "outputPath": "dist/apps/ove-core",
         "main": "apps/ove-core/src/main.ts",
         "tsConfig": "apps/ove-core/tsconfig.app.json",
-        "assets": ["apps/ove-core/src/assets"]
+        "assets": ["apps/ove-core/src/assets", "apps/ove-core/src/config"]
       },
       "configurations": {
         "production": {
