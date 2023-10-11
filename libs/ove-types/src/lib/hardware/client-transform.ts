@@ -65,6 +65,7 @@ export const ClientAPITransformSchema: TClientRoutesSchema = Object.entries(Serv
     meta: route.meta,
     returns: route.returns,
     args: route.args,
+    exposed: route.exposed,
     client: getDeviceResponseSchema(route.returns)
   };
   return acc;

@@ -294,7 +294,8 @@ sandworm
 *.http
 
 # Custom rules
-/dev-db/database
-/dev-db/data
-/dev-db/mongo.keyfile
+/dev/database
+/dev/data
+/dev/mongo.keyfile
 /apps/ove-core/src/config/config.json
+/dev/public/*
