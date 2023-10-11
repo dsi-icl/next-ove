@@ -1,1 +1,6 @@
-{}
+{
+  "SOCKET_ADMIN": {
+    "USERNAME": "example",
+    "PASSWORD": "SALTED+HASHED"
+  }
+}
