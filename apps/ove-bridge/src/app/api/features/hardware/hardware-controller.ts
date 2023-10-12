@@ -36,7 +36,7 @@ export const initHardware = () => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`${assert(socket).id} disconnected from /hardware`);
+    logger.info(`${assert(socket).id} disconnected from /hardware`);
   });
 
 

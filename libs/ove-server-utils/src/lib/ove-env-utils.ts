@@ -34,7 +34,6 @@ const saveConfig = <T extends Record<string, unknown>>(configPath: string, updat
     if (excludeKeys.includes(k as string)) return;
     excludedEnv[k] = updatedEnv[k];
   });
-  console.log(JSON.stringify(excludedEnv));
 
   safeWriteFile(configPath, Json.stringify(excludedEnv), true);
 };

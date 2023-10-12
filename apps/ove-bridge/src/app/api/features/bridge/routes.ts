@@ -45,7 +45,7 @@ export const initBridge = () => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`${assert(socket).id} disconnected from /bridge`);
+    logger.info(`${assert(socket).id} disconnected from /bridge`);
     socketDisconnectListeners.forEach(x => x());
   });
 

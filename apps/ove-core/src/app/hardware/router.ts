@@ -9,7 +9,7 @@ import {
 } from "@ove/ove-types";
 import { type Socket } from "socket.io";
 import { state } from "../state";
-import { assert, Json } from "@ove/ove-utils";
+import { assert } from "@ove/ove-utils";
 import { logger } from "../../env";
 
 const getSocket: (socketId: string) => Socket<
@@ -25,43 +25,34 @@ const generateProcedure = <Key extends keyof TCoreAPI>(k: Key) => protectedProce
 // unknown need for a generic non-generic function
 // @ts-ignore
 const generateQuery = <Key extends keyof TCoreAPI>(k: keyof TCoreAPI) => generateProcedure(k)
-  .query<TCoreAPIOutput<typeof k>>(async ({
+  .query<TCoreAPIOutput<typeof k>>(({
     input: {
       bridgeId,
       ...args
     }
   }): Promise<TCoreAPIOutput<typeof k>> => {
-    const res = await new Promise<TCoreAPIOutput<typeof k>>(resolve => {
+    logger.info(`Handling: ${k}`);
+    return new Promise<TCoreAPIOutput<typeof k>>(resolve => {
       // @ts-ignore
       getSocket(bridgeId).emit<typeof k>(k, args, resolve);
     });
-
-    console.log(Json.stringify(CoreAPI[k].bridge.safeParse({meta: {bridge: "dev"}, response: true})));
-
-    logger.info(Json.stringify(res));
-
-    return res;
   });
 
 // unknown need for a generic non-generic function
 // @ts-ignore
 const generateMutation = <Key extends keyof TCoreAPI>(k: keyof TCoreAPI) => generateProcedure(k)
-  .mutation<TCoreAPIOutput<typeof k>>(async ({
+  .mutation<TCoreAPIOutput<typeof k>>(({
     input: {
       bridgeId,
       ...args
     }
   }): Promise<TCoreAPIOutput<typeof k>> => {
-    const res = new Promise<TCoreAPIOutput<typeof k>>(resolve => {
+    logger.info(`Handling: ${k}`);
+
+    return new Promise<TCoreAPIOutput<typeof k>>(resolve => {
       // @ts-ignore
       getSocket(bridgeId).emit<typeof k>(k, args, resolve);
     });
-
-    CoreAPI[k].bridge.parse(res);
-
-    logger.info(Json.stringify(res));
-
-    return res;
   });
 
 export type CoreRouter = {
