@@ -1,11 +1,13 @@
 import { type Mode } from "../../utils";
+import { useForm } from "react-hook-form";
 import { type Device } from "@ove/ove-types";
+import { forwardRef, useEffect, useState } from "react";
+import { Dialog, Snackbar, useSnackbar } from "@ove/ui-components";
+
 import styles from "./auth.module.scss";
-import { Snackbar, useSnackbar } from "@ove/ui-components";
-import { type FormEvent, forwardRef, useEffect, useState } from "react";
 
 type AuthProps = {
-  device: Device
+  device: Device | null
   setMode: (mode: Mode) => void
 }
 
@@ -14,15 +16,13 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
   setMode
 }, ref) => {
   const [status, setStatus] = useState<boolean | null>(null);
-  const {notification, isVisible} = useSnackbar();
+  const { notification, isVisible } = useSnackbar();
+  const {register, handleSubmit} = useForm<{pin: string}>();
 
-  const handleAuth = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
+  const handleAuth = async ({pin}: {pin: string}) => {
+    if (device === null) throw new Error("Cannot ID null device");
     const registered =
-      await window.electron.registerAuth(device.id, (formData.get("pin") ?? "")
-        .toString());
+      await window.electron.registerAuth(device.id, pin);
     setStatus(registered);
 
     if (!registered) return;
@@ -31,25 +31,23 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
 
   useEffect(() => {
     if (status === null || status) return;
-    const ref = setTimeout(() => setStatus(null), 1500);
+    const timeout = setTimeout(() => setStatus(null), 1500);
     return () => {
-      clearTimeout(ref);
+      clearTimeout(timeout);
     };
   }, [status]);
 
-  return <dialog
-    ref={ref} onClick={() => setMode("overview")}
-    className={styles.dialog}>
-    <div className={styles.hidden} onClick={e => e.stopPropagation()}>
-      <h2>Authorise: {device.id}</h2>
-      <form method="post" className={styles.form} onSubmit={e => handleAuth(e)}>
-        <label htmlFor="pin">Enter PIN:</label>
-        <input id="pin" type="text" name="pin" />
-        <button type="submit">Authorise</button>
-      </form>
-    </div>
-    {status !== null && !status ? <Snackbar text={notification} show={isVisible} /> : null}
-  </dialog>;
+  return <Dialog ref={ref} title="Authorise Device"
+                 closeDialog={() => setMode("overview")}>
+    <h2>Authorise: {device?.id}</h2>
+    <form method="post" className={styles.form} onSubmit={handleSubmit(handleAuth)}>
+      <label htmlFor="pin">Enter PIN:</label>
+      <input {...register("pin")} type="text" />
+      <button type="submit">Authorise</button>
+    </form>
+    {status !== null && !status ?
+      <Snackbar text={notification} show={isVisible} /> : null}
+  </Dialog>;
 });
 
 export default Auth;

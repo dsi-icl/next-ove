@@ -27,6 +27,8 @@ export const IPCService: InboundAPI = {
   getDevicesToAuth: async () =>
     Json.copy(env.HARDWARE.filter(device => device.auth === null)),
   registerAuth: async (id: string, pin: string) => {
+    logger.info(id);
+    logger.info(pin);
     const idx = env.HARDWARE.findIndex(device => device.id == id);
     if (idx === -1) throw new Error(`Unknown device with id: ${id}`);
 
@@ -36,6 +38,7 @@ export const IPCService: InboundAPI = {
         key: env.PUBLIC_KEY
       });
     } catch (e) {
+      logger.error(e);
       return false;
     }
 

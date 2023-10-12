@@ -54,20 +54,23 @@ const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
   const { notification, show: showNotification, isVisible } = useSnackbar();
 
   useEffect(() => {
-    openInfo();
+    if (info === null) {
+      closeInfo();
+    } else {
+      openInfo();
+    }
   }, [info]);
 
   return <section style={{ ...style, marginLeft: "2rem", marginRight: "2rem" }}>
     <h2
       style={{ fontWeight: "700" }}>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
     {isOnline ? <>
-      {info ? <Dialog ref={infoDialog} closeDialog={closeInfo}
+      <Dialog ref={infoDialog} closeDialog={closeInfo}
                       title={"Device Information"}>
         <Info info={info} close={() => {
-          closeInfo();
           setInfo(null);
         }} />
-      </Dialog> : null}
+      </Dialog>
       <Dialog ref={consoleDialog} closeDialog={closeConsole} title={"Console"}>
         <Console close={closeConsole} />
       </Dialog>

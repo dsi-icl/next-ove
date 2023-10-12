@@ -22,6 +22,8 @@
 .form {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  padding: 0 2rem 2rem;
 
   label {
     margin-top: 2rem;
@@ -34,13 +36,13 @@
     border-radius: 20px;
   }
 
-    button {
-      margin: 2rem 0 0;
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid white;
-      color: white;
-      background-color: #002147;
-      border-radius: 20px;
-    }
+  button {
+    margin: auto 0 0 0;
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid white;
+    color: white;
+    background-color: #002147;
+    border-radius: 20px;
+  }
 }

@@ -1,13 +1,35 @@
-import { type FormEvent, forwardRef, useState } from "react";
+import {
+  BaseSyntheticEvent,
+  forwardRef,
+  useState
+} from "react";
 import { type Mode } from "../../utils";
-import { type Device, type NativeEvent, type ServiceType } from "@ove/ove-types";
+import {
+  type Device,
+  type NativeEvent,
+  type ServiceType
+} from "@ove/ove-types";
 
 import styles from "./edit-device.module.scss";
 import { assert } from "@ove/ove-utils";
+import { useForm } from "react-hook-form";
+import { Dialog } from "@ove/ui-components";
 
 type EditDeviceProps = {
   setMode: (mode: Mode) => void
   device: Device | null
+}
+
+type Form = {
+  id?: string,
+  authUsername?: string
+  authPassword?: string
+  description: string
+  type: ServiceType,
+  protocol: string
+  ip: string
+  port: number
+  mac: string
 }
 
 const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
@@ -15,13 +37,12 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
   setMode
 }, ref) => {
   const [type, setType] = useState<ServiceType>(device?.type ?? "node");
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const id = device?.id ?? (formData.get("device-id") ?? "").toString();
+  const { register, handleSubmit } = useForm<Form>();
+  const saveDevice = (data: Form, e: BaseSyntheticEvent<object> | undefined) => {
+    const id = device?.id ?? assert(data.id);
 
     if (id === "" || id.length < 1) return false;
-    if ((e.nativeEvent as unknown as NativeEvent).submitter.name === "delete") {
+    if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === "delete") {
       window.electron.deleteDevice(assert(device).id)
         .catch(console.error).then(() => setMode("overview"));
       return;
@@ -31,22 +52,19 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
     if (type === "node") {
       auth = false;
     } else {
-      const username = (formData.get("device-auth-username") ?? "").toString();
-      const password = (formData.get("device-auth-password") ?? "").toString();
-
-      if (username !== "" || password !== "") {
-        auth = { username, password };
+      if (data.authUsername !== undefined && data.authPassword !== undefined) {
+        auth = { username: data.authUsername, password: data.authPassword };
       }
     }
 
     const updatedDevice: Device = {
       id,
-      description: (formData.get("device-description") ?? "").toString(),
-      type: (formData.get("device-type") ?? "").toString() as ServiceType,
-      protocol: (formData.get("device-protocol") ?? "").toString(),
-      ip: (formData.get("device-ip") ?? "").toString(),
-      port: parseInt((formData.get("device-port") ?? 3333).toString()),
-      mac: (formData.get("device-mac") ?? "").toString(),
+      description: data.description,
+      type: data.type,
+      protocol: data.protocol,
+      ip: data.ip,
+      port: data.port,
+      mac: data.mac,
       tags: [],
       auth
     };
@@ -59,68 +77,53 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
     }
   };
 
-  return <dialog
-    ref={ref} className={styles.dialog}
-    onClick={() => setMode("overview")}>
-    <div className={styles.hidden} onClick={e => e.stopPropagation()}>
-      <h2>{device === null ? "Register Device" : "Edit Device"}</h2>
-      <form method="post" onSubmit={handleSubmit} className={styles.form}>
-        {device === null ? <>
-          <label htmlFor="device-id">ID</label>
-          <input id="device-id" type="text" name="device-id" />
-        </> : null}
-        <label htmlFor="device-description">Description</label>
-        <input
-          id="device-description" type="text" name="device-description"
-          defaultValue={device?.description} />
-        <label htmlFor="device-type">Protocol</label>
-        <select
-          id="device-type" name="device-type"
-          defaultValue={type}
-          onChange={e =>
-            setType(e.currentTarget.value as ServiceType)}>
-          <option value="node">Node</option>
-          <option value="pjlink">Protocol</option>
-          <option value="mdc">Screen</option>
-        </select>
-        <label htmlFor="device-protocol">Protocol</label>
-        <input
-          id="device-protocol" type="text" name="device-protocol"
-          defaultValue={device?.protocol} />
-        <label htmlFor="device-ip">IP</label>
-        <input
-          id="device-ip" type="text" name="device-ip"
-          defaultValue={device?.ip} />
-        <label htmlFor="device-port">Port</label>
-        <input
-          id="device-port" type="number" name="device-port"
-          defaultValue={device?.port} />
-        <label htmlFor="device-mac">MAC Address</label>
-        <input
-          id="device-mac" type="text" name="device-mac"
-          defaultValue={device?.mac} />
-        {type !== "node" ? <>
-          <h4>Authentication</h4>
-          <label htmlFor="device-auth-username">Username</label>
-          <input
-            id="device-auth-username" type="text"
-            name="device-auth-username" />
-          <label htmlFor="device-auth-password">Password</label>
-          <input
-            id="device-auth-password" type="password"
-            name="device-auth-password" />
-        </> : null}
-        <div className={styles["action-container"]}>
-          <button
-            type="submit" name="save"
-            value="save">{device === null ? "Save" : "Update"}</button>
-          {device !== null ? <button
-            type="submit" name="delete" value="delete"
-            id={styles["delete"]}>Delete</button> : null}
-        </div>
-      </form>
-    </div>
-  </dialog>;
+  return <Dialog ref={ref} title="Edit Device"
+                 closeDialog={() => setMode("overview")}>
+    <h2>{device === null ? "Register Device" : "Edit Device"}</h2>
+    <form method="post" onSubmit={handleSubmit(saveDevice)}
+          className={styles.form}>
+      {device === null ? <>
+        <label htmlFor="id">ID</label>
+        <input {...register("id")} type="text" />
+      </> : null}
+      <label htmlFor="description">Description</label>
+      <input {...register("description")} type="text"
+             defaultValue={device?.description} />
+      <label htmlFor="type">Protocol</label>
+      <select
+        {...register("type")} defaultValue={type}
+        onChange={e =>
+          setType(e.currentTarget.value as ServiceType)}>
+        <option value="node">Node</option>
+        <option value="pjlink">Protocol</option>
+        <option value="mdc">Screen</option>
+      </select>
+      <label htmlFor="protocol">Protocol</label>
+      <input {...register("protocol")} type="text"
+             defaultValue={device?.protocol} />
+      <label htmlFor="ip">IP</label>
+      <input {...register("ip")} type="text" defaultValue={device?.ip} />
+      <label htmlFor="port">Port</label>
+      <input {...register("port")} type="number" defaultValue={device?.port} />
+      <label htmlFor="mac">MAC Address</label>
+      <input {...register("mac")} type="text" defaultValue={device?.mac} />
+      {type !== "node" ? <>
+        <h4>Authentication</h4>
+        <label htmlFor="authUsername">Username</label>
+        <input {...register("authUsername")} type="text" />
+        <label htmlFor="authPassword">Password</label>
+        <input {...register("authPassword")} type="password" />
+      </> : null}
+      <div className={styles["action-container"]}>
+        <button
+          type="submit" name="save"
+          value="save">{device === null ? "Save" : "Update"}</button>
+        {device !== null ? <button
+          type="submit" name="delete" value="delete"
+          id={styles["delete"]}>Delete</button> : null}
+      </div>
+    </form>
+  </Dialog>;
 });
 
 export default EditDevice;

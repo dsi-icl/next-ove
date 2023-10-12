@@ -1,32 +1,63 @@
+.info {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  & h4 {
+    color: black;
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  & table {
+    margin-top: 1rem;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: end;
+    margin-top: auto;
+
+    & button {
+      background-color: #002147;
+      color: white;
+      padding: 0.5rem;
+      border-radius: 1.25rem;
+    }
+  }
+}
+
 .dataframe {
   border-collapse: collapse;
   width: 100%;
-}
 
-.dataframe td, th {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
+  & td, th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
 
-.dataframe tr:nth-child(even) {
-  background-color: #f2f2f2;
-}
+  & tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
 
-.dataframe tr:nth-child(odd) {
-  background-color: #ffffff
-}
+  & tr:nth-child(odd) {
+    background-color: #ffffff
+  }
 
-.dataframe tr:hover {
-  background-color: #ddd;
-}
+  & tr:hover {
+    background-color: #ddd;
+  }
 
-.dataframe th {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  background-color: #002147;
-  color: white;
-}
+  & th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #002147;
+    color: white;
+  }
 
-.dataframe th, td, tr {
-  text-align: center;
+  & th, td, tr {
+    text-align: center;
+  }
 }

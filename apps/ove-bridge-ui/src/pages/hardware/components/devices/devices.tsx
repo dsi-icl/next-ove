@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { type Device, type ServiceType } from "@ove/ove-types";
 import {
   Display,
@@ -12,6 +12,7 @@ import { Mode } from "../../utils";
 
 import styles from "./devices.module.scss";
 import { assert } from "@ove/ove-utils";
+import { useDialog } from "@ove/ui-components";
 
 type DeviceCardProps = {
   device: Device
@@ -51,9 +52,9 @@ const DeviceCard = ({ device, setMode }: DeviceCardProps) => {
 const Devices = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [mode, setMode] = useState<Mode>("overview");
-  const editRef = useRef<HTMLDialogElement | null>(null);
-  const authRef = useRef<HTMLDialogElement | null>(null);
   const [id, setId] = useState<string | null>(null);
+  const { ref: authRef, closeDialog: closeAuthDialog, openDialog: openAuthDialog } = useDialog();
+  const { ref: editRef, closeDialog: closeEditDialog, openDialog: openEditDialog } = useDialog();
 
   const close = useCallback(() => setMode("overview"), []);
 
@@ -61,23 +62,17 @@ const Devices = () => {
     window.electron.getDevices().then(devices => setDevices(devices));
     switch (mode) {
       case "overview":
-        editRef.current?.close();
-        authRef.current?.close();
-        editRef.current?.removeEventListener?.("close", close);
-        authRef.current?.removeEventListener?.("close", close);
+        closeAuthDialog();
+        closeEditDialog();
         setId(null);
         break;
       case "edit":
-        editRef.current?.showModal();
-        editRef.current?.addEventListener?.("close", close);
-        authRef.current?.close();
-        authRef.current?.removeEventListener?.("close", close);
+        closeAuthDialog();
+        openEditDialog();
         break;
       case "auth":
-        editRef.current?.close();
-        editRef.current?.removeEventListener?.("close", close);
-        authRef.current?.showModal();
-        authRef.current?.addEventListener?.("close", close);
+        closeEditDialog();
+        openAuthDialog();
         break;
     }
   }, [mode, close]);
@@ -85,17 +80,14 @@ const Devices = () => {
   return <section className={styles.body}>
     <div className={styles.main}>
       <h1 className={styles.header}>Devices</h1>
-      {mode === "edit" ?
-        <EditDevice
+      <EditDevice
           ref={editRef}
           setMode={mode => setMode(mode)}
           device={id === null ? null : (devices.find(({ id: deviceId }) =>
-            deviceId === id) ?? null)} /> : null}
-      {mode === "auth" ? <Auth
-        ref={authRef}
-        device={assert(devices.find(({ id: deviceId }) =>
-          deviceId === id))}
-        setMode={mode => setMode(mode)} /> : null}
+            deviceId === id) ?? null)} />
+      <Auth ref={authRef}
+            device={id === null ? null : assert(devices.find(({ id: deviceId }) => deviceId === id))}
+            setMode={mode => setMode(mode)} />
       <div className={styles["devices-container"]}>
         {devices.map(device => <DeviceCard
           key={device.id} device={device}

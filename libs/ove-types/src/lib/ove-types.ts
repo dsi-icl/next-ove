@@ -13,6 +13,10 @@ export const is = <T extends z.ZodTypeAny>(
   obj: unknown
 ): obj is z.infer<T> => schema.safeParse(obj).success;
 
+export const isError = <T extends z.ZodTypeAny>(
+  obj: unknown
+): obj is z.infer<T> => OVEExceptionSchema.safeParse(obj).success;
+
 export const isAll = <T extends z.ZodTypeAny>(
   schema: T,
   obj: unknown[]

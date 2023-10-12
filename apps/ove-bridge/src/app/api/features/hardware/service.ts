@@ -10,11 +10,11 @@ import {
   type TBridgeRoutesSchema
 } from "@ove/ove-types";
 import { z } from "zod";
-import { raise, assert } from "@ove/ove-utils";
+import { raise, assert, Json } from "@ove/ove-utils";
 import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
 import MDCService from "./mdc-service";
-import { env } from "../../../../env";
+import { env, logger } from "../../../../env";
 
 export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
@@ -92,20 +92,27 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   const device = await getDevice(args.deviceId);
 
   if (is(OVEExceptionSchema, device)) {
-    callback({ response: device });
+    callback(device);
     return;
   }
 
   const serviceArgs: TBridgeServiceArgs<Key> = without<typeof args, TBridgeServiceArgs<Key>>(args)("deviceId");
-  const response = await applyService<typeof k>(
-    getServiceForProtocol(device.type),
-    k,
-    serviceArgs as TBridgeServiceArgs<Key>,
-    device
-  );
+  let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
+  try {
+    response = await applyService<typeof k>(
+      getServiceForProtocol(device.type),
+      k,
+      serviceArgs as TBridgeServiceArgs<Key>,
+      device
+    );
+  } catch (e) {
+    logger.error(e);
+    callback(raise(Json.stringify(e)));
+    return;
+  }
 
   if (response === undefined) {
-    callback({ response: raise("Command not available on device") });
+    callback(raise("Command not available on device"));
     return;
   }
 
@@ -121,7 +128,7 @@ export const multiDeviceHandler = async <Key extends keyof TBridgeHardwareServic
   const devices = await getDevices(args.tag);
 
   if (is(OVEExceptionSchema, devices)) {
-    callback({ response: devices });
+    callback(devices);
     return;
   }
 
@@ -138,7 +145,7 @@ export const multiDeviceHandler = async <Key extends keyof TBridgeHardwareServic
   );
 
   if (isAll(z.undefined(), result)) {
-    callback({ response: raise("Command not available on devices") });
+    callback(raise("Command not available on devices"));
     return;
   }
 

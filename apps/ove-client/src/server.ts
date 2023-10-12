@@ -45,8 +45,8 @@ export const start = () => {
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-  const server = app.listen(env.PORT, env.HOSTNAME, () => {
-    logger.info(`Listening at ${env.HOSTNAME}:${env.PORT}`);
+  const server = app.listen(env.PORT, `${env.HOSTNAME}`, () => {
+    logger.info(`Listening at ${env.PROTOCOL}://${env.HOSTNAME}:${env.PORT}`);
   });
 
   server.on("error", logger.error);
