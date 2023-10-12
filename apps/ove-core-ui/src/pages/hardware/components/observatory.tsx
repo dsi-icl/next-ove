@@ -6,7 +6,9 @@ import { type ServiceType } from "@ove/ove-types";
 import {
   Projector,
   HddNetwork,
-  Display
+  Display,
+  CameraVideo,
+  Calendar
 } from "react-bootstrap-icons";
 import Info from "./info";
 import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
@@ -14,6 +16,9 @@ import Console from "./console";
 import Actions from "./actions";
 import { useHardware } from "../hooks/hooks";
 import { assert } from "@ove/ove-utils";
+
+import styles from "./observatory.module.scss";
+import LiveView from "./live-view/live-view";
 
 export type ObservatoryProps = {
   name: string
@@ -31,14 +36,14 @@ const columns = [
   { key: "actions", name: "Actions" }
 ];
 
-const getProtocolIcon = (protocol: ServiceType) => {
+const ProtocolIcon = ({ protocol }: { protocol: ServiceType }) => {
   switch (protocol) {
     case "node":
-      return <HddNetwork style={{ margin: "0.6rem 0" }} />;
+      return <HddNetwork className={styles["protocol-icon"]} />;
     case "mdc":
-      return <Display style={{ margin: "0.6rem 0" }} />;
+      return <Display className={styles["protocol-icon"]} />;
     case "pjlink":
-      return <Projector style={{ margin: "0.6rem 0" }} />;
+      return <Projector className={styles["protocol-icon"]} />;
   }
 };
 
@@ -53,6 +58,12 @@ const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
     closeDialog: closeInfo,
     openDialog: openInfo
   } = useDialog();
+  const {
+    ref: videoDialog,
+    closeDialog: closeVideoDialog,
+    openDialog: openVideoDialog,
+    isOpen: videoDialogIsOpen
+  } = useDialog();
   const [deviceInfo, setDeviceInfo] = useState<string | null>(null);
   const { hardware, updateHardware } = useHardware(isOnline, name);
   const { notification, show: showNotification, isVisible } = useSnackbar();
@@ -65,9 +76,14 @@ const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
     }
   }, [deviceInfo]);
 
-  return <section style={{ ...style, marginLeft: "2rem", marginRight: "2rem" }}>
-    <h2
-      style={{ fontWeight: "700" }}>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
+  return <section className={styles.observatory} style={style}>
+    <div className={styles.header}>
+      <h2>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
+      {isOnline ? <div className={styles.actions}>
+        <button className={styles.icon} onClick={openVideoDialog}><CameraVideo /></button>
+        <button className={styles.icon}><Calendar /></button>
+      </div> : null}
+    </div>
     {isOnline ? <>
       <Dialog ref={infoDialog} closeDialog={closeInfo}
               title={"Device Information"}>
@@ -80,9 +96,12 @@ const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
       <Dialog ref={consoleDialog} closeDialog={closeConsole} title={"Console"}>
         <Console close={closeConsole} />
       </Dialog>
+      <Dialog closeDialog={closeVideoDialog} title="Video Monitoring" ref={videoDialog} style={{width: "90vw", maxHeight: "unset", height: "90vh"}}>
+        <LiveView bridgeId={name} isOpen={videoDialogIsOpen} />
+      </Dialog>
       <DataGrid className="rdg-light" columns={columns}
                 rows={hardware.map(({ device, status }) => ({
-                  protocol: getProtocolIcon(device.type),
+                  protocol: <ProtocolIcon protocol={device.type} />,
                   id: device.id,
                   hostname: device.ip,
                   mac: device.mac,
