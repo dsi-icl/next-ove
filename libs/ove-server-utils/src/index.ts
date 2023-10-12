@@ -1,11 +1,10 @@
 import * as all from "@ove/ove-utils";
 import {safeFetch} from "./lib/ove-fetch";
 import * as fileUtils from "./lib/ove-file-utils";
-import {saveConfig, updateConfig} from "./lib/ove-env-utils";
+import {setupConfig} from "./lib/ove-env-utils";
 
 export {
-  saveConfig,
-  updateConfig
+  setupConfig
 };
 
 export default {

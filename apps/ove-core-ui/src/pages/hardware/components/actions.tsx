@@ -6,7 +6,6 @@ import {
 } from "react-bootstrap-icons";
 import {
   useStatus,
-  useInfo,
   useStartDevice,
   useShutdownDevice
 } from "./observatory-controller";
@@ -16,19 +15,15 @@ import { logger } from "../../../env";
 
 type ActionsProps = {
   name: string
-  setInfo: (info: object) => void
+  selectInfo: () => void
   device: Device
   updateHardware: <Key extends keyof HardwareInfo>(deviceId: string, [k, v]: [Key, HardwareInfo[Key]]) => void
   openConsole: () => void
   showNotification: (text: string) => void
 }
 
-const Actions = ({ showNotification, openConsole, name, setInfo, device, updateHardware }: ActionsProps) => {
+const Actions = ({ showNotification, openConsole, name, selectInfo, device, updateHardware }: ActionsProps) => {
   const updateStatus = useStatus(device.id, name, updateHardware);
-  const updateInfo = useInfo(device.id, name, (deviceId, data) => {
-    updateHardware(deviceId, ["info" as const, data]);
-    setInfo(data);
-  });
   const startDevice = useStartDevice(device.id, showNotification);
   const shutdownDevice = useShutdownDevice(device.id, showNotification);
   return <div
@@ -38,9 +33,7 @@ const Actions = ({ showNotification, openConsole, name, setInfo, device, updateH
               updateStatus().catch(logger.error);
             }} title="status">
       <ArrowRepeat /></button>
-    <button style={{ margin: "0.6rem 0" }} onClick={() => {
-      updateInfo().catch(console.error);
-    }} title="info">
+    <button style={{ margin: "0.6rem 0" }} onClick={selectInfo} title="info">
       <InfoCircle /></button>
     <button style={{ margin: "0.6rem 0" }} onClick={() => {
       startDevice({deviceId: device.id, bridgeId: name}).catch(console.error);

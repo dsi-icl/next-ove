@@ -3,10 +3,9 @@
 import { z } from "zod";
 import * as path from "path";
 import { Logger } from "@ove/ove-logging";
-import { DeepProxy } from "@ove/ove-utils";
 import {nanoid} from "nanoid";
 import {createHmac} from "crypto";
-import { saveConfig, updateConfig } from "@ove/ove-server-utils";
+import { setupConfig } from "@ove/ove-server-utils";
 
 /**
  * Specify your server-side environment variables schema here.
@@ -53,25 +52,7 @@ const defaultConfig: z.infer<typeof schema> = {
 
 const configPath = path.join(__dirname, "config", "config.json");
 
-const config = updateConfig(
-  configPath,
-  defaultConfig,
-  Object.keys(schema.shape)
-);
-
-if (config === null) throw new Error("Unable to load environment configuration");
-const { rawConfig, isUpdate } = config;
-
-type Environment = z.infer<typeof schema> & typeof staticConfig
-
-export const env: Environment = DeepProxy({
-  ...schema.parse(rawConfig),
-  ...staticConfig
-}, target => saveConfig(configPath, target, Object.keys(staticConfig)));
-
-if (isUpdate) {
-  saveConfig(configPath, env, Object.keys(staticConfig));
-}
+export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 
 export const logger = Logger(env.APP_NAME, env.LOG_LEVEL, env.LOGGING_SERVER);
 logger.info(`Loaded configuration from ${configPath}`);

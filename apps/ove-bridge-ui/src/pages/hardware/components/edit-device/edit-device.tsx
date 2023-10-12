@@ -1,6 +1,6 @@
 import {
   BaseSyntheticEvent,
-  forwardRef,
+  forwardRef, useCallback,
   useState
 } from "react";
 import { type Mode } from "../../utils";
@@ -28,9 +28,46 @@ type Form = {
   type: ServiceType,
   protocol: string
   ip: string
-  port: number
+  port: string
   mac: string
 }
+
+const saveDevice_ = (device: Device | null, setMode: (mode: Mode) => void, type: ServiceType, data: Form, e: BaseSyntheticEvent<object> | undefined) => {
+  const id = device?.id ?? assert(data.id);
+
+  if (id === "" || id.length < 1) return false;
+  if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === "delete") {
+    window.electron.deleteDevice(assert(device).id)
+      .catch(console.error).then(() => setMode("overview"));
+    return;
+  }
+  let auth = null;
+
+  if (type === "node") {
+    auth = false;
+  } else if (data.authUsername !== undefined && data.authPassword !== undefined) {
+    auth = { username: data.authUsername, password: data.authPassword };
+  }
+
+  const updatedDevice: Device = {
+    id,
+    description: data.description,
+    type: data.type,
+    protocol: data.protocol,
+    ip: data.ip,
+    port: parseInt(data.port),
+    mac: data.mac,
+    tags: [],
+    auth
+  };
+  if (JSON.stringify(updatedDevice) === JSON.stringify(device)) {
+    setMode("overview");
+  } else {
+    window.electron.saveDevice(updatedDevice)
+      .catch(console.error)
+      .then(() => setMode("overview"));
+  }
+};
 
 const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
   device,
@@ -38,44 +75,7 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
 }, ref) => {
   const [type, setType] = useState<ServiceType>(device?.type ?? "node");
   const { register, handleSubmit } = useForm<Form>();
-  const saveDevice = (data: Form, e: BaseSyntheticEvent<object> | undefined) => {
-    const id = device?.id ?? assert(data.id);
-
-    if (id === "" || id.length < 1) return false;
-    if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === "delete") {
-      window.electron.deleteDevice(assert(device).id)
-        .catch(console.error).then(() => setMode("overview"));
-      return;
-    }
-    let auth = null;
-
-    if (type === "node") {
-      auth = false;
-    } else {
-      if (data.authUsername !== undefined && data.authPassword !== undefined) {
-        auth = { username: data.authUsername, password: data.authPassword };
-      }
-    }
-
-    const updatedDevice: Device = {
-      id,
-      description: data.description,
-      type: data.type,
-      protocol: data.protocol,
-      ip: data.ip,
-      port: data.port,
-      mac: data.mac,
-      tags: [],
-      auth
-    };
-    if (JSON.stringify(updatedDevice) === JSON.stringify(device)) {
-      setMode("overview");
-    } else {
-      window.electron.saveDevice(updatedDevice)
-        .catch(console.error)
-        .then(() => setMode("overview"));
-    }
-  };
+  const saveDevice = useCallback((data: Form, e: BaseSyntheticEvent<object> | undefined) => saveDevice_(device, setMode, type, data, e), [device, setMode, type]);
 
   return <Dialog ref={ref} title="Edit Device"
                  closeDialog={() => setMode("overview")}>

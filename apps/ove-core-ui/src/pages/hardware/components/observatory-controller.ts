@@ -1,10 +1,7 @@
-import { type DeviceInfo } from "./observatory";
 import { type HardwareInfo } from "../hooks/hooks";
 import { trpc } from "../../../utils/api";
 import { useEffect } from "react";
 import { isError } from "@ove/ove-types";
-import { logger } from "../../../env";
-import { Json } from "@ove/ove-utils";
 
 export type UpdateHardware = <Key extends keyof HardwareInfo>(deviceId: string, [k, v]: [Key, HardwareInfo[Key]]) => void
 
@@ -17,22 +14,6 @@ export const useStatus = (deviceId: string, bridgeId: string, updateHardware: Up
   }, [status.status, status.isRefetching]);
 
   return status.refetch;
-};
-
-export const useInfo = (deviceId: string, bridgeId: string, updateInfo: (deviceId: string, data: DeviceInfo) => void) => {
-  const info = trpc.hardware.getInfo.useQuery({ bridgeId, deviceId }, { enabled: false, cacheTime: Infinity });
-
-  useEffect(() => {
-    if (info.status === "error") {
-      logger.error(Json.stringify(info.data));
-    }
-    if (info.status !== "success") return;
-    logger.info(Json.stringify(info.data));
-    if (isError(info.data.response)) return;
-    updateInfo(deviceId, { deviceId, data: info.data.response } as unknown as DeviceInfo);
-  }, [info.status, info.isRefetching]);
-
-  return info.refetch;
 };
 
 export const useStartDevice = (deviceId: string, showNotification: (text: string) => void) => {

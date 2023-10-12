@@ -9,6 +9,7 @@ import {
 import { state } from "../state";
 import { io } from "./sockets";
 import { assert } from "@ove/ove-utils";
+import { logger } from "../../env";
 
 const getSocket = (socketId: string) => io.sockets.get(assert(state.bridgeClients.get(socketId)));
 
@@ -18,27 +19,34 @@ const generateProcedure = <Key extends keyof TBridgeService>(k: Key) => protecte
   .output<TAPIRoutes[Key]["output"]>(APIRoutes[k].output);
 
 const generateQuery = <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-  .query<TWrappedResponse<Key>>(async ({
+  .query<TWrappedResponse<Key>>(({
     input: {
       bridgeId,
       ...args
     }
-  }) =>
-    new Promise<TWrappedResponse<Key>>(resolve => {
+  }): Promise<TWrappedResponse<Key>> => {
+    logger.info(`Handling ${k}`);
+
+    return new Promise<TWrappedResponse<Key>>(resolve => {
       // @ts-ignore
       getSocket(bridgeId).emit<Key>(k, args, resolve);
-    }));
+    });
+  });
 
 const generateMutation = <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-  .mutation<TWrappedResponse<Key>>(async ({
+  .mutation<TWrappedResponse<Key>>(({
     input: {
       bridgeId,
       ...args
     }
-  }) => new Promise<TWrappedResponse<Key>>(resolve => {
-    // @ts-ignore
-    getSocket(bridgeId).emit<Key>(k, args, resolve);
-  }));
+  }): Promise<TWrappedResponse<Key>> => {
+    logger.info(`Handling ${k}`);
+
+    return new Promise<TWrappedResponse<Key>>(resolve => {
+      // @ts-ignore
+      getSocket(bridgeId).emit<Key>(k, args, resolve);
+    });
+  });
 
 type Router = {
   [Key in keyof TAPIRoutes]: TIsGet<Key, ReturnType<typeof generateQuery<Key>>, ReturnType<typeof generateMutation<Key>>>

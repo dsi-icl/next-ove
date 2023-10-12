@@ -13,6 +13,7 @@ import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
 import Console from "./console";
 import Actions from "./actions";
 import { useHardware } from "../hooks/hooks";
+import { assert } from "@ove/ove-utils";
 
 export type ObservatoryProps = {
   name: string
@@ -30,11 +31,6 @@ const columns = [
   { key: "actions", name: "Actions" }
 ];
 
-export type DeviceInfo = {
-  deviceId: string
-  data: object
-}
-
 const getProtocolIcon = (protocol: ServiceType) => {
   switch (protocol) {
     case "node":
@@ -47,29 +43,39 @@ const getProtocolIcon = (protocol: ServiceType) => {
 };
 
 const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
-  const { ref: consoleDialog, closeDialog: closeConsole, openDialog: openConsole } = useDialog();
-  const { ref: infoDialog, closeDialog: closeInfo, openDialog: openInfo } = useDialog();
-  const [info, setInfo] = useState<DeviceInfo | null>(null);
+  const {
+    ref: consoleDialog,
+    closeDialog: closeConsole,
+    openDialog: openConsole
+  } = useDialog();
+  const {
+    ref: infoDialog,
+    closeDialog: closeInfo,
+    openDialog: openInfo
+  } = useDialog();
+  const [deviceInfo, setDeviceInfo] = useState<string | null>(null);
   const { hardware, updateHardware } = useHardware(isOnline, name);
   const { notification, show: showNotification, isVisible } = useSnackbar();
 
   useEffect(() => {
-    if (info === null) {
+    if (deviceInfo === null) {
       closeInfo();
     } else {
       openInfo();
     }
-  }, [info]);
+  }, [deviceInfo]);
 
   return <section style={{ ...style, marginLeft: "2rem", marginRight: "2rem" }}>
     <h2
       style={{ fontWeight: "700" }}>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
     {isOnline ? <>
       <Dialog ref={infoDialog} closeDialog={closeInfo}
-                      title={"Device Information"}>
-        <Info info={info} close={() => {
-          setInfo(null);
-        }} />
+              title={"Device Information"}>
+        {deviceInfo !== null ? <Info
+          device={assert(hardware.find(({ device: { id } }) => id === deviceInfo)).device}
+          bridgeId={name} close={() => {
+          setDeviceInfo(null);
+        }} /> : null}
       </Dialog>
       <Dialog ref={consoleDialog} closeDialog={closeConsole} title={"Console"}>
         <Console close={closeConsole} />
@@ -86,7 +92,7 @@ const Observatory = ({ name, isOnline, style }: ObservatoryProps) => {
                                     showNotification={showNotification}
                                     name={name} updateHardware={updateHardware}
                                     device={device}
-                                    setInfo={info => setInfo(info as DeviceInfo)} />
+                                    selectInfo={() => setDeviceInfo(device.id)} />
                 }))} />
       <Snackbar text={notification ?? ""} show={isVisible} />
     </> : null}

@@ -2,19 +2,19 @@ import { type Namespace } from "socket.io";
 import { prisma } from "./db";
 
 export const setupNamespace = <T extends Namespace>(io: T, clients: Map<string, string>) => {
-  io.use(async (socket, next) => {
+  io.use((socket, next) => {
     const { username, password } = socket.handshake.auth;
-    const user = await prisma.auth.findUnique({
+    prisma.auth.findUnique({
       where: {
         username
       }
+    }).then(user => {
+      if (user?.role === "bridge" && password.trim() === user.password.trim()) {
+        next();
+      } else {
+        next(new Error("UNAUTHORIZED"));
+      }
     });
-
-    if (user?.role === "bridge" && password.trim() === user.password.trim()) {
-      next();
-    } else {
-      next(new Error("UNAUTHORIZED"));
-    }
   });
 
   io.on("connection", socket => {

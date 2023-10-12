@@ -18,7 +18,7 @@ export const assert = <T>(x: T | undefined | null) => {
 };
 
 // @ts-ignore
-export const DeepProxy = <T extends object>(target: T, onChange: (target: T) => void) => {
+export const DeepProxy = <T extends object>(target: T, onChange: () => void) => {
   let proxyCache = new WeakMap();
   return new Proxy(target, {
     get(target, property) {
@@ -36,7 +36,7 @@ export const DeepProxy = <T extends object>(target: T, onChange: (target: T) => 
     set(target, property, newValue) {
       // @ts-ignore
       target[property] = newValue;
-      onChange(target);
+      onChange();
       return true;
     }
   });
