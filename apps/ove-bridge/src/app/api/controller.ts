@@ -8,7 +8,8 @@ import {
   getSocketStatus,
   initBridge
 } from "./features/bridge/routes";
-import {service} from "./features/bridge/service";
+import { service } from "./features/bridge/service";
+import { multiDeviceHandler } from "./features/hardware/service";
 import { createClient } from "./features/hardware/node-service";
 import min from "date-fns/min";
 import max from "date-fns/max";
@@ -43,10 +44,10 @@ export const IPCService: InboundAPI = {
     env.HARDWARE[idx].auth = true;
     return true;
   },
-  updateEnv: async (coreURL, bridgeName, calendarURL) => {
+  updateEnv: async ({ coreURL, bridgeName, calendarURL }) => {
     env.CORE_URL = coreURL;
     env.BRIDGE_NAME = bridgeName;
-    env.CALENDAR_URL = calendarURL ?? env.CALENDAR_URL;
+    env.CALENDAR_URL = calendarURL;
     closeHardwareSocket();
     closeSocket();
     initHardware();
@@ -73,6 +74,7 @@ export const IPCService: InboundAPI = {
     env.HARDWARE = env.HARDWARE.filter(({ id }) => id !== deviceId);
   },
   setAutoSchedule: async autoSchedule => {
+    logger.info("Switching to auto!");
     if (autoSchedule !== undefined) {
       env.AUTO_SCHEDULE = autoSchedule;
       if (env.POWER_MODE !== "auto") return;
@@ -94,7 +96,13 @@ export const IPCService: InboundAPI = {
           dayOfWeek: i,
           hour: wakeHour,
           minute: wakeMinute
-        }, () => logger.info("Waking"));
+        }, () => {
+          if (process.env.NODE_ENV === "development") {
+            logger.info("Waking");
+          } else {
+            multiDeviceHandler("shutdown", {}, response => logger.info(`Started devices with response: ${Json.stringify(response)}`));
+          }
+        });
       });
     }
 
@@ -104,17 +112,22 @@ export const IPCService: InboundAPI = {
 
       autoSchedule.schedule.forEach((x, i) => {
         if (!x) return;
-        // TODO: replace with hardware call
         schedule.scheduleJob({
           dayOfWeek: i,
           hour: sleepHour,
           minute: sleepMinute
-        }, () => logger.info("Sleeping"));
+        }, () => {
+          if (process.env.NODE_ENV === "development") {
+            logger.info("Sleeping");
+          } else {
+            multiDeviceHandler("shutdown", {}, response => logger.info(`Shutdown devices with response: ${Json.stringify(response)}`));
+          }
+        });
       });
     }
   },
   setEcoSchedule: async ecoSchedule => {
-    logger.info(`Setting eco schedule for ${ecoSchedule.length} events!`);
+    logger.info(`Switching to eco!`);
     env.POWER_MODE = "eco";
     const groups =
       Object.values(ecoSchedule.reduce((acc, event) => {
@@ -140,20 +153,25 @@ export const IPCService: InboundAPI = {
       });
     await schedule.gracefulShutdown();
 
-    groups.forEach(({ start, end }, i) => {
-      // TODO: replace with hardware calls
-      // TODO: schedule poll on calendar
-      schedule.scheduleJob(
-        new Date(Date.now() + (3_000 * (i + 1))),
-        () => logger.info(`Triggered for ${start.toISOString()}`)
-      );
-      schedule.scheduleJob(
-        new Date(Date.now() + (5_000 * (i + 1))),
-        () => logger.info(`Triggered for ${end.toISOString()}`)
-      );
+    groups.forEach(({ start, end }) => {
+      schedule.scheduleJob(start, () => {
+        if (process.env.NODE_ENV === "development") {
+          logger.info(`Triggered for ${start.toISOString()}`);
+        } else {
+          multiDeviceHandler("start", {}, response => logger.info(`Started devices with response: ${Json.stringify(response)}`));
+        }
+      });
+      schedule.scheduleJob(end, () => {
+        if (process.env.NODE_ENV === "development") {
+          logger.info(`Triggered for ${end.toISOString()}`);
+        } else {
+          multiDeviceHandler("shutdown", {}, response => logger.info(`Stopped devices with response: ${Json.stringify(response)}`));
+        }
+      });
     });
   },
   clearSchedule: async () => {
+    logger.info("Switching to manual!");
     env.POWER_MODE = "manual";
     schedule.gracefulShutdown().catch(logger.error);
   },
@@ -183,7 +201,7 @@ export const IPCService: InboundAPI = {
       return undefined;
     }
   },
-  getAutoSchedule: async () => env.AUTO_SCHEDULE,
+  getAutoSchedule: async () => Json.copy(env.AUTO_SCHEDULE),
   getStreams: async () => Json.copy(service.getStreams({})),
   startStreams: async () => service.startStreams({}),
   stopStreams: async () => service.stopStreams({})

@@ -1,21 +1,31 @@
-import { useAutoSchedule } from "./hooks";
 import { useForm } from "react-hook-form";
 
 import styles from "./auto-mode-configuration.module.scss";
+import { useEffect } from "react";
 
 export type AutoModeConfigurationProps = {
   closeDialog: () => void
 }
 
 type Form = {
-  start: string
-  end: string
+  start: string | undefined
+  end: string | undefined
   days: boolean[]
 }
 
+const defaultDaySelection = [false, false, false, false, false, false, false];
+
 const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
   const { register, setValue, handleSubmit } = useForm<Form>();
-  useAutoSchedule(setValue);
+
+  useEffect(() => {
+    window.electron.getAutoSchedule().then(autoSchedule => {
+      setValue("start" as const, autoSchedule?.wake ?? undefined);
+      setValue("end" as const, autoSchedule?.sleep ?? undefined);
+      setValue("days" as const, autoSchedule?.schedule ?? defaultDaySelection);
+    });
+  }, []);
+
   const onSubmit = ({ start, end, days }: Form) => {
     window.electron.setAutoSchedule({
       wake: start ?? null,
@@ -30,13 +40,13 @@ const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
       <fieldset className={styles.time}>
         <legend>Wake Time</legend>
         <input {...register("start")} type="time" />
-        <button type="button" onClick={() => setValue("start", "")}>Clear
+        <button type="button" onClick={() => setValue("start", undefined)}>Clear
         </button>
       </fieldset>
       <fieldset className={styles.time}>
         <legend>Sleep Time</legend>
         <input {...register("end")} type="time" />
-        <button type="button" onClick={() => setValue("end", "")}>Clear
+        <button type="button" onClick={() => setValue("end", undefined)}>Clear
         </button>
       </fieldset>
       <fieldset className={styles["day-container"]}>
