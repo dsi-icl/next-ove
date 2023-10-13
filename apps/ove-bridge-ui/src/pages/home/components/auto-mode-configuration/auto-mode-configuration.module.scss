@@ -3,48 +3,59 @@
   color: white;
 }
 
-.dialog {
-  border-radius: 20px;
-
-  h2 {
+h2 {
     width: 100%;
     text-align: center;
     font-weight: 700;
-  }
+}
+
+legend {
+  font-weight: 700;
 }
 
 .form {
   display: flex;
+  height: 100%;
   flex-direction: column;
   align-items: center;
-
-  label {
-    font-weight: 700;
-    margin-top: 1rem;
-  }
-
-  input {
-    border: 1px solid black;
-    padding: 0.5rem;
-    border-radius: 20px;
-  }
-
-  input:focus {
-    border: 1px solid black;
-  }
+  justify-content: space-around;
 
   .time {
     display: flex;
+    width: 100%;
+    justify-content: center;
+
+    label {
+      font-weight: 700;
+      margin-top: 1rem;
+    }
+
+    input {
+      border: 1px solid black;
+      padding: 0.5rem;
+      border-radius: 20px;
+    }
+
+    input:focus {
+      border: 1px solid black;
+    }
 
     button {
       margin-left: 1rem;
+      border-bottom: 1px solid black;
     }
   }
 
   .day-container {
+    width: 100%;
     margin-top: 1rem;
     display: flex;
     justify-content: space-around;
+
+    & div {
+      display: flex;
+      flex-direction: column;
+    }
   }
 
   .day {

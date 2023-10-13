@@ -73,9 +73,9 @@ const Calendar = () => {
     }
   }, [dialogOpen, close]);
 
-  const updateCalendar = (accessToken: string) => {
-    window.electron.updateCalendar(accessToken).then(calendar => {
-      if (calendar === null || calendar["lastUpdated"] === null) return;
+  const updateCalendar = () => {
+    window.electron.getCalendar().then(calendar => {
+      if (calendar === null || calendar === undefined || calendar["lastUpdated"] === null) return;
       setLastUpdated(new Date(calendar["lastUpdated"]));
       setEvents(calendar["value"].map(event => ({
         title: event["subject"],

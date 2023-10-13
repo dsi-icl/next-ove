@@ -1,10 +1,5 @@
-import React, {
-  type FormEvent,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useState
-} from "react";
+import { useAutoSchedule } from "./hooks";
+import { useForm } from "react-hook-form";
 
 import styles from "./auto-mode-configuration.module.scss";
 
@@ -12,103 +7,72 @@ export type AutoModeConfigurationProps = {
   closeDialog: () => void
 }
 
-const defaultDaySelection = [false, false, false, false, false, false, false];
+type Form = {
+  start: string
+  end: string
+  days: boolean[]
+}
 
-const AutoModeConfiguration =
-  forwardRef<HTMLDialogElement, AutoModeConfigurationProps>(
-    ({ closeDialog }, ref) => {
-      const [wakeTime, setWakeTime] = useState<string | null>(null);
-      const [sleepTime, setSleepTime] = useState<string | null>(null);
-      const [daysSelected, setDaysSelected] = useState(defaultDaySelection);
+const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
+  const { register, setValue, handleSubmit } = useForm<Form>();
+  useAutoSchedule(setValue);
+  const onSubmit = ({ start, end, days }: Form) => {
+    window.electron.setAutoSchedule({
+      wake: start ?? null,
+      sleep: end ?? null,
+      schedule: days
+    }).then(() => closeDialog());
+  };
 
-      useEffect(() => {
-        window.electron.getAutoSchedule().then(autoSchedule => {
-          setWakeTime(autoSchedule?.wake ?? null);
-          setSleepTime(autoSchedule?.sleep ?? null);
-          setDaysSelected(autoSchedule?.schedule ?? defaultDaySelection);
-        });
-      }, []);
-      const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const startTime = formData.get("start-time");
-        const endTime = formData.get("end-time");
-
-        window.electron.setAutoSchedule({
-          wake: startTime?.toString() ?? null,
-          sleep: endTime?.toString() ?? null,
-          schedule: daysSelected
-        }).then(() => closeDialog());
-      };
-
-      const getClass = useCallback((i: number) =>
-        daysSelected[i] ? styles.active : undefined, [daysSelected]);
-      const updateArr = (arr: boolean[], i: number) => {
-        if (i === 0) return [!arr[i], ...arr.slice(1)];
-        if (i === arr.length - 1) {
-          return [...arr.slice(0, arr.length - 1), !arr[arr.length - 1]];
-        }
-        return [...arr.slice(0, i), !arr[i], ...arr.slice(i + 1)];
-      };
-
-      return <dialog
-        onClick={() => closeDialog()}
-        ref={ref}
-        className={styles.dialog}>
-        <div className={styles.hidden} onClick={e => e.stopPropagation()}>
-          <h2>Configure Automatic
-            Device Schedule</h2>
-          <form className={styles.form} onSubmit={handleOnSubmit}>
-            <label htmlFor="start-time">Wake Time</label>
-            <div className={styles.time}>
-              <input
-                id="start-time" name="start-time" type="time"
-                defaultValue={wakeTime ?? undefined} />
-              <button type="button" onClick={() => setWakeTime(null)}>Clear
-              </button>
-            </div>
-            <label htmlFor="end-time">Sleep Time</label>
-            <div className={styles.time}>
-              <input
-                id="end-time" name="end-time" type="time"
-                defaultValue={sleepTime ?? undefined} />
-              <button type="button" onClick={() => setSleepTime(null)}>Clear
-              </button>
-            </div>
-            <div className={styles["day-container"]}>
-              <button
-                type="button" className={`${styles.day} ${getClass(0)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 0))}>Sun
-              </button>
-              <button
-                type="button" className={`${styles.day} ${getClass(1)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 1))}>Mon
-              </button>
-              <button
-                type="button" className={`${styles.day} ${getClass(2)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 2))}>Tue
-              </button>
-              <button
-                type="button" className={`${styles.day} ${getClass(3)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 3))}>Wed
-              </button>
-              <button
-                type="button" className={`${styles.day} ${getClass(4)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 4))}>Thu
-              </button>
-              <button
-                type="button" className={`${styles.day} ${getClass(5)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 5))}>Fri
-              </button>
-              <button
-                type="button" className={`${styles.day} ${getClass(6)}`}
-                onClick={() => setDaysSelected(cur => updateArr(cur, 6))}>Sat
-              </button>
-            </div>
-            <button className={styles.submit} type="submit">Save</button>
-          </form>
+  return <>
+    <h2>Configure Automatic Device Schedule</h2>
+    <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+      <fieldset className={styles.time}>
+        <legend>Wake Time</legend>
+        <input {...register("start")} type="time" />
+        <button type="button" onClick={() => setValue("start", "")}>Clear
+        </button>
+      </fieldset>
+      <fieldset className={styles.time}>
+        <legend>Sleep Time</legend>
+        <input {...register("end")} type="time" />
+        <button type="button" onClick={() => setValue("end", "")}>Clear
+        </button>
+      </fieldset>
+      <fieldset className={styles["day-container"]}>
+        <legend>Days of Operation</legend>
+        <div>
+          <label htmlFor="days.0">Sun</label>
+          <input {...register("days.0")} type="checkbox" />
         </div>
-      </dialog>;
-    });
+        <div>
+          <label htmlFor="days.1">Mon</label>
+          <input {...register("days.1")} type="checkbox" />
+        </div>
+        <div>
+          <label htmlFor="days.2">Tue</label>
+          <input {...register("days.2")} type="checkbox" />
+        </div>
+        <div>
+          <label htmlFor="days.3">Wed</label>
+          <input {...register("days.3")} type="checkbox" />
+        </div>
+        <div>
+          <label htmlFor="days.4">Thu</label>
+          <input {...register("days.4")} type="checkbox" />
+        </div>
+        <div>
+          <label htmlFor="days.5">Fri</label>
+          <input {...register("days.5")} type="checkbox" />
+        </div>
+        <div>
+          <label htmlFor="days.6">Sat</label>
+          <input {...register("days.6")} type="checkbox" />
+        </div>
+      </fieldset>
+      <button className={styles.submit} type="submit">Save</button>
+    </form>
+  </>;
+};
 
 export default AutoModeConfiguration;
