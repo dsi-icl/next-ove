@@ -1,0 +1,35 @@
+.actions {
+  display: flex;
+  justify-content: center;
+
+  & button {
+    padding: 0.6rem;
+  }
+
+  .container {
+    border: 1px solid black;
+    border-right: none !important;
+    margin-right: 0.25rem;
+    display: flex;
+
+    & button {
+      border-right: 1px solid black;
+    }
+  }
+
+  #info {
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+  }
+
+  #windows {
+    border-right: 1px solid black !important;
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    margin-right: 0;
+
+    button:last-child {
+      border-right: none;
+    }
+  }
+}

@@ -1,18 +1,15 @@
-import { trpc } from "../../../../utils/api";
 import { useEffect } from "react";
+import { trpc } from "../../../../utils/api";
 
-export const useStreams = (bridgeId: string, isOpen: boolean) => {
-  const streams = trpc.bridge.getStreams.useQuery({bridgeId});
+export const useStreams = (bridgeId: string) => {
+  const streams = trpc.bridge.getStreams.useQuery({ bridgeId });
   const startStreams = trpc.bridge.startStreams.useMutation();
   const stopStreams = trpc.bridge.stopStreams.useMutation();
 
   useEffect(() => {
-    if (isOpen) {
-      startStreams.mutateAsync({bridgeId});
-    } else {
-      stopStreams.mutateAsync({bridgeId});
-    }
-  }, [isOpen]);
+    startStreams.mutateAsync({ bridgeId });
+    return () => void stopStreams.mutateAsync({ bridgeId });
+  }, []);
 
   return streams;
 };

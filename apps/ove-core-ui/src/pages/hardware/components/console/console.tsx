@@ -1,11 +1,7 @@
 import React from "react";
 import Terminal, { ColorMode } from "react-terminal-ui";
 
-type ConsoleProps = {
-  close: () => void
-}
-
-const Console = ({ close }: ConsoleProps) => {
+const Console = ({ close }: { close: () => void }) => {
   return <>
     <Terminal name="React Terminal Usage Example" colorMode={ColorMode.Light}
               onInput={terminalInput => console.log(`New terminal input received: '${terminalInput}'`)}>

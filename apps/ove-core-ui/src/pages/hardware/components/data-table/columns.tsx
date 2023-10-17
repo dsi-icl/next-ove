@@ -1,8 +1,9 @@
-import { ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { ServiceType } from "@ove/ove-types";
+import { type ServiceType } from "@ove/ove-types";
 import { Display, HddNetwork, Projector } from "react-bootstrap-icons";
-import styles from "../../pages/hardware/components/observatory/observatory.module.scss";
+
+import styles from "../observatory/observatory.module.scss";
 
 export type HardwareRow = {
   protocol: string

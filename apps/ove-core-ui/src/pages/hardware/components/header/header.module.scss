@@ -1,0 +1,16 @@
+.header {
+  display: flex;
+  flex-direction: row;
+
+  & h2 {
+    font-weight: 700;
+  }
+
+  .actions {
+    margin: 0 0 0 auto;
+
+    .icon {
+      padding: 0.6rem;
+    }
+  }
+}

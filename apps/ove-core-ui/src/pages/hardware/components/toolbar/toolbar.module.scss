@@ -1,0 +1,25 @@
+.toolbar {
+  border: 1px solid #dadedf;
+  border-bottom: none !important;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+
+  .filter-type-container {
+    margin-left: 0.25rem;
+
+    & button {
+      border: 1px solid black;
+      min-width: 2.5rem;
+    }
+
+    .active {
+      background-color: #002147;
+      color: white;
+    }
+  }
+
+  .multi-actions {
+    margin-left: auto;
+  }
+}

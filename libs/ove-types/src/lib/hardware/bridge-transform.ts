@@ -146,7 +146,7 @@ export const BridgeAPITransformSchema: TBridgeRoutesSchema = Object.entries(Clie
     }),
     client: route.client,
     bridge: getBridgeResponseSchema(
-      getMultiDeviceResponseSchema(route.client))
+      getMultiDeviceResponseSchema(route.returns))
   };
   return acc;
 }, <{ [key: string]: unknown }>{}) as TBridgeRoutesSchema;

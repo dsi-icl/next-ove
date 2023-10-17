@@ -61,3 +61,18 @@
     text-align: center;
   }
 }
+
+.container {
+  .header {
+    display: flex;
+
+    & h4 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    & label {
+      margin: auto 0.25rem auto auto;
+    }
+  }
+}

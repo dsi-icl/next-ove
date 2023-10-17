@@ -1,0 +1,23 @@
+.container {
+  padding: 1rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+
+  .actions {
+    margin-top: auto;
+    margin-left: auto;
+
+    & button {
+      padding: 0.25rem;
+      border: 1px solid black;
+      border-radius: 0.5rem;
+      background-color: #002147;
+      color: white;
+    }
+
+    #left {
+      margin-right: 0.25rem;
+    }
+  }
+}

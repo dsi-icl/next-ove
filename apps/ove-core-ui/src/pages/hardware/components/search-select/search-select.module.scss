@@ -1,0 +1,45 @@
+.selector {
+  position: relative;
+  margin-left: 0.25rem;
+
+  .input {
+    border: 1px solid black;
+    padding: 0.25rem;
+  }
+
+  .hidden {
+    width: 0;
+    height: 0;
+  }
+
+  .dropdown {
+    background-color: white;
+    position: absolute;
+    z-index: 10;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    display: none;
+
+    & ul {
+      width: 100%;
+      border: 1px solid black;
+      border-bottom: none !important;
+
+      & li {
+        width: 100%;
+        border-bottom: 1px solid black;
+        padding: 0.25rem;
+
+        & button {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
+.selector:focus-within > .dropdown {
+  display: block;
+}

@@ -1,16 +1,17 @@
 import {
-  ColumnDef,
-  ColumnFiltersState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
   flexRender,
-  getCoreRowModel, getFilteredRowModel,
+  getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable
 } from "@tanstack/react-table";
+import { useEffect, useState } from "react";
 
 import styles from "./data-table.module.scss";
-import { useEffect, useState } from "react";
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
@@ -40,9 +41,14 @@ const getSize = (id: string) => {
   }
 };
 
-const DataTable = <TData, TValue>({ columns, data, filter, filterType }: DataTableProps<TData, TValue>) => {
+const DataTable = <TData, TValue>({
+  columns,
+  data,
+  filter,
+  filterType
+}: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,

@@ -1,8 +1,10 @@
+import { env } from "./env";
 import { type Tokens } from "@ove/ove-types";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // IGNORE PATH - dependency removed at runtime
 import { type AppRouter } from "../../ove-core/src/app/router";
-import { env } from "./env";
+
+export type InfoTypes = "general" | "system" | "cpu" | "memory"
 
 const fixedEncodeURI = (str: string) =>
   encodeURI(str).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16));

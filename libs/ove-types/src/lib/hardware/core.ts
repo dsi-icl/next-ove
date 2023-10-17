@@ -14,4 +14,4 @@ export { CoreAPITransformSchema as CoreAPI, type TCoreRoutesSchema as TCoreAPI }
  * Output type for API function
  */
 export type TCoreAPIOutput<Key extends keyof TCoreRoutesSchema> =
-  z.infer<TCoreRoutesSchema[Key]["bridge"]>;
+  z.infer<TCoreRoutesSchema[Key]["bridge"]>
