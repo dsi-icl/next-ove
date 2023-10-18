@@ -63,7 +63,7 @@ const MultiActions = ({ setDeviceAction }: {
       <button onClick={() => setDeviceAction({
         action: "execute",
         deviceId: null,
-        pending: true
+        pending: false
       })} title="execute">
         <FileEarmarkCode />
       </button>

@@ -10,6 +10,8 @@ export const useController = (deviceAction: DeviceAction, bridgeId: string, filt
   status: DeviceStatus
 }[]) => void, showNotification: (text: string) => void) => {
   const curInfo = useStore(state => state.info);
+  const command = useStore(state => state.command);
+  const clearCommand = useStore(state => state.clearCommand);
   const single = useSingleController(deviceAction.deviceId ?? "", bridgeId, showNotification, setStatus);
   const multi = useMultiController(bridgeId, filter, showNotification, setAllStatus);
   useEffect(() => {
@@ -37,6 +39,23 @@ export const useController = (deviceAction: DeviceAction, bridgeId: string, filt
             bridgeId,
             tag: filter === "" ? undefined : filter
           }).catch(logger.error);
+          break;
+        }
+        case "reboot": {
+          multi.reboot({
+            bridgeId,
+            tag: filter === "" ? undefined : filter
+          }).catch(logger.error);
+          break;
+        }
+        case "execute": {
+          if (command === null) break;
+          multi.execute({
+            bridgeId,
+            tag: filter === "" ? undefined : filter,
+            command
+          }).catch(logger.error);
+          clearCommand();
           break;
         }
         case "browsers_close": {
@@ -79,6 +98,16 @@ export const useController = (deviceAction: DeviceAction, bridgeId: string, filt
           }).catch(logger.error);
           break;
         }
+        case "execute": {
+          if (command === null) break;
+          single.execute({
+            bridgeId,
+            deviceId: deviceAction.deviceId,
+            command
+          }).catch(logger.error);
+          clearCommand();
+          break;
+        }
         case "browsers_close": {
           single.closeBrowsers({
             bridgeId,
@@ -88,5 +117,5 @@ export const useController = (deviceAction: DeviceAction, bridgeId: string, filt
         }
       }
     }
-  }, [deviceAction, curInfo?.type]);
+  }, [deviceAction, curInfo?.type, command]);
 };

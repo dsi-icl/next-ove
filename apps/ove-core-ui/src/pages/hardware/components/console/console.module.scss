@@ -1,0 +1,50 @@
+.console {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+
+  & ul {
+    display: flex;
+    flex-direction: column-reverse;
+    border: 1px solid black;
+    flex-grow: 2;
+    overflow-y: scroll;
+
+    & li {
+      display: flex;
+      align-items: center;
+
+      & p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  & form {
+    margin-top: auto;
+    padding: 0.25rem;
+    display: flex;
+    border: 1px solid #dadedf;
+
+    & span {
+      font-weight: 700;
+    }
+
+    & input {
+      flex-grow: 2;
+    }
+
+    & p {
+      margin: 0 0.25rem;
+    }
+  }
+
+  & form:focus-within {
+    border: 1px solid black;
+  }
+}
+
+input:focus {
+  outline: 1px solid white;
+}

@@ -30,7 +30,7 @@ const Observatory = ({ name, isOnline }: {
   name: string,
   isOnline: boolean
 }) => {
-  const { ref, closeDialog, openDialog } = useDialog();
+  const { ref, closeDialog, openDialog, isOpen } = useDialog();
   const setPaginationIdx = useStore(state => state.setPaginationIdx);
   const {
     hardware,
@@ -40,6 +40,7 @@ const Observatory = ({ name, isOnline }: {
   const { notification, show: showNotification, isVisible } = useSnackbar();
   const [filter, setFilter] = useState("");
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
+  const reset = useStore(state => state.reset);
   const [deviceAction, setDeviceAction] = useState<DeviceAction>({
     action: null,
     deviceId: null,
@@ -49,8 +50,13 @@ const Observatory = ({ name, isOnline }: {
   useController(deviceAction, name, filter, updateStatus, updateStatusAll, showNotification);
 
   useEffect(() => {
+    if (isOpen) return;
+    reset();
+  }, [isOpen]);
+
+  useEffect(() => {
     setPaginationIdx(0);
-    if (deviceAction.action !== "info" && !deviceAction.pending) return;
+    if (deviceAction.action !== "info" && deviceAction.action !== "execute" && !deviceAction.pending) return;
     if (deviceAction.action === null) {
       closeDialog();
     } else {
@@ -79,12 +85,7 @@ const Observatory = ({ name, isOnline }: {
       </div>
       <Dialog closeDialog={closeDialog} ref={ref}
               title={deviceAction.deviceId ?? ""}>
-        <Popups name={name} deviceAction={deviceAction}
-                close={() => setDeviceAction({
-                  action: null,
-                  deviceId: null,
-                  pending: false
-                })} />
+        <Popups name={name} deviceAction={deviceAction} isOpen={isOpen} />
       </Dialog>
       <Snackbar text={notification ?? ""} show={isVisible} />
     </> : null}

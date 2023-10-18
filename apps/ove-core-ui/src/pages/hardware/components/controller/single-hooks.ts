@@ -81,6 +81,26 @@ export const useRebootDevice = (deviceId: string, showNotification: (text: strin
   return restart.mutateAsync;
 };
 
+export const useExecuteCommand = (deviceId: string, showNotification: (text: string) => void) => {
+  const execute = trpc.hardware.execute.useMutation({ retry: false });
+  const addCommand = useStore(state => state.addCommandHistory);
+
+  useEffect(() => {
+    if (execute.status === "error") {
+      showNotification(`Failed to execute command on ${deviceId}`);
+    } else if (execute.status === "success") {
+      const data = execute.data.response as TCoreAPIOutput<"execute">["response"];
+      if ("response" in data) {
+        addCommand(data.response);
+      } else {
+        addCommand(data.oveError);
+      }
+    }
+  }, [execute.status]);
+
+  return execute.mutateAsync;
+};
+
 export const useCloseBrowsers = (deviceId: string, showNotification: (text: string) => void) => {
   const closeBrowsers = trpc.hardware.closeBrowsers.useMutation();
 
@@ -101,7 +121,8 @@ export const useSingleController = (deviceId: string, bridgeId: string, showNoti
   const start = useStartDevice(deviceId, showNotification);
   const shutdown = useShutdownDevice(deviceId, showNotification);
   const reboot = useRebootDevice(deviceId, showNotification);
+  const execute = useExecuteCommand(deviceId, showNotification);
   const closeBrowsers = useCloseBrowsers(deviceId, showNotification);
 
-  return { status, info, start, shutdown, reboot, closeBrowsers };
+  return { status, info, start, shutdown, reboot, execute, closeBrowsers };
 };

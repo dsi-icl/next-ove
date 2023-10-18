@@ -67,7 +67,7 @@ const NodeActions = ({ setDeviceAction, device }: ActionController) => <div
     <button onClick={() => setDeviceAction({
       deviceId: device.id,
       action: "execute",
-      pending: true
+      pending: false
     })} title="execute">
       <FileEarmarkCode />
     </button>

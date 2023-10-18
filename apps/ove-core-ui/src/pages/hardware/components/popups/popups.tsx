@@ -6,13 +6,13 @@ import InfoContainer from "../info/info-container";
 type PopupsProps = {
   name: string
   deviceAction: DeviceAction,
-  close: () => void
+  isOpen: boolean
 }
 
 const Popups = ({
   name,
   deviceAction,
-  close
+  isOpen
 }: PopupsProps) => {
   if (deviceAction.action === null) return <></>;
   else if (deviceAction.action === "monitoring") return <LiveView
@@ -20,7 +20,8 @@ const Popups = ({
   else if (deviceAction.action === "calendar") return <div>Calendar</div>;
   else if (deviceAction.action === "info") return <InfoContainer
     deviceAction={deviceAction} />;
-  else if (deviceAction.action === "execute") return <Console close={close} />;
+  else if (deviceAction.action === "execute") return <Console isOpen={isOpen}
+                                                              consoleId={deviceAction.deviceId ?? name} />;
   else return <div>ERROR</div>;
 };
 

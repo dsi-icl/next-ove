@@ -35,7 +35,11 @@ export const useStatus = (bridgeId: string, tag: string, setAllStatus: (tag: str
 export const useInfo = (bridgeId: string, tag: string) => {
   const setInfo = useStore(state => state.setInfo);
   const curInfo = useStore(state => state.info);
-  const info = trpc.hardware.getInfoAll.useQuery({bridgeId, tag: tag === "" ? undefined : tag, type: curInfo?.type ?? "general"});
+  const info = trpc.hardware.getInfoAll.useQuery({
+    bridgeId,
+    tag: tag === "" ? undefined : tag,
+    type: curInfo?.type ?? "general"
+  }, { enabled: false });
 
   useEffect(() => {
     if (info.status !== "success") return;
@@ -46,7 +50,10 @@ export const useInfo = (bridgeId: string, tag: string) => {
       return;
     }
 
-    setInfo({data: data.filter(({response}) => response !== null && typeof response === "object" && !("oveError" in response)), type: curInfo?.type ?? "general"});
+    setInfo({
+      data: data.filter(({ response }) => response !== null && typeof response === "object" && !("oveError" in response)),
+      type: curInfo?.type ?? "general"
+    });
   }, [info.status, info.isRefetching]);
 
   return info.refetch;
@@ -147,6 +154,34 @@ export const useRebootDevice = (showNotification: (text: string) => void) => {
   return reboot.mutateAsync;
 };
 
+export const useExecuteCommand = (showNotification: (text: string) => void) => {
+  const execute = trpc.hardware.executeAll.useMutation({ retry: false });
+  const addCommand = useStore(state => state.addCommandHistory);
+
+  useEffect(() => {
+    if (execute.status === "error") {
+      showNotification("Failed to execute command");
+    } else if (execute.status === "success") {
+      const data = execute.data.response as TCoreAPIOutput<"executeAll">["response"];
+
+      if ("oveError" in data) {
+        showNotification("Failed to execute command");
+        return;
+      }
+
+      data.forEach(({ deviceId, response }) => {
+        if ("response" in response) {
+          addCommand(`${deviceId} > ${response.response}`);
+        } else {
+          addCommand(`${deviceId} > ${response.oveError}`);
+        }
+      });
+    }
+  }, [execute.status]);
+
+  return execute.mutateAsync;
+};
+
 export const useCloseBrowsers = (showNotification: (text: string) => void) => {
   const closeBrowsers = trpc.hardware.closeBrowsersAll.useMutation();
 
@@ -163,7 +198,7 @@ export const useCloseBrowsers = (showNotification: (text: string) => void) => {
 
       let containsErrors = false;
 
-      data.forEach(({deviceId, response}, i) => {
+      data.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
           setTimeout(() => showNotification(`Failed to close browsers on: ${deviceId}`), 3000 * i);
           containsErrors = true;
@@ -188,7 +223,8 @@ export const useMultiController = (bridgeId: string, tag: string, showNotificati
   const start = useStartDevice(showNotification);
   const shutdown = useShutdownDevice(showNotification);
   const reboot = useRebootDevice(showNotification);
+  const execute = useExecuteCommand(showNotification);
   const closeBrowsers = useCloseBrowsers(showNotification);
 
-  return { status, info, start, shutdown, reboot, closeBrowsers };
+  return { status, info, start, shutdown, reboot, execute, closeBrowsers };
 };
