@@ -94,7 +94,7 @@ const MultiActions = ({bridgeId}: {bridgeId: string}) => {
         bridgeId,
         action: "browser_status",
         deviceId: null,
-        pending: false
+        pending: true
       })} title="window status">
         <Window />
       </button>

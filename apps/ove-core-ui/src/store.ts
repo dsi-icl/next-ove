@@ -4,6 +4,8 @@ import { Json } from "@ove/ove-utils";
 import { ScreenshotMethod, type Tokens } from "@ove/ove-types";
 import { DeviceAction } from "./pages/hardware/types";
 
+type BrowserStatus = "running" | "off" | null
+
 type Store = {
   tokens: Tokens | null
   setTokens: (tokens: Tokens | null) => void
@@ -26,12 +28,31 @@ type Store = {
     clearCommandHistory: () => void
     paginationIdx: number
     setPaginationIdx: (paginationIdx: number) => void
-    screenshotConfig: {method: ScreenshotMethod, screens: number[]} | null
-    setScreenshotConfig: (screenshotConfig: {method: ScreenshotMethod, screens: number[]}) => void
+    screenshotConfig: { method: ScreenshotMethod, screens: number[] } | null
+    setScreenshotConfig: (screenshotConfig: {
+      method: ScreenshotMethod,
+      screens: number[]
+    }) => void
     clearScreenshotConfig: () => void
     screenshots: string[] | { response: string[], deviceId: string }[] | null
-    setScreenshots: (screenshots: string[] | {response: string[], deviceId: string}[]) => void
+    setScreenshots: (screenshots: string[] | {
+      response: string[],
+      deviceId: string
+    }[]) => void
     clearScreenshots: () => void
+    browserId: number | null
+    setBrowserId: (browserId: number) => void
+    clearBrowserId: () => void
+    browserStatus: BrowserStatus | {
+      response: BrowserStatus,
+      deviceId: string
+    }[]
+    setBrowserStatus: (status: BrowserStatus | {
+      response: BrowserStatus,
+      deviceId: string
+    }[]) => void
+    browserConfig: { url?: string, displayId?: number } | null
+    setBrowserConfig: (config: {url?: string, displayId?: number}) => void
     reset: () => void
   }
 }
@@ -88,7 +109,10 @@ export const useStore = create<Store>(set => ({
         command: null,
         commandHistory: [],
         screenshotConfig: null,
-        screenshots: null
+        screenshots: null,
+        browserId: null,
+        browserStatus: null,
+        browserConfig: null
       }
     })),
     clearCommand: () => set(state => ({
@@ -97,7 +121,12 @@ export const useStore = create<Store>(set => ({
         command: null
       }
     })),
-    deviceAction: {bridgeId: null, action: null, deviceId: null, pending: false},
+    deviceAction: {
+      bridgeId: null,
+      action: null,
+      deviceId: null,
+      pending: false
+    },
     setDeviceAction: deviceAction => set(state => ({
       hardwareConfig: {
         ...state.hardwareConfig,
@@ -128,6 +157,33 @@ export const useStore = create<Store>(set => ({
       hardwareConfig: {
         ...state.hardwareConfig,
         screenshots: null
+      }
+    })),
+    browserId: null,
+    setBrowserId: (browserId: number) => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        browserId
+      }
+    })),
+    clearBrowserId: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        browserId: null
+      }
+    })),
+    browserStatus: null,
+    setBrowserStatus: browserStatus => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        browserStatus
+      }
+    })),
+    browserConfig: null,
+    setBrowserConfig: browserConfig => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        browserConfig
       }
     }))
   }

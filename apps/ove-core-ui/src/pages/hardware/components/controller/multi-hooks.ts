@@ -183,7 +183,7 @@ export const useExecuteCommand = (showNotification: (text: string) => void) => {
 };
 
 export const useScreenshot = (showNotification: (text: string) => void) => {
-  const screenshot = trpc.hardware.screenshotAll.useMutation({retry: false});
+  const screenshot = trpc.hardware.screenshotAll.useMutation({ retry: false });
   const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
 
   useEffect(() => {
@@ -197,13 +197,103 @@ export const useScreenshot = (showNotification: (text: string) => void) => {
         return;
       }
 
-      data.filter(({response}) => "oveError" in response).forEach(({response: {oveError}}, i) => setTimeout(() => showNotification(oveError), 3000 * i));
+      data.filter(({ response }) => "oveError" in response).forEach(({ response }, i) => setTimeout(() => showNotification((response as {
+        oveError: string
+      }).oveError), 3000 * i));
 
-      setScreenshots(data.filter(({response}) => !("oveError" in response)));
+      setScreenshots(data.filter(({ response }) => !("oveError" in response)) as {
+        response: string[],
+        deviceId: string
+      }[]);
     }
   }, [screenshot.status]);
 
   return screenshot.mutateAsync;
+};
+
+export const useGetBrowserStatus = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+  const browserId = useStore(state => state.hardwareConfig.browserId);
+  const setBrowserStatus = useStore(state => state.hardwareConfig.setBrowserStatus);
+  const getBrowserStatus = trpc.hardware.getBrowserStatusAll.useQuery({
+    bridgeId,
+    tag: tag === "" ? undefined : tag,
+    browserId: browserId ?? -1
+  }, { enabled: false });
+
+  useEffect(() => {
+    if (getBrowserStatus.status === "error") {
+      showNotification("Failed to get browser statuses");
+    } else if (getBrowserStatus.status === "success") {
+      const data = getBrowserStatus.data.response as TCoreAPIOutput<"getBrowserStatusAll">["response"];
+
+      if ("oveError" in data) {
+        showNotification("Failed to get browser statuses");
+        return;
+      }
+
+      setBrowserStatus(data.map(({ deviceId, response }) => ({
+        deviceId,
+        response: typeof response !== "boolean" || !response ? "off" : "running"
+      })));
+    }
+  }, [getBrowserStatus.status, getBrowserStatus.isRefetching]);
+
+  return getBrowserStatus.refetch;
+};
+
+export const useOpenBrowser = (showNotification: (text: string) => void) => {
+  const openBrowser = trpc.hardware.openBrowserAll.useMutation();
+
+  useEffect(() => {
+    if (openBrowser.status === "error") {
+      showNotification("Failed to open browsers");
+    } else if (openBrowser.status === "success") {
+      const data = openBrowser.data.response as TCoreAPIOutput<"openBrowserAll">["response"];
+
+      if ("oveError" in data) {
+        showNotification("Failed to open browsers");
+        return;
+      }
+
+      data.forEach(({ deviceId, response }, i) => {
+        if (typeof response !== "number") {
+          setTimeout(() => showNotification(`Failed to open browser on ${deviceId}`), 3000 * i);
+        } else {
+          setTimeout(() => showNotification(`Successfully opened browser on ${deviceId} with ID: ${response}`), 3000 * i);
+        }
+      });
+    }
+
+  }, [openBrowser.status]);
+
+  return openBrowser.mutateAsync;
+};
+
+export const useCloseBrowser = (showNotification: (text: string) => void) => {
+  const closeBrowser = trpc.hardware.closeBrowserAll.useMutation();
+
+  useEffect(() => {
+    if (closeBrowser.status === "error") {
+      showNotification("Failed to close browsers");
+    } else if (closeBrowser.status === "success") {
+      const data = closeBrowser.data.response as TCoreAPIOutput<"closeBrowserAll">["response"];
+
+      if ("oveError" in data) {
+        showNotification("Failed to close browsers");
+        return;
+      }
+
+      data.forEach(({ deviceId, response }, i) => {
+        if (typeof response !== "boolean" || !response) {
+          setTimeout(() => showNotification(`Failed to close browser on ${deviceId}`), 3000 * i);
+        } else {
+          setTimeout(() => showNotification(`Successfully opened browser on ${deviceId}`), 3000 * i);
+        }
+      });
+    }
+  }, [closeBrowser.status]);
+
+  return closeBrowser.mutateAsync;
 };
 
 export const useCloseBrowsers = (showNotification: (text: string) => void) => {
@@ -249,7 +339,22 @@ export const useMultiController = (bridgeId: string, tag: string, showNotificati
   const reboot = useRebootDevice(showNotification);
   const execute = useExecuteCommand(showNotification);
   const screenshot = useScreenshot(showNotification);
+  const getBrowserStatus = useGetBrowserStatus(bridgeId, tag, showNotification);
+  const openBrowser = useOpenBrowser(showNotification);
+  const closeBrowser = useCloseBrowser(showNotification);
   const closeBrowsers = useCloseBrowsers(showNotification);
 
-  return { status, info, start, shutdown, reboot, execute, screenshot, closeBrowsers };
+  return {
+    status,
+    info,
+    start,
+    shutdown,
+    reboot,
+    execute,
+    screenshot,
+    getBrowserStatus,
+    openBrowser,
+    closeBrowser,
+    closeBrowsers
+  };
 };

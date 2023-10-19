@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { logger } from "../../../../env";
 import { useStore } from "../../../../store";
 import { type DeviceStatus } from "../../types";
-import { useMultiController } from "./mutli-hooks";
+import { useMultiController } from "./multi-hooks";
 import { useSingleController } from "./single-hooks";
 
 export const useController = (bridgeId: string, filter: string, setStatus: (deviceId: string, status: DeviceStatus) => void, setAllStatus: (tag: string, status: DeviceStatus | {
@@ -13,7 +13,9 @@ export const useController = (bridgeId: string, filter: string, setStatus: (devi
   const command = useStore(state => state.hardwareConfig.command);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const curInfo = useStore(state => state.hardwareConfig.info);
+  const browserId = useStore(state => state.hardwareConfig.browserId);
   const screenshotConfig = useStore(state => state.hardwareConfig.screenshotConfig);
+  const browserConfig = useStore(state => state.hardwareConfig.browserConfig);
 
   const multi = useMultiController(bridgeId, filter, showNotification, setAllStatus);
   const single = useSingleController(deviceAction.deviceId ?? "", bridgeId, showNotification, setStatus);
@@ -70,6 +72,30 @@ export const useController = (bridgeId: string, filter: string, setStatus: (devi
             tag: filter === "" ? undefined : filter,
             method: screenshotConfig.method,
             screens: screenshotConfig.screens
+          }).catch(logger.error);
+          break;
+        }
+        case "browser_status": {
+          if (browserId === null) return;
+          multi.getBrowserStatus().catch(logger.error);
+          break;
+        }
+        case "browser_open": {
+          if (browserConfig === null) return;
+          multi.openBrowser({
+            bridgeId,
+            tag: filter === "" ? undefined : filter,
+            url: browserConfig.url,
+            displayId: browserConfig.displayId
+          }).catch(logger.error);
+          break;
+        }
+        case "browser_close": {
+          if (browserId === null) return;
+          multi.closeBrowser({
+            bridgeId,
+            tag: filter === "" ? undefined : filter,
+            browserId
           }).catch(logger.error);
           break;
         }
@@ -130,6 +156,31 @@ export const useController = (bridgeId: string, filter: string, setStatus: (devi
             deviceId: deviceAction.deviceId,
             method: screenshotConfig.method,
             screens: screenshotConfig.screens
+          }).catch(logger.error);
+          break;
+        }
+        case "browser_status": {
+          if (browserId === null) return;
+          single.getBrowserStatus().catch(logger.error);
+          break;
+        }
+        case "browser_open": {
+          if (browserConfig === null) return;
+          console.log(JSON.stringify(browserConfig));
+          single.openBrowser({
+            bridgeId,
+            deviceId: deviceAction.deviceId,
+            url: browserConfig.url,
+            displayId: browserConfig.displayId
+          }).catch(logger.error);
+          break;
+        }
+        case "browser_close": {
+          if (browserId === null) return;
+          single.closeBrowser({
+            bridgeId,
+            deviceId: deviceAction.deviceId,
+            browserId
           }).catch(logger.error);
           break;
         }

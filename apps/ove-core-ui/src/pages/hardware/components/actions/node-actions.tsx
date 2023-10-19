@@ -95,7 +95,7 @@ const NodeActions = ({ device, bridgeId }: ActionController) => {
         bridgeId,
         deviceId: device.id,
         action: "browser_status",
-        pending: false
+        pending: true
       })} title="window status">
         <Window />
       </button>

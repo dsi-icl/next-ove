@@ -1,5 +1,5 @@
 import { useStore } from "../../../../store";
-import { Calendar, CameraVideo } from "react-bootstrap-icons";
+import { Calendar, CameraVideo, Power } from "react-bootstrap-icons";
 
 import styles from "./header.module.scss";
 
@@ -26,6 +26,13 @@ const Header = ({ name, isOnline }: {
         pending: false
       })}>
         <Calendar /></button>
+      <button className={styles.icon} onClick={() => setDeviceAction({
+        bridgeId: name,
+        action: "power_mode",
+        deviceId: null,
+        pending: false
+      })}>
+        <Power /></button>
     </div> : null}
   </div>;
 };

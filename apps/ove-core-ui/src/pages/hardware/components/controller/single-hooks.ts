@@ -102,7 +102,7 @@ export const useExecuteCommand = (deviceId: string, showNotification: (text: str
 };
 
 export const useScreenshot = (deviceId: string, showNotification: (text: string) => void) => {
-  const takeScreenshot = trpc.hardware.screenshot.useMutation({retry: false});
+  const takeScreenshot = trpc.hardware.screenshot.useMutation({ retry: false });
   const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
 
   useEffect(() => {
@@ -129,6 +129,72 @@ export const useScreenshot = (deviceId: string, showNotification: (text: string)
   return takeScreenshot.mutateAsync;
 };
 
+export const useGetBrowserStatus = (bridgeId: string, deviceId: string, showNotification: (text: string) => void) => {
+  const browserId = useStore(state => state.hardwareConfig.browserId);
+  const getBrowserStatus = trpc.hardware.getBrowserStatus.useQuery({
+    bridgeId,
+    deviceId,
+    browserId: browserId ?? -1
+  }, { enabled: false });
+  const setBrowserStatus = useStore(state => state.hardwareConfig.setBrowserStatus);
+
+  useEffect(() => {
+    if (getBrowserStatus.status === "error") {
+      showNotification(`Failed to get browser status on ${deviceId}`);
+    } else if (getBrowserStatus.status === "success") {
+      const data = getBrowserStatus.data.response as TCoreAPIOutput<"getBrowserStatus">["response"];
+      if (typeof data !== "boolean") {
+        showNotification(`Failed to get browser status on ${deviceId}`);
+        return;
+      }
+
+      setBrowserStatus(data ? "running" : "off");
+    }
+  }, [getBrowserStatus.status, getBrowserStatus.isRefetching]);
+
+  return getBrowserStatus.refetch;
+};
+
+export const useOpenBrowser = (deviceId: string, showNotification: (text: string) => void) => {
+  const openBrowser = trpc.hardware.openBrowser.useMutation();
+
+  useEffect(() => {
+    if (openBrowser.status === "error") {
+      showNotification(`Failed to open browser on ${deviceId}`);
+    } else if (openBrowser.status === "success") {
+      const data = openBrowser.data.response as TCoreAPIOutput<"openBrowser">["response"];
+
+      if (typeof data !== "number") {
+        showNotification(`Failed to open browser on ${deviceId}`);
+        return;
+      }
+      showNotification(`Opened browser on ${deviceId} with ID: ${data}`);
+    }
+  }, [openBrowser.status]);
+
+  return openBrowser.mutateAsync;
+};
+
+export const useCloseBrowser = (deviceId: string, showNotification: (text: string) => void) => {
+  const closeBrowser = trpc.hardware.closeBrowser.useMutation();
+
+  useEffect(() => {
+    if (closeBrowser.status === "error") {
+      showNotification(`Failed to close browser on ${deviceId}`);
+    } else if (closeBrowser.status === "success") {
+      const data = closeBrowser.data.response as TCoreAPIOutput<"closeBrowser">["response"];
+
+      if (typeof data !== "boolean" || !data) {
+        showNotification(`Failed to close browser on ${deviceId}`);
+      } else {
+        showNotification(`Successfully closed browser on ${deviceId}`);
+      }
+    }
+  }, [closeBrowser.status]);
+
+  return closeBrowser.mutateAsync;
+};
+
 export const useCloseBrowsers = (deviceId: string, showNotification: (text: string) => void) => {
   const closeBrowsers = trpc.hardware.closeBrowsers.useMutation();
 
@@ -151,7 +217,22 @@ export const useSingleController = (deviceId: string, bridgeId: string, showNoti
   const reboot = useRebootDevice(deviceId, showNotification);
   const execute = useExecuteCommand(deviceId, showNotification);
   const screenshot = useScreenshot(deviceId, showNotification);
+  const getBrowserStatus = useGetBrowserStatus(bridgeId, deviceId, showNotification);
+  const openBrowser = useOpenBrowser(deviceId, showNotification);
+  const closeBrowser = useCloseBrowser(deviceId, showNotification);
   const closeBrowsers = useCloseBrowsers(deviceId, showNotification);
 
-  return { status, info, start, shutdown, reboot, execute, screenshot, closeBrowsers };
+  return {
+    status,
+    info,
+    start,
+    shutdown,
+    reboot,
+    execute,
+    screenshot,
+    getBrowserStatus,
+    openBrowser,
+    closeBrowser,
+    closeBrowsers
+  };
 };

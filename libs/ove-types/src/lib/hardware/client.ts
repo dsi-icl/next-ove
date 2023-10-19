@@ -46,8 +46,11 @@ export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(Cli
  */
 export type TClientServiceArgs<Key extends keyof TClientService> =
   z.infer<TClientRoutesSchema[Key]["args"]>;
+
 /**
  * Return type of client service function
  */
 export type TClientServiceReturns<Key extends keyof TClientService> =
-  Promise<z.infer<TClientRoutesSchema[Key]["returns"]>>;
+  Promise<z.infer<TClientRoutesSchema[Key]["client"]>>;
+
+export type TClientAPIReturns<Key extends keyof TClientAPI> = Promise<z.infer<TClientAPI[Key]["client"]>>

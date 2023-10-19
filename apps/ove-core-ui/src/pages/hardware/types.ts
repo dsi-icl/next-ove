@@ -10,7 +10,7 @@ export type ActionController = {
   bridgeId: string
 }
 
-type Action = "status" | "info" | "start" | "shutdown" | "reboot" | "execute" | "screenshot" | "input_change" | "browser_status" | "browser_open" | "browser_close" | "browsers_close" | "monitoring" | "calendar";
+type Action = "status" | "info" | "start" | "shutdown" | "reboot" | "execute" | "screenshot" | "input_change" | "browser_status" | "browser_open" | "browser_close" | "browsers_close" | "monitoring" | "calendar" | "power_mode";
 
 export type DeviceAction = { bridgeId: string | null, deviceId: string | null, action: Action | null, pending: boolean };
 

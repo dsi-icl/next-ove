@@ -1,13 +1,13 @@
 import { trpc } from "../../utils/api";
 import { useStore } from "../../store";
+import { type DeviceAction } from "./types";
 import Popups from "./components/popups/popups";
-import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import Observatory from "./components/observatory/observatory";
+import { type CSSProperties, useCallback, useEffect } from "react";
+import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
 
 import styles from "./page.module.scss";
-import { CSSProperties, useCallback, useEffect } from "react";
-import { DeviceAction } from "./types";
 
 const Hardware = () => {
   const getObservatories = trpc.core.getObservatories.useQuery();
@@ -19,8 +19,13 @@ const Hardware = () => {
 
   const isSpecial = (action: DeviceAction["action"]) => action === "info" || action === "execute" || action === "screenshot" || action === "monitoring";
   const getStyle = useCallback((): CSSProperties | undefined => {
-    if (deviceAction.action === "monitoring") return {width: "90vw", height: "90vh"};
-    return undefined;
+    switch (deviceAction.action) {
+      case "monitoring": return {width: "90vw", height: "90vh"};
+      case "browser_open":
+      case "browser_status":
+      case "browser_close": return {width: "25vw", height: "20vh"};
+      default: return undefined;
+    }
   }, [deviceAction]);
 
   useEffect(() => {

@@ -3,13 +3,13 @@ import { useStore } from "../../../../store";
 
 import styles from "./paginated-dialog.module.scss";
 
-type PaginatedDialogProps<TData extends object> = {
-  data: TData | TData[] | null
+type PaginatedDialogProps<TData> = {
+  data: TData | null
   children: JSX.Element | null
   maxLen: number | null
 }
 
-const PaginatedDialog = <TData extends object, >({
+const PaginatedDialog = <TData, >({
   data,
   children,
   maxLen
