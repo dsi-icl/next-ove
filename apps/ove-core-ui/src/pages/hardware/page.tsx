@@ -6,7 +6,7 @@ import { Helmet, HelmetProvider } from "react-helmet-async";
 import Observatory from "./components/observatory/observatory";
 
 import styles from "./page.module.scss";
-import { useEffect } from "react";
+import { CSSProperties, useCallback, useEffect } from "react";
 import { DeviceAction } from "./types";
 
 const Hardware = () => {
@@ -17,7 +17,11 @@ const Hardware = () => {
   const reset = useStore(state => state.hardwareConfig.reset);
   const setPaginationIdx = useStore(state => state.hardwareConfig.setPaginationIdx);
 
-  const isSpecial = (action: DeviceAction["action"]) => action === "info" || action === "execute" || action === "screenshot";
+  const isSpecial = (action: DeviceAction["action"]) => action === "info" || action === "execute" || action === "screenshot" || action === "monitoring";
+  const getStyle = useCallback((): CSSProperties | undefined => {
+    if (deviceAction.action === "monitoring") return {width: "90vw", height: "90vh"};
+    return undefined;
+  }, [deviceAction]);
 
   useEffect(() => {
     if (isOpen) return;
@@ -46,7 +50,7 @@ const Hardware = () => {
       }) =>
         <Observatory name={name} isOnline={isOnline} key={name}
                      showNotification={showNotification} />) : null}
-      <Dialog closeDialog={closeDialog} ref={ref}
+      <Dialog closeDialog={closeDialog} ref={ref} style={getStyle()}
               title={deviceAction.deviceId ?? deviceAction.bridgeId ?? ""}>
         <Popups isOpen={isOpen} />
       </Dialog>
