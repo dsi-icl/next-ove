@@ -38,7 +38,7 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
         status.forEach(({ deviceId, status }) => {
           const idx = cur.findIndex(({ device: { id } }) => id === deviceId);
 
-          if (copy[idx].device.tags.includes(tag)) {
+          if (tag === "" || copy[idx].device.tags.includes(tag)) {
             copy[idx] = { ...copy[idx], status };
           }
         });

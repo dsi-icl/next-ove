@@ -33,8 +33,8 @@ export const useStatus = (bridgeId: string, tag: string, setAllStatus: (tag: str
 };
 
 export const useInfo = (bridgeId: string, tag: string) => {
-  const setInfo = useStore(state => state.setInfo);
-  const curInfo = useStore(state => state.info);
+  const setInfo = useStore(state => state.hardwareConfig.setInfo);
+  const curInfo = useStore(state => state.hardwareConfig.info);
   const info = trpc.hardware.getInfoAll.useQuery({
     bridgeId,
     tag: tag === "" ? undefined : tag,
@@ -156,7 +156,7 @@ export const useRebootDevice = (showNotification: (text: string) => void) => {
 
 export const useExecuteCommand = (showNotification: (text: string) => void) => {
   const execute = trpc.hardware.executeAll.useMutation({ retry: false });
-  const addCommand = useStore(state => state.addCommandHistory);
+  const addCommand = useStore(state => state.hardwareConfig.addCommandHistory);
 
   useEffect(() => {
     if (execute.status === "error") {
@@ -180,6 +180,30 @@ export const useExecuteCommand = (showNotification: (text: string) => void) => {
   }, [execute.status]);
 
   return execute.mutateAsync;
+};
+
+export const useScreenshot = (showNotification: (text: string) => void) => {
+  const screenshot = trpc.hardware.screenshotAll.useMutation({retry: false});
+  const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
+
+  useEffect(() => {
+    if (screenshot.status === "error") {
+      showNotification("Failed to take screenshots");
+    } else if (screenshot.status === "success") {
+      const data = screenshot.data.response as TCoreAPIOutput<"screenshotAll">["response"];
+
+      if ("oveError" in data) {
+        showNotification("Failed to take screenshots");
+        return;
+      }
+
+      data.filter(({response}) => "oveError" in response).forEach(({response: {oveError}}, i) => setTimeout(() => showNotification(oveError), 3000 * i));
+
+      setScreenshots(data.filter(({response}) => !("oveError" in response)));
+    }
+  }, [screenshot.status]);
+
+  return screenshot.mutateAsync;
 };
 
 export const useCloseBrowsers = (showNotification: (text: string) => void) => {
@@ -224,7 +248,8 @@ export const useMultiController = (bridgeId: string, tag: string, showNotificati
   const shutdown = useShutdownDevice(showNotification);
   const reboot = useRebootDevice(showNotification);
   const execute = useExecuteCommand(showNotification);
+  const screenshot = useScreenshot(showNotification);
   const closeBrowsers = useCloseBrowsers(showNotification);
 
-  return { status, info, start, shutdown, reboot, execute, closeBrowsers };
+  return { status, info, start, shutdown, reboot, execute, screenshot, closeBrowsers };
 };

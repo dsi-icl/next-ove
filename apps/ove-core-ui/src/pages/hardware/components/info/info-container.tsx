@@ -1,16 +1,15 @@
 import Info from "./info";
-import { type DeviceAction } from "../../types";
-import { type InfoTypes, useStore } from "../../../../store";
+import { useStore } from "../../../../store";
+import { type InfoTypes } from "../../../../utils";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 
 import styles from "./info.module.scss";
 
-const InfoContainer = ({ deviceAction }: {
-  deviceAction: DeviceAction
-}) => {
-  const infoIdx = useStore(state => state.paginationIdx);
-  const curInfo = useStore(state => state.info);
-  const setInfo = useStore(state => state.setInfo);
+const InfoContainer = () => {
+  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
+  const infoIdx = useStore(state => state.hardwareConfig.paginationIdx);
+  const curInfo = useStore(state => state.hardwareConfig.info);
+  const setInfo = useStore(state => state.hardwareConfig.setInfo);
 
   let info: object | null = null;
   let deviceId: string | null = null;
@@ -27,7 +26,13 @@ const InfoContainer = ({ deviceAction }: {
     }
   }
 
-  return <PaginatedDialog data={curInfo?.data ?? null}>{curInfo !== null ? <div className={styles.container}>
+  const getMaxLen = (obj: {data: object} | {data: object[]} | null) => {
+    if (obj === null) return null;
+    if ("length" in obj.data) return obj.data.length;
+    return null;
+  }
+
+  return <PaginatedDialog data={curInfo?.data ?? null} maxLen={getMaxLen(curInfo)}>{curInfo !== null ? <div className={styles.container}>
     <div className={styles.header}>
       <h4>Info - {deviceId}</h4>
       <label htmlFor="type">INFO TYPE:</label>

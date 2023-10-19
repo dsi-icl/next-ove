@@ -1,23 +1,26 @@
+import { useStore } from "../../../../store";
 import { Calendar, CameraVideo } from "react-bootstrap-icons";
 
 import styles from "./header.module.scss";
-import { DeviceAction } from "../../types";
 
-const Header = ({ name, setDeviceAction, isOnline }: {
+const Header = ({ name, isOnline }: {
   name: string,
-  setDeviceAction: (deviceAction: DeviceAction) => void,
   isOnline: boolean
-}) =>
-  <div className={styles.header}>
+}) => {
+  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+
+  return <div className={styles.header}>
     <h2>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
     {isOnline ? <div className={styles.actions}>
       <button className={styles.icon} onClick={() => setDeviceAction({
+        bridgeId: name,
         action: "monitoring",
         deviceId: null,
         pending: false
       })}>
         <CameraVideo /></button>
       <button className={styles.icon} onClick={() => setDeviceAction({
+        bridgeId: name,
         action: "calendar",
         deviceId: null,
         pending: false
@@ -25,5 +28,6 @@ const Header = ({ name, setDeviceAction, isOnline }: {
         <Calendar /></button>
     </div> : null}
   </div>;
+};
 
 export default Header;

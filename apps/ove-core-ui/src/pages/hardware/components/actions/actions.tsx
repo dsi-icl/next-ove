@@ -3,13 +3,13 @@ import { type ActionController } from "../../types";
 import MDCActions from "./mdc-actions";
 import ProjectorActions from "./projector-actions";
 
-const Actions = ({ setDeviceAction, device }: ActionController) => {
+const Actions = ({ device, bridgeId }: ActionController) => {
   if (device.type === "node") {
-    return <NodeActions setDeviceAction={setDeviceAction} device={device} />
+    return <NodeActions device={device} bridgeId={bridgeId} />
   } else if (device.type === "mdc") {
-    return <MDCActions setDeviceAction={setDeviceAction} device={device} />;
+    return <MDCActions device={device} bridgeId={bridgeId} />;
   } else {
-    return <ProjectorActions setDeviceAction={setDeviceAction} device={device} />
+    return <ProjectorActions device={device} bridgeId={bridgeId} />
   }
 };
 

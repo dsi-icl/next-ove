@@ -1,6 +1,6 @@
+import { type HardwareInfo } from "../../types";
 import MultiActions from "../actions/multi-actions";
 import SearchSelect from "../search-select/search-select";
-import { type DeviceAction, type HardwareInfo } from "../../types";
 
 import styles from "./toolbar.module.scss";
 
@@ -10,7 +10,7 @@ type ToolbarProps = {
   setFilter: (filter: string) => void
   filterType: "id" | "tags"
   filter: string
-  setDeviceAction: (deviceAction: DeviceAction) => void
+  name: string
 }
 
 const Toolbar = ({
@@ -19,7 +19,7 @@ const Toolbar = ({
   setFilter,
   filterType,
   filter,
-  setDeviceAction
+  name
 }: ToolbarProps) => {
   return <div className={styles.toolbar}>
     <p>Filter by</p>
@@ -39,7 +39,7 @@ const Toolbar = ({
                     }
                   }) => filterType === "id" ? [id] : tags)} />
     <div className={styles["multi-actions"]}>
-      <MultiActions setDeviceAction={setDeviceAction} />
+      <MultiActions bridgeId={name} />
     </div>
   </div>;
 };

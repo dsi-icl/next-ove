@@ -7,11 +7,11 @@ export type HardwareInfo = {
 
 export type ActionController = {
   device: Device
-  setDeviceAction: (deviceAction: DeviceAction) => void
+  bridgeId: string
 }
 
 type Action = "status" | "info" | "start" | "shutdown" | "reboot" | "execute" | "screenshot" | "input_change" | "browser_status" | "browser_open" | "browser_close" | "browsers_close" | "monitoring" | "calendar";
 
-export type DeviceAction = { deviceId: string | null, action: Action | null, pending: boolean };
+export type DeviceAction = { bridgeId: string | null, deviceId: string | null, action: Action | null, pending: boolean };
 
 export type DeviceStatus = "running" | "off" | null;

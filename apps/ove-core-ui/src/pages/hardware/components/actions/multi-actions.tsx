@@ -1,4 +1,3 @@
-import { type DeviceAction } from "../../types";
 import {
   ArrowClockwise,
   ArrowRepeat,
@@ -13,15 +12,16 @@ import {
   WindowPlus,
   WindowX
 } from "react-bootstrap-icons";
+import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
 
-const MultiActions = ({ setDeviceAction }: {
-  setDeviceAction: (deviceAction: DeviceAction) => void
-}) =>
-  <div className={styles.actions}>
+const MultiActions = ({bridgeId}: {bridgeId: string}) => {
+  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "status",
         deviceId: null,
         pending: false
@@ -29,6 +29,7 @@ const MultiActions = ({ setDeviceAction }: {
         <ArrowRepeat />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "info",
         deviceId: null,
         pending: false
@@ -38,6 +39,7 @@ const MultiActions = ({ setDeviceAction }: {
     </div>
     <div className={styles.container}>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "start",
         deviceId: null,
         pending: false
@@ -45,6 +47,7 @@ const MultiActions = ({ setDeviceAction }: {
         <PlayCircle />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "shutdown",
         deviceId: null,
         pending: false
@@ -52,6 +55,7 @@ const MultiActions = ({ setDeviceAction }: {
         <StopCircle />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "reboot",
         deviceId: null,
         pending: false
@@ -61,6 +65,7 @@ const MultiActions = ({ setDeviceAction }: {
     </div>
     <div className={styles.container}>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "execute",
         deviceId: null,
         pending: false
@@ -68,6 +73,7 @@ const MultiActions = ({ setDeviceAction }: {
         <FileEarmarkCode />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "screenshot",
         deviceId: null,
         pending: true
@@ -75,6 +81,7 @@ const MultiActions = ({ setDeviceAction }: {
         <Camera />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "input_change",
         deviceId: null,
         pending: true
@@ -84,6 +91,7 @@ const MultiActions = ({ setDeviceAction }: {
     </div>
     <div id={styles["windows"]} className={styles.container}>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "browser_status",
         deviceId: null,
         pending: false
@@ -91,6 +99,7 @@ const MultiActions = ({ setDeviceAction }: {
         <Window />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "browser_open",
         deviceId: null,
         pending: true
@@ -98,6 +107,7 @@ const MultiActions = ({ setDeviceAction }: {
         <WindowPlus />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "browser_close",
         deviceId: null,
         pending: true
@@ -105,6 +115,7 @@ const MultiActions = ({ setDeviceAction }: {
         <WindowDash />
       </button>
       <button onClick={() => setDeviceAction({
+        bridgeId,
         action: "browsers_close",
         deviceId: null,
         pending: false
@@ -113,5 +124,6 @@ const MultiActions = ({ setDeviceAction }: {
       </button>
     </div>
   </div>;
+};
 
 export default MultiActions;

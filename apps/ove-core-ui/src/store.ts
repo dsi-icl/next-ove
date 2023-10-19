@@ -1,28 +1,39 @@
 import { create } from "zustand";
 import { InfoTypes } from "./utils";
 import { Json } from "@ove/ove-utils";
-import { type Tokens } from "@ove/ove-types";
+import { ScreenshotMethod, type Tokens } from "@ove/ove-types";
+import { DeviceAction } from "./pages/hardware/types";
 
 type Store = {
   tokens: Tokens | null
   setTokens: (tokens: Tokens | null) => void
-  info: { data: object, type: InfoTypes } | {
-    data: object[],
-    type: InfoTypes
-  } | null
-  setInfo: (info: { data: object, type: InfoTypes } | {
-    data: object[],
-    type: InfoTypes
-  } | null) => void
-  command: string | null
-  setCommand: (command: string | null) => void
-  clearCommand: () => void
-  commandHistory: string[]
-  addCommandHistory: (line: string) => void
-  clearCommandHistory: () => void
-  paginationIdx: number
-  setPaginationIdx: (paginationIdx: number) => void
-  reset: () => void
+  hardwareConfig: {
+    deviceAction: DeviceAction
+    setDeviceAction: (deviceAction: DeviceAction) => void
+    info: { data: object, type: InfoTypes } | {
+      data: object[],
+      type: InfoTypes
+    } | null
+    setInfo: (info: { data: object, type: InfoTypes } | {
+      data: object[],
+      type: InfoTypes
+    } | null) => void
+    command: string | null
+    setCommand: (command: string | null) => void
+    clearCommand: () => void
+    commandHistory: string[]
+    addCommandHistory: (line: string) => void
+    clearCommandHistory: () => void
+    paginationIdx: number
+    setPaginationIdx: (paginationIdx: number) => void
+    screenshotConfig: {method: ScreenshotMethod, screens: number[]} | null
+    setScreenshotConfig: (screenshotConfig: {method: ScreenshotMethod, screens: number[]}) => void
+    clearScreenshotConfig: () => void
+    screenshots: string[] | { response: string[], deviceId: string }[] | null
+    setScreenshots: (screenshots: string[] | {response: string[], deviceId: string}[]) => void
+    clearScreenshots: () => void
+    reset: () => void
+  }
 }
 
 const getCurrentTokens = () => {
@@ -34,20 +45,90 @@ const getCurrentTokens = () => {
 export const useStore = create<Store>(set => ({
   tokens: getCurrentTokens(),
   setTokens: (tokens: Tokens | null) => tokens === null ? set({ tokens: null }) : set({ tokens: { ...tokens } }),
-  info: null,
-  setInfo: info => set({ info }),
-  paginationIdx: 0,
-  setPaginationIdx: paginationIdx => set({ paginationIdx }),
-  command: null,
-  setCommand: command => set({ command }),
-  commandHistory: [],
-  addCommandHistory: line => set(state => ({ commandHistory: [line, ...state.commandHistory] })),
-  clearCommandHistory: () => set({ commandHistory: [] }),
-  reset: () => set({
+  hardwareConfig: {
     info: null,
+    setInfo: info => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        info
+      }
+    })),
     paginationIdx: 0,
+    setPaginationIdx: paginationIdx => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        paginationIdx
+      }
+    })),
     command: null,
-    commandHistory: []
-  }),
-  clearCommand: () => set({ command: null })
+    setCommand: command => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        command
+      }
+    })),
+    commandHistory: [],
+    addCommandHistory: line => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        commandHistory: [line, ...state.hardwareConfig.commandHistory]
+      }
+    })),
+    clearCommandHistory: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        commandHistory: []
+      }
+    })),
+    reset: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        info: null,
+        paginationIdx: 0,
+        command: null,
+        commandHistory: [],
+        screenshotConfig: null,
+        screenshots: null
+      }
+    })),
+    clearCommand: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        command: null
+      }
+    })),
+    deviceAction: {bridgeId: null, action: null, deviceId: null, pending: false},
+    setDeviceAction: deviceAction => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        deviceAction
+      }
+    })),
+    screenshotConfig: null,
+    setScreenshotConfig: screenshotConfig => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        screenshotConfig
+      }
+    })),
+    clearScreenshotConfig: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        screenshotConfig: null
+      }
+    })),
+    screenshots: null,
+    setScreenshots: screenshots => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        screenshots
+      }
+    })),
+    clearScreenshots: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        screenshots: null
+      }
+    }))
+  }
 }));

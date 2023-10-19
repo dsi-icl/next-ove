@@ -16,9 +16,9 @@ const Console = ({ consoleId, isOpen }: {
   consoleId: string,
   isOpen: boolean
 }) => {
-  const commandHistory = useStore(state => state.commandHistory);
-  const setCommand = useStore(state => state.setCommand);
-  const addCommand = useStore(state => state.addCommandHistory);
+  const commandHistory = useStore(state => state.hardwareConfig.commandHistory);
+  const setCommand = useStore(state => state.hardwareConfig.setCommand);
+  const addCommand = useStore(state => state.hardwareConfig.addCommandHistory);
   const { register, reset, handleSubmit } = useForm<{ command: string }>();
 
   const onSubmit = useCallback(({ command }: { command: string }) => {

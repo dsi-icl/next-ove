@@ -12,6 +12,7 @@ import {
   type Image,
   type ScreenshotMethod
 } from "@ove/ove-types";
+import { logger } from "../../../env";
 
 const windowController = <{
   createWindow: ((url?: string, displayId?: ID) => string) | null,
@@ -97,7 +98,15 @@ const screenshot = async (
   }));
 
   const errored = results.find(x => x.status === "rejected");
-  if (!errored) return results as unknown as string[];
+  if (!errored) return results.map(x => (x as {value: string}).value);
+  (results.filter(({status}) => status === "fulfilled") as {value: string}[]).forEach(({value}) => {
+    if (method === "response" || method === "upload") return;
+    try {
+      fs.rmSync(value);
+    } catch (e) {
+      logger.error(`Failed to remove file: ${value}. Cause: ${e}`);
+    }
+  });
   const erroredDisplays = results
     .filter(({ status }) => status === "rejected")
     .map((_x, i) => displays[i].displayId)

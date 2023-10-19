@@ -6,16 +6,16 @@ import styles from "./paginated-dialog.module.scss";
 type PaginatedDialogProps<TData extends object> = {
   data: TData | TData[] | null
   children: JSX.Element | null
+  maxLen: number | null
 }
 
 const PaginatedDialog = <TData extends object, >({
   data,
-  children
+  children,
+  maxLen
 }: PaginatedDialogProps<TData>) => {
-  const idx = useStore(state => state.paginationIdx);
-  const setIdx = useStore(state => state.setPaginationIdx);
-
-  let maxLen = data !== null && "length" in data ? data.length : null;
+  const idx = useStore(state => state.hardwareConfig.paginationIdx);
+  const setIdx = useStore(state => state.hardwareConfig.setPaginationIdx);
 
   return data !== null ? <>
     {children}

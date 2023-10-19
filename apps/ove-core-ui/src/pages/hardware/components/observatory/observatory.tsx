@@ -1,19 +1,17 @@
 import Header from "../header/header";
-import Popups from "../popups/popups";
 import Actions from "../actions/actions";
 import Toolbar from "../toolbar/toolbar";
 import { useHardware } from "../../hooks";
 import { useEffect, useState } from "react";
 import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
+import { type HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
 import { useController } from "../controller/controller";
-import { type DeviceAction, type HardwareInfo } from "../../types";
-import { Dialog, Snackbar, useDialog, useSnackbar } from "@ove/ui-components";
 
 import styles from "./observatory.module.scss";
 
-const getData = (hardware: HardwareInfo[], setDeviceAction: (deviceAction: DeviceAction) => void) => hardware.map(({
+const getData = (bridgeId: string, hardware: HardwareInfo[]) => hardware.map(({
   device,
   status
 }) => ({
@@ -23,50 +21,29 @@ const getData = (hardware: HardwareInfo[], setDeviceAction: (deviceAction: Devic
   mac: device.mac,
   tags: device.tags,
   status: status,
-  actions: <Actions device={device} setDeviceAction={setDeviceAction} />
+  actions: <Actions device={device} bridgeId={bridgeId} />
 }));
 
-const Observatory = ({ name, isOnline }: {
-  name: string,
+const Observatory = ({ name, isOnline, showNotification }: {
+  name: string
   isOnline: boolean
+  showNotification: (text: string) => void
 }) => {
-  const { ref, closeDialog, openDialog, isOpen } = useDialog();
-  const setPaginationIdx = useStore(state => state.setPaginationIdx);
   const {
     hardware,
     updateStatus,
     updateStatusAll
   } = useHardware(isOnline, name);
-  const { notification, show: showNotification, isVisible } = useSnackbar();
   const [filter, setFilter] = useState("");
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
-  const reset = useStore(state => state.reset);
-  const [deviceAction, setDeviceAction] = useState<DeviceAction>({
-    action: null,
-    deviceId: null,
-    pending: false
-  });
+  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
 
-  useController(deviceAction, name, filter, updateStatus, updateStatusAll, showNotification);
-
-  useEffect(() => {
-    if (isOpen) return;
-    reset();
-  }, [isOpen]);
-
-  useEffect(() => {
-    setPaginationIdx(0);
-    if (deviceAction.action !== "info" && deviceAction.action !== "execute" && !deviceAction.pending) return;
-    if (deviceAction.action === null) {
-      closeDialog();
-    } else {
-      openDialog();
-    }
-  }, [deviceAction]);
+  useController(name, filter, updateStatus, updateStatusAll, showNotification);
 
   useEffect(() => {
     if (filterType !== "id") return;
     setDeviceAction({
+      bridgeId: name,
       action: null,
       deviceId: filter === "" ? null : filter,
       pending: false
@@ -74,20 +51,15 @@ const Observatory = ({ name, isOnline }: {
   }, [filter]);
 
   return <section className={styles.observatory}>
-    <Header name={name} isOnline={isOnline} setDeviceAction={setDeviceAction} />
+    <Header name={name} isOnline={isOnline} />
     {isOnline ? <>
       <Toolbar filterType={filterType} hardware={hardware} filter={filter}
-               setDeviceAction={setDeviceAction}
-               setFilterType={setFilterType} setFilter={setFilter} />
+               setFilterType={setFilterType} setFilter={setFilter}
+               name={name} />
       <div className={styles["table-container"]}>
         <DataTable columns={columns} filterType={filterType} filter={filter}
-                   data={getData(hardware, setDeviceAction)} />
+                   data={getData(name, hardware)} />
       </div>
-      <Dialog closeDialog={closeDialog} ref={ref}
-              title={deviceAction.deviceId ?? ""}>
-        <Popups name={name} deviceAction={deviceAction} isOpen={isOpen} />
-      </Dialog>
-      <Snackbar text={notification ?? ""} show={isVisible} />
     </> : null}
   </section>;
 };
