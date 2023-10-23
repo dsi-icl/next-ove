@@ -8,8 +8,8 @@ import {
   type THardwareServerToClientEvents
 } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
-import { io, type Socket } from "socket.io-client";
 import { env, logger } from "../../../../env";
+import { io, type Socket } from "socket.io-client";
 
 let socket: Socket<
   THardwareServerToClientEvents,

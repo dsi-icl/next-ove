@@ -27,7 +27,7 @@ const getSize = (id: string) => {
     case "id":
       return "10%";
     case "hostname":
-      return "20%";
+      return "15%";
     case "mac":
       return "10%";
     case "tags":
@@ -35,7 +35,7 @@ const getSize = (id: string) => {
     case "status":
       return "5%";
     case "actions":
-      return "30%";
+      return "40%";
     default:
       return "100%";
   }
@@ -74,7 +74,7 @@ const DataTable = <TData, TValue>({
       <thead>
       {table.getHeaderGroups().map(group => <tr key={group.id}>
         {group.headers.map(header => <th key={header.id}
-                                         style={{ width: getSize(header.id) }}>
+                                         style={{ width: getSize(header.id), maxWidth: getSize(header.id), minWidth: getSize(header.id) }}>
           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
         </th>)}
       </tr>)}

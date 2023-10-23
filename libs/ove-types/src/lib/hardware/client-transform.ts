@@ -10,7 +10,7 @@ import {
   type TServiceRoutesSchema
 } from "./service";
 import { z } from "zod";
-import { OVEExceptionSchema } from "../ove-types";
+import { OVEException, OVEExceptionSchema } from "../ove-types";
 
 /* Utility Types */
 
@@ -20,7 +20,7 @@ import { OVEExceptionSchema } from "../ove-types";
 export type TDeviceResponseSchema<T extends z.ZodTypeAny> =
   z.ZodUnion<readonly [T, typeof OVEExceptionSchema]>;
 
-export type TDeviceResponse<T> = z.infer<TDeviceResponseSchema<z.ZodType<T>>>
+export type TDeviceResponse<T> = T | OVEException
 
 /* Utility Schemas */
 

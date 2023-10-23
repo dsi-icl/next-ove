@@ -16,7 +16,7 @@ export const init = (
   setInterval(updatePin, env.PIN_UPDATE_DELAY);
 };
 
-export default <TClientService>({
+const controller: TClientService = {
   getStatus: async () => {
     logger.info("GET /status - getting service's status");
     return true;
@@ -84,4 +84,6 @@ export default <TClientService>({
     state.browsers.clear();
     return true;
   }
-});
+};
+
+export default controller;

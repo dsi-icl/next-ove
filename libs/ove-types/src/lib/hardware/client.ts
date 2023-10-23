@@ -22,7 +22,7 @@ export type TClientExposedRoutes = {
 export type TClientService = {
   [Key in TClientExposedRoutes]:
   (args: z.infer<TClientRoutesSchema[Key]["args"]>) =>
-    Promise<z.infer<TClientRoutesSchema[Key]["client"]>>
+    Promise<z.infer<TClientRoutesSchema[Key]["returns"]>>
 };
 
 /* API Types */
@@ -37,7 +37,7 @@ export type TClientAPI = {
  * Client API schema, only those that are exposed on the client
  */
 export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(ClientAPITransformSchema)
-  .filter(([_k, route]) => route.exposed === "client")) as TClientRoutesSchema;
+  .filter(([_k, route]) => route.exposed === "client")) as TClientAPI;
 
 /* Service Utility Types */
 
@@ -46,11 +46,5 @@ export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(Cli
  */
 export type TClientServiceArgs<Key extends keyof TClientService> =
   z.infer<TClientRoutesSchema[Key]["args"]>;
-
-/**
- * Return type of client service function
- */
-export type TClientServiceReturns<Key extends keyof TClientService> =
-  Promise<z.infer<TClientRoutesSchema[Key]["client"]>>;
 
 export type TClientAPIReturns<Key extends keyof TClientAPI> = Promise<z.infer<TClientAPI[Key]["client"]>>

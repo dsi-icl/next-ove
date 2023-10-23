@@ -48,8 +48,3 @@ export type THardwareClientToServerEvents = Record<string, unknown>;
  */
 export type TBridgeServiceArgs<Key extends keyof TBridgeHardwareService> =
   z.infer<TClientRoutesSchema[Key]["args"]>;
-/**
- * Return type for bridge service function
- */
-export type TBridgeServiceReturns<Key extends keyof TBridgeHardwareService> =
-  z.infer<TClientRoutesSchema[Key]["returns"]>;

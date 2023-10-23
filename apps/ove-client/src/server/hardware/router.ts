@@ -1,21 +1,21 @@
 import {
-  type TClientAPI,
-  type OVEException,
-  type TClientService,
   ClientAPISchema,
-  type TClientServiceArgs,
-  type TClientServiceReturns,
-  type OpenAPIMethod, TClientAPIReturns
+  type OpenAPIMethod,
+  type OVEException,
+  type TClientAPI,
+  TClientAPIReturns,
+  type TClientService,
+  type TClientServiceArgs
 } from "@ove/ove-types";
-import controller from "./controller";
 import { logger } from "../../env";
+import controller from "./controller";
 import { protectedProcedure, router } from "../trpc";
 
 const safeCallController = async <
   Key extends keyof TClientService
->(k: Key, args: TClientServiceArgs<Key>): Promise<TClientServiceReturns<Key>> => {
+>(k: Key, args: TClientServiceArgs<Key>): Promise<TClientAPIReturns<Key>> => {
   try {
-    return await controller[k](args);
+    return await controller[k](args) as TClientAPIReturns<Key>;
   } catch (e) {
     logger.error(e);
     return <OVEException>{ oveError: (e as Error).message };
@@ -25,19 +25,16 @@ const safeCallController = async <
 const generateProcedure = <Key extends keyof TClientAPI>(k: Key) =>
   protectedProcedure
     .meta(ClientAPISchema[k].meta)
-    .input<TClientAPI[typeof k]["args"]>(ClientAPISchema[k].args)
-    .output<TClientAPI[typeof k]["client"]>(ClientAPISchema[k].client);
+    .input<TClientAPI[Key]["args"]>(ClientAPISchema[k].args)
+    .output<TClientAPI[Key]["client"]>(ClientAPISchema[k].client);
 
-// unknown need for a non-generic generic function
-// @ts-ignore
-const generateQuery = <Key extends keyof TClientAPI>(k: keyof TClientAPI) => generateProcedure(k)
-  .query<TClientAPIReturns<typeof k>>(async ({ input }) => safeCallController<typeof k>(k, input as TClientServiceArgs<typeof k>));
+const generateQuery = <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
+  // @ts-ignore
+  .query<TClientAPIReturns<Key>>(async ({ input }) => safeCallController<Key>(k, input as TClientServiceArgs<Key>));
 
-// unknown need for a non-generic generic function
-// @ts-ignore
-const generateMutation = <Key extends keyof TClientAPI>(k: keyof TClientAPI) => generateProcedure(k)
-  .mutation<TClientAPIReturns<typeof k>>(async ({ input }) =>
-    safeCallController<typeof k>(k, input));
+const generateMutation = <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
+    // @ts-ignore
+  .mutation<TClientAPIReturns<Key>>(async ({ input }) => safeCallController<Key>(k, input));
 
 export type ClientRouter = {
   [Key in keyof TClientAPI]: OpenAPIMethod<Key> extends "GET" ?
