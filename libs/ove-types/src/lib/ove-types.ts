@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ResponseSchema = z.object({ response: z.string() });
 
-export const OVEExceptionSchema = z.object({
+export const OVEExceptionSchema = z.strictObject({
   oveError: z.string()
 });
 

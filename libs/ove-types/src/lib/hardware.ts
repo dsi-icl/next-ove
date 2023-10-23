@@ -55,7 +55,7 @@ export const MDCSourceSchema = z.object({
   DP: z.number(),
   DP2: z.number(),
   DP3: z.number()
-}).strict();
+});
 
 export type MDCSources = z.infer<typeof MDCSourceSchema>;
 export const SourceSchemas = z.union([

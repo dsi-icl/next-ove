@@ -1,7 +1,7 @@
 import { useEffect } from "react";
+import { isError } from "@ove/ove-types";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import { isError, type TCoreAPIOutput } from "@ove/ove-types";
 
 export const useStatus = (deviceId: string, bridgeId: string, setStatus: (deviceId: string, status: "running" | "off" | null) => void) => {
   const status = trpc.hardware.getStatus.useQuery({
@@ -28,11 +28,10 @@ export const useInfo = (deviceId: string, bridgeId: string) => {
 
   useEffect(() => {
     if (info.status !== "success") return;
-    const data = info.data.response as TCoreAPIOutput<"getInfo">["response"];
-    if (typeof data !== "object" || data === null || "oveError" in data) {
+    if (typeof info.data.response !== "object" || info.data.response === null || "oveError" in info.data.response) {
       setInfo(null);
     } else {
-      setInfo({ data: data as object, type: curInfo?.type ?? "general" });
+      setInfo({ data: info.data.response, type: curInfo?.type ?? "general" });
     }
   }, [info.status, info.isRefetching]);
 
@@ -89,11 +88,10 @@ export const useExecuteCommand = (deviceId: string, showNotification: (text: str
     if (execute.status === "error") {
       showNotification(`Failed to execute command on ${deviceId}`);
     } else if (execute.status === "success") {
-      const data = execute.data.response as TCoreAPIOutput<"execute">["response"];
-      if ("response" in data) {
-        addCommand(data.response);
+      if ("response" in execute.data.response) {
+        addCommand(execute.data.response.response);
       } else {
-        addCommand(data.oveError);
+        addCommand(execute.data.response.oveError);
       }
     }
   }, [execute.status]);
@@ -110,19 +108,17 @@ export const useScreenshot = (deviceId: string, showNotification: (text: string)
       showNotification(`Failed to take screenshot on ${deviceId}`);
       return;
     } else if (takeScreenshot.status === "success") {
-      const data = takeScreenshot.data.response as TCoreAPIOutput<"screenshot">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in takeScreenshot.data.response) {
         showNotification(`Failed to take screenshot on ${deviceId}`);
         return;
       }
 
-      if (data.length === 0) {
+      if (takeScreenshot.data.response.length === 0) {
         showNotification(`Screenshot(s) taken successfully on ${deviceId}`);
         return;
       }
 
-      setScreenshots(data);
+      setScreenshots(takeScreenshot.data.response);
     }
   }, [takeScreenshot.status]);
 
@@ -142,13 +138,12 @@ export const useGetBrowserStatus = (bridgeId: string, deviceId: string, showNoti
     if (getBrowserStatus.status === "error") {
       showNotification(`Failed to get browser status on ${deviceId}`);
     } else if (getBrowserStatus.status === "success") {
-      const data = getBrowserStatus.data.response as TCoreAPIOutput<"getBrowserStatus">["response"];
-      if (typeof data !== "boolean") {
+      if (typeof getBrowserStatus.data.response !== "boolean") {
         showNotification(`Failed to get browser status on ${deviceId}`);
         return;
       }
 
-      setBrowserStatus(data ? "running" : "off");
+      setBrowserStatus(getBrowserStatus.data.response ? "running" : "off");
     }
   }, [getBrowserStatus.status, getBrowserStatus.isRefetching]);
 
@@ -162,13 +157,11 @@ export const useOpenBrowser = (deviceId: string, showNotification: (text: string
     if (openBrowser.status === "error") {
       showNotification(`Failed to open browser on ${deviceId}`);
     } else if (openBrowser.status === "success") {
-      const data = openBrowser.data.response as TCoreAPIOutput<"openBrowser">["response"];
-
-      if (typeof data !== "number") {
+      if (typeof openBrowser.data.response !== "number") {
         showNotification(`Failed to open browser on ${deviceId}`);
         return;
       }
-      showNotification(`Opened browser on ${deviceId} with ID: ${data}`);
+      showNotification(`Opened browser on ${deviceId} with ID: ${openBrowser.data.response}`);
     }
   }, [openBrowser.status]);
 
@@ -182,9 +175,7 @@ export const useCloseBrowser = (deviceId: string, showNotification: (text: strin
     if (closeBrowser.status === "error") {
       showNotification(`Failed to close browser on ${deviceId}`);
     } else if (closeBrowser.status === "success") {
-      const data = closeBrowser.data.response as TCoreAPIOutput<"closeBrowser">["response"];
-
-      if (typeof data !== "boolean" || !data) {
+      if (typeof closeBrowser.data.response !== "boolean" || !closeBrowser.data.response) {
         showNotification(`Failed to close browser on ${deviceId}`);
       } else {
         showNotification(`Successfully closed browser on ${deviceId}`);

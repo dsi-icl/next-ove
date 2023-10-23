@@ -19,12 +19,9 @@ const generateProcedure = <Key extends keyof TBridgeService>(k: Key) => protecte
   .output<TAPIRoutes[Key]["output"]>(APIRoutes[k].output);
 
 const generateQuery = <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-  .query<TWrappedResponse<Key>>(({
-    input: {
-      bridgeId,
-      ...args
-    }
-  }): Promise<TWrappedResponse<Key>> => {
+  .query<TWrappedResponse<Key>>(({ input }): Promise<TWrappedResponse<Key>> => {
+    if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
+    const { bridgeId, ...args } = input;
     logger.info(`Handling ${k}`);
 
     return new Promise<TWrappedResponse<Key>>(resolve => {
@@ -34,12 +31,9 @@ const generateQuery = <Key extends keyof TBridgeService>(k: Key) => generateProc
   });
 
 const generateMutation = <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-  .mutation<TWrappedResponse<Key>>(({
-    input: {
-      bridgeId,
-      ...args
-    }
-  }): Promise<TWrappedResponse<Key>> => {
+  .mutation<TWrappedResponse<Key>>(({ input }): Promise<TWrappedResponse<Key>> => {
+    if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
+    const { bridgeId, ...args } = input;
     logger.info(`Handling ${k}`);
 
     return new Promise<TWrappedResponse<Key>>(resolve => {

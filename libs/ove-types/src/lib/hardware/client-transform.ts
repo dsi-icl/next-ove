@@ -18,7 +18,7 @@ import { OVEException, OVEExceptionSchema } from "../ove-types";
  * All client responses are wrapped with an exception
  */
 export type TDeviceResponseSchema<T extends z.ZodTypeAny> =
-  z.ZodUnion<readonly [T, typeof OVEExceptionSchema]>;
+  z.ZodUnion<[T, typeof OVEExceptionSchema]>;
 
 export type TDeviceResponse<T> = T | OVEException
 

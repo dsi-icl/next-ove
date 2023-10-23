@@ -1,8 +1,8 @@
 import { useEffect } from "react";
+import { isError } from "@ove/ove-types";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { type DeviceStatus } from "../../types";
-import { isError, type TCoreAPIOutput } from "@ove/ove-types";
 
 export const useStatus = (bridgeId: string, tag: string, setAllStatus: (tag: string, status: DeviceStatus | {
   deviceId: string,
@@ -17,12 +17,11 @@ export const useStatus = (bridgeId: string, tag: string, setAllStatus: (tag: str
     if (status.status === "error") {
       setAllStatus(tag, null);
     } else if (status.status === "success") {
-      const data = status.data.response as TCoreAPIOutput<"getStatusAll">["response"];
-      if ("oveError" in data) {
+      if ("oveError" in status.data.response) {
         setAllStatus(tag, null);
         return;
       }
-      setAllStatus(tag, data.map(({ deviceId, response }) => ({
+      setAllStatus(tag, status.data.response.map(({ deviceId, response }) => ({
         deviceId,
         status: isError(response) ? "off" : "running"
       })));
@@ -43,15 +42,13 @@ export const useInfo = (bridgeId: string, tag: string) => {
 
   useEffect(() => {
     if (info.status !== "success") return;
-    const data = info.data.response as TCoreAPIOutput<"getInfoAll">["response"];
-
-    if ("oveError" in data) {
+    if ("oveError" in info.data.response) {
       setInfo(null);
       return;
     }
 
     setInfo({
-      data: data.filter(({ response }) => response !== null && typeof response === "object" && !("oveError" in response)),
+      data: info.data.response.filter(({ response }) => response !== null && typeof response === "object" && !("oveError" in response)),
       type: curInfo?.type ?? "general"
     });
   }, [info.status, info.isRefetching]);
@@ -66,15 +63,14 @@ export const useStartDevice = (showNotification: (text: string) => void) => {
     if (start.status === "error") {
       showNotification("Failed to start devices");
     } else if (start.status === "success") {
-      const data = start.data.response as TCoreAPIOutput<"startAll">["response"];
-      if ("oveError" in data) {
+      if ("oveError" in start.data.response) {
         showNotification("Failed to start devices");
         return;
       }
 
       let containsError = false;
 
-      data.forEach(({ deviceId, response }, i) => {
+      start.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
           setTimeout(() => showNotification(`Failed to start: ${deviceId}`), 3000 * i);
           containsError = true;
@@ -97,16 +93,14 @@ export const useShutdownDevice = (showNotification: (text: string) => void) => {
     if (shutdown.status === "error") {
       showNotification("Failed to shutdown devices");
     } else if (shutdown.status === "success") {
-      const data = shutdown.data.response as TCoreAPIOutput<"shutdownAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in shutdown.data.response) {
         showNotification("Failed to shutdown devices");
         return;
       }
 
       let containsError = false;
 
-      data.forEach(({ deviceId, response }) => {
+      shutdown.data.response.forEach(({ deviceId, response }) => {
         if (typeof response === "object") {
           showNotification(`Failed to shutdown ${deviceId}`);
           containsError = true;
@@ -129,16 +123,14 @@ export const useRebootDevice = (showNotification: (text: string) => void) => {
     if (reboot.status === "error") {
       showNotification("Failed to reboot devices");
     } else if (reboot.status === "success") {
-      const data = reboot.data.response as TCoreAPIOutput<"rebootAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in reboot.data.response) {
         showNotification("Failed to reboot devices");
         return;
       }
 
       let containsError = false;
 
-      data.forEach(({ deviceId, response }, i) => {
+      reboot.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
           setTimeout(() => showNotification(`Failed to reboot: ${deviceId}`), 3000 * i);
           containsError = true;
@@ -162,14 +154,12 @@ export const useExecuteCommand = (showNotification: (text: string) => void) => {
     if (execute.status === "error") {
       showNotification("Failed to execute command");
     } else if (execute.status === "success") {
-      const data = execute.data.response as TCoreAPIOutput<"executeAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in execute.data.response) {
         showNotification("Failed to execute command");
         return;
       }
 
-      data.forEach(({ deviceId, response }) => {
+      execute.data.response.forEach(({ deviceId, response }) => {
         if ("response" in response) {
           addCommand(`${deviceId} > ${response.response}`);
         } else {
@@ -190,18 +180,16 @@ export const useScreenshot = (showNotification: (text: string) => void) => {
     if (screenshot.status === "error") {
       showNotification("Failed to take screenshots");
     } else if (screenshot.status === "success") {
-      const data = screenshot.data.response as TCoreAPIOutput<"screenshotAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in screenshot.data.response) {
         showNotification("Failed to take screenshots");
         return;
       }
 
-      data.filter(({ response }) => "oveError" in response).forEach(({ response }, i) => setTimeout(() => showNotification((response as {
+      screenshot.data.response.filter(({ response }) => "oveError" in response).forEach(({ response }, i) => setTimeout(() => showNotification((response as {
         oveError: string
       }).oveError), 3000 * i));
 
-      setScreenshots(data.filter(({ response }) => !("oveError" in response)) as {
+      setScreenshots(screenshot.data.response.filter(({ response }) => !("oveError" in response)) as {
         response: string[],
         deviceId: string
       }[]);
@@ -224,14 +212,12 @@ export const useGetBrowserStatus = (bridgeId: string, tag: string, showNotificat
     if (getBrowserStatus.status === "error") {
       showNotification("Failed to get browser statuses");
     } else if (getBrowserStatus.status === "success") {
-      const data = getBrowserStatus.data.response as TCoreAPIOutput<"getBrowserStatusAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in getBrowserStatus.data.response) {
         showNotification("Failed to get browser statuses");
         return;
       }
 
-      setBrowserStatus(data.map(({ deviceId, response }) => ({
+      setBrowserStatus(getBrowserStatus.data.response.map(({ deviceId, response }) => ({
         deviceId,
         response: typeof response !== "boolean" || !response ? "off" : "running"
       })));
@@ -248,14 +234,12 @@ export const useOpenBrowser = (showNotification: (text: string) => void) => {
     if (openBrowser.status === "error") {
       showNotification("Failed to open browsers");
     } else if (openBrowser.status === "success") {
-      const data = openBrowser.data.response as TCoreAPIOutput<"openBrowserAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in openBrowser.data.response) {
         showNotification("Failed to open browsers");
         return;
       }
 
-      data.forEach(({ deviceId, response }, i) => {
+      openBrowser.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "number") {
           setTimeout(() => showNotification(`Failed to open browser on ${deviceId}`), 3000 * i);
         } else {
@@ -276,14 +260,12 @@ export const useCloseBrowser = (showNotification: (text: string) => void) => {
     if (closeBrowser.status === "error") {
       showNotification("Failed to close browsers");
     } else if (closeBrowser.status === "success") {
-      const data = closeBrowser.data.response as TCoreAPIOutput<"closeBrowserAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in closeBrowser.data.response) {
         showNotification("Failed to close browsers");
         return;
       }
 
-      data.forEach(({ deviceId, response }, i) => {
+      closeBrowser.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
           setTimeout(() => showNotification(`Failed to close browser on ${deviceId}`), 3000 * i);
         } else {
@@ -303,16 +285,14 @@ export const useCloseBrowsers = (showNotification: (text: string) => void) => {
     if (closeBrowsers.status === "error") {
       showNotification("Failed to close browsers");
     } else if (closeBrowsers.status === "success") {
-      const data = closeBrowsers.data.response as TCoreAPIOutput<"closeBrowsersAll">["response"];
-
-      if ("oveError" in data) {
+      if ("oveError" in closeBrowsers.data.response) {
         showNotification("Failed to close browsers");
         return;
       }
 
       let containsErrors = false;
 
-      data.forEach(({ deviceId, response }, i) => {
+      closeBrowsers.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
           setTimeout(() => showNotification(`Failed to close browsers on: ${deviceId}`), 3000 * i);
           containsErrors = true;

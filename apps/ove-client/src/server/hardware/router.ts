@@ -15,6 +15,7 @@ const safeCallController = async <
   Key extends keyof TClientService
 >(k: Key, args: TClientServiceArgs<Key>): Promise<TClientAPIReturns<Key>> => {
   try {
+    logger.info(`Handling: ${k}`);
     return await controller[k](args) as TClientAPIReturns<Key>;
   } catch (e) {
     logger.error(e);
@@ -30,7 +31,7 @@ const generateProcedure = <Key extends keyof TClientAPI>(k: Key) =>
 
 const generateQuery = <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
   // @ts-ignore
-  .query<TClientAPIReturns<Key>>(async ({ input }) => safeCallController<Key>(k, input as TClientServiceArgs<Key>));
+  .query<TClientAPIReturns<Key>>(async ({ input }) => safeCallController<Key>(k, input));
 
 const generateMutation = <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
     // @ts-ignore
