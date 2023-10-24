@@ -1,17 +1,16 @@
 /* global __dirname */
 
-import { join } from "path";
-import { nanoid } from "nanoid";
-import { pathToFileURL } from "url";
-import { type App, BrowserWindow as BW, type Screen } from "electron";
-import { type ID } from "@ove/ove-types";
-import { env, logger } from "../env";
 import {
   type OutboundAPI,
   outboundChannels
 } from "../ipc-routes";
-import { assert } from "@ove/ove-utils";
+import { join } from "path";
 import { exit } from "process";
+import { nanoid } from "nanoid";
+import { pathToFileURL } from "url";
+import { env, logger } from "../env";
+import { assert } from "@ove/ove-utils";
+import { type App, BrowserWindow as BW, type Screen } from "electron";
 
 let application: App;
 let BrowserWindow: typeof BW;
@@ -38,7 +37,7 @@ const initWindow = (displayId?: number) => {
     bounds = screen
       .getAllDisplays()
       .find(monitor =>
-        monitor.id === displayId)?.bounds || { x: 0, y: 0 };
+        monitor.id === displayId)?.bounds ?? { x: 0, y: 0 };
   } else {
     bounds = screen.getPrimaryDisplay().bounds;
   }
@@ -94,7 +93,7 @@ const loadUIWindow = (idx: string, url?: `/${string}`) => {
       });
   } else {
     const formattedUrl = pathToFileURL(join(__dirname, "..", env.UI_ALIAS,
-      `${url === undefined ? "index" : url}.html`)).toString();
+      `${url ?? "index"}.html`)).toString();
     windows[idx].loadURL(formattedUrl)
       .then(() => logger.info(`Loaded url: ${formattedUrl}`))
       .catch(reason => {
@@ -123,7 +122,7 @@ const onActivate = () => {
 };
 
 const triggerIPC: OutboundAPI = {
-  updatePin: async pin => {
+  updatePin: pin => {
     if (defaultIdx === null) throw new Error("Missing default ID");
     windows[defaultIdx].webContents.send(outboundChannels["updatePin"], pin);
   }
@@ -149,7 +148,7 @@ const init = (
 };
 
 export default {
-  openWindow: (loadWindow: (idx: string) => void, displayId?: ID) => {
+  openWindow: (loadWindow: (idx: string) => void, displayId?: number) => {
     if (defaultIdx !== null) {
       windows[defaultIdx].close();
       delete windows[defaultIdx];

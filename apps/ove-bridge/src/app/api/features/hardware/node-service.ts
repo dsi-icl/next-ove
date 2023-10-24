@@ -8,8 +8,9 @@ import fetch from "node-fetch";
 import * as ws from "ws";
 import {
   type Device,
-  type TBridgeHardwareService,
+  type Browser,
   type TBridgeServiceArgs,
+  type TBridgeHardwareService,
   ScreenshotMethodSchema
 } from "@ove/ove-types";
 import { z } from "zod";
@@ -128,9 +129,9 @@ const openBrowser = async (
   return await createClient(device).openBrowser.mutate(parsedOpts.data);
 };
 
-const getBrowserStatus = async (
+const getBrowser = async (
   device: Device,
-  args: TBridgeServiceArgs<"getBrowserStatus">
+  args: TBridgeServiceArgs<"getBrowser">
 ) => {
   const getBrowserStatusOptsSchema = z
     .object({ browserId: z.number() })
@@ -139,7 +140,7 @@ const getBrowserStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getBrowserStatus.query(parsedOpts.data);
+  return await createClient(device).getBrowser.query(parsedOpts.data);
 };
 
 const closeBrowser = async (
@@ -175,7 +176,8 @@ const getBrowsers = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getBrowsers.query(parsedOpts.data);
+  const res = await createClient(device).getBrowsers.query(parsedOpts.data);
+  return "oveError" in res ? res : res as Map<number, Browser>;
 };
 
 const NodeService: TBridgeHardwareService = {
@@ -187,8 +189,8 @@ const NodeService: TBridgeHardwareService = {
   execute,
   screenshot,
   openBrowser,
-  getBrowserStatus,
   closeBrowser,
+  getBrowser,
   getBrowsers,
   closeBrowsers
 };

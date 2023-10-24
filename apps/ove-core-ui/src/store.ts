@@ -1,10 +1,12 @@
+import {
+  type Browser,
+  type ScreenshotMethod,
+  type Tokens
+} from "@ove/ove-types";
 import { create } from "zustand";
-import { InfoTypes } from "./utils";
 import { Json } from "@ove/ove-utils";
-import { ScreenshotMethod, type Tokens } from "@ove/ove-types";
-import { DeviceAction } from "./pages/hardware/types";
-
-type BrowserStatus = "running" | "off" | null
+import { type InfoTypes } from "./utils";
+import { type DeviceAction } from "./pages/hardware/types";
 
 type Store = {
   tokens: Tokens | null
@@ -43,16 +45,16 @@ type Store = {
     browserId: number | null
     setBrowserId: (browserId: number) => void
     clearBrowserId: () => void
-    browserStatus: BrowserStatus | {
-      response: BrowserStatus,
+    browsers: Map<number, Browser> | {
+      response: Map<number, Browser>,
       deviceId: string
     }[]
-    setBrowserStatus: (status: BrowserStatus | {
-      response: BrowserStatus,
+    setBrowsers: (browsers: Map<number, Browser> | {
+      response: Map<number, Browser>,
       deviceId: string
     }[]) => void
     browserConfig: { url?: string, displayId?: number } | null
-    setBrowserConfig: (config: {url?: string, displayId?: number}) => void
+    setBrowserConfig: (config: { url?: string, displayId?: number }) => void
     reset: () => void
   }
 }
@@ -160,10 +162,10 @@ export const useStore = create<Store>(set => ({
       }
     })),
     browserId: null,
-    setBrowserId: (browserId: number) => set(state => ({
+    setBrowserId: (browserId?: number) => set(state => ({
       hardwareConfig: {
         ...state.hardwareConfig,
-        browserId
+        browserId: browserId ?? null
       }
     })),
     clearBrowserId: () => set(state => ({
@@ -172,11 +174,11 @@ export const useStore = create<Store>(set => ({
         browserId: null
       }
     })),
-    browserStatus: null,
-    setBrowserStatus: browserStatus => set(state => ({
+    browsers: new Map(),
+    setBrowsers: browsers => set(state => ({
       hardwareConfig: {
         ...state.hardwareConfig,
-        browserStatus
+        browsers
       }
     })),
     browserConfig: null,

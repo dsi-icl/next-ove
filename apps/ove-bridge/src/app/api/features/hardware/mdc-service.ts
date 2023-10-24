@@ -2,7 +2,6 @@
 
 import {
   type Device,
-  type Status,
   type TBridgeHardwareService,
   type TBridgeServiceArgs,
   MDCSourceSchema
@@ -20,11 +19,8 @@ const reboot = async (
   if (!parsedOpts.success) return undefined;
 
   await mdc.setPower(0x01, ip, port, "off");
-  return await new Promise<Status>(resolve =>
-    setTimeout(async () => {
-      await mdc.setPower(0x01, ip, port, "on");
-      resolve(true);
-    }, 1000)
+  return await new Promise<boolean>(resolve =>
+    setTimeout(() => void mdc.setPower(0x01, ip, port, "on").then(() => resolve(true)), 1000)
   );
 };
 

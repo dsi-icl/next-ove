@@ -1,14 +1,11 @@
 import { z } from "zod";
 
 // Type aliases for API
-export type Image = string;
 export const ImageSchema = z.string();
 
-export type ID = number;
 export const IDSchema = z.number();
 
 export const DeviceIDSchema = z.string();
-export type Status = boolean;
 export const StatusSchema = z.boolean();
 
 export type Optional<T> = T | undefined;
@@ -63,8 +60,6 @@ export const SourceSchemas = z.union([
   PJLinkSourceSchema.keyof()
 ]);
 
-export type Source = z.infer<typeof SourceSchemas>
-
 export const DeviceSchema = z.object({
   id: z.string(),
   description: z.string(),
@@ -79,6 +74,10 @@ export const DeviceSchema = z.object({
 
 export type Device = z.infer<typeof DeviceSchema>;
 
-export type Browser = {
-  idx: string
-};
+export const BrowserSchema = z.strictObject({
+  displayId: z.number(),
+  url: z.string().optional(),
+  windowId: z.string()
+});
+
+export type Browser = z.infer<typeof BrowserSchema>

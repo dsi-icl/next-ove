@@ -1,5 +1,4 @@
 import App from "./app/app";
-import { ID } from "@ove/ove-types";
 import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
@@ -10,7 +9,7 @@ export const start = (closeServer: () => void) => {
   App.init(app, BrowserWindow, screen, closeServer);
 };
 
-export const createWindow = (url?: string, displayId?: ID): string => {
+export const createWindow = (url?: string, displayId?: number): string => {
   if (!App.isInitialised()) throw new Error("Window controller is not initialised");
   if (url === undefined) {
     return App.openWindow(App.loadDisplayWindow, displayId);

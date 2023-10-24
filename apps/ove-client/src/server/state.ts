@@ -1,7 +1,7 @@
-import { type Browser, type ID } from "@ove/ove-types";
+import { type Browser } from "@ove/ove-types";
 
 type State = {
-  browsers: Map<ID, Browser>
+  browsers: Map<number, Browser>
   pin: string
   pinUpdateCallback: ((event: string, ...args: any[]) => void) | null
 };
@@ -12,7 +12,7 @@ const generatePin = () => Array(4)
   .join("");
 
 export const state: State = {
-  browsers: new Map<ID, Browser>(),
+  browsers: new Map<number, Browser>(),
   pin: "initialising",
   pinUpdateCallback: null
 };

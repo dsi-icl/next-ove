@@ -1,14 +1,15 @@
-import { type ID, type Status, type TClientService } from "@ove/ove-types";
+import service from "./service";
 import { env, logger } from "../../env";
 import { state, updatePin } from "../state";
-import service from "./service";
-import { type DesktopCapturerSource } from "electron";
 import { type OutboundAPI } from "../../ipc-routes";
+import { type TClientService } from "@ove/ove-types";
+import { type DesktopCapturerSource } from "electron";
+import { assert } from "@ove/ove-utils";
 
 export const init = (
-  createWindow: (url?: string, displayId?: ID) => string,
+  createWindow: (url?: string, displayId?: number) => string,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
-  closeWindow: (idx: string) => Status | null,
+  closeWindow: (windowId: string) => boolean | null,
   triggerIPC: OutboundAPI
 ) => {
   service.init(createWindow, takeScreenshots, closeWindow);
@@ -25,13 +26,13 @@ const controller: TClientService = {
     logger.info("GET /info - getting device information");
     return service.getInfo(type);
   },
-  getBrowserStatus: async ({ browserId }) => {
-    logger.info(`GET /browser/${browserId}/status - getting browser status`);
-    return (Object.keys(state.browsers).includes(browserId.toString()));
+  getBrowser: async ({browserId}) => {
+    logger.info(`GET /browser/${browserId}`);
+    return assert(state.browsers.get(browserId));
   },
   getBrowsers: async () => {
     logger.info("GET /browsers - getting active browsers");
-    return Object.keys(state.browsers).map(parseInt);
+    return state.browsers;
   },
   reboot: async () => {
     logger.info("POST /reboot - rebooting device");
@@ -62,7 +63,7 @@ const controller: TClientService = {
     if (idx === null) throw new Error("Unable to open browser");
 
     const browserId = Math.max(...state.browsers.keys()) + 1;
-    state.browsers.set(browserId, { idx });
+    state.browsers.set(browserId, { displayId: displayId ?? -1, url, windowId: idx });
 
     return browserId;
   },
@@ -71,16 +72,14 @@ const controller: TClientService = {
     const browser = state.browsers.get(browserId);
     if (browser === undefined) throw new Error(`No browser with ID: ${browserId}`);
 
-    service.closeBrowser(browser);
+    service.closeBrowser(browser.windowId);
     const isDeleted = state.browsers.delete(browserId);
     if (!isDeleted) throw new Error(`Unable to delete browser with ID: ${browserId}`);
     return true;
   },
   closeBrowsers: async () => {
     logger.info("DELETE /browsers - closing all browsers");
-    for (let browser of state.browsers.values()) {
-      service.closeBrowser(browser);
-    }
+    service.closeBrowsers(state.browsers.values());
     state.browsers.clear();
     return true;
   }

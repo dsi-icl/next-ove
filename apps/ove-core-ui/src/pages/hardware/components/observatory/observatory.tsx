@@ -7,7 +7,8 @@ import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
 import { type HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
-import { useController } from "../controller/controller";
+import { useMultiController } from "../controller/multi-hooks";
+import { useSingleController } from "../controller/single-hooks";
 
 import styles from "./observatory.module.scss";
 
@@ -38,7 +39,8 @@ const Observatory = ({ name, isOnline, showNotification }: {
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
   const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
 
-  useController(name, filter, updateStatus, updateStatusAll, showNotification);
+  useSingleController(name, showNotification, updateStatus);
+  useMultiController(name, filter, showNotification, updateStatusAll);
 
   useEffect(() => {
     if (filterType !== "id") return;

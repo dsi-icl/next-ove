@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  BrowserSchema,
   IDSchema,
   ImageSchema,
   ScreenshotMethodSchema,
@@ -48,12 +49,10 @@ export type TServiceRoutesSchema = {
   getInfo: TServiceRouteSchema<{
     type: z.ZodOptional<z.ZodString>
   }, z.ZodUnknown, "GET", "client">
-  getBrowserStatus: TServiceRouteSchema<{
+  getBrowser: TServiceRouteSchema<{
     browserId: z.ZodNumber
-  }, z.ZodBoolean, "GET", "client">
-  getBrowsers: TServiceRouteSchema<
-    {},
-    z.ZodArray<z.ZodNumber>, "GET", "client">
+  }, typeof BrowserSchema, "GET", "client">
+  getBrowsers: TServiceRouteSchema<{}, z.ZodMap<z.ZodNumber, typeof BrowserSchema>, "GET", "client">
   reboot: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "client">
   shutdown: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "client">
   execute: TServiceRouteSchema<{
@@ -72,7 +71,9 @@ export type TServiceRoutesSchema = {
   }, z.ZodBoolean, "DELETE", "client">
   closeBrowsers: TServiceRouteSchema<{}, z.ZodBoolean, "DELETE", "client">
   start: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  setVolume: TServiceRouteSchema<{ volume: z.ZodNumber }, z.ZodBoolean, "POST", "bridge">
+  setVolume: TServiceRouteSchema<{
+    volume: z.ZodNumber
+  }, z.ZodBoolean, "POST", "bridge">
   setSource: TServiceRouteSchema<{
     source: typeof SourceSchemas,
     channel: z.ZodOptional<z.ZodNumber>
@@ -92,70 +93,118 @@ export type TServiceRoutesSchema = {
  */
 export const ServiceAPISchema: TServiceRoutesSchema = {
   getStatus: {
-    meta: { openapi: { method: "GET" as const, path: "/status", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/status",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
     exposed: "client" as const
   },
   getInfo: {
-    meta: { openapi: { method: "GET" as const, path: "/info", protected: true } },
-    args: z.object({ type: z.string().optional() }).strict(),
-    returns: z.unknown(),
-    exposed: "client"
-  },
-  getBrowserStatus: {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/browser/{browserId}/status",
+        path: "/info",
         protected: true
       }
     },
-    args: z.object({ browserId: IDSchema }).strict(),
-    returns: StatusSchema,
-    exposed: "client"
+    args: z.strictObject({ type: z.string().optional() }),
+    returns: z.unknown(),
+    exposed: "client" as const
+  },
+  getBrowser: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/browser",
+        protected: true
+      }
+    },
+    args: z.strictObject({ browserId: z.number() }),
+    returns: BrowserSchema,
+    exposed: "client" as const
   },
   getBrowsers: {
-    meta: { openapi: { method: "GET" as const, path: "/browsers", protected: true } },
-    args: z.object({}).strict(),
-    returns: z.array(IDSchema),
-    exposed: "client"
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/browsers",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
+    returns: z.map(z.number(), BrowserSchema),
+    exposed: "client" as const
   },
   reboot: {
-    meta: { openapi: { method: "POST" as const, path: "/reboot", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/reboot",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "client"
+    exposed: "client" as const
   },
   shutdown: {
-    meta: { openapi: { method: "POST" as const, path: "/shutdown", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/shutdown",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "client"
+    exposed: "client" as const
   },
   execute: {
-    meta: { openapi: { method: "POST" as const, path: "/execute", protected: true } },
-    args: z.object({ command: z.string() }).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/execute",
+        protected: true
+      }
+    },
+    args: z.strictObject({ command: z.string() }),
     returns: ResponseSchema,
-    exposed: "client"
+    exposed: "client" as const
   },
   screenshot: {
-    meta: { openapi: { method: "POST" as const, path: "/screenshot", protected: true } },
-    args: z.object({
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/screenshot",
+        protected: true
+      }
+    },
+    args: z.strictObject({
       method: ScreenshotMethodSchema,
       screens: z.array(IDSchema)
-    }).strict(),
+    }),
     returns: z.array(ImageSchema),
-    exposed: "client"
+    exposed: "client" as const
   },
   openBrowser: {
-    meta: { openapi: { method: "POST" as const, path: "/browser", protected: true } },
-    args: z.object({
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/browser",
+        protected: true
+      }
+    },
+    args: z.strictObject({
       url: z.string().optional(),
       displayId: IDSchema.optional()
-    }).strict(),
+    }),
     returns: IDSchema,
-    exposed: "client"
+    exposed: "client" as const
   },
   closeBrowser: {
     meta: {
@@ -165,72 +214,132 @@ export const ServiceAPISchema: TServiceRoutesSchema = {
         protected: true
       }
     },
-    args: z.object({ browserId: IDSchema }).strict(),
+    args: z.strictObject({ browserId: IDSchema }),
     returns: z.boolean(),
-    exposed: "client"
+    exposed: "client" as const
   },
   closeBrowsers: {
-    meta: { openapi: { method: "DELETE" as const, path: "/browsers", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "DELETE" as const,
+        path: "/browsers",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: z.boolean(),
-    exposed: "client"
+    exposed: "client" as const
   },
   start: {
-    meta: { openapi: { method: "POST" as const, path: "/start", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/start",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   setVolume: {
-    meta: { openapi: { method: "POST" as const, path: "/volume", protected: true } },
-    args: z.object({ volume: z.number() }).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/volume",
+        protected: true
+      }
+    },
+    args: z.strictObject({ volume: z.number() }),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   setSource: {
-    meta: { openapi: { method: "POST" as const, path: "/source", protected: true } },
-    args: z.object({
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/source",
+        protected: true
+      }
+    },
+    args: z.strictObject({
       source: SourceSchemas,
       channel: z.number().optional()
-    }).strict(),
+    }),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   mute: {
-    meta: { openapi: { method: "POST" as const, path: "/mute", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/mute",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   unmute: {
-    meta: { openapi: { method: "POST" as const, path: "/unmute", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/unmute",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   muteAudio: {
-    meta: { openapi: { method: "POST" as const, path: "/audio/mute", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/audio/mute",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   unmuteAudio: {
-    meta: { openapi: { method: "POST" as const, path: "/audio/unmute", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/audio/unmute",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   muteVideo: {
-    meta: { openapi: { method: "POST" as const, path: "/video/mute", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/video/mute",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   },
   unmuteVideo: {
-    meta: { openapi: { method: "POST" as const, path: "/video/unmute", protected: true } },
-    args: z.object({}).strict(),
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/video/unmute",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
     returns: StatusSchema,
-    exposed: "bridge"
+    exposed: "bridge" as const
   }
 };
 

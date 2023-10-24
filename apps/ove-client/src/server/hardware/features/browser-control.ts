@@ -7,17 +7,15 @@ import { type DesktopCapturerSource } from "electron";
 import { Systeminformation } from "systeminformation";
 import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
 import {
-  type Browser,
-  type ID,
-  type Image,
+  Browser,
   type ScreenshotMethod
 } from "@ove/ove-types";
 import { logger } from "../../../env";
 
 const windowController = <{
-  createWindow: ((url?: string, displayId?: ID) => string) | null,
+  createWindow: ((url?: string, displayId?: number) => string) | null,
   takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null,
-  closeWindow: ((idx: string) => void) | null,
+  closeWindow: ((windowId: string) => void) | null,
 }>{
   createWindow: null,
   takeScreenshots: null,
@@ -25,51 +23,27 @@ const windowController = <{
 };
 
 const init = (
-  createWindow: (
-    url?: string,
-    displayId?: ID
-  ) => string,
+  createWindow: (url?: string, displayId?: number) => string,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
-  closeWindow: (idx: string) => void
+  closeWindow: (windowId: string) => void
 ) => {
   windowController.createWindow = createWindow;
   windowController.takeScreenshots = takeScreenshots;
   windowController.closeWindow = closeWindow;
 };
 
-const closeBrowser = (browser: Browser) => {
+const closeBrowser = (windowId: string) => {
   if (windowController.closeWindow === null) throw new Error("Window controller not initialised");
-  windowController.closeWindow(browser.idx);
+  windowController.closeWindow(windowId);
 };
 
-const openBrowser = (url?: string, displayId?: ID) => {
+const openBrowser = (url?: string, displayId?: number) => {
   if (windowController.createWindow === null) throw new Error("Window controller not initialised");
   return windowController.createWindow(url, displayId);
 };
 
-const screenshot = async (
-  method: ScreenshotMethod,
-  screens: ID[]
-): Promise<Image[]> => {
-  if (windowController.takeScreenshots === null) {
-    throw new Error("Controller not initialised for managing browsers");
-  }
-
-  let displays: GraphicsDisplayData[] = (await SystemInfo.graphics())
-    .graphics.displays;
-
-  if (screens.length !== 0) {
-    displays = displays
-      .filter(({ displayId }) => screens.includes(Number(displayId)));
-  }
-
-  if (displays.length === 0) {
-    throw new Error("No displays with matching names found. " +
-      "To view available displays please use the /info?type=graphics endpoint");
-  }
-
-  const screenshots = await windowController.takeScreenshots();
-  const results = await Promise.allSettled(displays.map(async ({ displayId, serial }) => {
+const processScreenshots = (displays: GraphicsDisplayData[], screenshots: DesktopCapturerSource[], method: ScreenshotMethod) => {
+  return Promise.allSettled(displays.map(async ({ displayId, serial }) => {
     const image = screenshots
       // eslint-disable-next-line camelcase
       .find(({ display_id }) => display_id === displayId)
@@ -96,10 +70,12 @@ const screenshot = async (
       throw Error("Not Implemented");
     }
   }));
+};
 
-  const errored = results.find(x => x.status === "rejected");
-  if (!errored) return results.map(x => (x as {value: string}).value);
-  (results.filter(({status}) => status === "fulfilled") as {value: string}[]).forEach(({value}) => {
+const cleanupOnError = (results: PromiseSettledResult<string>[], displays: GraphicsDisplayData[], method: ScreenshotMethod) => {
+  (results.filter(({ status }) => status === "fulfilled") as {
+    value: string
+  }[]).forEach(({ value }) => {
     if (method === "response" || method === "upload") return;
     try {
       fs.rmSync(value);
@@ -107,25 +83,56 @@ const screenshot = async (
       logger.error(`Failed to remove file: ${value}. Cause: ${e}`);
     }
   });
-  const erroredDisplays = results
+  return results
     .filter(({ status }) => status === "rejected")
     .map((_x, i) => displays[i].displayId)
     .join(", ");
-  throw new Error(`Failed to take screenshot on displays: ${erroredDisplays}`);
+};
+
+const screenshot = async (
+  method: ScreenshotMethod,
+  screens: number[]
+): Promise<string[]> => {
+  if (windowController.takeScreenshots === null) {
+    throw new Error("Controller not initialised for managing browsers");
+  }
+
+  let displays: GraphicsDisplayData[] = (await SystemInfo.graphics())
+    .graphics.displays;
+
+  if (screens.length !== 0) {
+    displays = displays
+      .filter(({ displayId }) => screens.includes(Number(displayId)));
+  }
+
+  if (displays.length === 0) {
+    throw new Error("No displays with matching names found. " +
+      "To view available displays please use the /info?type=graphics endpoint");
+  }
+
+  const screenshots = await windowController.takeScreenshots();
+  const results = await processScreenshots(displays, screenshots, method);
+
+  const hasErrored = results.find(x => x.status === "rejected");
+  if (!hasErrored) return (results as PromiseFulfilledResult<string>[]).map(({ value }) => value);
+  const errored = cleanupOnError(results, displays, method);
+  throw new Error(`Failed to take screenshot on displays: ${errored}`);
 };
 
 const closeBrowsers = (browsers: IterableIterator<Browser>) => {
   let status = true;
   for (let browser of browsers) {
-    closeBrowser(browser);
+    closeBrowser(browser.windowId);
   }
   return status;
 };
 
-export default {
+const service = {
   init,
   openBrowser,
   closeBrowser,
   closeBrowsers,
   screenshot
 };
+
+export default service;
