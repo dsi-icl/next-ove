@@ -10,5 +10,7 @@ export const coreRouter = router({
     .meta({ openapi: { method: "GET", path: "/bridges", protect: true } })
     .input(z.void())
     .output(z.union([z.array(z.object({ name: z.string(), isOnline: z.boolean() })), OVEExceptionSchema]))
-    .query(async ({ctx}) => safe(logger, () => controller.getObservatories(ctx)))
+    .query(async ({ctx}) => {
+      return safe(logger, () => controller.getObservatories(ctx));
+    })
 });

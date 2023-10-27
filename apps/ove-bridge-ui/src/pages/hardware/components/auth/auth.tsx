@@ -22,8 +22,8 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(({
   const handleAuth = async ({pin}: {pin: string}) => {
     if (device === null) throw new Error("Cannot ID null device");
     const registered =
-      await window.electron.registerAuth(device.id, pin);
-    setStatus(registered);
+      await window.electron.registerAuth({ id: device.id, pin });
+    setStatus(typeof "registered" !== "object");
 
     if (!registered) return;
     setMode("overview");

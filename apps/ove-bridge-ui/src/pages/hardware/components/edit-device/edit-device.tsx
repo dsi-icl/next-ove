@@ -37,7 +37,7 @@ const saveDevice_ = (device: Device | null, setMode: (mode: Mode) => void, type:
 
   if (id === "" || id.length < 1) return false;
   if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === "delete") {
-    window.electron.deleteDevice(assert(device).id)
+    window.electron.removeDevice({deviceId: assert(device).id})
       .catch(console.error).then(() => setMode("overview"));
     return;
   }
@@ -63,7 +63,7 @@ const saveDevice_ = (device: Device | null, setMode: (mode: Mode) => void, type:
   if (JSON.stringify(updatedDevice) === JSON.stringify(device)) {
     setMode("overview");
   } else {
-    window.electron.saveDevice(updatedDevice)
+    window.electron.addDevice({ device: updatedDevice })
       .catch(console.error)
       .then(() => setMode("overview"));
   }

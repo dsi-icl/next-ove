@@ -39,59 +39,12 @@ export type TServiceRouteSchema<
   exposed: E
 };
 
-/* API Type */
-
-/**
- * All possible routes as schema types.
- */
-export type TServiceRoutesSchema = {
-  getStatus: TServiceRouteSchema<{}, z.ZodBoolean, "GET", "client">
-  getInfo: TServiceRouteSchema<{
-    type: z.ZodOptional<z.ZodString>
-  }, z.ZodUnknown, "GET", "client">
-  getBrowser: TServiceRouteSchema<{
-    browserId: z.ZodNumber
-  }, typeof BrowserSchema, "GET", "client">
-  getBrowsers: TServiceRouteSchema<{}, z.ZodMap<z.ZodNumber, typeof BrowserSchema>, "GET", "client">
-  reboot: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "client">
-  shutdown: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "client">
-  execute: TServiceRouteSchema<{
-    command: z.ZodString
-  }, typeof ResponseSchema, "POST", "client">
-  screenshot: TServiceRouteSchema<{
-    method: typeof ScreenshotMethodSchema,
-    screens: z.ZodArray<z.ZodNumber>
-  }, z.ZodArray<typeof ImageSchema>, "POST", "client">
-  openBrowser: TServiceRouteSchema<{
-    url: z.ZodOptional<z.ZodString>,
-    displayId: z.ZodOptional<z.ZodNumber>
-  }, z.ZodNumber, "POST", "client">
-  closeBrowser: TServiceRouteSchema<{
-    browserId: z.ZodNumber
-  }, z.ZodBoolean, "DELETE", "client">
-  closeBrowsers: TServiceRouteSchema<{}, z.ZodBoolean, "DELETE", "client">
-  start: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  setVolume: TServiceRouteSchema<{
-    volume: z.ZodNumber
-  }, z.ZodBoolean, "POST", "bridge">
-  setSource: TServiceRouteSchema<{
-    source: typeof SourceSchemas,
-    channel: z.ZodOptional<z.ZodNumber>
-  }, z.ZodBoolean, "POST", "bridge">
-  mute: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  unmute: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  muteAudio: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  unmuteAudio: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  muteVideo: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-  unmuteVideo: TServiceRouteSchema<{}, z.ZodBoolean, "POST", "bridge">
-}
-
 /* API */
 
 /**
  * Instantiation of the schema type above.
  */
-export const ServiceAPISchema: TServiceRoutesSchema = {
+export const ServiceAPISchema = {
   getStatus: {
     meta: {
       openapi: {
@@ -342,6 +295,8 @@ export const ServiceAPISchema: TServiceRoutesSchema = {
     exposed: "bridge" as const
   }
 };
+
+export type TServiceRoutesSchema = typeof ServiceAPISchema;
 
 /* API Utility Types */
 

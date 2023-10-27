@@ -1,38 +1,25 @@
 import {
   type TSocketOutEvents,
-  type TSocketInEvents,
   type TParameters,
   type TCallback,
 } from "@ove/ove-types";
+import { io } from "socket.io-client";
 import { assert } from "@ove/ove-utils";
-import { io, type Socket } from "socket.io-client";
 import { env, logger } from "../../../../env";
 import { controller } from "./controller";
-
-let socket: Socket<TSocketOutEvents, TSocketInEvents> | null = null;
-
-export const closeSocket = () => {
-  if (socket === null) return;
-  socket.disconnect();
-  socket = null;
-};
-
-const socketConnectListeners: (() => void)[] = [];
-const socketDisconnectListeners: (() => void)[] = [];
-
-export const registerSocketConnectedListener = (listener: () => void) => {
-  socketConnectListeners.push(listener);
-};
-
-export const registerSocketDisconnectListener = (listener: () => void) => {
-  socketDisconnectListeners.push(listener);
-};
-
-export const getSocketStatus = () => socket?.connected ?? false;
+import {
+  setSocket,
+  socket,
+  socketConnectListeners,
+  socketDisconnectListeners
+} from "./sockets";
+import { initService } from "./service";
+import { initHardware } from "../hardware/hardware-controller";
 
 export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  socket = io(`ws://${env.CORE_URL}/bridge`, { autoConnect: false });
+  setSocket(io(`ws://${env.CORE_URL}/bridge`, { autoConnect: false }));
+  if (socket === null) throw new Error("ILLEGAL");
   socket.auth = {
     username: env.BRIDGE_NAME,
     password: env.PUBLIC_KEY
@@ -51,9 +38,10 @@ export const initBridge = () => {
 
   const getHandler = <Key extends keyof TSocketOutEvents>(k: Key) => {
     return ((args: TParameters<Key>, callback: TCallback<Key>) => {
-      const res = controller[k](args);
-      callback(res);
-      logger.info(`Handled: ${k}`);
+      controller[k](args).then(res => {
+        callback(res);
+        logger.info(`Handled: ${k}`);
+      });
     }) as TSocketOutEvents[Key];
   };
 
@@ -63,3 +51,5 @@ export const initBridge = () => {
 
   socket.on("connect_error", err => logger.error(`connection error due to ${err.message}`));
 };
+
+initService(initBridge, initHardware);

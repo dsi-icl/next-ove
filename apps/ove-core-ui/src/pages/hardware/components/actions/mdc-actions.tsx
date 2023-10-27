@@ -4,7 +4,7 @@ import {
   ArrowRepeat, GpuCard,
   InfoCircle,
   PlayCircle,
-  StopCircle
+  StopCircle, VolumeDown, VolumeMute, VolumeUp
 } from "react-bootstrap-icons";
 
 import styles from "./actions.module.scss";
@@ -63,8 +63,34 @@ const MDCActions = ({ device, bridgeId }: ActionController) => {
         action: "input_change",
         deviceId: device.id,
         pending: true
-      })}>
+      })} title="input source">
         <GpuCard />
+      </button>
+    </div>
+    <div id={styles["volume"]} className={styles.container}>
+      <button onClick={() => setDeviceAction({
+        bridgeId,
+        action: "volume",
+        deviceId: device.id,
+        pending: true
+      })} title="set volume">
+        <VolumeDown />
+      </button>
+      <button onClick={() => setDeviceAction({
+        bridgeId,
+        action: "mute",
+        deviceId: device.id,
+        pending: false
+      })} title="mute">
+        <VolumeMute />
+      </button>
+      <button onClick={() => setDeviceAction({
+        bridgeId,
+        action: "unmute",
+        deviceId: device.id,
+        pending: false
+      })} title="unmute">
+        <VolumeUp />
       </button>
     </div>
   </div>;

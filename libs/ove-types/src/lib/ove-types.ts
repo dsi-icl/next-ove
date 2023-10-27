@@ -30,18 +30,16 @@ export type Tokens = {
 export const PowerModeSchema = z.union([z.literal("manual"), z.literal("auto"), z.literal("eco")]);
 export type PowerMode = z.infer<typeof PowerModeSchema>
 
-export type CalendarEvent = {
-  title: string
-  start: Date
-  end: Date
-}
+export const CalendarEventSchema = z.strictObject({
+  title: z.string(),
+  start: z.date(),
+  end: z.date()
+});
+
+export type CalendarEvent = z.infer<typeof CalendarEventSchema>
 
 export const CalendarSchema = z.strictObject({
-  value: z.array(z.strictObject({
-    subject: z.string(),
-    start: z.string(),
-    end: z.string()
-  })),
+  value: z.array(z.strictObject({ title: z.string(), start: z.string(), end: z.string() })),
   lastUpdated: z.string().nullable()
 });
 
@@ -60,5 +58,3 @@ export const AutoScheduleSchema = z.strictObject({
 });
 
 export type AutoSchedule = z.infer<typeof AutoScheduleSchema>;
-
-export type RouteMethod = "GET" | "POST" | "DELETE";

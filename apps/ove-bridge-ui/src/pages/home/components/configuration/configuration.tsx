@@ -6,7 +6,7 @@ import { type NativeEvent } from "@ove/ove-types";
 import styles from "./configuration.module.scss";
 
 export type ConfigurationProps = {
-  setHasCalendar: (hasCalendar: boolean) => void
+  refreshCalendar: () => void
   openDialog: () => void
 }
 
@@ -16,7 +16,7 @@ type Form = {
   calendarURL: string | undefined
 }
 
-const Configuration = ({ setHasCalendar, openDialog }: ConfigurationProps) => {
+const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
   const { register, setValue, handleSubmit } = useForm<Form>();
   const updateEnv = useEnv(setValue);
   const connected = useSocket();
@@ -32,8 +32,8 @@ const Configuration = ({ setHasCalendar, openDialog }: ConfigurationProps) => {
       return;
     }
 
-    setHasCalendar(calendarURL !== "");
-    updateEnv({ coreURL, bridgeName, calendarURL });
+    await updateEnv({ coreURL, bridgeName, calendarURL });
+    refreshCalendar();
   };
 
   return <section className={styles.section}>

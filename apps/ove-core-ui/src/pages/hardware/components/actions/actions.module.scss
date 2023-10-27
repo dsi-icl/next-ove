@@ -32,4 +32,31 @@
       border-right: none;
     }
   }
+
+  #volume {
+    border-right: 1px solid black !important;
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    margin-right: 0;
+
+    button:last-child {
+      border-right: none;
+    }
+  }
+
+  .composite {
+    position: relative;
+
+    .primary {
+      position: relative;
+    }
+
+    .secondary {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border: 1px solid black;
+      border-radius: 100%;
+    }
+  }
 }

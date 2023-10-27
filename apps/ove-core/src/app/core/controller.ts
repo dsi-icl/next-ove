@@ -10,6 +10,7 @@ const getObservatories = async (ctx: Context) => {
       username: true
     }
   });
+  console.log(observatories.length);
   return observatories.map(({ username }) => {
     return ({
       name: username,

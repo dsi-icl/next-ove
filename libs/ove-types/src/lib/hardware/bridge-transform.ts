@@ -64,6 +64,11 @@ export type TBridgeResponseSchema<T extends z.ZodTypeAny> = z.ZodObject<{
   response: T
 }>
 
+export type TBridgeResponse<T> = {
+  meta: z.infer<typeof BridgeMetadataSchema>
+  response: T
+}
+
 /* API Route Types */
 
 /**

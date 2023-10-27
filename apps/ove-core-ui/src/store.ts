@@ -55,6 +55,9 @@ type Store = {
     }[]) => void
     browserConfig: { url?: string, displayId?: number } | null
     setBrowserConfig: (config: { url?: string, displayId?: number }) => void
+    volume: number | null
+    setVolume: (volume: number) => void
+    clearVolume: () => void
     reset: () => void
   }
 }
@@ -114,7 +117,9 @@ export const useStore = create<Store>(set => ({
         screenshots: null,
         browserId: null,
         browserStatus: null,
-        browserConfig: null
+        browserConfig: null,
+        browsers: new Map(),
+        volume: null
       }
     })),
     clearCommand: () => set(state => ({
@@ -186,6 +191,19 @@ export const useStore = create<Store>(set => ({
       hardwareConfig: {
         ...state.hardwareConfig,
         browserConfig
+      }
+    })),
+    volume: null,
+    setVolume: volume => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        volume
+      }
+    })),
+    clearVolume: () => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        volume: null
       }
     }))
   }

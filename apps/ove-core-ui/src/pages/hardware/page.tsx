@@ -21,8 +21,9 @@ const Hardware = () => {
   const getStyle = useCallback((): CSSProperties | undefined => {
     switch (deviceAction.action) {
       case "monitoring": return {width: "90vw", height: "90vh"};
+      case "volume":
       case "browser_open":
-      case "browser_status":
+      case "browser":
       case "browser_close": return {width: "25vw", height: "20vh"};
       default: return undefined;
     }
@@ -46,7 +47,7 @@ const Hardware = () => {
   return <HelmetProvider>
     <main className={styles.main}>
       <Helmet>
-        <title>Next-OVE Hardware</title>
+        <title>next-ove - Hardware</title>
       </Helmet>
       <h1>Hardware Manager</h1>
       {getObservatories.status === "success" && !("oveError" in getObservatories.data) ? getObservatories.data?.map(({

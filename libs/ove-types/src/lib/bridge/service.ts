@@ -1,156 +1,270 @@
 import { z } from "zod";
 import {
   StatusSchema,
-  DeviceSchema,
-  type Device
+  DeviceSchema
 } from "../hardware";
-import { type OVEException, type RouteMethod } from "../ove-types";
+import {
+  AutoScheduleSchema,
+  CalendarEventSchema,
+  CalendarSchema,
+  PowerModeSchema
+} from "../ove-types";
+import {
+  getBridgeResponseSchema,
+  type TBridgeResponse
+} from "../hardware/bridge-transform";
+import {
+  getDeviceResponseSchema,
+  type TDeviceResponse
+} from "../hardware/client-transform";
 
 /* Utility Types */
 
-export type TBridgeServiceParams = {
-  getDevice: {
-    args: { deviceId: string }
-    returns: Device | undefined
-  }
-  getDevices: {
-    args: { tag?: string }
-    returns: Device[]
-  }
-  addDevice: {
-    args: { device: Device }
-    returns: boolean
-  }
-  removeDevice: {
-    args: { deviceId: string }
-    returns: boolean
-  }
-  startStreams: {
-    args: {},
-    returns: boolean
-  },
-  stopStreams: {
-    args: {},
-    returns: boolean
-  },
-  getStreams: {
-    args: {},
-    returns: string[] | undefined
-  }
+export type InboundAPI = {
+  [Key in keyof TAPIRoutes]: (args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">) => Promise<Awaited<z.infer<TAPIRoutes[Key]["output"]>["response"]>>
 }
 
 export type TBridgeService = {
-  [Key in keyof TBridgeServiceParams]: (args: TBridgeServiceParams[Key]["args"]) => TBridgeServiceParams[Key]["returns"]
-}
-
-type TWrappedResponseRaw<Key extends keyof TBridgeService> =
-  ReturnType<TBridgeService[Key]>
-  | OVEException
-export type TWrappedResponse<Key extends keyof TBridgeService> = {
-  meta: { bridge: string },
-  response: TWrappedResponseRaw<Key>
+  [Key in keyof TAPIRoutes]: (args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">) => z.infer<TAPIRoutes[Key]["output"]>["response"]
 }
 
 export type TParameters<Key extends keyof TBridgeService> = Parameters<TBridgeService[Key]>[0]
-export type TCallback<Key extends keyof TBridgeService> = (response: TWrappedResponse<Key>) => void
+export type TCallback<Key extends keyof TBridgeService> = (response: TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>) => void
 
 export type TBridgeController = {
-  [Key in keyof TBridgeService]: (args: TParameters<Key>) => TWrappedResponse<Key>
+  [Key in keyof TBridgeService]: (args: TParameters<Key>) => Promise<TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>>
 }
 
 export type TSocketOutEvents = {
   [Key in keyof TBridgeService]: (args: TParameters<Key>, callback: TCallback<Key>) => void
 }
 
-const wrapSchema = <T extends z.ZodTypeAny>(schema: T) => z.strictObject({
-  meta: z.strictObject({ bridge: z.string() }),
-  response: schema
-});
-
 export type TSocketInEvents = {}
-type OpenApiMeta<A extends RouteMethod> = {
-  openapi: { method: A, path: `/${string}`, protect: boolean }
-}
 type TGet = "GET"
 export type TIsGet<Key extends keyof TBridgeService, T, U> = TAPIRoutes[Key]["meta"]["openapi"]["method"] extends TGet ? T : U
+
+const EnvSchema = z.strictObject({ bridgeName: z.string().optional(), coreURL: z.string().optional(), calendarURL: z.string().optional() });
 
 export const APIRoutes = {
   getDevice: {
     meta: {
       openapi: {
-        method: "GET",
-        path: "/device/{bridgeId}/{deviceId}",
+        method: "GET" as const,
+        path: "/device/{bridgeId}/{deviceId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"GET">,
+    },
     input: z.strictObject({ deviceId: z.string(), bridgeId: z.string() }),
-    output: wrapSchema(DeviceSchema)
+    output: getBridgeResponseSchema(getDeviceResponseSchema(DeviceSchema))
   },
   getDevices: {
     meta: {
       openapi: {
-        method: "GET",
-        path: "/devices/{bridgeId}",
+        method: "GET" as const,
+        path: "/devices/{bridgeId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"GET">,
+    },
     input: z.strictObject({ tag: z.string().optional(), bridgeId: z.string() }),
-    output: wrapSchema(z.array(DeviceSchema))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))
   },
   addDevice: {
     meta: {
       openapi: {
-        method: "POST",
-        path: "/device/{bridgeId}",
+        method: "POST" as const,
+        path: "/device/{bridgeId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"POST">,
+    },
     input: z.strictObject({ device: DeviceSchema, bridgeId: z.string() }),
-    output: wrapSchema(StatusSchema)
+    output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
   },
   removeDevice: {
     meta: {
       openapi: {
-        method: "DELETE",
-        path: "/device/{bridgeId}/{deviceId}",
+        method: "DELETE" as const,
+        path: "/device/{bridgeId}/{deviceId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"DELETE">,
+    },
     input: z.strictObject({ deviceId: z.string(), bridgeId: z.string() }),
-    output: wrapSchema(StatusSchema)
+    output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
   },
   startStreams: {
     meta: {
       openapi: {
-        method: "POST",
-        path: "/streams/{bridgeId}",
+        method: "POST" as const,
+        path: "/streams/{bridgeId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"POST">,
+    },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: wrapSchema(StatusSchema)
+    output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
   },
   stopStreams: {
     meta: {
       openapi: {
-        method: "DELETE",
-        path: "/streams/{bridgeId}",
+        method: "DELETE" as const,
+        path: "/streams/{bridgeId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"DELETE">,
+    },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: wrapSchema(StatusSchema)
+    output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
   },
   getStreams: {
     meta: {
       openapi: {
-        method: "GET",
-        path: "/streams/{bridgeId}",
+        method: "GET" as const,
+        path: "/streams/{bridgeId}" as `/${string}`,
         protect: true
       }
-    } as OpenApiMeta<"GET">,
+    },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: wrapSchema(z.array(z.string()).optional())
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.array(z.string()).optional()))
+  },
+  getCalendar: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/calendar" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(CalendarSchema.optional().promise()))
+  },
+  getSocketStatus: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/socket/status" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.boolean()))
+  },
+  getMode: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/mode" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(PowerModeSchema))
+  },
+  setManualSchedule: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/mode/manual" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+  },
+  setEcoSchedule: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/mode/eco" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string(), ecoSchedule: z.array(CalendarEventSchema) }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+  },
+  setAutoSchedule: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/mode/auto" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string(), autoSchedule: AutoScheduleSchema.optional() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+  },
+  getEnv: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/env" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(EnvSchema))
+  },
+  updateEnv: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/env" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string()}).merge(EnvSchema),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+  },
+  registerAuth: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/auth" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string(), id: z.string(), pin: z.string()}),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void().promise()))
+  },
+  getDevicesToAuth: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/devices/auth" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string()}),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))
+  },
+  getAppVersion: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/version" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string()}),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.string()))
+  },
+  getPublicKey: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/key" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string()}),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.string()))
+  },
+  getAutoSchedule: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/autoSchedule" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string()}),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(AutoScheduleSchema.optional()))
   }
 };
 

@@ -59,7 +59,10 @@ const Devices = () => {
   const close = useCallback(() => setMode("overview"), []);
 
   useEffect(() => {
-    window.electron.getDevices().then(devices => setDevices(devices));
+    window.electron.getDevices({}).then(devices => {
+      if ("oveError" in devices) return;
+      setDevices(devices);
+    });
     switch (mode) {
       case "overview":
         closeAuthDialog();

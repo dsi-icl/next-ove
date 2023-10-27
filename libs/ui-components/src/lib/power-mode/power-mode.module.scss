@@ -1,0 +1,18 @@
+.mode-container {
+  display: flex;
+  min-width: 50%;
+  justify-content: flex-end;
+  align-self: flex-end;
+
+  .button {
+    margin-top: auto;
+    flex: 1 1 0;
+    padding: 1rem;
+    border: 1px solid black;
+    border-radius: 0.75rem;
+  }
+}
+
+.bold {
+  font-weight: 700;
+}

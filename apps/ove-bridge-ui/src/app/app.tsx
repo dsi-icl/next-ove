@@ -1,13 +1,11 @@
-import { useNavigate } from "react-router-dom";
 import Nav from "./nav";
 import Router from "./router";
 // IGNORE PATH - dependency removed at runtime
 import {
-  type InboundAPI,
   type OutboundAPI,
   type OutboundAPIChannels
 } from "../../../ove-bridge/src/ipc-routes";
-import { useEffect } from "react";
+import { type InboundAPI } from "@ove/ove-types";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols
@@ -27,13 +25,6 @@ declare global {
  * @constructor
  */
 const App = () => {
-  const navigate = useNavigate();
-  useEffect(() => {
-    window.electron.receive<"openVideoStream">("open-video-stream", streamURL => {
-      navigate("/live-view", {state: { streamURL }});
-    });
-  }, []);
-
   return <>
     <Nav />
     <Router />

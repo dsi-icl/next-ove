@@ -4,7 +4,6 @@ import {
   type TAPIRoutes,
   type TBridgeService,
   type TIsGet,
-  type TWrappedResponse
 } from "@ove/ove-types";
 import { state } from "../state";
 import { io } from "./sockets";
@@ -19,24 +18,24 @@ const generateProcedure = <Key extends keyof TBridgeService>(k: Key) => protecte
   .output<TAPIRoutes[Key]["output"]>(APIRoutes[k].output);
 
 const generateQuery = <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-  .query<TWrappedResponse<Key>>(({ input }): Promise<TWrappedResponse<Key>> => {
+  .query(({ input }) => {
     if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
     const { bridgeId, ...args } = input;
     logger.info(`Handling ${k}`);
 
-    return new Promise<TWrappedResponse<Key>>(resolve => {
+    return new Promise(resolve => {
       // @ts-ignore
       getSocket(bridgeId).emit<Key>(k, args, resolve);
     });
   });
 
 const generateMutation = <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-  .mutation<TWrappedResponse<Key>>(({ input }): Promise<TWrappedResponse<Key>> => {
+  .mutation(({ input }) => {
     if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
     const { bridgeId, ...args } = input;
     logger.info(`Handling ${k}`);
 
-    return new Promise<TWrappedResponse<Key>>(resolve => {
+    return new Promise(resolve => {
       // @ts-ignore
       getSocket(bridgeId).emit<Key>(k, args, resolve);
     });

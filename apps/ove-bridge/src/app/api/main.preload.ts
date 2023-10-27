@@ -1,10 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
 import {
-  type InboundAPI,
   inboundChannels,
   type OutboundAPI,
   type OutboundAPIChannels
 } from "../../ipc-routes";
+import { InboundAPI } from "@ove/ove-types";
 
 // noinspection DuplicatedCode
 const ExposedAPI: InboundAPI =

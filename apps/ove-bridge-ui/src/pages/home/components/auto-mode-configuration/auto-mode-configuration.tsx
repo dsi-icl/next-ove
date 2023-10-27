@@ -19,7 +19,8 @@ const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
   const { register, setValue, handleSubmit } = useForm<Form>();
 
   useEffect(() => {
-    window.electron.getAutoSchedule().then(autoSchedule => {
+    window.electron.getAutoSchedule({}).then(autoSchedule => {
+      if (autoSchedule !== undefined && "oveError" in autoSchedule) return;
       setValue("start" as const, autoSchedule?.wake ?? undefined);
       setValue("end" as const, autoSchedule?.sleep ?? undefined);
       setValue("days" as const, autoSchedule?.schedule ?? defaultDaySelection);
@@ -28,9 +29,11 @@ const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
 
   const onSubmit = ({ start, end, days }: Form) => {
     window.electron.setAutoSchedule({
-      wake: start ?? null,
-      sleep: end ?? null,
-      schedule: days
+      autoSchedule: {
+        wake: start ?? null,
+        sleep: end ?? null,
+        schedule: days
+      }
     }).then(() => closeDialog());
   };
 

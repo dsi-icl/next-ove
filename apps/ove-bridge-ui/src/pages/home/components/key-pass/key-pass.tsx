@@ -9,7 +9,10 @@ const KeyPass = () => {
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
-    window.electron.getPublicKey().then(key => setDisplayPublicKey(key));
+    window.electron.getPublicKey({}).then(key => {
+      if (typeof key !== "string") return;
+      setDisplayPublicKey(key);
+    });
   }, []);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ const KeyPass = () => {
         setIsCopied(true);
       }}><Clipboard /></button>
     </div>
-    {isCopied ? <Snackbar text="Copied" /> : null}
+    <Snackbar text="Copied" show={isCopied} />
   </section>;
 };
 
