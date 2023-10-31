@@ -6,16 +6,28 @@ import {
   useCalendar,
   useDialog
 } from "@ove/ui-components";
+import { useEffect, useState } from "react";
 import KeyPass from "./components/key-pass/key-pass";
 import Configuration from "./components/configuration/configuration";
 import AutoModeConfiguration
   from "./components/auto-mode-configuration/auto-mode-configuration";
+import { type OVEException, type Calendar as TCalendar } from "@ove/ove-types";
 
 import styles from "./home.module.scss";
-import { useEffect } from "react";
+
+const useFetchCalendar = (controller: typeof window["electron"]["getCalendar"]) => {
+  const [response, setResponse] = useState<TCalendar | OVEException | undefined>(undefined);
+  const x = useCalendar(response);
+
+  useEffect(() => {
+    controller({}).then(setResponse);
+  }, []);
+
+  return x;
+};
 
 const Home = () => {
-  const { calendar, lastUpdated, refresh: refreshCalendar } = useCalendar(window.electron);
+  const { calendar, lastUpdated, refresh: refreshCalendar } = useFetchCalendar(window.electron.getCalendar);
   const { ref, openDialog, closeDialog } = useDialog();
 
   useEffect(() => {

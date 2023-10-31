@@ -17,7 +17,7 @@ const Hardware = () => {
   const reset = useStore(state => state.hardwareConfig.reset);
   const setPaginationIdx = useStore(state => state.hardwareConfig.setPaginationIdx);
 
-  const isSpecial = (action: DeviceAction["action"]) => action === "info" || action === "execute" || action === "screenshot" || action === "monitoring";
+  const isSpecial = (action: DeviceAction["action"]) => action === "info" || action === "execute" || action === "screenshot" || action === "monitoring" || action === "calendar" || action === "power_mode";
   const getStyle = useCallback((): CSSProperties | undefined => {
     switch (deviceAction.action) {
       case "monitoring": return {width: "90vw", height: "90vh"};
@@ -25,6 +25,7 @@ const Hardware = () => {
       case "browser_open":
       case "browser":
       case "browser_close": return {width: "25vw", height: "20vh"};
+      case "calendar": return {width: "65vw", height: "80svh"};
       default: return undefined;
     }
   }, [deviceAction]);

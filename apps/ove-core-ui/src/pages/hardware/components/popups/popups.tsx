@@ -8,18 +8,15 @@ import ScreenshotInput from "../screenshot/screenshot-input";
 import BrowserIdInput from "../browser-modals/browser-id-input";
 import ScreenshotDisplay from "../screenshot/screenshot-display";
 import Volume from "../volume/volume";
-import { Calendar, useCalendar } from "@ove/ui-components";
+import Calendar from "../calendar/calendar";
 
 const Popups = ({ isOpen }: {isOpen: boolean}) => {
-  const {calendar} = useCalendar({getCalendar: async () => ({"oveError": "NOT IMPLEMENTED"})});
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   if (deviceAction.bridgeId === null) return <></>;
   switch (deviceAction.action) {
     case null: return <></>;
-    case "monitoring": return <LiveView bridgeId={deviceAction.bridgeId} />;
-    case "calendar": return <div>
-      <Calendar calendar={calendar} />
-    </div>; // TODO - implement
+    case "monitoring": return <LiveView bridgeId={deviceAction.bridgeId} isOpen={isOpen} />;
+    case "calendar": return <Calendar />
     case "power_mode": return <div>Power Mode</div>; // TODO - implement
     case "info": return <InfoContainer />;
     case "execute": return <Console isOpen={isOpen} consoleId={deviceAction.deviceId ?? deviceAction.bridgeId} />;

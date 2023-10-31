@@ -109,6 +109,7 @@ export const useStore = create<Store>(set => ({
     reset: () => set(state => ({
       hardwareConfig: {
         ...state.hardwareConfig,
+        deviceAction: {bridgeId: null, deviceId: null, pending: false, action: null},
         info: null,
         paginationIdx: 0,
         command: null,

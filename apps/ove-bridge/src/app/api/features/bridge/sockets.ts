@@ -3,7 +3,9 @@ import { TSocketInEvents, TSocketOutEvents } from "@ove/ove-types";
 
 export let socket: Socket<TSocketOutEvents, TSocketInEvents> | null = null;
 
-export const setSocket = (socket_: Socket<TSocketOutEvents, TSocketInEvents> | null) => void (socket = socket_);
+export const setSocket = (socket_: Socket<TSocketOutEvents, TSocketInEvents> | null) => {
+  socket = socket_;
+};
 
 export const closeSocket = () => {
   if (socket === null) return;

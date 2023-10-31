@@ -24,6 +24,10 @@ export type InboundAPI = {
   [Key in keyof TAPIRoutes]: (args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">) => Promise<Awaited<z.infer<TAPIRoutes[Key]["output"]>["response"]>>
 }
 
+export type APIController = Omit<TAPIRoutes, "getPublicKey">
+
+export const excludeKeys: readonly (keyof TAPIRoutes)[] = ["getPublicKey"];
+
 export type TBridgeService = {
   [Key in keyof TAPIRoutes]: (args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">) => z.infer<TAPIRoutes[Key]["output"]>["response"]
 }
@@ -32,11 +36,11 @@ export type TParameters<Key extends keyof TBridgeService> = Parameters<TBridgeSe
 export type TCallback<Key extends keyof TBridgeService> = (response: TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>) => void
 
 export type TBridgeController = {
-  [Key in keyof TBridgeService]: (args: TParameters<Key>) => Promise<TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>>
+  [Key in keyof APIController]: (args: TParameters<Key>) => Promise<TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>>
 }
 
 export type TSocketOutEvents = {
-  [Key in keyof TBridgeService]: (args: TParameters<Key>, callback: TCallback<Key>) => void
+  [Key in keyof APIController]: (args: TParameters<Key>, callback: TCallback<Key>) => void
 }
 
 export type TSocketInEvents = {}
@@ -132,7 +136,7 @@ export const APIRoutes = {
       }
     },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(CalendarSchema.optional().promise()))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(CalendarSchema.optional()))
   },
   getSocketStatus: {
     meta: {
