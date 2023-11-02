@@ -1,15 +1,17 @@
-import { type CalendarEvent } from "@ove/ove-types";
+import { type CalendarEvent, type PowerMode as TPowerMode } from "@ove/ove-types";
 import { type ModeController, useMode } from "./hooks";
 
 import styles from "./power-mode.module.scss";
 
 type PowerModeProps = {
   calendar: CalendarEvent[]
-  controller: ModeController
+  controller: ModeController,
+  mode: TPowerMode | null,
+  setMode: (mode: TPowerMode | null) => void
 }
 
-const PowerMode = ({calendar, controller}: PowerModeProps) => {
-  const { mode, setManual, setAuto, setEco } = useMode(calendar, controller);
+const PowerMode = ({calendar, controller, mode, setMode}: PowerModeProps) => {
+  const { setManual, setAuto, setEco } = useMode(calendar, mode, setMode, controller);
   return <div className={styles["mode-container"]} style={{marginTop: "auto"}}>
     <button className={styles.button}
             style={{ backgroundColor: mode === "manual" ? "lightgreen" : "lightgrey" }}

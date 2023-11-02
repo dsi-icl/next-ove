@@ -8,3 +8,4 @@ export { default as PowerMode } from "./lib/power-mode/power-mode";
 export { default as LastUpdated } from "./lib/calendar/last-updated";
 export { default as Calendar } from "./lib/calendar/calendar";
 export { useCalendar } from "./lib/calendar/hooks";
+export { useMode } from "./lib/power-mode/hooks";

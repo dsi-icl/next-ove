@@ -3,16 +3,14 @@ import {
   type InboundAPI,
   type PowerMode
 } from "@ove/ove-types";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export type ModeController = Pick<InboundAPI, "setManualSchedule" | "setAutoSchedule" | "setEcoSchedule" | "getMode">
+export type ModeController = Pick<InboundAPI, "setManualSchedule" | "setAutoSchedule" | "setEcoSchedule">
 
-export const useMode = (calendar: CalendarEvent[], controller: ModeController) => {
-  const [mode, setMode] = useState<PowerMode | null>(null);
-
-  const refreshMode = (mode: PowerMode | null) => {
-    if (mode === null) return;
-    switch (mode) {
+export const useMode = (calendar: CalendarEvent[], mode: PowerMode | null, setMode: (mode: PowerMode | null) => void, controller: ModeController) => {
+  const refreshMode = (mode_: PowerMode | null) => {
+    if (mode_ === null) return;
+    switch (mode_) {
       case "manual":
         controller.setManualSchedule({}).catch(console.error);
         break;
@@ -26,18 +24,10 @@ export const useMode = (calendar: CalendarEvent[], controller: ModeController) =
   };
 
   useEffect(() => {
-    controller.getMode({}).then(mode => {
-      if (typeof mode !== "string") return;
-      setMode(mode);
-    });
-  }, []);
-
-  useEffect(() => {
     refreshMode(mode);
   }, [calendar, mode]);
 
   return {
-    mode,
     setManual: () => setMode("manual"),
     setAuto: () => setMode("auto"),
     setEco: () => setMode("eco")

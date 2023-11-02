@@ -9,6 +9,7 @@ import BrowserIdInput from "../browser-modals/browser-id-input";
 import ScreenshotDisplay from "../screenshot/screenshot-display";
 import Volume from "../volume/volume";
 import Calendar from "../calendar/calendar";
+import PowerMode from "../power-mode/power-mode";
 
 const Popups = ({ isOpen }: {isOpen: boolean}) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -16,8 +17,8 @@ const Popups = ({ isOpen }: {isOpen: boolean}) => {
   switch (deviceAction.action) {
     case null: return <></>;
     case "monitoring": return <LiveView bridgeId={deviceAction.bridgeId} isOpen={isOpen} />;
-    case "calendar": return <Calendar />
-    case "power_mode": return <div>Power Mode</div>; // TODO - implement
+    case "calendar": return <Calendar />;
+    case "power_mode": return <PowerMode />;
     case "info": return <InfoContainer />;
     case "execute": return <Console isOpen={isOpen} consoleId={deviceAction.deviceId ?? deviceAction.bridgeId} />;
     case "screenshot": return deviceAction.pending ? <ScreenshotInput /> : <ScreenshotDisplay />;

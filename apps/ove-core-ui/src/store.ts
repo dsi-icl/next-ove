@@ -1,5 +1,7 @@
 import {
   type Browser,
+  type CalendarEvent,
+  type PowerMode,
   type ScreenshotMethod,
   type Tokens
 } from "@ove/ove-types";
@@ -58,6 +60,10 @@ type Store = {
     volume: number | null
     setVolume: (volume: number) => void
     clearVolume: () => void
+    calendar: CalendarEvent[] | null
+    setCalendar: (calendar: CalendarEvent[] | null) => void
+    mode: PowerMode | null
+    setMode: (mode: PowerMode | null) => void
     reset: () => void
   }
 }
@@ -120,7 +126,9 @@ export const useStore = create<Store>(set => ({
         browserStatus: null,
         browserConfig: null,
         browsers: new Map(),
-        volume: null
+        volume: null,
+        mode: null,
+        calendar: null
       }
     })),
     clearCommand: () => set(state => ({
@@ -205,6 +213,20 @@ export const useStore = create<Store>(set => ({
       hardwareConfig: {
         ...state.hardwareConfig,
         volume: null
+      }
+    })),
+    mode: null,
+    calendar: null,
+    setCalendar: calendar => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        calendar
+      }
+    })),
+    setMode: mode => set(state => ({
+      hardwareConfig: {
+        ...state.hardwareConfig,
+        mode
       }
     }))
   }
