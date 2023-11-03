@@ -4,6 +4,7 @@ type State = {
   browsers: Map<number, Browser>
   pin: string
   pinUpdateCallback: ((event: string, ...args: any[]) => void) | null
+  pinUpdateHandler: NodeJS.Timer | null
 };
 
 const generatePin = () => Array(4)
@@ -14,7 +15,8 @@ const generatePin = () => Array(4)
 export const state: State = {
   browsers: new Map<number, Browser>(),
   pin: "initialising",
-  pinUpdateCallback: null
+  pinUpdateCallback: null,
+  pinUpdateHandler: null
 };
 
 export const updatePin = () => {

@@ -289,13 +289,11 @@ Temporary Items
 # Sandworm
 sandworm
 
-# REST Calls
-*.rest
-*.http
-
 # Custom rules
 /dev/database
 /dev/data
 /dev/mongo.keyfile
 /apps/ove-core/src/config/config.json
 /dev/public/*
+
+/tests/**/*.private.env.json

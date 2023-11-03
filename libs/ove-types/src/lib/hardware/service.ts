@@ -73,7 +73,7 @@ export const ServiceAPISchema = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/browser",
+        path: "/browser/{browserId}",
         protected: true
       }
     },

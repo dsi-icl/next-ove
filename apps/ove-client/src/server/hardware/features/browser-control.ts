@@ -35,6 +35,7 @@ const init = (
 const closeBrowser = (windowId: string) => {
   if (windowController.closeWindow === null) throw new Error("Window controller not initialised");
   windowController.closeWindow(windowId);
+  return true;
 };
 
 const openBrowser = (url?: string, displayId?: number) => {
@@ -122,7 +123,7 @@ const screenshot = async (
 const closeBrowsers = (browsers: IterableIterator<Browser>) => {
   let status = true;
   for (let browser of browsers) {
-    closeBrowser(browser.windowId);
+    status = status && closeBrowser(browser.windowId);
   }
   return status;
 };

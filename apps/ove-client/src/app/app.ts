@@ -11,6 +11,7 @@ import { pathToFileURL } from "url";
 import { env, logger } from "../env";
 import { assert } from "@ove/ove-utils";
 import { type App, BrowserWindow as BW, type Screen } from "electron";
+import { state } from "../server/state";
 
 let application: App;
 let BrowserWindow: typeof BW;
@@ -25,7 +26,10 @@ const onWindowAllClosed = () => {
   if (defaultIdx === null) {
     defaultIdx = initWindow();
     loadMainWindow(defaultIdx);
+    const browserId = Math.max(...state.browsers.keys()) + 1;
+    state.browsers.set(browserId, { displayId: -1, url: "", windowId: defaultIdx });
   } else {
+    state.browsers.clear();
     application?.quit();
   }
 };
@@ -113,6 +117,8 @@ const loadMainWindow = (idx: string) => {
 const onReady = () => {
   defaultIdx = initWindow();
   loadMainWindow(defaultIdx);
+  const browserId = Math.max(...state.browsers.keys()) + 1;
+  state.browsers.set(browserId, { displayId: -1, url: "", windowId: defaultIdx });
 };
 
 const onActivate = () => {
@@ -151,6 +157,7 @@ export default {
   openWindow: (loadWindow: (idx: string) => void, displayId?: number) => {
     if (defaultIdx !== null) {
       windows[defaultIdx].close();
+      state.browsers.clear();
       delete windows[defaultIdx];
     }
     defaultIdx = null;
@@ -159,6 +166,9 @@ export default {
     return idx;
   },
   closeWindow: (idx: string) => {
+    if (idx === defaultIdx) {
+      defaultIdx = null;
+    }
     windows[idx].close();
     delete windows[idx];
   },

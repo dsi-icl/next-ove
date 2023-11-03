@@ -14,7 +14,7 @@ export const init = (
 ) => {
   service.init(createWindow, takeScreenshots, closeWindow);
   state.pinUpdateCallback = triggerIPC["updatePin"];
-  setInterval(updatePin, env.PIN_UPDATE_DELAY);
+  state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
 };
 
 const controller: TClientService = {
@@ -23,7 +23,7 @@ const controller: TClientService = {
     return true;
   },
   getInfo: async ({ type }) => {
-    logger.info("GET /info - getting device information");
+    logger.info(`GET /info?type=${type ?? "general"} - getting device information`);
     return service.getInfo(type);
   },
   getBrowser: async ({browserId}) => {
@@ -58,11 +58,16 @@ const controller: TClientService = {
   openBrowser: async ({ displayId, url }) => {
     logger.info(`POST /browser - opening browser on display ${displayId} with url ${url}`);
 
+    if (state.pinUpdateHandler !== null) {
+      clearInterval(state.pinUpdateHandler);
+    }
+
     const idx = service.openBrowser(url, displayId);
 
     if (idx === null) throw new Error("Unable to open browser");
 
-    const browserId = Math.max(...state.browsers.keys()) + 1;
+    const arr = Array.from(state.browsers.keys())
+    const browserId = arr.reduce((acc, x) => x > acc ? x : acc, 0);
     state.browsers.set(browserId, { displayId: displayId ?? -1, url, windowId: idx });
 
     return browserId;
@@ -72,6 +77,9 @@ const controller: TClientService = {
     const browser = state.browsers.get(browserId);
     if (browser === undefined) throw new Error(`No browser with ID: ${browserId}`);
 
+    if (state.browsers.size === 1 && state.pinUpdateHandler === null) {
+      state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
+    }
     service.closeBrowser(browser.windowId);
     const isDeleted = state.browsers.delete(browserId);
     if (!isDeleted) throw new Error(`Unable to delete browser with ID: ${browserId}`);
@@ -79,6 +87,9 @@ const controller: TClientService = {
   },
   closeBrowsers: async () => {
     logger.info("DELETE /browsers - closing all browsers");
+    if (state.pinUpdateHandler === null) {
+      state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
+    }
     service.closeBrowsers(state.browsers.values());
     state.browsers.clear();
     return true;

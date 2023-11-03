@@ -1,0 +1,865 @@
+### OPENAPI SPECIFICATION
+
+GET {{base-url}}
+
+> {%
+  import {validateStatus, validateContentType} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("text/html", response, client);
+%}
+
+### STATUS
+
+GET {{rest-url}}/status
+Authorization: Basic {{token}}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("boolean", response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getStatus?input={}
+Authorization: Basic {{token}}
+
+> {%
+  import {
+    validateStatus,
+    validateResponseType,
+    validateContentType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("boolean", response, client, true);
+%}
+
+### INFO - default
+
+GET {{rest-url}}/info
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["type", "version", "time"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["type", "version", "time"], response, client, true);
+%}
+
+### INFO - general
+
+GET {{rest-url}}/info?type=general
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["type", "version", "time"], response, client);
+%}
+
+###
+
+GET {{trpc-url}}/getInfo?input={"type": "general"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["time", "version", "type"], response, client, true);
+%}
+
+### INFO - system
+
+GET {{rest-url}}/info?type=system
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["system", "bios", "baseboard", "chassis", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "system"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["system", "bios", "baseboard", "chassis", "type"], response, client, true);
+%}
+
+### INFO - cpu
+
+GET {{rest-url}}/info?type=cpu
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["cpu", "flags", "cache", "currentSpeed", "temperature", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "cpu"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["cpu", "flags", "cache", "currentSpeed", "temperature", "type"], response, client, true);
+%}
+
+### INFO - memory
+
+GET {{rest-url}}/info?type=memory
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["memory", "layout", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "memory"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["memory", "layout", "type"], response, client, true);
+%}
+
+### INFO - battery
+
+GET {{rest-url}}/info?type=battery
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["battery", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "battery"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["battery", "type"], response, client, true);
+%}
+
+### INFO - graphics
+
+GET {{rest-url}}/info?type=graphics
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["graphics", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "graphics"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["graphics", "type"], response, client, true);
+%}
+
+### INFO - os
+
+GET {{rest-url}}/info?type=os
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["os", "uuid", "versions", "shell", "users", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "os"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["os", "uuid", "versions", "shell", "users", "type"], response, client, true);
+%}
+
+### INFO - processes
+
+GET {{rest-url}}/info?type=processes
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["currentLoad", "fullLoad", "processes", "services", "processLoad", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "processes"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["currentLoad", "fullLoad", "processes", "services", "processLoad", "type"], response, client, true);
+%}
+
+### INFO - fs
+
+GET {{rest-url}}/info?type=fs
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["diskLayout", "blockDevices", "disksIO", "fsSize", "fsOpenFiles", "fsStats", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "fs"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["diskLayout", "blockDevices", "disksIO", "fsSize", "fsOpenFiles", "fsStats", "type"], response, client, true);
+%}
+
+### INFO - usb
+
+GET {{rest-url}}/info?type=usb
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["usb", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "usb"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["usb", "type"], response, client, true);
+%}
+
+### INFO - printer
+
+GET {{rest-url}}/info?type=printer
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["printer", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "printer"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["printer", "type"], response, client, true);
+%}
+
+### INFO - audio
+
+GET {{rest-url}}/info?type=audio
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["audio", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "audio"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["audio", "type"], response, client, true);
+%}
+
+### INFO - network
+
+GET {{rest-url}}/info?type=network
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["interfaces", "interfaceDefault", "gatewayDefault", "stats", "connections", "inetChecksite", "inetLatency", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "network"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["interfaces", "interfaceDefault", "gatewayDefault", "stats", "connections", "inetChecksite", "inetLatency", "type"], response, client, true);
+%}
+
+### INFO - wifi
+
+GET {{rest-url}}/info?type=wifi
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["networks", "interfaces", "connections", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "wifi"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["networks", "interfaces", "connections", "type"], response, client, true);
+%}
+
+### INFO - bluetooth
+
+GET {{rest-url}}/info?type=bluetooth
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["devices", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "bluetooth"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["devices", "type"], response, client, true);
+%}
+
+### INFO - docker
+
+GET {{rest-url}}/info?type=docker
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["docker", "images", "containers", "containerStats", "containerProcesses", "volumes", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "docker"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["docker", "images", "containers", "containerStats", "containerProcesses", "volumes", "type"], response, client, true);
+%}
+
+### INFO - vbox
+
+GET {{rest-url}}/info?type=vbox
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["vbox", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "vbox"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["vbox", "type"], response, client, true);
+%}
+
+### INFO - invalid
+
+GET {{rest-url}}/info?type=invalid
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["version", "time", "type"], response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getInfo?input={"type": "invalid"}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["version", "time", "type"], response, client, true);
+%}
+
+### Shutdown
+
+#POST {{rest-url}}/shutdown
+#Authorization: Basic {{token}}
+#
+#> {%
+# import {validateStatus, validateContentType, validateResponseType} from "../utils";
+#
+# validateStatus(200, response, client);
+# validateContentType("application/json", response, client);
+# validateResponseType("boolean", response, client);
+# %}
+
+### tRPC
+
+#POST {{trpc-url}}/shutdown?input={}
+#Authorization: Basic {{token}}
+#
+#> {%
+# import {validateStatus, validateContentType, validateResponseType} from "../utils";
+#
+# validateStatus(200, response, client);
+# validateContentType("application/json", response, client);
+# validateResponseType("boolean", response, client, true);
+# %}
+
+### Reboot
+
+#POST {{rest-url}}/reboot
+#Authorization: Basic {{token}}
+#
+#> {%
+# import {validateStatus, validateContentType, validateResponseType} from "../utils";
+#
+# validateStatus(200, response, client);
+# validateContentType("application/json", response, client);
+# validateResponseType("boolean", response, client);
+# %}
+
+### tRPC
+
+#POST {{trpc-url}}/reboot?input={}
+#Authorization: Basic {{token}}
+#
+#> {%
+# import {validateStatus, validateContentType, validateResponseType} from "../utils";
+#
+# validateStatus(200, response, client);
+# validateContentType("application/json", response, client);
+# validateResponseType("boolean", response, client, true);
+# %}
+
+### Execute
+
+POST {{rest-url}}/execute
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "command": "echo hello world"
+}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["response"], response, client);
+
+  client.test("Response is command output", () => {
+    // noinspection JSIncompatibleTypesComparison
+    client.assert(response.body["response"] === "hello world\n", "Response is not command output");
+  })
+%}
+
+### tRPC
+
+POST {{trpc-url}}/execute
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "command": "echo hello world"
+}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["response"], response, client, true);
+
+  client.test("Response is command output", () => {
+    // noinspection JSIncompatibleTypesComparison
+    client.assert(response.body["result"]["data"]["response"] === "hello world\n", `Response is not command output`);
+  });
+%}
+
+### Screenshot
+
+POST {{rest-url}}/screenshot
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "method": "response",
+  "screens": [
+    1
+  ]
+}
+
+> {%
+  import {validateStatus, validateContentType, validateArray} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateArray(response, client);
+%}
+
+### tRPC
+
+POST {{trpc-url}}/screenshot
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "method": "response",
+  "screens": [
+    1
+  ]
+}
+
+> {%
+  import {validateStatus, validateContentType, validateArray} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateArray(response, client, true);
+%}
+
+### BROWSERS
+
+GET {{rest-url}}/browsers
+Authorization: Basic {{token}}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("object", response, client);
+%}
+
+### tRPC
+
+GET {{trpc-url}}/getBrowsers?input={}
+Authorization: Basic {{token}}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("object", response, client, true);
+%}
+
+### BROWSERS
+
+DELETE {{rest-url}}/browsers
+Authorization: Basic {{token}}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("boolean", response, client);
+%}
+
+### tRPC
+
+POST {{trpc-url}}/closeBrowsers
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("boolean", response, client, true);
+%}
+
+### BROWSER
+
+POST {{rest-url}}/browser
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "url": "https://ove.readthedocs.io/en/stable/README.html",
+  "displayId": 1
+}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("number", response, client);
+  client.global.set("browserId", response.body.toString());
+%}
+
+###
+
+GET {{rest-url}}/browser/{{browserId}}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["displayId", "windowId", "url"], response, client);
+%}
+
+###
+
+DELETE {{rest-url}}/browser/{{browserId}}
+Authorization: Basic {{token}}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  client.global.set("browserId", undefined);
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("boolean", response, client);
+%}
+
+###
+
+POST {{trpc-url}}/openBrowser
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "displayId": 1,
+  "url": "https://ove.readthedocs.io/en/stable/README.html"
+}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("number", response, client, true);
+  client.global.set("browserId", response.body["result"]["data"].toString());
+%}
+
+###
+
+GET {{trpc-url}}/getBrowser?input={"browserId":{{browserId}}}
+Authorization: Basic {{token}}
+
+> {%
+  import {validateStatus, validateContentType, validateKeys} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateKeys(["displayId", "url", "windowId"], response, client, true);
+%}
+
+###
+
+POST {{trpc-url}}/closeBrowser
+Authorization: Basic {{token}}
+Content-Type: application/json
+
+{
+  "browserId": {{browserId}}
+}
+
+> {%
+  import {
+    validateStatus,
+    validateContentType,
+    validateResponseType
+  } from "../utils";
+
+  client.global.set("browserId", undefined);
+  validateStatus(200, response, client);
+  validateContentType("application/json", response, client);
+  validateResponseType("boolean", response, client, true);
+%}
+

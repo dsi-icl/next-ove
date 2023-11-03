@@ -1,8 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron";
 import {
-  InboundAPI,
   inboundChannels,
-  OutboundAPI, OutboundAPIChannels
+  type InboundAPI,
+  type OutboundAPI,
+  type OutboundAPIChannels
 } from "../../ipc-routes";
 
 // noinspection DuplicatedCode
