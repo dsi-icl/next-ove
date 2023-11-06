@@ -3,7 +3,7 @@ import superjson from "superjson";
 import { type Tokens } from "@ove/ove-types";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // IGNORE PATH - dependency removed at runtime
-import { type AppRouter } from "../../ove-core/src/app/router";
+import { type AppRouter } from "../../ove-core/src/server/router";
 
 export type InfoTypes = "general" | "system" | "cpu" | "memory"
 

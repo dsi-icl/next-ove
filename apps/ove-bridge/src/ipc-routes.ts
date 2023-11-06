@@ -5,7 +5,7 @@ export const inboundChannels: InboundAPIChannels = {
   addDevice: "add-device",
   removeDevice: "remove-device",
   getDevicesToAuth: "get-devices-auth",
-  getAppVersion: "get-app-version",
+  getAppVersion: "get-server-version",
   getPublicKey: "get-public-key",
   registerAuth: "edit-device-hardware-auth",
   updateEnv: "update-env",

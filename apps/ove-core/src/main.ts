@@ -2,12 +2,13 @@
 
 import * as path from "path";
 import cors from "cors";
-import { app } from "./app/app";
-import { appRouter } from "./app/router";
-import { createContext } from "./app/context";
-import { openApiDocument } from "./app/open-api";
+import { app } from "./server/app";
+import { appRouter } from "./server/router";
+import { createContext } from "./server/context";
+import { openApiDocument } from "./server/open-api";
 import * as express from "express";
 import { env } from "./env";
+import FileUtils from "@ove/ove-server-utils";
 import * as swaggerUi from "swagger-ui-express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
@@ -28,5 +29,9 @@ app.use(`/api/v${env.API_VERSION}`, createOpenApiExpressMiddleware({
 
 app.use("/", swaggerUi.serve);
 app.get("/", swaggerUi.setup(openApiDocument));
+
+if (env.NODE_ENV === "development") {
+  FileUtils.saveSwagger(path.join(`v${env.API_VERSION}`, "core.swagger.json"), openApiDocument);
+}
 
 app.use("/assets", express.static(path.join(__dirname, "assets")));

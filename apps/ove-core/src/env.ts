@@ -9,7 +9,7 @@ import { setupConfig } from "@ove/ove-server-utils";
 
 /**
  * Specify your server-side environment variables schema here.
- * This way you can ensure the app isn't built with invalid env vars.
+ * This way you can ensure the server isn't built with invalid env vars.
  */
 const schema = z.strictObject({
   NODE_ENV: z.union([z.literal("development"), z.literal("production"), z.literal("test")]),

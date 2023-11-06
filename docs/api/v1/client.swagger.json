@@ -1,0 +1,716 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "next-ove client",
+    "description": "Control interface for observatory rendering nodes.",
+    "version": "24.8.2"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3334/api/v1"
+    }
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "operationId": "query.getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/info": {
+      "get": {
+        "operationId": "query.getInfo",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {},
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/browser/{browserId}": {
+      "get": {
+        "operationId": "query.getBrowser",
+        "parameters": [
+          {
+            "name": "browserId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "displayId": {
+                          "type": "number"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "windowId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "displayId",
+                        "windowId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "mutation.closeBrowser",
+        "parameters": [
+          {
+            "name": "browserId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/browsers": {
+      "get": {
+        "operationId": "query.getBrowsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "maxItems": 125,
+                      "items": {
+                        "type": "array",
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "displayId": {
+                                "type": "number"
+                              },
+                              "url": {
+                                "type": "string"
+                              },
+                              "windowId": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "displayId",
+                              "windowId"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ],
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "mutation.closeBrowsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/reboot": {
+      "post": {
+        "operationId": "mutation.reboot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/shutdown": {
+      "post": {
+        "operationId": "mutation.shutdown",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/execute": {
+      "post": {
+        "operationId": "mutation.execute",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "command": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "command"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "response": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "response"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/screenshot": {
+      "post": {
+        "operationId": "mutation.screenshot",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "upload"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "local"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "response"
+                        ]
+                      }
+                    ]
+                  },
+                  "screens": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "required": [
+                  "method",
+                  "screens"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/browser": {
+      "post": {
+        "operationId": "mutation.openBrowser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "displayId": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "operationId": "mutation.register",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pin": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "pin",
+                  "key"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "Authorization": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "error": {
+        "description": "Error response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "issues": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "message",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

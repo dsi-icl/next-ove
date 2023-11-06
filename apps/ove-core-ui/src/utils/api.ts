@@ -9,7 +9,7 @@ import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 
 // IGNORE PATH - dependency removed at runtime
-import { type AppRouter } from "../../../ove-core/src/app/router";
+import { type AppRouter } from "../../../ove-core/src/server/router";
 
 /**
  * A set of typesafe react-query hooks for your tRPC API

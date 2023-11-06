@@ -238,7 +238,7 @@ describe("OVE Client Router", () => {
         id: "ts1",
         name: "test screen 1",
         appIcon: <NativeImage>{
-          toDataURL: (): string => "app icon 1"
+          toDataURL: (): string => "server icon 1"
         },
         thumbnail: <NativeImage>{
           toDataURL: (): string => "thumbnail 1"
@@ -249,7 +249,7 @@ describe("OVE Client Router", () => {
         id: "ts2",
         name: "test screen 2",
         appIcon: <NativeImage>{
-          toDataURL: (): string => "app icon 2"
+          toDataURL: (): string => "server icon 2"
         },
         thumbnail: <NativeImage>{
           toDataURL: (): string => "thumbnail 2"

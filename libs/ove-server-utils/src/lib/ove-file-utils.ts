@@ -1,6 +1,7 @@
 import * as fs from "fs";
-import { readFileSync, writeFileSync } from "atomically";
+import * as path from "path";
 import { Json } from "@ove/ove-utils";
+import { readFileSync, writeFileSync } from "atomically";
 
 export const readFile = <T extends NonNullable<any>>(filePath: string, defaultAsset: string | null = null): T | null => {
   try {
@@ -56,4 +57,8 @@ export const exists = (path: string) => {
   } catch (e) {
     return false;
   }
+};
+
+export const saveSwagger = (filename: string, swagger: object) => {
+  safeWriteFile(path.join("docs", "api", filename), Json.stringify(swagger, undefined, 2), true);
 };

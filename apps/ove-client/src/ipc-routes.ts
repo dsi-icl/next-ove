@@ -1,6 +1,6 @@
 export const inboundChannels: InboundAPIChannels = {
   getInfo: "get-info",
-  getAppVersion: "get-app-version",
+  getAppVersion: "get-server-version",
 };
 
 export const outboundChannels: OutboundAPIChannels = {

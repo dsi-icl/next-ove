@@ -15,7 +15,7 @@ import { resolve, join, basename } from "path";
 export default class SquirrelEvents {
   private static isAppFirstRun = false;
 
-  // app paths
+  // server paths
   private static appFolder = resolve(process.execPath, "..");
   private static appRootFolder = resolve(SquirrelEvents.appFolder, "..");
   private static updateExe = resolve(
@@ -24,7 +24,7 @@ export default class SquirrelEvents {
   private static exeName = resolve(
     join(
       SquirrelEvents.appRootFolder,
-      "app-" + app.getVersion(),
+      "server-" + app.getVersion(),
       basename(process.execPath)
     )
   );
@@ -67,7 +67,7 @@ export default class SquirrelEvents {
   }
 
   /**
-   * If it is the first run of the app
+   * If it is the first run of the server
    * @return {boolean}
    */
   static isFirstRun(): boolean {

@@ -10,6 +10,7 @@ import {init} from "./server/hardware/controller";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
+import FileUtils from "@ove/ove-server-utils";
 import {
   createWindow,
   takeScreenshots,
@@ -43,6 +44,10 @@ export const start = () => {
   app.use("/", swaggerUi.serve);
   app.get("/", swaggerUi.setup(openApiDocument));
 
+  if (process.env.NODE_ENV === "development") {
+    FileUtils.saveSwagger(path.join(`v${env.API_VERSION}`, "client.swagger.json"), openApiDocument);
+  }
+
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
   const server = app.listen(env.PORT, `${env.HOSTNAME}`, () => {
@@ -51,7 +56,7 @@ export const start = () => {
 
   server.on("error", logger.error);
 
-  return (): void => {
+  return () => {
     server.close();
   };
 };

@@ -15,7 +15,7 @@
 
 ## System Architecture
 
-![image](system_architecture_3.jpg)
+![image](wireframes/system_architecture_3.jpg)
 
 ### Details
 
@@ -368,7 +368,7 @@ paths:
       summary: "Information on data applications"
   /{app}/states:
     get:
-      summary: "All existing states for app"
+      summary: "All existing states for server"
   /{app}/states/{name}:
     get:
       summary: "State configuration"
@@ -499,21 +499,21 @@ paths:
 
 ### Wireframes
 
-![image](login_screen.jpg)
+![image](wireframes/login_screen.jpg)
 
-![image](home_screen.jpeg)
+![image](wireframes/home_screen.jpeg)
 
-![image](editor_screen.jpg)
+![image](wireframes/editor_screen.jpg)
 
-![image](hardware_screen.jpg)
+![image](wireframes/hardware_screen.jpg)
 
-![image](status_screen.jpg)
+![image](wireframes/status_screen.jpg)
 
-![image](spaces_screen.jpg)
+![image](wireframes/spaces_screen.jpg)
 
-![image](sections_screen.jpg)
+![image](wireframes/sections_screen.jpg)
 
-![image](wireframes.svg)
+![image](wireframes/wireframes.svg)
 
 ### Existing Issues
 
@@ -581,7 +581,7 @@ paths:
 
 ## Time frame
 
-![image](time_frame_2.jpg)
+![image](wireframes/time_frame_2.jpg)
 
 ## TODO
 
