@@ -1,9 +1,10 @@
-import { type Context } from "./context";
 import { env } from "../env";
+import superjson from "superjson";
+import { type Context } from "./context";
 import { type OpenApiMeta } from "trpc-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
 
-const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create();
+const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create({transformer: superjson});
 export const router = trpc.router;
 
 export const mergeRouters = trpc.mergeRouters;

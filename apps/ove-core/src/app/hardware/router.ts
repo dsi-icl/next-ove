@@ -27,10 +27,8 @@ const generateQuery = <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(
     if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
     const { bridgeId, ...args } = input;
     logger.info(`Handling: ${k}`);
-    return new Promise<TCoreAPIOutput<Key>>(resolve => {
-      // @ts-ignore
-      getSocket(bridgeId).emit<Key>(k, args, resolve);
-    });
+    // @ts-ignore
+    return getSocket(bridgeId).emitWithAck(k, args);
   });
 
 const generateMutation = <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)
@@ -38,11 +36,8 @@ const generateMutation = <Key extends keyof TCoreAPI>(k: Key) => generateProcedu
     if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
     const { bridgeId, ...args } = input;
     logger.info(`Handling: ${k}`);
-
-    return new Promise<TCoreAPIOutput<Key>>(resolve => {
-      // @ts-ignore
-      getSocket(bridgeId).emit<Key>(k, args, resolve);
-    });
+    // @ts-ignore
+    return getSocket(bridgeId).emitWithAck(k, args);
   });
 
 export type CoreRouter = {

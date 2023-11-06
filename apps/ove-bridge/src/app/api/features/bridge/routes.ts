@@ -4,7 +4,7 @@ import {
   type TCallback,
 } from "@ove/ove-types";
 import { io } from "socket.io-client";
-import { assert } from "@ove/ove-utils";
+import { assert, Parser } from "@ove/ove-utils";
 import { env, logger } from "../../../../env";
 import { controller } from "./controller";
 import {
@@ -18,7 +18,7 @@ import { initHardware } from "../hardware/hardware-controller";
 
 export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  setSocket(io(`ws://${env.CORE_URL}/bridge`, { autoConnect: false }));
+  setSocket(io(`ws://${env.CORE_URL}/bridge`, { autoConnect: false, parser: Parser }));
   if (socket === null) throw new Error("ILLEGAL");
   socket.auth = {
     username: env.BRIDGE_NAME,

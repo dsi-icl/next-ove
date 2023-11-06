@@ -66,8 +66,7 @@ const controller: TClientService = {
 
     if (idx === null) throw new Error("Unable to open browser");
 
-    const arr = Array.from(state.browsers.keys())
-    const browserId = arr.reduce((acc, x) => x > acc ? x : acc, 0);
+    const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
     state.browsers.set(browserId, { displayId: displayId ?? -1, url, windowId: idx });
 
     return browserId;

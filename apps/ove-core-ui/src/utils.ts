@@ -1,4 +1,5 @@
 import { env } from "./env";
+import superjson from "superjson";
 import { type Tokens } from "@ove/ove-types";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // IGNORE PATH - dependency removed at runtime
@@ -25,5 +26,5 @@ const createClient_ = (authorization: string) =>
         }
       })
     ],
-    transformer: undefined
+    transformer: superjson
   });

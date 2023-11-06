@@ -13,9 +13,9 @@ export const is = <T extends z.ZodTypeAny>(
   obj: unknown
 ): obj is z.infer<T> => schema.safeParse(obj).success;
 
-export const isError = <T extends z.ZodTypeAny>(
+export const isError = (
   obj: unknown
-): obj is z.infer<T> => OVEExceptionSchema.safeParse(obj).success;
+): obj is OVEException => obj !== undefined && obj !== null && typeof obj === "object" && "oveError" in obj;
 
 export const isAll = <T extends z.ZodTypeAny>(
   schema: T,

@@ -102,7 +102,7 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
     response = await applyService<typeof k>(
       getServiceForProtocol(device.type),
       k,
-      serviceArgs as TBridgeServiceArgs<Key>,
+      serviceArgs,
       device
     );
   } catch (e) {

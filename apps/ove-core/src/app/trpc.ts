@@ -1,11 +1,12 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { type OpenApiMeta } from "trpc-openapi";
-import { type Context } from "./context";
-import * as jwt from "jsonwebtoken";
 import { env } from "../env";
+import superjson from "superjson"
+import * as jwt from "jsonwebtoken";
 import { Json } from "@ove/ove-utils";
+import { type Context } from "./context";
+import { type OpenApiMeta } from "trpc-openapi";
+import { initTRPC, TRPCError } from "@trpc/server";
 
-const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create();
+const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create({transformer: superjson});
 
 export const router = trpc.router;
 export const procedure = trpc.procedure;

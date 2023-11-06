@@ -26,7 +26,7 @@ const onWindowAllClosed = () => {
   if (defaultIdx === null) {
     defaultIdx = initWindow();
     loadMainWindow(defaultIdx);
-    const browserId = Math.max(...state.browsers.keys()) + 1;
+    const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
     state.browsers.set(browserId, { displayId: -1, url: "", windowId: defaultIdx });
   } else {
     state.browsers.clear();
@@ -117,7 +117,7 @@ const loadMainWindow = (idx: string) => {
 const onReady = () => {
   defaultIdx = initWindow();
   loadMainWindow(defaultIdx);
-  const browserId = Math.max(...state.browsers.keys()) + 1;
+  const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
   state.browsers.set(browserId, { displayId: -1, url: "", windowId: defaultIdx });
 };
 
@@ -176,9 +176,12 @@ export default {
     loadUIWindow(idx);
   },
   loadCustomWindow: (url: string, idx: string) => {
-    windows[idx]?.loadURL(
-      url.toString()
-    ).then(() => logger.info(`Loaded custom window with url: ${url}`));
+    windows[idx]?.loadURL(url.toString())
+      .then(() => logger.info(`Loaded custom window with url: ${url}`))
+      .catch(reason => {
+        logger.error(reason);
+        loadErrorPage(idx);
+      });
   },
   triggerIPC,
   isInitialised: () => initialised,

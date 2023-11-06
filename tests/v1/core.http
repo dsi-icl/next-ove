@@ -1,0 +1,10 @@
+###
+
+GET {{base-core-url}}
+
+> {%
+  import {validateStatus, validateContentType} from "../utils";
+
+  validateStatus(200, response, client);
+  validateContentType("text/html", response, client);
+%}

@@ -1,6 +1,6 @@
 ### OPENAPI SPECIFICATION
 
-GET {{base-url}}
+GET {{base-client-url}}
 
 > {%
   import {validateStatus, validateContentType} from "../utils";
@@ -11,7 +11,7 @@ GET {{base-url}}
 
 ### STATUS
 
-GET {{rest-url}}/status
+GET {{rest-client-url}}/status
 Authorization: Basic {{token}}
 
 > {%
@@ -28,7 +28,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getStatus?input={}
+GET {{trpc-client-url}}/getStatus?input={"json": {}}
 Authorization: Basic {{token}}
 
 > {%
@@ -45,7 +45,7 @@ Authorization: Basic {{token}}
 
 ### INFO - default
 
-GET {{rest-url}}/info
+GET {{rest-client-url}}/info
 Authorization: Basic {{token}}
 
 > {%
@@ -58,7 +58,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={}
+GET {{trpc-client-url}}/getInfo?input={"json": {}}
 Authorization: Basic {{token}}
 
 > {%
@@ -71,7 +71,7 @@ Authorization: Basic {{token}}
 
 ### INFO - general
 
-GET {{rest-url}}/info?type=general
+GET {{rest-client-url}}/info?type=general
 Authorization: Basic {{token}}
 
 > {%
@@ -84,7 +84,7 @@ Authorization: Basic {{token}}
 
 ###
 
-GET {{trpc-url}}/getInfo?input={"type": "general"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "general"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -97,7 +97,7 @@ Authorization: Basic {{token}}
 
 ### INFO - system
 
-GET {{rest-url}}/info?type=system
+GET {{rest-client-url}}/info?type=system
 Authorization: Basic {{token}}
 
 > {%
@@ -110,7 +110,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "system"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "system"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -123,7 +123,7 @@ Authorization: Basic {{token}}
 
 ### INFO - cpu
 
-GET {{rest-url}}/info?type=cpu
+GET {{rest-client-url}}/info?type=cpu
 Authorization: Basic {{token}}
 
 > {%
@@ -136,7 +136,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "cpu"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "cpu"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -149,7 +149,7 @@ Authorization: Basic {{token}}
 
 ### INFO - memory
 
-GET {{rest-url}}/info?type=memory
+GET {{rest-client-url}}/info?type=memory
 Authorization: Basic {{token}}
 
 > {%
@@ -162,7 +162,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "memory"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "memory"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -175,7 +175,7 @@ Authorization: Basic {{token}}
 
 ### INFO - battery
 
-GET {{rest-url}}/info?type=battery
+GET {{rest-client-url}}/info?type=battery
 Authorization: Basic {{token}}
 
 > {%
@@ -188,7 +188,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "battery"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "battery"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -201,7 +201,7 @@ Authorization: Basic {{token}}
 
 ### INFO - graphics
 
-GET {{rest-url}}/info?type=graphics
+GET {{rest-client-url}}/info?type=graphics
 Authorization: Basic {{token}}
 
 > {%
@@ -214,7 +214,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "graphics"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "graphics"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -227,7 +227,7 @@ Authorization: Basic {{token}}
 
 ### INFO - os
 
-GET {{rest-url}}/info?type=os
+GET {{rest-client-url}}/info?type=os
 Authorization: Basic {{token}}
 
 > {%
@@ -240,7 +240,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "os"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "os"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -253,7 +253,7 @@ Authorization: Basic {{token}}
 
 ### INFO - processes
 
-GET {{rest-url}}/info?type=processes
+GET {{rest-client-url}}/info?type=processes
 Authorization: Basic {{token}}
 
 > {%
@@ -266,7 +266,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "processes"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "processes"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -279,7 +279,7 @@ Authorization: Basic {{token}}
 
 ### INFO - fs
 
-GET {{rest-url}}/info?type=fs
+GET {{rest-client-url}}/info?type=fs
 Authorization: Basic {{token}}
 
 > {%
@@ -292,7 +292,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "fs"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "fs"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -305,7 +305,7 @@ Authorization: Basic {{token}}
 
 ### INFO - usb
 
-GET {{rest-url}}/info?type=usb
+GET {{rest-client-url}}/info?type=usb
 Authorization: Basic {{token}}
 
 > {%
@@ -318,7 +318,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "usb"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "usb"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -331,7 +331,7 @@ Authorization: Basic {{token}}
 
 ### INFO - printer
 
-GET {{rest-url}}/info?type=printer
+GET {{rest-client-url}}/info?type=printer
 Authorization: Basic {{token}}
 
 > {%
@@ -344,7 +344,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "printer"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "printer"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -357,7 +357,7 @@ Authorization: Basic {{token}}
 
 ### INFO - audio
 
-GET {{rest-url}}/info?type=audio
+GET {{rest-client-url}}/info?type=audio
 Authorization: Basic {{token}}
 
 > {%
@@ -370,7 +370,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "audio"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "audio"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -383,7 +383,7 @@ Authorization: Basic {{token}}
 
 ### INFO - network
 
-GET {{rest-url}}/info?type=network
+GET {{rest-client-url}}/info?type=network
 Authorization: Basic {{token}}
 
 > {%
@@ -396,7 +396,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "network"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "network"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -409,7 +409,7 @@ Authorization: Basic {{token}}
 
 ### INFO - wifi
 
-GET {{rest-url}}/info?type=wifi
+GET {{rest-client-url}}/info?type=wifi
 Authorization: Basic {{token}}
 
 > {%
@@ -422,7 +422,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "wifi"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "wifi"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -435,7 +435,7 @@ Authorization: Basic {{token}}
 
 ### INFO - bluetooth
 
-GET {{rest-url}}/info?type=bluetooth
+GET {{rest-client-url}}/info?type=bluetooth
 Authorization: Basic {{token}}
 
 > {%
@@ -448,7 +448,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "bluetooth"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "bluetooth"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -461,7 +461,7 @@ Authorization: Basic {{token}}
 
 ### INFO - docker
 
-GET {{rest-url}}/info?type=docker
+GET {{rest-client-url}}/info?type=docker
 Authorization: Basic {{token}}
 
 > {%
@@ -474,7 +474,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "docker"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "docker"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -487,7 +487,7 @@ Authorization: Basic {{token}}
 
 ### INFO - vbox
 
-GET {{rest-url}}/info?type=vbox
+GET {{rest-client-url}}/info?type=vbox
 Authorization: Basic {{token}}
 
 > {%
@@ -500,7 +500,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "vbox"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "vbox"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -513,7 +513,7 @@ Authorization: Basic {{token}}
 
 ### INFO - invalid
 
-GET {{rest-url}}/info?type=invalid
+GET {{rest-client-url}}/info?type=invalid
 Authorization: Basic {{token}}
 
 > {%
@@ -526,7 +526,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getInfo?input={"type": "invalid"}
+GET {{trpc-client-url}}/getInfo?input={"json": {"type": "invalid"}}
 Authorization: Basic {{token}}
 
 > {%
@@ -539,7 +539,7 @@ Authorization: Basic {{token}}
 
 ### Shutdown
 
-#POST {{rest-url}}/shutdown
+#POST {{rest-client-url}}/shutdown
 #Authorization: Basic {{token}}
 #
 #> {%
@@ -552,8 +552,13 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-#POST {{trpc-url}}/shutdown?input={}
+#POST {{trpc-client-url}}/shutdown
 #Authorization: Basic {{token}}
+#Content-Type: application/json
+#
+#{
+#  "json": {}
+#}
 #
 #> {%
 # import {validateStatus, validateContentType, validateResponseType} from "../utils";
@@ -565,7 +570,7 @@ Authorization: Basic {{token}}
 
 ### Reboot
 
-#POST {{rest-url}}/reboot
+#POST {{rest-client-url}}/reboot
 #Authorization: Basic {{token}}
 #
 #> {%
@@ -578,8 +583,13 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-#POST {{trpc-url}}/reboot?input={}
+#POST {{trpc-client-url}}/reboot
 #Authorization: Basic {{token}}
+#Content-Type: application/json
+#
+#{
+#  "json": {}
+#}
 #
 #> {%
 # import {validateStatus, validateContentType, validateResponseType} from "../utils";
@@ -591,7 +601,7 @@ Authorization: Basic {{token}}
 
 ### Execute
 
-POST {{rest-url}}/execute
+POST {{rest-client-url}}/execute
 Authorization: Basic {{token}}
 Content-Type: application/json
 
@@ -614,12 +624,14 @@ Content-Type: application/json
 
 ### tRPC
 
-POST {{trpc-url}}/execute
+POST {{trpc-client-url}}/execute
 Authorization: Basic {{token}}
 Content-Type: application/json
 
 {
-  "command": "echo hello world"
+  "json": {
+    "command": "echo hello world"
+  }
 }
 
 > {%
@@ -631,13 +643,13 @@ Content-Type: application/json
 
   client.test("Response is command output", () => {
     // noinspection JSIncompatibleTypesComparison
-    client.assert(response.body["result"]["data"]["response"] === "hello world\n", `Response is not command output`);
+    client.assert(response.body["result"]["data"]["json"]["response"] === "hello world\n", `Response is not command output`);
   });
 %}
 
 ### Screenshot
 
-POST {{rest-url}}/screenshot
+POST {{rest-client-url}}/screenshot
 Authorization: Basic {{token}}
 Content-Type: application/json
 
@@ -658,15 +670,17 @@ Content-Type: application/json
 
 ### tRPC
 
-POST {{trpc-url}}/screenshot
+POST {{trpc-client-url}}/screenshot
 Authorization: Basic {{token}}
 Content-Type: application/json
 
 {
-  "method": "response",
-  "screens": [
-    1
-  ]
+  "json": {
+    "method": "response",
+    "screens": [
+      1
+    ]
+  }
 }
 
 > {%
@@ -679,7 +693,7 @@ Content-Type: application/json
 
 ### BROWSERS
 
-GET {{rest-url}}/browsers
+GET {{rest-client-url}}/browsers
 Authorization: Basic {{token}}
 
 > {%
@@ -696,7 +710,7 @@ Authorization: Basic {{token}}
 
 ### tRPC
 
-GET {{trpc-url}}/getBrowsers?input={}
+GET {{trpc-client-url}}/getBrowsers?input={"json": {}}
 Authorization: Basic {{token}}
 
 > {%
@@ -713,7 +727,7 @@ Authorization: Basic {{token}}
 
 ### BROWSERS
 
-DELETE {{rest-url}}/browsers
+DELETE {{rest-client-url}}/browsers
 Authorization: Basic {{token}}
 
 > {%
@@ -728,13 +742,19 @@ Authorization: Basic {{token}}
   validateResponseType("boolean", response, client);
 %}
 
+### DELAY
+
+GET https://hub.dummyapis.com/delay?seconds=5
+
 ### tRPC
 
-POST {{trpc-url}}/closeBrowsers
+POST {{trpc-client-url}}/closeBrowsers
 Authorization: Basic {{token}}
 Content-Type: application/json
 
-{}
+{
+  "json": {}
+}
 
 > {%
   import {
@@ -748,14 +768,18 @@ Content-Type: application/json
   validateResponseType("boolean", response, client, true);
 %}
 
+### DELAY
+
+GET https://hub.dummyapis.com/delay?seconds=5
+
 ### BROWSER
 
-POST {{rest-url}}/browser
+POST {{rest-client-url}}/browser
 Authorization: Basic {{token}}
 Content-Type: application/json
 
 {
-  "url": "https://ove.readthedocs.io/en/stable/README.html",
+  "url": "http://localhost:8080",
   "displayId": 1
 }
 
@@ -772,9 +796,13 @@ Content-Type: application/json
   client.global.set("browserId", response.body.toString());
 %}
 
+### DELAY
+
+GET https://hub.dummyapis.com/delay?seconds=3
+
 ###
 
-GET {{rest-url}}/browser/{{browserId}}
+GET {{rest-client-url}}/browser/{{browserId}}
 Authorization: Basic {{token}}
 
 > {%
@@ -787,7 +815,7 @@ Authorization: Basic {{token}}
 
 ###
 
-DELETE {{rest-url}}/browser/{{browserId}}
+DELETE {{rest-client-url}}/browser/{{browserId}}
 Authorization: Basic {{token}}
 
 > {%
@@ -803,15 +831,21 @@ Authorization: Basic {{token}}
   validateResponseType("boolean", response, client);
 %}
 
+### DELAY
+
+GET https://hub.dummyapis.com/delay?seconds=5
+
 ###
 
-POST {{trpc-url}}/openBrowser
+POST {{trpc-client-url}}/openBrowser
 Authorization: Basic {{token}}
 Content-Type: application/json
 
 {
-  "displayId": 1,
-  "url": "https://ove.readthedocs.io/en/stable/README.html"
+  "json": {
+    "displayId": 1,
+    "url": "http://localhost:8080"
+  }
 }
 
 > {%
@@ -824,12 +858,16 @@ Content-Type: application/json
   validateStatus(200, response, client);
   validateContentType("application/json", response, client);
   validateResponseType("number", response, client, true);
-  client.global.set("browserId", response.body["result"]["data"].toString());
+  client.global.set("browserId", response.body["result"]["data"]["json"].toString());
 %}
+
+### DELAY
+
+GET https://hub.dummyapis.com/delay?seconds=3
 
 ###
 
-GET {{trpc-url}}/getBrowser?input={"browserId":{{browserId}}}
+GET {{trpc-client-url}}/getBrowser?input={"json": {"browserId":{{browserId}}}}
 Authorization: Basic {{token}}
 
 > {%
@@ -842,12 +880,14 @@ Authorization: Basic {{token}}
 
 ###
 
-POST {{trpc-url}}/closeBrowser
+POST {{trpc-client-url}}/closeBrowser
 Authorization: Basic {{token}}
 Content-Type: application/json
 
 {
-  "browserId": {{browserId}}
+  "json": {
+    "browserId": {{browserId}}
+  }
 }
 
 > {%

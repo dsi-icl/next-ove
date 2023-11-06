@@ -15,6 +15,7 @@ export const createWindow = (url?: string, displayId?: number): string => {
     return App.openWindow(App.loadDisplayWindow, displayId);
   } else {
     return App.openWindow((idx: string) => {
+      console.log(idx);
       App.loadCustomWindow(url, idx);
     }, displayId);
   }

@@ -6,13 +6,14 @@ import {
 import { server } from "./app";
 import { instrument } from "@socket.io/admin-ui";
 import { env } from "../env";
+import { Parser } from "@ove/ove-utils";
 
 export const io: Server = new Server<
   THardwareClientToServerEvents,
   THardwareServerToClientEvents
 >(
   server,
-  { cors: { origin: "*", methods: ["GET", "POST", "DELETE"] }, credentials: false } as Partial<ServerOptions>
+  { cors: { origin: "*", methods: ["GET", "POST", "DELETE"] }, credentials: false, parser: Parser } as Partial<ServerOptions>
 );
 
 const auth = env.SOCKET_ADMIN === undefined ? false : {type: "basic" as const, username: env.SOCKET_ADMIN.USERNAME, password: env.SOCKET_ADMIN.PASSWORD}

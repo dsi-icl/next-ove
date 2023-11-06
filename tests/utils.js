@@ -20,7 +20,7 @@ export function validateContentType(contentType, response, client) {
 
 export function validateKeys(keys, response, client, isTRPC) {
   client.test(`Response contains necessary keys`, () => {
-    const res = isTRPC ? validateTRPC(response.body, client) : response.body;
+    const res = isTRPC ? validateTRPC(response.body, client).json : response.body;
     keys.forEach(k => {
       client.assert(k in res, `'${k}' missing from response`);
     });
@@ -29,14 +29,14 @@ export function validateKeys(keys, response, client, isTRPC) {
 
 export function validateResponseType(type, response, client, isTRPC) {
   client.test("Response is valid type", () => {
-    const resType = typeof (isTRPC ? validateTRPC(response.body, client) : response.body);
+    const resType = typeof (isTRPC ? validateTRPC(response.body, client).json : response.body);
     client.assert(resType === type, `Expected ${type}, received: ${resType}`);
   });
 }
 
 export function validateArray(response, client, isTRPC) {
   client.test("Response is an array", () => {
-    const res = isTRPC ? validateTRPC(response.body, client) : response.body;
+    const res = isTRPC ? validateTRPC(response.body, client).json : response.body;
     client.assert(Array.isArray(res), "Response is not an array");
   });
 }

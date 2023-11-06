@@ -7,7 +7,7 @@ import {
   type THardwareClientToServerEvents,
   type THardwareServerToClientEvents
 } from "@ove/ove-types";
-import { assert } from "@ove/ove-utils";
+import { assert, Parser } from "@ove/ove-utils";
 import { env, logger } from "../../../../env";
 import { io, type Socket } from "socket.io-client";
 
@@ -24,7 +24,7 @@ export const closeHardwareSocket = () => {
 
 export const initHardware = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  socket = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false });
+  socket = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false, parser: Parser });
   socket.auth = {
     username: env.BRIDGE_NAME,
     password: env.PUBLIC_KEY

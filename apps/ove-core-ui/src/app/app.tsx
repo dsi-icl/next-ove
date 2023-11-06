@@ -1,18 +1,14 @@
-import Router from "./router";
-import { Nav } from "@ove/ui-components";
-import { HddStack } from "react-bootstrap-icons";
-import {
-  NavigationMenuLink
-} from "@ove/ui-base-components";
 import { env } from "../env";
+import Router from "./router";
+import { useState } from "react";
+import superjson from "superjson";
 import { useAuth } from "../hooks";
 import { trpc } from "../utils/api";
 import { httpLink } from "@trpc/client";
-import {
-  QueryClient,
-  QueryClientProvider
-} from "@tanstack/react-query";
-import { useState } from "react";
+import { Nav } from "@ove/ui-components";
+import { HddStack } from "react-bootstrap-icons";
+import { NavigationMenuLink } from "@ove/ui-base-components";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const App = () => {
   const { loggedIn, logout, tokens, refresh } = useAuth();
@@ -108,7 +104,7 @@ export const App = () => {
         }
       })
     ],
-    transformer: undefined
+    transformer: superjson
   }));
 
   const [queryClient,] = useState<QueryClient>(() => new QueryClient({defaultOptions: {queries: {}, mutations: {}}}));

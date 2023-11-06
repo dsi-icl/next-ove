@@ -4,10 +4,11 @@ import {
   type Device,
   type TBridgeHardwareService,
   type TBridgeServiceArgs,
-  MDCSourceSchema
+  MDCSourceSchema, isError, OVEException
 } from "@ove/ove-types";
 import { z } from "zod";
 import * as mdc from "@ove/mdc-control";
+import { raise } from "@ove/ove-utils";
 
 const reboot = async (
   { ip, port }: Device,
@@ -18,9 +19,13 @@ const reboot = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setPower(0x01, ip, port, "off");
-  return await new Promise<boolean>(resolve =>
-    setTimeout(() => void mdc.setPower(0x01, ip, port, "on").then(() => resolve(true)), 1000)
+  const res = await mdc.setPower(0x01, ip, port, "off");
+
+  if (isError(res)) return res;
+  return new Promise<boolean | OVEException>(resolve =>
+    setTimeout(() => {
+      mdc.setPower(0x01, ip, port, "on").then(res => resolve(isError(res) ? res : true));
+    }, 1000)
   );
 };
 
@@ -33,8 +38,8 @@ const shutdown = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setPower(0x01, ip, port, "off");
-  return true;
+  const res = await mdc.setPower(0x01, ip, port, "off");
+  return isError(res) ? res : true;
 };
 
 const start = async (
@@ -46,8 +51,8 @@ const start = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setPower(0x01, ip, port, "on");
-  return true;
+  const res = await mdc.setPower(0x01, ip, port, "on");
+  return isError(res) ? res : true;
 };
 
 const getInfo = async (
@@ -64,6 +69,10 @@ const getInfo = async (
   const source = await mdc.getSource(0x01, ip, port);
   const isMuted = await mdc.getIsMute(0x01, ip, port);
   const model = await mdc.getModel(0x01, ip, port);
+
+  if (isError(power) || isError(volume) || isError(source) || isError(isMuted) || isError(model)) {
+    return raise("MDC ERROR");
+  }
 
   return {
     power,
@@ -83,8 +92,8 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.getStatus(0x01, ip, port);
-  return true;
+  const res = await mdc.getStatus(0x01, ip, port);
+  return isError(res) ? res : true;
 };
 
 const mute = async ({ ip, port }: Device, args: TBridgeServiceArgs<"mute">) => {
@@ -93,8 +102,8 @@ const mute = async ({ ip, port }: Device, args: TBridgeServiceArgs<"mute">) => {
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setIsMute(0x01, ip, port, true);
-  return true;
+  const res = await mdc.setIsMute(0x01, ip, port, true);
+  return isError(res) ? res : true;
 };
 
 const unmute = async (
@@ -106,8 +115,8 @@ const unmute = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setIsMute(0x01, ip, port, false);
-  return true;
+  const res = await mdc.setIsMute(0x01, ip, port, false);
+  return isError(res) ? res : true;
 };
 
 const setVolume = async (
@@ -119,8 +128,8 @@ const setVolume = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setVolume(0x01, ip, port, parsedOpts.data.volume);
-  return true;
+  const res = await mdc.setVolume(0x01, ip, port, parsedOpts.data.volume);
+  return isError(res) ? res : true;
 };
 
 const setSource = async (
@@ -134,11 +143,11 @@ const setSource = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await mdc.setSource(0x01, ip, port, mdc.sources[parsedOpts.data.source]);
-  return true;
+  const res = await mdc.setSource(0x01, ip, port, mdc.sources[parsedOpts.data.source]);
+  return isError(res) ? res : true;
 };
 
-export default <TBridgeHardwareService>{
+const MDCService: TBridgeHardwareService = {
   reboot,
   shutdown,
   start,
@@ -149,3 +158,4 @@ export default <TBridgeHardwareService>{
   setVolume,
   setSource
 };
+export default MDCService;
