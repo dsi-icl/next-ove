@@ -83,7 +83,7 @@ export const SystemDataSchema: z.ZodType<SystemData> = z.strictObject({
   sku: z.string(),
   virtual: z.boolean(),
   virtualHost: z.string().optional(),
-  raspberry: RaspberryRevisionDataSchema.optional(),
+  raspberry: RaspberryRevisionDataSchema.optional()
 });
 
 // @ts-ignore
@@ -94,7 +94,7 @@ export const BiosDataSchema: z.ZodType<BiosData> = z.strictObject({
   revision: z.string(),
   serial: z.string().optional(),
   language: z.string().optional(),
-  features: z.string().array().optional(),
+  features: z.string().array().optional()
 });
 
 // @ts-ignore
@@ -116,7 +116,7 @@ export const ChassisDataSchema: z.ZodType<ChassisData> = z.strictObject({
   version: z.string(),
   serial: z.string(),
   assetTag: z.string(),
-  sku: z.string(),
+  sku: z.string()
 });
 
 // @ts-ignore
@@ -124,7 +124,7 @@ export const CPUCacheDataSchema: z.ZodType<CpuCacheData> = z.strictObject({
   l1d: z.number(),
   l1i: z.number(),
   l2: z.number(),
-  l3: z.number().nullable() // error in library type - missing nullable
+  l3: z.number().nullable() // error in library type – missing nullable
 });
 
 // @ts-ignore
@@ -157,16 +157,16 @@ export const CPUCurrentSpeedDataSchema: z.ZodType<CpuCurrentSpeedData> = z.stric
   min: z.number(),
   max: z.number(),
   avg: z.number(),
-  cores: z.number().array(),
+  cores: z.number().array()
 });
 
 // @ts-ignore
 export const CPUTemperatureDataSchema: z.ZodType<CpuTemperatureData> = z.strictObject({
-  main: z.number().nullable(), // error in library type - missing nullable
+  main: z.number().nullable(), // error in library type – missing nullable
   cores: z.number().array(),
-  max: z.number().nullable(), // error in library type - missing nullable
+  max: z.number().nullable(), // error in library type – missing nullable
   socket: z.number().array().optional(),
-  chipset: z.number().optional().nullable(), // error in library type - missing nullable
+  chipset: z.number().optional().nullable() // error in library type – missing nullable
 });
 
 // @ts-ignore
@@ -182,7 +182,7 @@ export const MemDataSchema: z.ZodType<MemData> = z.strictObject({
   slab: z.number(),
   swaptotal: z.number(),
   swapused: z.number(),
-  swapfree: z.number(),
+  swapfree: z.number()
 });
 
 // @ts-ignore
@@ -215,7 +215,7 @@ export const SmartDataSchema: z.ZodType<SmartData> = z.strictObject({
     name: z.string(),
     info_name: z.string(),
     type: z.string(),
-    protocol: z.string(),
+    protocol: z.string()
   }),
   model_family: z.string().optional(),
   model_name: z.string().optional(),
@@ -244,19 +244,19 @@ export const SmartDataSchema: z.ZodType<SmartData> = z.strictObject({
         performance: z.boolean(),
         error_rate: z.boolean(),
         event_count: z.boolean(),
-        auto_keep: z.boolean(),
+        auto_keep: z.boolean()
       }),
       raw: z.strictObject({
         value: z.number(),
-        string: z.string(),
-      }),
-    }).array(),
+        string: z.string()
+      })
+    }).array()
   }).optional(),
   ata_smart_error_log: z.strictObject({
     summary: z.strictObject({
       revision: z.number(),
-      count: z.number(),
-    }),
+      count: z.number()
+    })
   }).optional(),
   ata_smart_self_test_log: z.strictObject({
     standard: z.strictObject({
@@ -264,23 +264,23 @@ export const SmartDataSchema: z.ZodType<SmartData> = z.strictObject({
       table: z.strictObject({
         type: z.strictObject({
           value: z.number(),
-          string: z.string(),
+          string: z.string()
         }),
         status: z.strictObject({
           value: z.number(),
           string: z.string(),
-          passed: z.boolean(),
+          passed: z.boolean()
         }),
-        lifetime_hours: z.number(),
+        lifetime_hours: z.number()
       }).array(),
       count: z.number(),
       error_count_total: z.number(),
-      error_count_outdated: z.number(),
-    }),
+      error_count_outdated: z.number()
+    })
   }).optional(),
   nvme_pci_vendor: z.strictObject({
     id: z.number(),
-    subsystem_id: z.number(),
+    subsystem_id: z.number()
   }).optional(),
   nvme_smart_health_information_log: z.strictObject({
     critical_warning: z.number().optional(),
@@ -300,20 +300,20 @@ export const SmartDataSchema: z.ZodType<SmartData> = z.strictObject({
     num_err_log_entries: z.number().optional(),
     warning_temp_time: z.number().optional(),
     critical_comp_time: z.number().optional(),
-    temperature_sensors: z.number().array().optional(),
+    temperature_sensors: z.number().array().optional()
   }).optional(),
   user_capacity: z.strictObject({
     blocks: z.number(),
-    bytes: z.number(),
+    bytes: z.number()
   }).optional(),
   logical_block_size: z.number().optional(),
   temperature: z.strictObject({
-    current: z.number(),
+    current: z.number()
   }),
   power_cycle_count: z.number(),
   power_on_time: z.strictObject({
-    hours: z.number(),
-  }),
+    hours: z.number()
+  })
 });
 
 // @ts-ignore
@@ -323,19 +323,19 @@ export const DiskLayoutDataSchema: z.ZodType<DiskLayoutData> = z.strictObject({
   name: z.string(),
   vendor: z.string(),
   size: z.number(),
-  bytesPerSector: z.number().nullable(), // error in library type - missing nullable
-  totalCylinders: z.number().nullable(), // error in library type - missing nullable
-  totalHeads: z.number().nullable(), // error in library type - missing nullable
-  totalSectors: z.number().nullable(), // error in library type - missing nullable
-  totalTracks: z.number().nullable(), // error in library type - missing nullable
-  tracksPerCylinder: z.number().nullable(), // error in library type - missing nullable
-  sectorsPerTrack: z.number().nullable(), // error in library type - missing nullable
+  bytesPerSector: z.number().nullable(), // error in library type – missing nullable
+  totalCylinders: z.number().nullable(), // error in library type – missing nullable
+  totalHeads: z.number().nullable(), // error in library type – missing nullable
+  totalSectors: z.number().nullable(), // error in library type – missing nullable
+  totalTracks: z.number().nullable(), // error in library type – missing nullable
+  tracksPerCylinder: z.number().nullable(), // error in library type – missing nullable
+  sectorsPerTrack: z.number().nullable(), // error in library type – missing nullable
   firmwareRevision: z.string(),
   serialNum: z.string(),
   interfaceType: z.string(),
   smartStatus: z.string(),
   temperature: z.number().nullable(),
-  smartData: SmartDataSchema.optional(),
+  smartData: SmartDataSchema.optional()
 });
 
 const BatteryDataSchemaBase = z.strictObject({
@@ -353,12 +353,12 @@ const BatteryDataSchemaBase = z.strictObject({
   type: z.string(),
   model: z.string(),
   manufacturer: z.string(),
-  serial: z.string(),
+  serial: z.string()
 });
 
 // @ts-ignore
 export const BatteryDataSchema: z.ZodType<BatteryData> = BatteryDataSchemaBase.extend({
-  additionalBatteries: z.lazy(() => BatteryDataSchema.array().optional()),
+  additionalBatteries: z.lazy(() => BatteryDataSchema.array().optional())
 });
 
 // @ts-ignore
@@ -372,7 +372,7 @@ export const GraphicsControllerDataSchema: z.ZodType<GraphicsControllerData> = z
   vram: z.number().nullable(),
   vramDynamic: z.boolean(),
   external: z.boolean().optional(),
-  cores: z.union([z.number(), z.string()]).optional(), // error in library type - missing string as possible union type
+  cores: z.union([z.number(), z.string()]).optional(), // error in library type – missing string as possible union type
   metalVersion: z.string().optional(),
   subDeviceId: z.string().optional(),
   driverVersion: z.string().optional(),
@@ -390,7 +390,7 @@ export const GraphicsControllerDataSchema: z.ZodType<GraphicsControllerData> = z
   powerDraw: z.number().optional(),
   powerLimit: z.number().optional(),
   clockCore: z.number().optional(),
-  clockMemory: z.number().optional(),
+  clockMemory: z.number().optional()
 });
 
 // @ts-ignore
@@ -398,9 +398,9 @@ export const GraphicsDisplayDataSchema: z.ZodType<GraphicsDisplayData> = z.stric
   vendor: z.string(),
   vendorId: z.string().nullable(),
   model: z.string(),
-  productionYear: z.union([z.number(), z.string()]).nullable(), // error in library type - missing string as possible union type
+  productionYear: z.union([z.number(), z.string()]).nullable(), // error in library type – missing string as possible union type
   serial: z.string().nullable(),
-  deviceName: z.string().nullable().optional(), // error in library type - missing optional
+  deviceName: z.string().nullable().optional(), // error in library type – missing optional
   displayId: z.string().nullable(),
   main: z.boolean(),
   builtin: z.boolean(),
@@ -414,13 +414,13 @@ export const GraphicsDisplayDataSchema: z.ZodType<GraphicsDisplayData> = z.stric
   currentResY: z.number().nullable(),
   positionX: z.number(),
   positionY: z.number(),
-  currentRefreshRate: z.number().nullable(),
+  currentRefreshRate: z.number().nullable()
 });
 
 // @ts-ignore
 export const GraphicsDataSchema: z.ZodType<GraphicsData> = z.strictObject({
   controllers: GraphicsControllerDataSchema.array(),
-  displays: GraphicsDisplayDataSchema.array(),
+  displays: GraphicsDisplayDataSchema.array()
 });
 
 // 4. Operating System
@@ -443,14 +443,14 @@ export const OSDataSchema: z.ZodType<OsData> = z.strictObject({
   uefi: z.boolean().nullable(),
   hypervizor: z.boolean().optional(),
   remoteSession: z.boolean().optional(),
-  hypervisor: z.boolean().optional(),
+  hypervisor: z.boolean().optional()
 });
 
 // @ts-ignore
 export const UUIDDataSchema: z.ZodType<UuidData> = z.strictObject({
   os: z.string(),
   hardware: z.string(),
-  macs: z.string().array(),
+  macs: z.string().array()
 });
 
 // @ts-ignore
@@ -485,11 +485,11 @@ export const VersionDataSchema: z.ZodType<VersionData> = z.strictObject({
   gcc: z.string().optional(),
   virtualbox: z.string().optional(),
   dotnet: z.string().optional(),
-  apache: z.string().optional(), // error in library type - missing key
-  bash: z.string().optional(), // error in library type - missing key
-  zsh: z.string().optional(), // error in library type - missing key
-  fish: z.string().optional(), // error in library type - missing key
-  powershell: z.string().optional() // error in library type - missing key
+  apache: z.string().optional(), // error in library type – missing key
+  bash: z.string().optional(), // error in library type – missing key
+  zsh: z.string().optional(), // error in library type – missing key
+  fish: z.string().optional(), // error in library type – missing key
+  powershell: z.string().optional() // error in library type – missing key
 });
 
 // @ts-ignore
@@ -499,7 +499,7 @@ export const UserDataSchema: z.ZodType<UserData> = z.strictObject({
   date: z.string(),
   time: z.string(),
   ip: z.string(),
-  command: z.string(),
+  command: z.string()
 });
 
 // 5. File System
@@ -513,14 +513,14 @@ export const FSSizeDataSchema: z.ZodType<FsSizeData> = z.strictObject({
   available: z.number(),
   use: z.number(),
   mount: z.string(),
-  rw: z.boolean().nullable(),
+  rw: z.boolean().nullable()
 });
 
 // @ts-ignore
 export const FSOpenFilesDataSchema: z.ZodType<FsOpenFilesData> = z.strictObject({
   max: z.number(),
   allocated: z.number(),
-  available: z.number(),
+  available: z.number()
 });
 
 // @ts-ignore
@@ -539,7 +539,7 @@ export const BlockDevicesDataSchema: z.ZodType<BlockDevicesData> = z.strictObjec
   removable: z.boolean(),
   protocol: z.string(),
   group: z.string().optional(),
-  device: z.string().optional(),
+  device: z.string().optional()
 });
 
 // @ts-ignore
@@ -550,7 +550,7 @@ export const FSStatsDataSchema: z.ZodType<FsStatsData> = z.strictObject({
   rx_sec: z.number().nullable(),
   wx_sec: z.number().nullable(),
   tx_sec: z.number().nullable(),
-  ms: z.number(),
+  ms: z.number()
 });
 
 // @ts-ignore
@@ -567,7 +567,7 @@ export const DisksIODataSchema: z.ZodType<DisksIoData> = z.strictObject({
   rWaitPercent: z.number().nullable(),
   wWaitPercent: z.number().nullable(),
   tWaitPercent: z.number().nullable(),
-  ms: z.number(),
+  ms: z.number()
 });
 
 // 6. Network related functions
@@ -593,7 +593,7 @@ export const NetworkInterfacesDataSchema: z.ZodType<NetworkInterfacesData> = z.s
   ieee8021xAuth: z.string(),
   ieee8021xState: z.string(),
   carrierChanges: z.number(),
-  default: z.boolean().optional() // error in library type - missing key
+  default: z.boolean().optional() // error in library type – missing key
 });
 
 // @ts-ignore
@@ -606,9 +606,9 @@ export const NetworkStatsDataSchema: z.ZodType<NetworkStatsData> = z.strictObjec
   tx_bytes: z.number(),
   tx_dropped: z.number(),
   tx_errors: z.number(),
-  rx_sec: z.number().nullable(), // error in library type - missing nullable
-  tx_sec: z.number().nullable(), // error in library type - missing nullable
-  ms: z.number(),
+  rx_sec: z.number().nullable(), // error in library type – missing nullable
+  tx_sec: z.number().nullable(), // error in library type – missing nullable
+  ms: z.number()
 });
 
 // @ts-ignore
@@ -620,7 +620,7 @@ export const NetworkConnectionsDataSchema: z.ZodType<NetworkConnectionsData> = z
   peerPort: z.string(),
   state: z.string(),
   pid: z.number(),
-  process: z.string(),
+  process: z.string()
 });
 
 // @ts-ignore
@@ -628,13 +628,13 @@ export const InetChecksiteDataSchema: z.ZodType<InetChecksiteData> = z.strictObj
   url: z.string(),
   ok: z.boolean(),
   status: z.number(),
-  ms: z.number(),
+  ms: z.number()
 });
 
 // @ts-ignore
 export const WifiNetworkDataSchema: z.ZodType<WifiNetworkData> = z.strictObject({
   ssid: z.string(),
-  bssid: z.string().optional(), // error in library type - missing optional
+  bssid: z.string().optional().nullable(), // error in library type – missing optional & nullable
   mode: z.string(),
   channel: z.number(),
   frequency: z.number(),
@@ -642,7 +642,7 @@ export const WifiNetworkDataSchema: z.ZodType<WifiNetworkData> = z.strictObject(
   quality: z.number(),
   security: z.string().array(),
   wpaFlags: z.string().array(),
-  rsnFlags: z.string().array(),
+  rsnFlags: z.string().array()
 });
 
 // @ts-ignore
@@ -651,7 +651,7 @@ export const WifiInterfaceDataSchema: z.ZodType<WifiInterfaceData> = z.strictObj
   iface: z.string(),
   model: z.string(),
   vendor: z.string(),
-  mac: z.string(),
+  mac: z.string()
 });
 
 // @ts-ignore
@@ -666,7 +666,7 @@ export const WifiConnectionDataSchema: z.ZodType<WifiConnectionData> = z.strictO
   security: z.string(),
   frequency: z.number(),
   signalLevel: z.number(),
-  txRate: z.union([z.number(), z.string()]), // error in library type - missing string as possible union type
+  txRate: z.union([z.number(), z.string()]) // error in library type –s missing string as possible union type
 });
 
 // 7. Current Load, Processes & Services
@@ -684,7 +684,7 @@ export const CurrentLoadCPUDataSchema: z.ZodType<CurrentLoadCpuData> = z.strictO
   rawLoadSystem: z.number(),
   rawLoadNice: z.number(),
   rawLoadIdle: z.number(),
-  rawLoadIrq: z.number(),
+  rawLoadIrq: z.number()
 });
 
 // @ts-ignore
@@ -702,12 +702,12 @@ export const CurrentLoadDataSchema: z.ZodType<CurrentLoadData> = z.strictObject(
   rawCurrentLoadNice: z.number(),
   rawCurrentLoadIdle: z.number(),
   rawCurrentLoadIrq: z.number(),
-  cpus: CurrentLoadCPUDataSchema.array(),
+  cpus: CurrentLoadCPUDataSchema.array()
 });
 
 // @ts-ignore
 export const ProcessesProcessDataSchema: z.ZodType<ProcessesProcessData> = z.strictObject({
-  pid: z.number().nullable(), // error in library type - missing nullable
+  pid: z.number().nullable(), // error in library type –s missing nullable
   parentPid: z.number(),
   name: z.string(),
   cpu: z.number(),
@@ -724,7 +724,7 @@ export const ProcessesProcessDataSchema: z.ZodType<ProcessesProcessData> = z.str
   user: z.string(),
   command: z.string(),
   params: z.string(),
-  path: z.string(),
+  path: z.string()
 });
 
 // @ts-ignore
@@ -734,13 +734,13 @@ export const ProcessesDataSchema: z.ZodType<ProcessesData> = z.strictObject({
   blocked: z.number(),
   sleeping: z.number(),
   unknown: z.number(),
-  list: ProcessesProcessDataSchema.array(),
+  list: ProcessesProcessDataSchema.array()
 });
 
 // @ts-ignore
 export const ProcessesProcessLoadDataSchema: z.ZodType<ProcessesProcessLoadData> = z.strictObject({
   proc: z.string(),
-  pid: z.number().nullable(), // error in library type - missing nullable
+  pid: z.number().nullable(), // error in library type –s missing nullable
   pids: z.number().array(),
   cpu: z.union([z.number(), z.literal("nan")]), // nan accepted as string
   mem: z.union([z.number(), z.literal("nan")]) // nan accepted as string
@@ -753,59 +753,59 @@ export const ServicesDataSchema: z.ZodType<ServicesData> = z.strictObject({
   startmode: z.string(),
   pids: z.union([z.number(), z.literal("nan")]).array(), // nan accepted as string
   cpu: z.union([z.number(), z.literal("nan")]), // nan accepted as string
-  mem: z.union([z.number(), z.literal("nan")]), // nan accepted as string
+  mem: z.union([z.number(), z.literal("nan")]) // nan accepted as string
 });
 
 // 8. Docker
 
 // @ts-ignore
 export const DockerInfoDataSchema: z.ZodType<DockerInfoData> = z.strictObject({
-  id: z.string().optional(), // error in library type - missing optional
-  containers: z.number().optional(), // error in library type - missing optional
-  containersRunning: z.number().optional(), // error in library type - missing optional
-  containersPaused: z.number().optional(), // error in library type - missing optional
-  containersStopped: z.number().optional(), // error in library type - missing optional
-  images: z.number().optional(), // error in library type - missing optional
-  driver: z.string().optional(), // error in library type - missing optional
-  memoryLimit: z.boolean().optional(), // error in library type - missing optional
-  swapLimit: z.boolean().optional(), // error in library type - missing optional
-  kernelMemory: z.boolean().optional(), // error in library type - missing optional
-  cpuCfsPeriod: z.boolean().optional(), // error in library type - missing optional
-  cpuCfsQuota: z.boolean().optional(), // error in library type - missing optional
-  cpuShares: z.boolean().optional(), // error in library type - missing optional
-  cpuSet: z.boolean().optional(), // error in library type - missing optional
-  ipv4Forwarding: z.boolean().optional(), // error in library type - missing optional
-  bridgeNfIptables: z.boolean().optional(), // error in library type - missing optional
-  bridgeNfIp6tables: z.boolean().optional(), // error in library type - missing optional
-  debug: z.boolean().optional(), // error in library type - missing optional
-  nfd: z.number().optional(), // error in library type - missing optional
-  oomKillDisable: z.boolean().optional(), // error in library type - missing optional
-  ngoroutines: z.number().optional(), // error in library type - missing optional
-  systemTime: z.string().optional(), // error in library type - missing optional
-  loggingDriver: z.string().optional(), // error in library type - missing optional
-  cgroupDriver: z.string().optional(), // error in library type - missing optional
-  nEventsListener: z.number().optional(), // error in library type - missing optional
-  kernelVersion: z.string().optional(), // error in library type - missing optional
-  operatingSystem: z.string().optional(), // error in library type - missing optional
-  osType: z.string().optional(), // error in library type - missing optional
-  architecture: z.string().optional(), // error in library type - missing optional
-  ncpu: z.number().optional(), // error in library type - missing optional
-  memTotal: z.number().optional(), // error in library type - missing optional
-  dockerRootDir: z.string().optional(), // error in library type - missing optional
-  httpProxy: z.string().optional(), // error in library type - missing optional
-  httpsProxy: z.string().optional(), // error in library type - missing optional
-  noProxy: z.string().optional(), // error in library type - missing optional
-  name: z.string().optional(), // error in library type - missing optional
-  labels: z.array(z.string()).optional(), // error in library type - missing optional
-  experimentalBuild: z.boolean().optional(), // error in library type - missing optional
-  serverVersion: z.string().optional(), // error in library type - missing optional
-  clusterStore: z.string().optional(), // error in library type - missing optional
-  clusterAdvertise: z.string().optional(), // error in library type - missing optional
-  defaultRuntime: z.string().optional(), // error in library type - missing optional
-  liveRestoreEnabled: z.boolean().optional(), // error in library type - missing optional
-  isolation: z.string().optional(), // error in library type - missing optional
-  initBinary: z.string().optional(), // error in library type - missing optional
-  productLicense: z.string().optional(), // error in library type - missing optional
+  id: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  containers: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  containersRunning: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  containersPaused: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  containersStopped: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  images: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  driver: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  memoryLimit: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  swapLimit: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  kernelMemory: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  cpuCfsPeriod: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  cpuCfsQuota: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  cpuShares: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  cpuSet: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  ipv4Forwarding: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  bridgeNfIptables: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  bridgeNfIp6tables: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  debug: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  nfd: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  oomKillDisable: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  ngoroutines: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  systemTime: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  loggingDriver: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  cgroupDriver: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  nEventsListener: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  kernelVersion: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  operatingSystem: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  osType: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  architecture: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  ncpu: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  memTotal: z.number().optional().nullable(), // error in library type – missing optional & nullable
+  dockerRootDir: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  httpProxy: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  httpsProxy: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  noProxy: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  name: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  labels: z.array(z.string()).optional().nullable(), // error in library type – missing optional & nullable
+  experimentalBuild: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  serverVersion: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  clusterStore: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  clusterAdvertise: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  defaultRuntime: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  liveRestoreEnabled: z.boolean().optional().nullable(), // error in library type – missing optional & nullable
+  isolation: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  initBinary: z.string().optional().nullable(), // error in library type – missing optional & nullable
+  productLicense: z.string().optional().nullable() // error in library type – missing optional & nullable
 });
 
 // @ts-ignore
@@ -827,7 +827,7 @@ export const DockerImageDataSchema: z.ZodType<DockerImageData> = z.strictObject(
   repoDigests: z.unknown(),
   repoTags: z.unknown(),
   config: z.unknown(),
-  rootFS: z.unknown(),
+  rootFS: z.unknown()
 }).transform(schema => <DockerImageData>({
   ...schema,
   containerConfig: schema.containerConfig,
@@ -845,7 +845,7 @@ export const DockerContainerMountDataSchema: z.ZodType<DockerContainerMountData>
   Destination: z.string(),
   Mode: z.string(),
   RW: z.boolean(),
-  Propagation: z.string(),
+  Propagation: z.string()
 });
 
 // @ts-ignore
@@ -866,10 +866,10 @@ export const DockerContainerDataSchema: z.ZodType<DockerContainerData> = z.stric
   platform: z.string(),
   driver: z.string(),
   ports: z.number().array(),
-  mounts: DockerContainerMountDataSchema.array(),
+  mounts: DockerContainerMountDataSchema.array()
 });
 
-// @ts-ignore
+// @ts–ignore
 export const DockerContainerStatsDataSchema: z.ZodType<DockerContainerStatsData> = z.strictObject({
   id: z.string(),
   memUsage: z.number(),
@@ -879,17 +879,17 @@ export const DockerContainerStatsDataSchema: z.ZodType<DockerContainerStatsData>
   pids: z.number(),
   netIO: z.strictObject({
     rx: z.number(),
-    wx: z.number(),
+    wx: z.number()
   }),
   blockIO: z.strictObject({
     r: z.number(),
-    w: z.number(),
+    w: z.number()
   }),
   restartCount: z.number(),
   cpuStats: z.any(),
   precpuStats: z.any(),
   memoryStats: z.any(),
-  networks: z.any(),
+  networks: z.any()
 }).transform(schema => <DockerContainerStatsData>({
   ...schema,
   cpuStats: schema.cpuStats,
@@ -913,7 +913,7 @@ export const DockerContainerProcessDataSchema: z.ZodType<DockerContainerProcessD
   nice: z.string(),
   rss: z.string(),
   vsz: z.string(),
-  command: z.string(),
+  command: z.string()
 });
 
 // @ts-ignore
@@ -924,7 +924,7 @@ export const DockerVolumeDataSchema: z.ZodType<DockerVolumeData> = z.strictObjec
   mountpoint: z.string(),
   options: z.any(),
   scope: z.string(),
-  created: z.number(),
+  created: z.number()
 }).transform(schema => <DockerVolumeData>({
   ...schema,
   labels: schema.labels,
@@ -970,7 +970,7 @@ export const VboxInfoDataSchema: z.ZodType<VboxInfoData> = z.strictObject({
   bootDevice3: z.string(),
   bootDevice4: z.string(),
   timeOffset: z.string(),
-  rtc: z.string(),
+  rtc: z.string()
 });
 
 // @ts-ignore
@@ -979,11 +979,11 @@ export const PrinterDataSchema: z.ZodType<PrinterData> = z.strictObject({
   name: z.string(),
   model: z.string(),
   uri: z.string(),
-  uuid: z.string().nullable(), // error in library type - missing nullable
+  uuid: z.string().nullable(), // error in library type – missing nullable
   local: z.boolean(),
   status: z.string(),
   default: z.boolean(),
-  shared: z.boolean(),
+  shared: z.boolean()
 });
 
 // @ts-ignore
@@ -997,7 +997,7 @@ export const USBDataSchema: z.ZodType<UsbData> = z.strictObject({
   vendor: z.string(),
   manufacturer: z.string(),
   maxPower: z.string(),
-  serialNumber: z.string(),
+  serialNumber: z.string()
 });
 
 // @ts-ignore
@@ -1006,13 +1006,13 @@ export const AudioDataSchema: z.ZodType<AudioData> = z.strictObject({
   name: z.string(),
   manufacturer: z.string(),
   default: z.boolean(),
-  revision: z.string().nullable(), // error in library type - missing nullable
-  driver: z.string().nullable(), // error in library type - missing nullable
+  revision: z.string().nullable(), // error in library type – missing nullable
+  driver: z.string().nullable(), // error in library type – missing nullable
   channel: z.string(),
   in: z.boolean(),
   out: z.boolean(),
   type: z.string(),
-  status: z.string(),
+  status: z.string()
 });
 
 // @ts-ignore
@@ -1021,13 +1021,13 @@ export const BluetoothDeviceDataSchema: z.ZodType<BluetoothDeviceData> = z.stric
   name: z.string(),
   macDevice: z.string(),
   macHost: z.string(),
-  batteryPercent: z.number().nullable(), // error in library type - missing nullable
+  batteryPercent: z.number().nullable(), // error in library type – missing nullable
   manufacturer: z.string(),
   type: z.string(),
-  connected: z.boolean(),
+  connected: z.boolean()
 });
 
-// 10. "Get All at once" - functions
+// 10. “Get All at once” – functions
 
 // @ts-ignore
 export const StaticDataSchema: z.ZodType<StaticData> = z.strictObject({
@@ -1043,7 +1043,7 @@ export const StaticDataSchema: z.ZodType<StaticData> = z.strictObject({
   graphics: GraphicsDataSchema,
   net: NetworkInterfacesDataSchema.array(),
   memLayout: MemLayoutDataSchema.array(),
-  diskLayout: DiskLayoutDataSchema.array(),
+  diskLayout: DiskLayoutDataSchema.array()
 });
 
 // @ts-ignore
@@ -1065,7 +1065,7 @@ export const DynamicDataSchema: z.ZodType<DynamicData> = z.strictObject({
   fsStats: FSStatsDataSchema,
   disksIO: DisksIODataSchema,
   wifiNetworks: WifiNetworkDataSchema,
-  inetLatency: z.number(),
+  inetLatency: z.number()
 });
 
 export const GeneralSchema = z.strictObject({
@@ -1146,7 +1146,7 @@ export const FSSchema = z.strictObject({
   blockDevices: BlockDevicesDataSchema.array(),
   disksIO: DisksIODataSchema,
   fsSize: FSSizeDataSchema.array(),
-  fsOpenFiles: z.union([FSOpenFilesDataSchema, FSOpenFilesDataSchema.array()]), // error in library type - missing singleton as possible union type
+  fsOpenFiles: z.union([FSOpenFilesDataSchema, FSOpenFilesDataSchema.array()]), // error in library type – missing singleton as possible union type
   fsStats: FSStatsDataSchema,
   type: z.literal("fs")
 });

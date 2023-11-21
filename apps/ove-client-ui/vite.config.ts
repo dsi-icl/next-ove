@@ -7,11 +7,11 @@ export default defineConfig({
   cacheDir: "../../node_modules/.vite/ove-client-ui",
   server: {
     port: 4201,
-    host: "localhost"
+    host: "127.0.0.1"
   },
   preview: {
     port: 4301,
-    host: "localhost"
+    host: "127.0.0.1"
   },
   plugins: [
     react(),

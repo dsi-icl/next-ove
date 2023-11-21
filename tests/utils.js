@@ -40,3 +40,11 @@ export function validateArray(response, client, isTRPC) {
     client.assert(Array.isArray(res), "Response is not an array");
   });
 }
+
+export function validateMeta(bridgeId, response, client, isTRPC) {
+  client.test("response meta is correct", () => {
+    const res = isTRPC ? validateTRPC(response.body, client).json : response.body;
+    client.assert(typeof res === "object" && "meta" in res);
+    client.assert(res.meta.name === bridgeId);
+  });
+}

@@ -298,4 +298,4 @@ package-lock.json
 /apps/ove-core/src/config/config.json
 /dev/public/*
 
-/tests/**/*.private.*
+/tests/**/private.*

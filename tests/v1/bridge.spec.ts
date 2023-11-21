@@ -35,8 +35,6 @@ const ENVIRONMENT = "dev";
 const SKIP_POWER = true;
 
 const SHORT_TIMEOUT = 10_000;
-const MID_TIMEOUT = 30_000;
-const LONG_TIMEOUT = 60_000;
 
 const mdcSources = ["UNKNOWN", "PC", "DVI", "DVI_VIDEO", "AV", "SVIDEO", "COMPONENT", "MAGICNET", "TV", "DTV", "HDMI1", "HDMI1_PC", "HDMI2", "HDMI2_PC", "DP", "DP2", "DP3"];
 const pjlinkSources = ["RGB", "VIDEO", "DIGITAL", "STORAGE", "NETWORK"];
@@ -91,7 +89,7 @@ describe("ove-bridge hardware module", () => {
   };
 
   const validateStatusResponse = async (ev: string, deviceId: string) => {
-    const result = await serverSocket.emitWithAck(ev, {deviceId});
+    const result = await serverSocket.emitWithAck(ev, { deviceId });
 
     validateMeta(result);
     validateResponse(deviceId, result, () => {
@@ -100,7 +98,7 @@ describe("ove-bridge hardware module", () => {
   };
 
   const validateStatusResponseAll = async (ev: string, tag?: string) => {
-    const result = await serverSocket.emitWithAck(ev, {tag});
+    const result = await serverSocket.emitWithAck(ev, { tag });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -152,13 +150,6 @@ describe("ove-bridge hardware module", () => {
     });
   };
 
-  const initEnv = () => {
-    const temp: {
-      [key: string]: { "bridge-env": string }
-    } = JSON.parse(readFileSync(path.join(__dirname, "http-client.private.env.json")).toString());
-    env = JSON.parse(readFileSync(temp[ENVIRONMENT]["bridge-env"]).toString());
-  };
-
   const pingDevices = () => Promise.all(env.HARDWARE.map(({ id, ip }) => {
     try {
       const regex = /[^%]+, (.*)% packet loss/;
@@ -175,6 +166,13 @@ describe("ove-bridge hardware module", () => {
     const tags = env?.HARDWARE.flatMap(({ tags }) => tags) ?? [];
     if (tags.length === 0) return undefined;
     return tags[Math.floor(Math.random() * tags.length)];
+  };
+
+  const initEnv = () => {
+    const temp: {
+      [key: string]: { "bridge-env": string }
+    } = JSON.parse(readFileSync(path.join(__dirname, "private.env.json")).toString());
+    env = JSON.parse(readFileSync(temp[ENVIRONMENT]["bridge-env"]).toString());
   };
 
   beforeAll((done) => {
@@ -627,27 +625,33 @@ describe("ove-bridge hardware module", () => {
   test("closeBrowserAll", () => validateInvalidTag("closeBrowserAll", { browserId: 0 }), SHORT_TIMEOUT);
 
   test("executeAll", async () => {
-    const result = await serverSocket.emitWithAck("executeAll", {command: "echo hello world"});
+    const result = await serverSocket.emitWithAck("executeAll", { command: "echo hello world" });
 
     validateMeta(result);
     validateResponseAll(result, response => {
-      expect(response).toStrictEqual({response: "hello world\n"});
+      expect(response).toStrictEqual({ response: "hello world\n" });
     });
   }, SHORT_TIMEOUT);
 
   test("executeAll - valid tag", async () => {
-    const result = await serverSocket.emitWithAck("executeAll", {command: "echo hello world", tag: getValidTag()});
+    const result = await serverSocket.emitWithAck("executeAll", {
+      command: "echo hello world",
+      tag: getValidTag()
+    });
 
     validateMeta(result);
     validateResponseAll(result, response => {
-      expect(response).toStrictEqual({response: "hello world\n"});
+      expect(response).toStrictEqual({ response: "hello world\n" });
     });
   }, SHORT_TIMEOUT);
 
-  test("executeAll - invalid tag", () => validateInvalidTag("executeAll", {command: "echo hello world"}), SHORT_TIMEOUT);
+  test("executeAll - invalid tag", () => validateInvalidTag("executeAll", { command: "echo hello world" }), SHORT_TIMEOUT);
 
   test("screenshotAll", async () => {
-    const result = await serverSocket.emitWithAck("screenshotAll", {method: "response", screens: [1]});
+    const result = await serverSocket.emitWithAck("screenshotAll", {
+      method: "response",
+      screens: [1]
+    });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -656,7 +660,11 @@ describe("ove-bridge hardware module", () => {
   }, SHORT_TIMEOUT);
 
   test("screenshotAll - valid tag", async () => {
-    const result = await serverSocket.emitWithAck("screenshotAll", {method: "response", screens: [1], tag: getValidTag()});
+    const result = await serverSocket.emitWithAck("screenshotAll", {
+      method: "response",
+      screens: [1],
+      tag: getValidTag()
+    });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -664,7 +672,10 @@ describe("ove-bridge hardware module", () => {
     });
   }, SHORT_TIMEOUT);
 
-  test("screenshotAll - invalid tag", () => validateInvalidTag("screenshotAll", {method: "response", screens: [1]}), SHORT_TIMEOUT);
+  test("screenshotAll - invalid tag", () => validateInvalidTag("screenshotAll", {
+    method: "response",
+    screens: [1]
+  }), SHORT_TIMEOUT);
 
   // POWER
 
@@ -721,7 +732,7 @@ describe("ove-bridge hardware module", () => {
 
   // NO TAG
   test("setVolumeAll", async () => {
-    const result = await serverSocket.emitWithAck("setVolumeAll", {volume: 50});
+    const result = await serverSocket.emitWithAck("setVolumeAll", { volume: 50 });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -739,7 +750,10 @@ describe("ove-bridge hardware module", () => {
   // VALID TAG
   test("setVolumeAll - valid tag", async () => {
     tag = getValidTag();
-    const result = await serverSocket.emitWithAck("setVolumeAll", {volume: 50, tag});
+    const result = await serverSocket.emitWithAck("setVolumeAll", {
+      volume: 50,
+      tag
+    });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -755,7 +769,7 @@ describe("ove-bridge hardware module", () => {
   test("unmuteVideoAll - valid tag", () => validateStatusResponseAll("unmuteVideoAll", tag), SHORT_TIMEOUT);
 
   // INVALID TAG
-  test("setVolumeAll - invalid tag", () => validateInvalidTag("setVolumeAll", {volume: 50}), SHORT_TIMEOUT);
+  test("setVolumeAll - invalid tag", () => validateInvalidTag("setVolumeAll", { volume: 50 }), SHORT_TIMEOUT);
   test("muteAll - invalid tag", () => validateInvalidTag("muteAll", {}), SHORT_TIMEOUT);
   test("unmuteAll - invalid tag", () => validateInvalidTag("unmuteAll", {}), SHORT_TIMEOUT);
   test("muteAudioAll - invalid tag", () => validateInvalidTag("muteAudioAll", {}), SHORT_TIMEOUT);
@@ -767,7 +781,7 @@ describe("ove-bridge hardware module", () => {
 
   // NO TAG
   test("setSourceAll - mdc", () => Promise.all(mdcSources.map(async source => {
-    const result = await serverSocket.emitWithAck("setSourceAll", {source});
+    const result = await serverSocket.emitWithAck("setSourceAll", { source });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -776,7 +790,7 @@ describe("ove-bridge hardware module", () => {
   })), SHORT_TIMEOUT);
 
   test("setSourceAll - pjlink", () => Promise.all(pjlinkSources.map(async source => {
-    const result = await serverSocket.emitWithAck("setSourceAll", {source});
+    const result = await serverSocket.emitWithAck("setSourceAll", { source });
 
     validateMeta(result);
     validateResponseAll(result, response => {
@@ -788,7 +802,10 @@ describe("ove-bridge hardware module", () => {
   test("setSourceAll - mdc, valid tag", () => {
     const tag = getValidTag();
     return Promise.all(mdcSources.map(async source => {
-      const result = await serverSocket.emitWithAck("setSourceAll", {source, tag});
+      const result = await serverSocket.emitWithAck("setSourceAll", {
+        source,
+        tag
+      });
 
       validateMeta(result);
       validateResponseAll(result, response => {
@@ -800,7 +817,10 @@ describe("ove-bridge hardware module", () => {
   test("setSourceAll - pjlink, valid tag", () => {
     const tag = getValidTag();
     return Promise.all(pjlinkSources.map(async source => {
-      const result = await serverSocket.emitWithAck("setSourceAll", {source, tag});
+      const result = await serverSocket.emitWithAck("setSourceAll", {
+        source,
+        tag
+      });
 
       validateMeta(result);
       validateResponseAll(result, response => {
@@ -810,6 +830,6 @@ describe("ove-bridge hardware module", () => {
   }, SHORT_TIMEOUT);
 
   // INVALID TAG
-  test("setSourceAll - mdc, invalid tag", () => Promise.all(mdcSources.map(source => validateInvalidTag("setSourceAll", {source}))), SHORT_TIMEOUT);
-  test("setSourceAll - pjlink, invalid tag", () => Promise.all(pjlinkSources.map(source => validateInvalidTag("setSourceAll", {source}))), SHORT_TIMEOUT);
+  test("setSourceAll - mdc, invalid tag", () => Promise.all(mdcSources.map(source => validateInvalidTag("setSourceAll", { source }))), SHORT_TIMEOUT);
+  test("setSourceAll - pjlink, invalid tag", () => Promise.all(pjlinkSources.map(source => validateInvalidTag("setSourceAll", { source }))), SHORT_TIMEOUT);
 });
