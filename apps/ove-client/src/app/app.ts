@@ -16,7 +16,9 @@ import { state } from "../server/state";
 let application: App;
 let BrowserWindow: typeof BW;
 let screen: Screen;
-let windows: { [key: string]: BW };
+let windows: {
+  [key: string]: BW
+};
 let closeServer: () => void;
 let initialised = false;
 
@@ -26,8 +28,10 @@ const onWindowAllClosed = () => {
   if (defaultIdx === null) {
     defaultIdx = initWindow();
     loadMainWindow(defaultIdx);
-    const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
-    state.browsers.set(browserId, { displayId: -1, url: "", windowId: defaultIdx });
+    const browserId = Array.from(state.browsers.keys())
+      .reduce((acc, x) => x > acc ? x : acc, 0);
+    state.browsers.set(
+      browserId, { displayId: -1, url: "", windowId: defaultIdx });
   } else {
     state.browsers.clear();
     application?.quit();
@@ -117,8 +121,10 @@ const loadMainWindow = (idx: string) => {
 const onReady = () => {
   defaultIdx = initWindow();
   loadMainWindow(defaultIdx);
-  const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
-  state.browsers.set(browserId, { displayId: -1, url: "", windowId: defaultIdx });
+  const browserId = Array.from(state.browsers.keys())
+    .reduce((acc, x) => x > acc ? x : acc, 0);
+  state.browsers.set(
+    browserId, { displayId: -1, url: "", windowId: defaultIdx });
 };
 
 const onActivate = () => {

@@ -6,12 +6,16 @@
   "targets": {
     "build": {
       "executor": "nx-electron:build",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/apps/ove-client",
         "main": "apps/ove-client/src/main.ts",
         "tsConfig": "apps/ove-client/tsconfig.app.json",
-        "assets": ["apps/ove-client/src/assets"]
+        "assets": [
+          "apps/ove-client/src/assets"
+        ]
       },
       "configurations": {
         "production": {
@@ -37,7 +41,11 @@
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-client",
-        "platform": ["mac", "windows", "linux"],
+        "platform": [
+          "mac",
+          "windows",
+          "linux"
+        ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true
@@ -47,21 +55,44 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
-        "platform": ["mac", "windows", "linux"],
-        "frontendProject": "ove-data",
+        "platform": [
+          "mac",
+          "windows",
+          "linux"
+        ],
+        "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables"
+      }
+    },
+    "make:arm": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-client",
+        "platform": [
+          "mac",
+          "linux"
+        ],
+        "frontendProject": "ove-client-ui",
+        "outputPath": "dist/executables",
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.arm.options.json"
       }
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+      "outputs": [
+        "{options.outputFile}"
+      ],
       "options": {
-        "lintFilePatterns": ["apps/ove-client/**/*.ts"]
+        "lintFilePatterns": [
+          "apps/ove-client/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/apps/ove-client"],
+      "outputs": [
+        "coverage/apps/ove-client"
+      ],
       "options": {
         "jestConfig": "apps/ove-client/jest.config.js",
         "passWithNoTests": true

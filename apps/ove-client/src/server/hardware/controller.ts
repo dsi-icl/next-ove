@@ -1,3 +1,5 @@
+/* global setInterval, clearInterval */
+
 import service from "./service";
 import { env, logger } from "../../env";
 import { state, updatePin } from "../state";
@@ -23,10 +25,11 @@ const controller: TClientService = {
     return true;
   },
   getInfo: async ({ type }) => {
-    logger.info(`GET /info?type=${type ?? "general"} - getting device information`);
+    logger.info(`GET /info?type=${type ?? "general"}
+     - getting device information`);
     return service.getInfo(type);
   },
-  getBrowser: async ({browserId}) => {
+  getBrowser: async ({ browserId }) => {
     logger.info(`GET /browser/${browserId}`);
     return assert(state.browsers.get(browserId));
   },
@@ -52,11 +55,13 @@ const controller: TClientService = {
     method,
     screens
   }) => {
-    logger.info(`POST /screenshot - taking screenshot of screens ${screens.join(", ")} via the ${method} method`);
+    logger.info(`POST /screenshot - taking screenshot of screens 
+    ${screens.join(", ")} via the ${method} method`);
     return service.screenshot(method, screens);
   },
   openBrowser: async ({ displayId, url }) => {
-    logger.info(`POST /browser - opening browser on display ${displayId} with url ${url}`);
+    logger.info(`POST /browser - opening browser on display 
+    ${displayId} with url ${url}`);
 
     if (state.pinUpdateHandler !== null) {
       clearInterval(state.pinUpdateHandler);
@@ -66,22 +71,28 @@ const controller: TClientService = {
 
     if (idx === null) throw new Error("Unable to open browser");
 
-    const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
-    state.browsers.set(browserId, { displayId: displayId ?? -1, url, windowId: idx });
+    const browserId = Array.from(state.browsers.keys())
+      .reduce((acc, x) => x > acc ? x : acc, 0);
+    state.browsers.set(
+      browserId, { displayId: displayId ?? -1, url, windowId: idx });
 
     return browserId;
   },
   closeBrowser: async ({ browserId }) => {
     logger.info(`DELETE /browser/${browserId} - closing browser`);
     const browser = state.browsers.get(browserId);
-    if (browser === undefined) throw new Error(`No browser with ID: ${browserId}`);
+    if (browser === undefined) {
+      throw new Error(`No browser with ID: ${browserId}`);
+    }
 
     if (state.browsers.size === 1 && state.pinUpdateHandler === null) {
       state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
     }
     service.closeBrowser(browser.windowId);
     const isDeleted = state.browsers.delete(browserId);
-    if (!isDeleted) throw new Error(`Unable to delete browser with ID: ${browserId}`);
+    if (!isDeleted) {
+      throw new Error(`Unable to delete browser with ID: ${browserId}`);
+    }
     return true;
   },
   closeBrowsers: async () => {

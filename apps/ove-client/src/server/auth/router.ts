@@ -22,5 +22,6 @@ export const authRouter = router({
     .meta({ openapi: { method: "POST", path: "/register" } })
     .input(z.object({ pin: z.string(), key: z.string() }))
     .output(z.union([OVEExceptionSchema, StatusSchema]))
-    .mutation(({ input: { pin, key } }) => safe(() => controller.register(pin, key)))
+    .mutation(({ input: { pin, key } }) =>
+      safe(() => controller.register(pin, key)))
 });

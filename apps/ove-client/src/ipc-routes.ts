@@ -5,13 +5,15 @@ export const inboundChannels: InboundAPIChannels = {
 
 export const outboundChannels: OutboundAPIChannels = {
   updatePin: "update-pin"
-}
+};
 
 export type InboundAPIChannels = {
+  // eslint-disable-next-line no-unused-vars
   [Key in keyof InboundAPI]: string
 }
 
 export type OutboundAPIChannels = {
+  // eslint-disable-next-line no-unused-vars
   [Key in keyof OutboundAPI]: string
 }
 

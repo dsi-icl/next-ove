@@ -1,9 +1,11 @@
+/* global NodeJS */
+
 import { type Browser } from "@ove/ove-types";
 
 type State = {
   browsers: Map<number, Browser>
   pin: string
-  pinUpdateCallback: ((event: string, ...args: any[]) => void) | null
+  pinUpdateCallback: ((event: string) => void) | null
   pinUpdateHandler: NodeJS.Timer | null
 };
 
@@ -21,6 +23,8 @@ export const state: State = {
 
 export const updatePin = () => {
   state.pin = generatePin();
-  if (state.pinUpdateCallback === null) throw new Error("Missing pin update callback");
+  if (state.pinUpdateCallback === null) {
+    throw new Error("Missing pin update callback");
+  }
   state.pinUpdateCallback(state.pin);
 };

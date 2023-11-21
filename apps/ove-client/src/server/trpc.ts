@@ -4,20 +4,21 @@ import { type Context } from "./context";
 import { type OpenApiMeta } from "trpc-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
 
-const trpc = initTRPC.meta<OpenApiMeta>().context<Context>().create({transformer: superjson});
+const trpc = initTRPC.meta<OpenApiMeta>()
+  .context<Context>().create({ transformer: superjson });
 export const router = trpc.router;
 
 export const mergeRouters = trpc.mergeRouters;
 export const procedure = trpc.procedure;
 
-const isAuthed = trpc.middleware((opts) => {
-  const { ctx } = opts;
+const isAuthed = trpc.middleware(({ ctx: { user }, next }) => {
+  if (user === null || !env.AUTHORISED_CREDENTIALS.includes(user)) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 
-  if (ctx.user === null || !env.AUTHORISED_CREDENTIALS.includes(ctx.user)) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  return opts.next({
+  return next({
     ctx: {
-      user: ctx.user
+      user: user
     }
   });
 });

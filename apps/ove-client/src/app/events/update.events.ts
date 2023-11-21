@@ -1,3 +1,5 @@
+/* global process */
+
 import { autoUpdater } from "electron-updater";
 import { logger } from "../../env";
 import { app, dialog } from "electron";
@@ -10,7 +12,8 @@ export default () => {
 
   autoUpdater.on("update-downloaded", info => {
     const dialogOpts = {
-      type: "info" as "error" | "info" | "none" | "question" | "warning" | undefined,
+      type: "info" as
+        "error" | "info" | "none" | "question" | "warning" | undefined,
       buttons: ["Restart", "Later"],
       title: "Application Update",
       message:

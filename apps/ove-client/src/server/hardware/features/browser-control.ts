@@ -33,17 +33,25 @@ const init = (
 };
 
 const closeBrowser = (windowId: string) => {
-  if (windowController.closeWindow === null) throw new Error("Window controller not initialised");
+  if (windowController.closeWindow === null) {
+    throw new Error("Window controller not initialised");
+  }
   windowController.closeWindow(windowId);
   return true;
 };
 
 const openBrowser = (url?: string, displayId?: number) => {
-  if (windowController.createWindow === null) throw new Error("Window controller not initialised");
+  if (windowController.createWindow === null) {
+    throw new Error("Window controller not initialised");
+  }
   return windowController.createWindow(url, displayId);
 };
 
-const processScreenshots = (displays: GraphicsDisplayData[], screenshots: DesktopCapturerSource[], method: ScreenshotMethod) => {
+const processScreenshots = (
+  displays: GraphicsDisplayData[],
+  screenshots: DesktopCapturerSource[],
+  method: ScreenshotMethod
+) => {
   return Promise.allSettled(displays.map(async ({ displayId, serial }) => {
     const image = screenshots
       // eslint-disable-next-line camelcase
@@ -73,7 +81,11 @@ const processScreenshots = (displays: GraphicsDisplayData[], screenshots: Deskto
   }));
 };
 
-const cleanupOnError = (results: PromiseSettledResult<string>[], displays: GraphicsDisplayData[], method: ScreenshotMethod) => {
+const cleanupOnError = (
+  results: PromiseSettledResult<string>[],
+  displays: GraphicsDisplayData[],
+  method: ScreenshotMethod
+) => {
   (results.filter(({ status }) => status === "fulfilled") as {
     value: string
   }[]).forEach(({ value }) => {
@@ -115,14 +127,17 @@ const screenshot = async (
   const results = await processScreenshots(displays, screenshots, method);
 
   const hasErrored = results.find(x => x.status === "rejected");
-  if (!hasErrored) return (results as PromiseFulfilledResult<string>[]).map(({ value }) => value);
+  if (!hasErrored) {
+    return (results as PromiseFulfilledResult<string>[])
+      .map(({ value }) => value);
+  }
   const errored = cleanupOnError(results, displays, method);
   throw new Error(`Failed to take screenshot on displays: ${errored}`);
 };
 
 const closeBrowsers = (browsers: IterableIterator<Browser>) => {
   let status = true;
-  for (let browser of browsers) {
+  for (const browser of browsers) {
     status = status && closeBrowser(browser.windowId);
   }
   return status;

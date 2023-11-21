@@ -29,24 +29,32 @@ const generateProcedure = <Key extends keyof TClientAPI>(k: Key) =>
     .input<TClientAPI[Key]["args"]>(ClientAPISchema[k].args)
     .output<TClientAPI[Key]["client"]>(ClientAPISchema[k].client);
 
-const generateQuery = <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
-  // @ts-ignore
-  .query<TClientAPIReturns<Key>>(async ({ input }) => safeCallController<Key>(k, input));
+const generateQuery =
+  <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
+    .query<TClientAPIReturns<Key>>(async ({ input }) =>
+      // @ts-expect-error - generic arguments
+      safeCallController<Key>(k, input));
 
-const generateMutation = <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
-    // @ts-ignore
-  .mutation<TClientAPIReturns<Key>>(async ({ input }) => safeCallController<Key>(k, input));
+const generateMutation =
+  <Key extends keyof TClientAPI>(k: Key) => generateProcedure(k)
+    .mutation<TClientAPIReturns<Key>>(async ({ input }) =>
+      // @ts-expect-error - generic arguments
+      safeCallController<Key>(k, input));
 
 export type ClientRouter = {
   [Key in keyof TClientAPI]: OpenAPIMethod<Key> extends "GET" ?
-    ReturnType<typeof generateQuery<Key>> : ReturnType<typeof generateMutation<Key>>
+    ReturnType<typeof generateQuery<Key>> :
+    ReturnType<typeof generateMutation<Key>>
 }
 
-const routes: ClientRouter = Object.entries(ClientAPISchema).reduce((acc, [k, route]) => {
-  acc[k] = route.meta.openapi.method === "GET"
-    ? generateQuery(k as keyof typeof ClientAPISchema)
-    : generateMutation(k as keyof typeof ClientAPISchema);
-  return acc;
-}, <{ [key: string]: unknown }>{}) as ClientRouter;
+const routes: ClientRouter = Object.entries(ClientAPISchema)
+  .reduce((acc, [k, route]) => {
+    acc[k] = route.meta.openapi.method === "GET" ?
+      generateQuery(k as keyof typeof ClientAPISchema) :
+      generateMutation(k as keyof typeof ClientAPISchema);
+    return acc;
+  }, <{
+    [key: string]: unknown
+  }>{}) as ClientRouter;
 
 export const hardwareRouter = router(routes);

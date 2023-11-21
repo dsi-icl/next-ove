@@ -1,12 +1,12 @@
-/* global __dirname */
+/* global __dirname, process */
 
 import cors from "cors";
 import * as path from "path";
 import express from "express";
-import {appRouter} from "./server/router";
-import {createContext} from "./server/context";
+import { appRouter } from "./server/router";
+import { createContext } from "./server/context";
 import * as swaggerUi from "swagger-ui-express";
-import {init} from "./server/hardware/controller";
+import { init } from "./server/hardware/controller";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
@@ -33,19 +33,22 @@ export const start = () => {
     }
   }));
 
-  app.use(`/api/v${env.API_VERSION}`, createOpenApiExpressMiddleware({
+  const openapi = createOpenApiExpressMiddleware({
     router: appRouter,
     createContext,
-    onError: ({error}) => {
+    onError: ({ error }) => {
       logger.error(error);
     }
-  }) as any);
+  });
+  app.use(`/api/v${env.API_VERSION}`,
+    openapi as unknown as () => Awaited<ReturnType<typeof openapi>>);
 
   app.use("/", swaggerUi.serve);
   app.get("/", swaggerUi.setup(openApiDocument));
 
   if (process.env.NODE_ENV === "development") {
-    FileUtils.saveSwagger(path.join(`v${env.API_VERSION}`, "client.swagger.json"), openApiDocument);
+    FileUtils.saveSwagger(
+      path.join(`v${env.API_VERSION}`, "client.swagger.json"), openApiDocument);
   }
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
