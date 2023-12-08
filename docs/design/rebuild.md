@@ -19,37 +19,48 @@
 
 ### Details
 
-Documentation of system architecture, short descriptions and overview of functionality. Tests are run using Jest for 
-unit testing, TestContainers for integration testing and Playwright for visual regression testing.
+Documentation of system architecture, short descriptions and overview of
+functionality. Tests are run using Jest for
+unit testing, TestContainers for integration testing and Playwright for visual
+regression testing.
 
 #### Node
 
-Server for handling the control of hardware nodes. Can manage Linux and Windows systems.
-Implements basic hardware controls, as well as browser management and screenshotting.
+Server for handling the control of hardware nodes. Can manage Linux and Windows
+systems.
+Implements basic hardware controls, as well as browser management and
+screenshotting.
 Will be installed on device, using Electron or Playwright to control browsers.
 
 #### Bridge
 
-Client to both hardware devices and the hardware controller. Source of truth for hardware information.
-Sits behind network, connecting to devices locally and able to connect via web sockets to the controller remotely.
+Client to both hardware devices and the hardware controller. Source of truth for
+hardware information.
+Sits behind network, connecting to devices locally and able to connect via web
+sockets to the controller remotely.
 
 #### OVE
 
 OVE is split into three main modules, Core, System and Visualisation.
 
-Core comprises the current core functionality, split into Spaces and Sections, as well as the Apps, remodelled 
-to a multi-modal Data subcomponent. Sections are to be made space and data type independent with an optional
+Core comprises the current core functionality, split into Spaces and Sections,
+as well as the Apps, remodelled
+to a multi-modal Data subcomponent. Sections are to be made space and data type
+independent with an optional
 configuration component for data type specific functionality.
 
-System is the component used by admins for monitoring system health and availability.
+System is the component used by admins for monitoring system health and
+availability.
 It will be composed of Hardware, Status and Testing subcomponents.
 
-Visualisation is the client facing Launcher and Editor tools for creating new projects and
+Visualisation is the client facing Launcher and Editor tools for creating new
+projects and
 launching and editing existing ones.
 
 #### Services
 
-Additional functionality separate to the core remit of OVE. Initially comprising an HTTP proxy,
+Additional functionality separate to the core remit of OVE. Initially comprising
+an HTTP proxy,
 socket server and S3 file manager.
 
 ### Models
@@ -520,47 +531,51 @@ paths:
 ### Decisions
 
 - Location of Spaces.json file and associated API endpoints
-  - Move to Spaces component
-- How to transfer testing files, whether to have control client connect to file management service or receive and send through HTTP
-  - Connect to file management service
+    - Move to Spaces component
+- How to transfer testing files, whether to have control client connect to file
+  management service or receive and send through HTTP
+    - Connect to file management service
 - Whether to include hardware logging in status or include status in hardware
-  - Include in hardware
-- Whether to include bridge to screens and projectors and control clients, given large amount of shared functionality
-  - Include
+    - Include in hardware
+- Whether to include bridge to screens and projectors and control clients, given
+  large amount of shared functionality
+    - Include
 - Whether to separate file management service into constituent services
-  - No
-- Whether to architect as services with APIs and separate UI components or architect service into backend of UI component
-  - Separate UI component
+    - No
+- Whether to architect as services with APIs and separate UI components or
+  architect service into backend of UI component
+    - Separate UI component
 - Whether to add hardware control to launcher
-  - Yes
+    - Yes
 - What access controls to give non-admins to system management
-  - None
+    - None
 - Whether to convert relative sections on creation or at display time
-  - Use translation service until core service is rebuilt, then at display time
+    - Use translation service until core service is rebuilt, then at display
+      time
 - Whether to make sections space agnostic
-  - Yes
+    - Yes
 - Whether to keep source of truth for hardware on Core or Bridge
-  - Bridge
+    - Bridge
 - Whether to have multiple bridges
-  - Allowed, not used in DSI deployment
+    - Allowed, not used in DSI deployment
 - Whether to fold testing into status component
-  - Testing component pushed to later date
+    - Testing component pushed to later date
 - How to connect Node to file management service
-  - Subsumed by above
+    - Subsumed by above
 - Whether to expose shutdown functionality on launcher
-  - Yes, but space specific
+    - Yes, but space specific
 - Whether to bypass authentication if no auth server provided
-  - Yes
+    - Yes
 - What project metadata to keep
-  - All
+    - All
 - Whether to support developing HTML controller in Editor
-  - Needs further development
+    - Needs further development
 - Display as unified list of devices or organised by bridge
-  - organised by bridge
+    - organised by bridge
 - Should login be Imperial or custom
-  - both
+    - both
 - State maintenance for controller to prevent reloads
-  - optional
+    - optional
 - Custom section launcher
 - Show network stats for connection on info view
 - Generate view of client
@@ -586,26 +601,64 @@ paths:
 ## TODO
 
 - Apps
-  - Viz.gl/WebGL rendering
-  - WebRTC integration
+    - Viz.gl/WebGL rendering
+    - WebRTC integration
 - Demos
-  - Star map
-  - Street view with controller
-  - Masters demo
-  - Connected spaces demo
-  - Kaggle demos
-  - Rossella demo
-  - Viz.gl/avs.auto demos
+    - Star map
+    - Street view with controller
+    - Masters demo
+    - Connected spaces demo
+    - Kaggle demos
+    - Rossella demo
+    - Viz.gl/avs.auto demos
 - CI/CD
-  - SonarQube
-  - Analytics - PostHog etc
-  - Jest unit tests
-  - TestContainers integration tests
-  - Playwright visual regression and accessibility tests - aXe
-  - a11y accessibility testing
-  - Lighthouse score
-  - Bundle analyser
+    - SonarQube
+    - Analytics - PostHog etc
+    - Jest unit tests
+    - TestContainers integration tests
+    - Playwright visual regression and accessibility tests - aXe
+    - a11y accessibility testing
+    - Lighthouse score
+    - Bundle analyser
 - Misc.
-  - A/B Testing
-  - Sitemap
-  - OpenGraph + Twitter Card analysis
+    - A/B Testing
+    - Sitemap
+    - OpenGraph + Twitter Card analysis
+
+## Data Models
+
+### Notes
+
+- Thumbnail - investigate DALL-E image generation
+- Special \_thumbnail\_ & \_control\_ assets auto-generated
+- Special \_\_default\_\_ state for sections
+- Invite status: pending | accepted | declined
+- Roles: creator | admin | bridge
+- Only the creator, collaborators and admins can access projects
+
+### Relations
+
+- Each user can create many projects
+- Each user can collaborate on many projects
+- Each user can invite many collaborators
+- Each user can be invited to collaborate on many projects
+- Each user can have a unique refresh token
+- Each project can contain a thumbnail
+- Many tags can be applied to many projects
+- Each project can have many sections
+
+### Changes To Existing Project Structure
+
+- Projects stored in MongoDB
+- Metadata now included into the raw model
+- Sections now have a unique ID, for state diffing
+- Each section now has an order, for ordering creation
+- All section coordinates are now percentages
+- Each section has an associated data type, which can be auto-detected
+- Each project has a creator and a set of invited collaborators
+- Thumbnails can be auto-generated
+- Each project's title is initially auto-generated
+- If a project isn't saved within 30 days it will be deleted
+- Each project has a set of associated states, defaulting to ```__default__```
+  for simple interactions
+- All assets can have an asset ID for marrying with the companion S3 Store

@@ -1,4 +1,4 @@
-import Home from "../pages/home/page";
+import Launcher from "../pages/launcher/page";
 import Login from "../pages/login/page";
 import Hardware from "../pages/hardware/page";
 import { Route, Routes } from "react-router-dom";
@@ -11,13 +11,12 @@ const Router = () => {
   return <Routes>
     <Route
       path="/"
-      element={<Home />}
+      element={<Launcher />}
     />
     <Route
       path="/hardware"
-      element={<ProtectedRoute children={<Hardware />}
-                               condition={loggedIn}
-                               redirectTo={"/login"} />}
+      element={<ProtectedRoute condition={loggedIn}
+                               redirectTo={"/login"}><Hardware /></ProtectedRoute>}
     />
     <Route
       path="/login"
@@ -25,8 +24,8 @@ const Router = () => {
     />
     <Route
       path="/sockets"
-      element={<ProtectedRoute condition={loggedIn} redirectTo="/login"
-                               children={<Sockets />} />} />
+      element={<ProtectedRoute condition={loggedIn}
+                               redirectTo="/login"><Sockets /></ProtectedRoute>} />
   </Routes>;
 };
 
