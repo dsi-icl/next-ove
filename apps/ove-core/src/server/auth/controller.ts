@@ -22,7 +22,7 @@ const login = async (ctx: Context): Promise<Tokens> => {
   });
   const [username, password] = decodeURIComponent(
     Buffer.from(ctx.user, "base64url").toString()).split(":");
-  const user = await ctx.prisma.auth.findUnique({
+  const user = await ctx.prisma.user.findUnique({
     where: {
       username
     }
@@ -52,7 +52,7 @@ const login = async (ctx: Context): Promise<Tokens> => {
   const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "24h");
   const refreshToken = generateToken(username, env.REFRESH_TOKEN_SECRET);
 
-  await ctx.prisma.refresh.upsert({
+  await ctx.prisma.refreshToken.upsert({
     where: {
       userId: user.id
     },
@@ -73,7 +73,7 @@ const getToken = async (ctx: Context) => {
     code: "UNAUTHORIZED",
     message: "No credentials provided"
   });
-  const tokenRecord = await ctx.prisma.refresh.findUnique({
+  const tokenRecord = await ctx.prisma.refreshToken.findUnique({
     where: {
       token: ctx.user
     }

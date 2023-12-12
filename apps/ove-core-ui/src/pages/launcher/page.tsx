@@ -3,8 +3,9 @@ import { useState } from "react";
 import { ToggleLeft, ToggleRight } from "lucide-react";
 
 import styles from "./launcher.module.scss";
+import Projects from "./projects";
 
-const Launcher = () => {
+const Launcher = ({loggedIn}: {loggedIn: boolean}) => {
   const [mode, setMode] = useState<"legacy" | "modern">("legacy");
 
   return <main className={styles.main} style={{ position: "relative" }}>
@@ -15,7 +16,7 @@ const Launcher = () => {
     </button>
     {mode === "legacy" ?
       <iframe src={env.PROJECT_LAUNCHER} title="Project Launcher"></iframe>
-      : <div className={styles.launcher}></div>}
+      : <div className={styles.launcher}>{loggedIn ? <Projects /> : <></>}</div>}
   </main>;
 };
 

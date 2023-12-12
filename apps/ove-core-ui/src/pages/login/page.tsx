@@ -1,4 +1,3 @@
-import { useAuth } from "../../hooks";
 import { useForm } from "react-hook-form";
 
 type Form = {
@@ -6,8 +5,7 @@ type Form = {
   password: string
 }
 
-export default () => {
-  const { login } = useAuth();
+const Login = ({login}: {login: (username: string, password: string) => Promise<void>}) => {
   const { register, handleSubmit } = useForm<Form>();
   const onSubmit = handleSubmit(async ({ username, password }) => {
     await login(username, password);
@@ -51,4 +49,6 @@ export default () => {
       </button>
     </form>
   </main>;
-}
+};
+
+export default Login;

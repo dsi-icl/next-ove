@@ -1,0 +1,52 @@
+.section {
+  stroke: none;
+  opacity: 0.7;
+  stroke-width: 0;
+}
+
+.label {
+  fill: white;
+}
+
+.cell {
+  fill: lightgrey;
+  stroke: black;
+  stroke-width: 1px;
+}
+
+.resize-container {
+  height: calc(100% - 2rem);
+  width: calc(100% - 0.5rem);
+  margin: 0.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main {
+  & h2 {
+    text-align: center;
+    font-weight: 700;
+  }
+}
+
+#top {
+  height: calc(90vh * 0.6);
+  display: flex;
+}
+
+#preview {
+  height: 100%;
+  width: 85vw;
+}
+
+#sections {
+  width: 15vw;
+  height: 100%;
+  border-left: 1px solid black;
+}
+
+#configuration {
+  border-top: 1px solid black;
+  height: calc(90vh * 0.4);
+}

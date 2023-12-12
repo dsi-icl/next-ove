@@ -11,6 +11,7 @@
     "importHelpers": true,
     "target": "es2021",
     "module": "esnext",
+    "jsx": "preserve",
     "lib": ["es2021", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,

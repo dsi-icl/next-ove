@@ -42,9 +42,9 @@ export const DeepProxy = <T extends object>(target: T, onChange: () => void) => 
   });
 };
 
-export const safe = async <T>(logger: TLogger, handler: () => T): Promise<T | OVEException> => {
+export const safe = async <T>(logger: TLogger, handler: () => T): Promise<Awaited<T> | OVEException> => {
   try {
-    return handler();
+    return await handler();
   } catch (e) {
     logger.error(e);
     return { oveError: (e as Error).message };

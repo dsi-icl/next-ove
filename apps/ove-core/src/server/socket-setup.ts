@@ -4,7 +4,7 @@ import { prisma } from "./db";
 export const setupNamespace = <T extends Namespace>(io: T, clients: Map<string, string>) => {
   io.use((socket, next) => {
     const { username, password } = socket.handshake.auth;
-    prisma.auth.findUnique({
+    prisma.user.findUnique({
       where: {
         username
       }

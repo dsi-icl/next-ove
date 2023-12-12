@@ -295,7 +295,9 @@ package-lock.json
 /dev/database
 /dev/data
 /dev/mongo.keyfile
-/apps/ove-core/src/config/config.json
 /dev/public/*
+/dev/credentials.json
+
+/apps/ove-core/src/config/config.json
 
 /tests/**/private.*

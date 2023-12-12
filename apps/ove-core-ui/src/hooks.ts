@@ -1,8 +1,8 @@
 import { logger } from "./env";
 import { useStore } from "./store";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Json } from "@ove/ove-utils";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { createAuthClient, createClient } from "./utils";
 
 export const useAuth = () => {
@@ -59,4 +59,10 @@ export const useAuth = () => {
     logout,
     refresh
   };
+};
+
+export const useQuery = () => {
+  const { search } = useLocation();
+
+  return useMemo(() => new URLSearchParams(search), [search]);
 };

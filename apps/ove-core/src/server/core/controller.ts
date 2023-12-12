@@ -2,7 +2,7 @@ import { type Context } from "../context";
 import { state } from "../state";
 
 const getObservatories = async (ctx: Context) => {
-  const observatories = await ctx.prisma.auth.findMany({
+  const observatories = await ctx.prisma.user.findMany({
     where: {
       role: "bridge"
     },

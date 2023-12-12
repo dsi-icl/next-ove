@@ -12,7 +12,7 @@ model User {
   // unique username
   username        String        @unique
   // optional unique email
-  email           String?       @unique
+  email           String?
   // salted + hashed password
   password        String
   // role - CREATOR, ADMIN
