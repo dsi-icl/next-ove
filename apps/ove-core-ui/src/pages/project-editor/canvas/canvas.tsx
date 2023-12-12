@@ -12,6 +12,9 @@ type PreviewProps = {
   select: (id: string) => void
 }
 
+const THRESHOLDX = 0.01;
+const THRESHOLDY = 0.02;
+
 function drawSpaces({
   container,
   space,
@@ -67,8 +70,26 @@ function drawSpaces({
   function dragStart(this: Element) {
     const section = d3.select(this);
     section.style("stroke", "");
-    select(section.attr("id").slice(8))
+    select(section.attr("id").slice(8));
   }
+
+  const clampX = (x: number, w: number) => {
+    for (const cell of spaces) {
+      if (Math.abs(cell.x - x) < ((space.width / space.columns) * THRESHOLDX)) return cell.x;
+      if (Math.abs((cell.x + cell.w) - (x + w)) < ((space.width / space.columns) * THRESHOLDX)) return (cell.x + cell.w) - w;
+    }
+
+    return x;
+  };
+
+  const clampY = (y: number, h: number) => {
+    for (const cell of spaces) {
+      if (Math.abs(cell.y - y) < ((space.height / space.rows) * THRESHOLDY)) return cell.y;
+      if (Math.abs((cell.y + cell.h) - (y + h)) < ((space.height / space.rows) * THRESHOLDY)) return (cell.y + cell.h) - h;
+    }
+
+    return y;
+  };
 
   function dragging(this: Element, event: {
     x: number,
@@ -82,8 +103,8 @@ function drawSpaces({
     const ny = Math.max(0, Math.min(y(space.height) - parseFloat(section.attr("height")), y(event.subject.y) + (event.y - event.subject.y)));
 
     section
-      .attr("x", nx)
-      .attr("y", ny);
+      .attr("x", x(clampX(inverseX(nx), inverseX(parseFloat(section.attr("width"))))))
+      .attr("y", y(clampY(inverseY(ny), inverseY(parseFloat(section.attr("height"))))));
     label
       .attr("x", ((+nx) + (+section.attr("width")) / 2) - sectionTextSize * 0.25)
       .attr("y", ((+ny) + (+section.attr("height")) / 2) + sectionTextSize * 0.5);

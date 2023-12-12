@@ -38,10 +38,6 @@ const SectionConfig = ({ sections, selected, reorder }: SectionConfigProps) => {
     setValue("height", section.height);
   }, [selected, sections]);
 
-  useEffect(() => {
-    console.log(JSON.stringify(sections));
-  }, [sections]);
-
   const onSubmit = (config: SectionConfigForm) => {
     if (selected === null) return;
     reorder(selected, config.ordering);
