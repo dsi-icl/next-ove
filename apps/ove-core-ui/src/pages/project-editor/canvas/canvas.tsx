@@ -1,14 +1,8 @@
 import * as d3 from "d3";
+import { type Geometry } from "../types";
 import { type MutableRefObject, useRef } from "react";
 
 import styles from "./canvas.module.scss";
-
-export type Geometry = {
-  w: number
-  h: number
-  x: number
-  y: number
-}
 
 type PreviewProps = {
   sections: ({
@@ -58,8 +52,8 @@ function drawSpaces({
     .call(d3.drag().on("start", dragStart).on("drag", dragging).on("end", dragEnd) as any)
     .attr("x", d => x(d.x))
     .attr("y", d => y(d.y))
-    .attr("width", d => x(d.w))
-    .attr("height", d => y(d.h))
+    .attr("width", d => x(d.width))
+    .attr("height", d => y(d.height))
     .attr("id", d => `section-${d.id}`)
     .style("fill", (_d, i) => colors[i % colors.length])
     .classed(styles.section, true)
@@ -93,8 +87,8 @@ function drawSpaces({
     d3.select(this).style("stroke", "black");
   }
 
-  const minSectionHeight = d3.min(sections.map(d => x(d.h)))!;
-  const minSectionWidth = d3.min(sections.map(d => x(d.w)))!;
+  const minSectionHeight = d3.min(sections.map(d => x(d.height)))!;
+  const minSectionWidth = d3.min(sections.map(d => x(d.width)))!;
   const sectionTextSize = Math.min(minSectionHeight, minSectionWidth) / 4;
   svg.selectAll(".section-label")
     .data(() => sections)
@@ -102,8 +96,8 @@ function drawSpaces({
     .append("text")
     .text(d => d.id)
     .attr("id", d => `label-${d.id}`)
-    .attr("x", d => x((+d.x) + (+d.w) / 2) - sectionTextSize * 0.25)
-    .attr("y", d => y((+d.y) + (+d.h) / 2) + sectionTextSize * 0.5)
+    .attr("x", d => x((+d.x) + (+d.width) / 2) - sectionTextSize * 0.25)
+    .attr("y", d => y((+d.y) + (+d.height) / 2) + sectionTextSize * 0.5)
     .style("font-size", `${sectionTextSize}px`)
     .classed(styles.label, true);
 }
@@ -115,8 +109,8 @@ const Canvas = ({ space, sections, container }: PreviewProps) => {
   drawSpaces({
     space, container, sections: sections.map(s => ({
       ...s,
-      w: s.w * space.width,
-      h: s.h * space.height,
+      width: s.width * space.width,
+      height: s.height * space.height,
       x: s.x * space.width,
       y: s.y * space.height
     }))

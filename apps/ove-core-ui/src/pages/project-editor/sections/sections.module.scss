@@ -1,0 +1,16 @@
+#sections {
+  width: 20vw;
+  height: 100%;
+  border-left: 1px solid black;
+
+  & h2 {
+    text-align: center;
+  }
+
+  & li {
+    box-shadow: 0.25rem 0.25rem 0.25rem 0.25rem #dadedf;
+    margin: 0.25rem;
+    border: 1px solid black;
+    border-radius: 1rem;
+  }
+}
