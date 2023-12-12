@@ -1,24 +1,28 @@
 import * as d3 from "d3";
-import { type Geometry } from "../types";
+import { type Section } from "@prisma/client";
 import { type MutableRefObject, useRef } from "react";
 
 import styles from "./canvas.module.scss";
 
 type PreviewProps = {
-  sections: ({
-    id: string,
-  } & Geometry)[]
+  sections: Section[]
   space: { width: number, height: number, rows: number, columns: number }
   container: { width: number, height: number }
+  dragSection: (id: string, x: number, y: number) => void
+  select: (id: string) => void
 }
 
 function drawSpaces({
   container,
   space,
-  sections
+  sections,
+  dragSection,
+  select
 }: PreviewProps, svg_: MutableRefObject<SVGSVGElement | null>) {
   const x = d3.scaleLinear().range([0, container.width]).domain([0, space.width]);
+  const inverseX = d3.scaleLinear().range([0, space.width]).domain([0, container.width]);
   const y = d3.scaleLinear().range([0, container.height]).domain([0, space.height]);
+  const inverseY = d3.scaleLinear().range([0, space.height]).domain([0, container.height]);
   const spaces = Array.from({ length: space.rows }, (_x, row) => Array.from({ length: space.columns }, (_y, col) => ({
     x: (space.width / space.columns) * col,
     y: (space.height / space.rows) * row,
@@ -61,7 +65,9 @@ function drawSpaces({
     .text(d => `Section Id: ${d.id}`);
 
   function dragStart(this: Element) {
-    d3.select(this).style("stroke", "");
+    const section = d3.select(this);
+    section.style("stroke", "");
+    select(section.attr("id").slice(8))
   }
 
   function dragging(this: Element, event: {
@@ -84,7 +90,9 @@ function drawSpaces({
   }
 
   function dragEnd(this: Element) {
-    d3.select(this).style("stroke", "black");
+    const section = d3.select(this);
+    section.style("stroke", "black");
+    dragSection(section.attr("id").slice(8), inverseX(parseFloat(section.attr("x"))) / space.width, inverseY(parseFloat(section.attr("y"))) / space.height);
   }
 
   const minSectionHeight = d3.min(sections.map(d => x(d.height)))!;
@@ -94,7 +102,7 @@ function drawSpaces({
     .data(() => sections)
     .enter()
     .append("text")
-    .text(d => d.id)
+    .text(d => d.ordering)
     .attr("id", d => `label-${d.id}`)
     .attr("x", d => x((+d.x) + (+d.width) / 2) - sectionTextSize * 0.25)
     .attr("y", d => y((+d.y) + (+d.height) / 2) + sectionTextSize * 0.5)
@@ -102,21 +110,22 @@ function drawSpaces({
     .classed(styles.label, true);
 }
 
-const Canvas = ({ space, sections, container }: PreviewProps) => {
+const Canvas = (props: PreviewProps) => {
   const svg_ = useRef<SVGSVGElement | null>(null);
   const defs_ = useRef<SVGDefsElement | null>(null);
 
   drawSpaces({
-    space, container, sections: sections.map(s => ({
+    ...props, sections: props.sections.map(s => ({
       ...s,
-      width: s.width * space.width,
-      height: s.height * space.height,
-      x: s.x * space.width,
-      y: s.y * space.height
+      width: s.width * props.space.width,
+      height: s.height * props.space.height,
+      x: s.x * props.space.width,
+      y: s.y * props.space.height
     }))
   }, svg_);
 
-  return <svg ref={svg_} width={container.width} height={container.height}>
+  return <svg ref={svg_} width={props.container.width}
+              height={props.container.height}>
     <defs ref={defs_} />
   </svg>;
 };

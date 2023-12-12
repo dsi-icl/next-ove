@@ -1,3 +1,4 @@
+import { type Section } from "@prisma/client";
 import { type Rect, type Space } from "./types";
 import { useEffect, useRef, useState } from "react";
 
@@ -33,4 +34,47 @@ export const useSpace = () => {
   };
 
   return { rows, columns, width, height, update };
+};
+
+const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
+
+export const useSections = (state: string, sections_: Section[]) => {
+  const [sections, setSections_] = useState(order(sections_));
+  const [selected, setSelected] = useState<string | null>(null);
+  const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
+
+  // GET IT – NEW ORDER/BLUE MONDAY. I'M SO FUNNY.
+  const reorder = (id: string, blueMonday: number) => {
+    setSections(cur => {
+      const section = cur.find(section => section.id === id)!;
+      const removed = cur.filter(section => section.id !== id);
+      return [
+        ...removed.slice(0, blueMonday).map((x, i) => ({ ...x, ordering: i })),
+        { ...section, ordering: blueMonday },
+        ...removed.slice(blueMonday).map((x, i) => ({ ...x, ordering: i + 1 }))
+      ];
+    });
+  };
+
+  const dragSection = (id: string, x: number, y: number) => {
+    setSections(cur => cur.map(section => section.id === id ? {
+      ...section,
+      x,
+      y
+    } : section));
+  };
+
+  return {
+    sections: sections.filter(({ states }) => states.includes(state)),
+    dragSection,
+    reorder,
+    select: setSelected,
+    selected
+  };
+};
+
+export const useProjectState = () => {
+  const [state, setState] = useState("__default__");
+
+  return { state, setState };
 };

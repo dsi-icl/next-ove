@@ -2,9 +2,14 @@
   width: 20vw;
   height: 100%;
   border-left: 1px solid black;
+  position: relative;
 
   & h2 {
     text-align: center;
+  }
+
+  & ul {
+    overflow-y: scroll;
   }
 
   & li {
@@ -12,5 +17,25 @@
     margin: 0.25rem;
     border: 1px solid black;
     border-radius: 1rem;
+    width: calc(100% - 0.5rem);
+
+    & button {
+      width: 100%;
+      padding: 0.25rem;
+      display: flex;
+    }
+
+    .asset {
+      margin-left: auto;
+      text-align: left;
+      width: 12rem;
+    }
+  }
+
+  .new {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 1rem;
   }
 }

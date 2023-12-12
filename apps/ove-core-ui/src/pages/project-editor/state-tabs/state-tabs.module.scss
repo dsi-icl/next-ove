@@ -1,0 +1,29 @@
+.container {
+  overflow-x: scroll;
+  border-bottom: 1px solid black;
+  height: 1.5rem;
+}
+
+.tabs {
+  align-items: flex-start;
+  display: flex;
+}
+
+.tab {
+  flex-grow: 1;
+  flex-basis: 0;
+  max-width: 10%;
+  border-right: 1px solid black;
+  background-color: #dadedf;
+  border-radius: 0.125rem;
+  text-align: center;
+
+  & button {
+    width: 100%;
+  }
+}
+
+#add {
+  flex: initial;
+  padding: 0 0.5rem;
+}

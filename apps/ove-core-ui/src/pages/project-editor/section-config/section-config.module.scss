@@ -1,0 +1,36 @@
+#section-config {
+  width: 80vw;
+
+  & form {
+    display: flex;
+    height: calc(100% - 1.5rem);
+
+    & fieldset {
+      width: 20vw;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    & label {
+      width: 10vw;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .ratio {
+      width: 100%;
+    }
+
+    & input {
+      border: 1px solid black;
+      border-radius: 1.25rem;
+      padding: 0 0.25rem;
+    }
+
+    & button {
+      display: none;
+    }
+  }
+}
