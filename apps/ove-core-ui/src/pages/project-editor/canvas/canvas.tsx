@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { type MutableRefObject, useRef } from "react";
 
-import styles from "./page.module.scss";
+import styles from "./canvas.module.scss";
 
 export type Geometry = {
   w: number
@@ -108,7 +108,7 @@ function drawSpaces({
     .classed(styles.label, true);
 }
 
-const Preview = ({ space, sections, container }: PreviewProps) => {
+const Canvas = ({ space, sections, container }: PreviewProps) => {
   const svg_ = useRef<SVGSVGElement | null>(null);
   const defs_ = useRef<SVGDefsElement | null>(null);
 
@@ -127,4 +127,4 @@ const Preview = ({ space, sections, container }: PreviewProps) => {
   </svg>;
 };
 
-export default Preview;
+export default Canvas;

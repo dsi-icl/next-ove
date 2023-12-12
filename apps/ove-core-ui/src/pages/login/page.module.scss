@@ -1,0 +1,45 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  justify-content: center;
+  align-items: center;
+
+  & form {
+    display: flex;
+    flex-direction: column;
+    width: 20vw;
+    margin-top: 2rem;
+
+    & h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    & label {
+      font-weight: 700;
+    }
+
+    #username {
+      margin-top: 2rem;
+    }
+
+    #password {
+      margin-top: 1rem;
+    }
+
+    & input {
+      border: 1px solid black;
+      padding: 0.5rem;
+      border-radius: 1.25rem;
+    }
+
+    & button {
+      color: white;
+      background-color: #002147;
+      margin-top: 3rem;
+      padding: 0.5rem;
+      border-radius: 1.25rem;
+    }
+  }
+}

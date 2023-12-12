@@ -1,0 +1,56 @@
+#space {
+  border-right: 1px solid black;
+  width: 20vw;
+  height: 100%;
+  padding: 1rem;
+
+  & h4 {
+    font-weight: 700;
+    text-align: center;
+  }
+
+  & form {
+    display: flex;
+    flex-direction: column;
+
+    & label {
+      width: 10vw;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .ratio {
+      width: 100%;
+    }
+
+    & fieldset {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+
+      & p {
+        font-weight: 700;
+      }
+
+      & input {
+        width: 8vw;
+      }
+
+      .left {
+        direction: rtl;
+        text-align: right;
+      }
+    }
+
+    & input {
+      border: 1px solid black;
+      border-radius: 1.25rem;
+      padding: 0 0.25rem;
+    }
+
+    & button {
+      display: none;
+    }
+  }
+}

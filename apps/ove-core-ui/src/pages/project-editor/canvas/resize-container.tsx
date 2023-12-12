@@ -1,6 +1,6 @@
 import { type MutableRefObject, type ReactNode, useEffect } from "react";
 
-import styles from "./page.module.scss";
+import styles from "./resize-container.module.scss";
 
 type ResizeContainerProps = {
   children: ReactNode
@@ -22,11 +22,11 @@ const ResizeContainer = ({
     });
 
     if (container.ref.current === null) return;
-    observer.observe(container.ref.current!);
+    observer.observe(container.ref.current);
 
     return () => {
       if (container.ref.current === null) return;
-      observer.unobserve(container.ref.current!);
+      observer.unobserve(container.ref.current);
     };
   }, []);
 
