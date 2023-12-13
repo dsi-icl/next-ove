@@ -64,12 +64,21 @@ export const useSections = (state: string, sections_: Section[]) => {
     } : section));
   };
 
+  const removeState = (state: string) => {
+    setSections(cur => cur.map(section => !section.states.includes(state) ? section : (section.states.length === 1 ? undefined : {
+      ...section,
+      states: section.states.filter(s => s !== state)
+    })).filter(Boolean) as Section[]);
+  };
+
   return {
     sections: sections.filter(({ states }) => states.includes(state)),
     dragSection,
     reorder,
     select: setSelected,
-    selected
+    selected,
+    removeState,
+    states: sections.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i)
   };
 };
 

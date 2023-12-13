@@ -21,9 +21,15 @@
   & button {
     width: 100%;
   }
+
+  & input {
+    width: 100%;
+  }
 }
 
 #add {
   flex: initial;
-  padding: 0 0.5rem;
+  & button {
+    padding: 0 0.5rem;
+  }
 }

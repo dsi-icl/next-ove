@@ -10,6 +10,8 @@ import { useContainer, useProjectState, useSections, useSpace } from "./hooks";
 
 import styles from "./page.module.scss";
 
+const observatories = {}
+
 const sections_: (projectId: string) => Section[] = (projectId: string) => [];
 
 const ProjectEditor = () => {
@@ -22,14 +24,16 @@ const ProjectEditor = () => {
     dragSection,
     select,
     selected,
-    reorder
+    reorder,
+    states,
+    removeState
   } = useSections(state, sections_(query.get("project") ?? ""));
 
 
   return <main className={styles.main}>
     <div id={styles["top"]}>
       <section id={styles["preview"]}>
-        <StateTabs sections={sections} setState={(state: string) => {
+        <StateTabs selected={state} removeState={removeState} states={states} setState={(state: string) => {
           select(null);
           setState(state);
         }} />
@@ -41,7 +45,7 @@ const ProjectEditor = () => {
       <Sections sections={sections} select={select} />
     </div>
     <section id={styles["configuration"]}>
-      <SpaceConfig space={space} />
+      <SpaceConfig space={space} presets={observatories} />
       <SectionConfig sections={sections} selected={selected}
                      reorder={reorder} />
     </section>
