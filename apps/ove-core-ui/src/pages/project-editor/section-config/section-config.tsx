@@ -40,7 +40,7 @@ const SectionConfig = ({ sections, selected, reorder }: SectionConfigProps) => {
 
   const onSubmit = (config: SectionConfigForm) => {
     if (selected === null) return;
-    reorder(selected, config.ordering);
+    reorder(selected, parseInt(config.ordering.toString()));
   };
 
   return <section id={styles["section-config"]}>

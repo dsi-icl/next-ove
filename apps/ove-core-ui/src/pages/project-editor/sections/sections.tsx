@@ -14,6 +14,7 @@ type SectionsProps = {
   numStates: number
   state: string
   removeFromState: (id: string, state: string) => void
+  generateSection: (state: string) => void
 }
 
 const Sections = ({
@@ -24,7 +25,8 @@ const Sections = ({
   setAction,
   numStates,
   state,
-  removeFromState
+  removeFromState,
+  generateSection
 }: SectionsProps) =>
   <section id={styles["sections"]}>
     <h2>Sections</h2>
@@ -35,7 +37,8 @@ const Sections = ({
       }}>
         <button className={styles.container} style={{ flexGrow: 1 }}
                 onClick={() => select(section.id)}>
-          <span
+          <span style={{fontWeight: 700}}>{section.ordering}</span>
+          <span className={styles.asset}
             style={{ fontWeight: selected === section.id ? 700 : 400 }}>{section.asset.length < 25 ? section.asset : `${section.asset.slice(0, 24)}...`}</span>
         </button>
         <div className={styles["clear-container"]}>
@@ -52,7 +55,7 @@ const Sections = ({
       {numStates > 1 ?
         <button title="Import" onClick={() => setAction("import-section")}>
           <Import strokeWidth="1px" /></button> : <></>}
-      <button title="Add" onClick={() => select(null)}><PlusCircle /></button>
+      <button title="Add" onClick={() => generateSection(state)}><PlusCircle /></button>
     </div>
   </section>;
 

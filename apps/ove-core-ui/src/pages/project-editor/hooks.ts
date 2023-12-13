@@ -1,7 +1,8 @@
-import { type Section } from "@prisma/client";
+import { nanoid } from "nanoid";
+import { Project, type Section } from "@prisma/client";
+import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { useEffect, useRef, useState } from "react";
-import { useDialog } from "@ove/ui-components";
 
 export const useContainer = (space: Rect) => {
   const [width, setWidth] = useState(100);
@@ -39,7 +40,7 @@ export const useSpace = () => {
 
 const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
 
-export const useSections = (sections_: Section[]) => {
+export const useSections = (sections_: Section[], projectId: string) => {
   const [sections, setSections_] = useState(order(sections_));
   const [selected, setSelected] = useState<string | null>(null);
   const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
@@ -52,7 +53,7 @@ export const useSections = (sections_: Section[]) => {
       return [
         ...removed.slice(0, blueMonday).map((x, i) => ({ ...x, ordering: i })),
         { ...section, ordering: blueMonday },
-        ...removed.slice(blueMonday).map((x, i) => ({ ...x, ordering: i + 1 }))
+        ...removed.slice(blueMonday).map((x, i) => ({ ...x, ordering: i + 1 + blueMonday }))
       ];
     });
   };
@@ -107,6 +108,25 @@ export const useSections = (sections_: Section[]) => {
     });
   };
 
+  const generateSection = (state: string) => {
+    const newSectionId = nanoid(16);
+    setSections(cur => [...cur].concat([{
+      id: newSectionId,
+      x: 0,
+      y: 0,
+      width: 0.25,
+      height: 0.25,
+      ordering: cur.length,
+      asset: "",
+      assetId: null,
+      config: null,
+      dataType: "html",
+      projectId: projectId,
+      states: [state]
+    }]));
+    setSelected(newSectionId);
+  };
+
   return {
     getSections: (state: string) => sections.filter(({ states }) => states.includes(state)),
     dragSection,
@@ -117,6 +137,7 @@ export const useSections = (sections_: Section[]) => {
     updateState,
     addToState,
     removeFromState,
+    generateSection,
     states: sections.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i)
   };
 };
@@ -165,4 +186,14 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
     select,
     selected
   };
+};
+
+export const useProject = (project_: Project) => {
+  const [project, setProject] = useState(project_);
+
+  const updateProject = (project: Omit<Project, "id">) => {
+    setProject(cur => ({...project, id: cur.id}));
+  };
+
+  return { project, updateProject };
 };

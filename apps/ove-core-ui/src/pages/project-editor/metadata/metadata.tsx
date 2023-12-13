@@ -4,7 +4,7 @@ import { type Project } from "@prisma/client";
 
 import styles from "./metadata.module.scss";
 
-export type ProjectMetadata = Pick<Project, "title" | "description">
+export type ProjectMetadata = Pick<Project, "title" | "description" | "presenterNotes" | "notes">
 
 type MetadataProps = {
   project: ProjectMetadata
