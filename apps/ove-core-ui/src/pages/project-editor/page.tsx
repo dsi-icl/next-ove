@@ -9,6 +9,7 @@ import SectionConfig from "./section-config/section-config";
 import { useContainer, useProjectState, useSections, useSpace } from "./hooks";
 
 import styles from "./page.module.scss";
+import Actions from "./actions/actions";
 
 const dataTypes: {[key: string]: string} = {}
 
@@ -50,6 +51,7 @@ const ProjectEditor = () => {
       <SpaceConfig space={space} presets={observatories} />
       <SectionConfig sections={sections} selected={selected}
                      reorder={reorder} />
+      <Actions />
     </section>
   </main>;
 };
