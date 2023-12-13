@@ -10,6 +10,8 @@ import { useContainer, useProjectState, useSections, useSpace } from "./hooks";
 
 import styles from "./page.module.scss";
 
+const dataTypes: {[key: string]: string} = {}
+
 const observatories = {}
 
 const sections_: (projectId: string) => Section[] = (projectId: string) => [];
@@ -39,10 +41,10 @@ const ProjectEditor = () => {
         }} />
         <ResizeContainer container={container}>
           <Canvas sections={sections} space={space} container={container}
-                  dragSection={dragSection} select={select} />
+                  dragSection={dragSection} select={select} selected={selected} colors={dataTypes} />
         </ResizeContainer>
       </section>
-      <Sections sections={sections} select={select} />
+      <Sections sections={sections} select={select} colors={dataTypes} selected={selected} />
     </div>
     <section id={styles["configuration"]}>
       <SpaceConfig space={space} presets={observatories} />

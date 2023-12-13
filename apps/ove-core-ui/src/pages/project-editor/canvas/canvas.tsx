@@ -10,6 +10,8 @@ type PreviewProps = {
   container: { width: number, height: number }
   dragSection: (id: string, x: number, y: number) => void
   select: (id: string) => void
+  colors: {[dataType: string]: string},
+  selected: string | null
 }
 
 const THRESHOLDX = 0.01;
@@ -20,7 +22,9 @@ function drawSpaces({
   space,
   sections,
   dragSection,
-  select
+  select,
+  selected,
+  colors
 }: PreviewProps, svg_: MutableRefObject<SVGSVGElement | null>) {
   const x = d3.scaleLinear().range([0, container.width]).domain([0, space.width]);
   const inverseX = d3.scaleLinear().range([0, space.width]).domain([0, container.width]);
@@ -51,7 +55,6 @@ function drawSpaces({
     .append("title")
     .text((_d, i) => `Client Id: ${i}`);
 
-  const colors = ["dodgerblue", "crimson", "darkorange", "darkviolet", "#4daf4a"];
   svg.selectAll(".sections")
     .data(() => sections)
     .enter()
@@ -62,7 +65,7 @@ function drawSpaces({
     .attr("width", d => x(d.width))
     .attr("height", d => y(d.height))
     .attr("id", d => `section-${d.id}`)
-    .style("fill", (_d, i) => colors[i % colors.length])
+    .style("fill", d => colors[d.dataType.toUpperCase()])
     .classed(styles.section, true)
     .append("title")
     .text(d => `Section Id: ${d.id}`);
@@ -106,8 +109,8 @@ function drawSpaces({
       .attr("x", x(clampX(inverseX(nx), inverseX(parseFloat(section.attr("width"))))))
       .attr("y", y(clampY(inverseY(ny), inverseY(parseFloat(section.attr("height"))))));
     label
-      .attr("x", ((+nx) + (+section.attr("width")) / 2) - sectionTextSize * 0.25)
-      .attr("y", ((+ny) + (+section.attr("height")) / 2) + sectionTextSize * 0.5);
+      .attr("x", ((+nx) + (+section.attr("width")) / 2) - (selected === section.attr("id").slice(8) ? sectionTextSize * 2 : sectionTextSize) * 0.25)
+      .attr("y", ((+ny) + (+section.attr("height")) / 2) + (selected === section.attr("id").slice(8) ? sectionTextSize * 2 : sectionTextSize) * 0.5);
   }
 
   function dragEnd(this: Element) {
@@ -125,9 +128,10 @@ function drawSpaces({
     .append("text")
     .text(d => d.ordering)
     .attr("id", d => `label-${d.id}`)
-    .attr("x", d => x((+d.x) + (+d.width) / 2) - sectionTextSize * 0.25)
-    .attr("y", d => y((+d.y) + (+d.height) / 2) + sectionTextSize * 0.5)
-    .style("font-size", `${sectionTextSize}px`)
+    .attr("x", d => x((+d.x) + (+d.width) / 2) - (d.id === selected ? sectionTextSize * 2 : sectionTextSize) * 0.25)
+    .attr("y", d => y((+d.y) + (+d.height) / 2) + (d.id === selected ? sectionTextSize * 2 : sectionTextSize) * 0.5)
+    .style("font-size", d => `${d.id === selected ? sectionTextSize * 2 : sectionTextSize}px`)
+    .style("font-weight", d => d.id === selected ? 700 : 400)
     .classed(styles.label, true);
 }
 

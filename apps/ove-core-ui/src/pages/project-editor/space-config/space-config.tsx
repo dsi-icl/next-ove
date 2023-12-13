@@ -48,7 +48,7 @@ const SpaceConfig = ({ space: {update, ...curSpace}, presets }: SpaceConfigProps
   };
 
   return <section id={styles["space"]}>
-    <h4>Space Config</h4>
+    <h2>Space Config</h2>
     <form ref={ref} onSubmit={handleSubmit(onSubmit)}>
       <label className={styles.ratio}>
         Ratio:

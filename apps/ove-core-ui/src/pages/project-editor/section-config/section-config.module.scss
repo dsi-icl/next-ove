@@ -1,5 +1,6 @@
 #section-config {
   width: 80vw;
+  padding: 1rem;
 
   & form {
     display: flex;
@@ -9,14 +10,13 @@
       width: 20vw;
       display: flex;
       flex-direction: column;
-      padding: 1rem;
+      padding: 0 1rem;
     }
 
     & label {
       width: 10vw;
       font-weight: 700;
       font-size: 1rem;
-      margin-top: 0.5rem;
     }
 
     .ratio {
