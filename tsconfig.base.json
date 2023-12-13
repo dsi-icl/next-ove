@@ -26,7 +26,8 @@
       "@ove/ove-utils": ["libs/ove-utils/src/index.ts"],
       "@ove/pjlink-control": ["libs/pjlink-control/src/index.ts"],
       "@ove/ui-base-components": ["libs/ui-base-components/src/index.ts"],
-      "@ove/ui-components": ["libs/ui-components/src/index.ts"]
+      "@ove/ui-components": ["libs/ui-components/src/index.ts"],
+      "@ove/ui-reorderable-list": ["libs/ui-reorderable-list/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

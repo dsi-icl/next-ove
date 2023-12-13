@@ -17,7 +17,7 @@ const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
 
   const onSubmit = useCallback(({ filter }: { filter: string }) => {
     setFilter(filter);
-  }, []);
+  }, [setFilter]);
 
   useEffect(() => {
     const data = watch(() => handleSubmit(onSubmit)());

@@ -53,7 +53,7 @@ const ProjectEditor = () => {
   const getDialogContent = () => {
     switch (action) {
       case "metadata":
-        return <Metadata project={project_(projectId)} setAction={setAction} />;
+        return <Metadata project={project} setAction={setAction} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}
@@ -71,7 +71,7 @@ const ProjectEditor = () => {
         <StateTabs selected={states.selected} removeState={states.removeState}
                    states={states.states} formatState={states.format}
                    addState={states.addState} updateState={states.updateState}
-                   setState={states.select} />
+                   setState={states.select} currentState={states.selected} />
         <ResizeContainer container={container}>
           <Canvas sections={sections.getSections(states.selected)} space={space}
                   container={container}
@@ -84,13 +84,16 @@ const ProjectEditor = () => {
                 select={sections.select} state={states.selected}
                 removeFromState={sections.removeFromState}
                 colors={colors} selected={sections.selected}
+                setSections={sections.setSections}
                 setAction={setAction} numStates={states.states.length} />
     </div>
     <section id={styles["configuration"]}>
       <SpaceConfig space={space} presets={observatories} />
       <SectionConfig sections={sections.getSections(states.selected)}
-                     selected={sections.selected}
-                     reorder={sections.reorder} />
+                     setAction={setAction}
+                     selected={sections.selected} space={space}
+                     state={states.selected} projectId={projectId}
+                     updateSection={sections.updateSection} />
       <Actions setAction={setAction} />
     </section>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}

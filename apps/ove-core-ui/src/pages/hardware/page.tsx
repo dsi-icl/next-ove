@@ -18,7 +18,7 @@ const Hardware = () => {
   const setPaginationIdx = useStore(state => state.hardwareConfig.setPaginationIdx);
 
   const isSpecial = (action: DeviceAction["action"]) => action === "info" || action === "execute" || action === "screenshot" || action === "monitoring" || action === "calendar" || action === "power_mode";
-  const getStyle = useCallback((): CSSProperties | undefined => {
+  const getStyle = useCallback((deviceAction: DeviceAction): CSSProperties | undefined => {
     switch (deviceAction.action) {
       case "monitoring": return {width: "90vw", height: "90vh"};
       case "volume":
@@ -28,7 +28,7 @@ const Hardware = () => {
       case "calendar": return {width: "65vw", height: "80svh"};
       default: return undefined;
     }
-  }, [deviceAction]);
+  }, []);
 
   useEffect(() => {
     if (isOpen) return;
@@ -57,7 +57,7 @@ const Hardware = () => {
       }) =>
         <Observatory name={name} isOnline={isOnline} key={name}
                      showNotification={showNotification} />) : null}
-      <Dialog closeDialog={closeDialog} ref={ref} style={getStyle()}
+      <Dialog closeDialog={closeDialog} ref={ref} style={getStyle(deviceAction)}
               title={deviceAction.deviceId ?? deviceAction.bridgeId ?? ""}>
         <Popups isOpen={isOpen} />
       </Dialog>

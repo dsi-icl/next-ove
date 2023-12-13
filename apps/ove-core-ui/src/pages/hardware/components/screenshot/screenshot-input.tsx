@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useCallback, useState } from "react";
-import { ScreenshotMethod } from "@ove/ove-types";
+import { useStore } from "../../../../store";
+import { type ScreenshotMethod } from "@ove/ove-types";
 
 import styles from "./screenshot.module.scss";
-import { useStore } from "../../../../store";
 
 type Form = {
   method: ScreenshotMethod,
@@ -17,10 +17,7 @@ const ScreenshotInput = () => {
   const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
-  const onSubmit = useCallback(({
-    method,
-    screen
-  }: Form) => {
+  const onSubmit = ({ method, screen }: Form) => {
     if (screen !== "") {
       setScreens(cur => cur.includes(screen) ? cur : [...cur, screen]);
       setValue("screen", "");
@@ -28,7 +25,7 @@ const ScreenshotInput = () => {
       setScreenshotConfig({method, screens: screens.map(screen => parseInt(screen))});
       setDeviceAction({...deviceAction, pending: false});
     }
-  }, [setScreens, screens]);
+  };
 
   return <div className={styles.input}>
     <h4>Screenshot Config</h4>

@@ -35,26 +35,46 @@ export const useSpace = () => {
     setRows(space.rows || 4);
   };
 
-  return { rows, columns, width, height, update };
+  const cells = Array.from({ length: rows }, (_x, row) => Array.from({ length: columns }, (_y, col) => ({
+    x: (width / columns) * col,
+    y: (height / rows) * row,
+    width: width / columns,
+    height: height / rows
+  }))).flat();
+
+  return { rows, columns, width, height, update, cells };
 };
 
 const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
 
-export const useSections = (sections_: Section[], projectId: string) => {
-  const [sections, setSections_] = useState(order(sections_));
+export const useSections = (sections: Section[], projectId: string) => {
+  const [sections_, setSections_] = useState(order(sections));
   const [selected, setSelected] = useState<string | null>(null);
   const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
 
   // GET IT – NEW ORDER/BLUE MONDAY. I'M SO FUNNY.
-  const reorder = (id: string, blueMonday: number) => {
+  const reorder = (id: string, blueMonday: number, sections: Section[]) => {
+    const section = sections.find(section => section.id === id)!;
+    const removed = sections.filter(section => section.id !== id);
+    return [
+      ...removed.slice(0, blueMonday).map((x, i) => ({ ...x, ordering: i })),
+      { ...section, ordering: blueMonday },
+      ...removed.slice(blueMonday).map((x, i) => ({
+        ...x,
+        ordering: i + 1 + blueMonday
+      }))
+    ];
+  };
+
+  const updateSection = (section: Omit<Section, "id">) => {
     setSections(cur => {
-      const section = cur.find(section => section.id === id)!;
-      const removed = cur.filter(section => section.id !== id);
-      return [
-        ...removed.slice(0, blueMonday).map((x, i) => ({ ...x, ordering: i })),
-        { ...section, ordering: blueMonday },
-        ...removed.slice(blueMonday).map((x, i) => ({ ...x, ordering: i + 1 + blueMonday }))
-      ];
+      const newSectionId = selected === null ? nanoid(16) : selected;
+      const newSections = cur.filter(({ id }) => id !== selected).concat([{
+        ...section,
+        ordering: cur.length,
+        id: newSectionId
+      }]);
+      return reorder(newSectionId, parseInt(section.ordering.toString()), newSections);
     });
   };
 
@@ -128,7 +148,8 @@ export const useSections = (sections_: Section[], projectId: string) => {
   };
 
   return {
-    getSections: (state: string) => sections.filter(({ states }) => states.includes(state)),
+    getSections: (state: string) => sections_.filter(({ states }) => states.includes(state)),
+    setSections,
     dragSection,
     reorder,
     select: setSelected,
@@ -138,11 +159,12 @@ export const useSections = (sections_: Section[], projectId: string) => {
     addToState,
     removeFromState,
     generateSection,
-    states: sections.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i)
+    updateSection,
+    states: sections_.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i)
   };
 };
 
-export type Actions = "metadata" | "import-section"
+export type Actions = "metadata" | "import-section" | "custom-config"
 
 export const useActions = () => {
   const [action, setAction] = useState<Actions | null>(null);
@@ -192,7 +214,7 @@ export const useProject = (project_: Project) => {
   const [project, setProject] = useState(project_);
 
   const updateProject = (project: Omit<Project, "id">) => {
-    setProject(cur => ({...project, id: cur.id}));
+    setProject(cur => ({ ...project, id: cur.id }));
   };
 
   return { project, updateProject };

@@ -6,6 +6,7 @@ import styles from "./state-tabs.module.scss";
 type StateTabsProps = {
   selected: string
   states: string[]
+  currentState: string
   setState: (state: string) => void
   removeState: (state: string) => void
   formatState: (state: string) => string
@@ -20,7 +21,8 @@ const StateTabs = ({
   setState,
   formatState,
   updateState,
-  addState
+  addState,
+  currentState
 }: StateTabsProps) => {
   const { register, handleSubmit, resetField } = useForm<{ name: string }>();
   const [isEdit, setIsEdit] = useState(false);
@@ -41,15 +43,20 @@ const StateTabs = ({
 
   return <nav className={styles.container}>
     <ul className={styles.tabs}>
-      {states.map(state => <li key={state} className={styles.tab}
-                                    onDoubleClick={state === "__default__" ? undefined : () => setIsEdit(true)}>
-        {isEdit && selected === state ?
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <input {...register("name")} />
-            <button type="submit" style={{ display: "none" }} />
-          </form> :
-          <button style={{ fontWeight: selected === state ? 700 : 400 }}
-                  onClick={() => setState(state)}>{formatState(state)}</button>}
+      {states.map(state => <li key={state}
+                               className={[styles.tab, selected === state ? ` ${styles.selected}` : ""].join(" ")}>
+        <button style={{ fontWeight: selected === state ? 700 : 400 }}
+                onClick={() => {
+                  if (state === currentState) return;
+                  setState(state);
+                }}
+                onBlur={() => setIsEdit(false)}
+                onDoubleClick={state === "__default__" ? undefined : () => setIsEdit(true)}>
+          {isEdit && selected === state ?
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <input {...register("name")} />
+              <input type="submit" style={{ display: "none" }} />
+            </form> : formatState(state)}</button>
       </li>)}
       <li className={styles.tab} id={styles["add"]}>
         <button

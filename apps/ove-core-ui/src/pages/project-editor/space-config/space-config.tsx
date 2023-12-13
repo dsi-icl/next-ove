@@ -1,7 +1,7 @@
 import { type Space } from "../types";
 import { useForm } from "react-hook-form";
 import { type NativeEvent } from "@ove/ove-types";
-import { type BaseSyntheticEvent, useEffect, useRef } from "react";
+import { type BaseSyntheticEvent, useRef } from "react";
 
 import styles from "./space-config.module.scss";
 import { Json } from "@ove/ove-utils";
