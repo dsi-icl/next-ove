@@ -39,7 +39,7 @@ export const useSpace = () => {
 
 const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
 
-export const useSections = (state: string, sections_: Section[]) => {
+export const useSections = (sections_: Section[]) => {
   const [sections, setSections_] = useState(order(sections_));
   const [selected, setSelected] = useState<string | null>(null);
   const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
@@ -72,37 +72,97 @@ export const useSections = (state: string, sections_: Section[]) => {
     })).filter(Boolean) as Section[]);
   };
 
+  const updateState = (state: string, name: string) => {
+    setSections(cur => cur.map(section => !section.states.includes(state) ? section : {
+      ...section,
+      states: section.states.map(c => c === state ? name : c)
+    }));
+  };
+
+  const addToState = (id: string, state: string) => {
+    setSections(cur => cur.map(section => section.id !== id || section.states.includes(state) ? section : {
+      ...section,
+      states: section.states.concat([state])
+    }));
+  };
+
+  const removeFromState = (id: string, state: string) => {
+    if (id === selected) {
+      setSelected(null);
+    }
+    setSections(cur => {
+      let newSections = cur.map(section => section.id !== id ? section : (section.states.length === 1 ? undefined : {
+        ...section,
+        states: section.states.filter(s => s !== state)
+      })).filter(Boolean) as Section[];
+
+      if (newSections.length !== cur.length) {
+        newSections = newSections.map((section, i) => ({
+          ...section,
+          ordering: i
+        }));
+      }
+
+      return newSections;
+    });
+  };
+
   return {
-    sections: sections.filter(({ states }) => states.includes(state)),
+    getSections: (state: string) => sections.filter(({ states }) => states.includes(state)),
     dragSection,
     reorder,
     select: setSelected,
     selected,
     removeState,
+    updateState,
+    addToState,
+    removeFromState,
     states: sections.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i)
   };
 };
 
-export const useProjectState = () => {
-  const [state, setState] = useState("__default__");
-
-  return { state, setState };
-};
-
-export type Actions = "metadata"
+export type Actions = "metadata" | "import-section"
 
 export const useActions = () => {
   const [action, setAction] = useState<Actions | null>(null);
-  const {openDialog, closeDialog, ref} = useDialog();
-  const dialogStates: Actions[] = ["metadata"];
+  const { openDialog, closeDialog, ref } = useDialog();
 
   useEffect(() => {
-    if (action === null || !dialogStates.includes(action)) {
+    if (action === null) {
       closeDialog();
     } else {
       openDialog();
     }
   }, [action]);
 
-  return {dialog: ref, setAction, action};
+  return { dialog: ref, setAction, action };
+};
+
+export const useCustomStates = (initialStates: string[], selectSection: (selected: string | null) => void, updateStateForSections: (state: string, name: string) => void, removeStateFromSection: (state: string) => void) => {
+  const [customStates, setCustomStates] = useState(["__default__"]);
+  const [selected, setSelected] = useState("__default__");
+
+  const select = (state: string) => {
+    selectSection(null);
+    setSelected(state);
+  };
+
+  return {
+    states: customStates.slice(0, 1).concat(initialStates).concat(customStates.slice(1)).filter((x, i, arr) => arr.indexOf(x) === i),
+    removeState: (state: string) => {
+      setCustomStates(cur => cur.filter(c => c !== state));
+      removeStateFromSection(state);
+      select("__default__");
+    },
+    updateState: (state: string, name: string) => {
+      setCustomStates(cur => cur.map(c => c === state ? name : c));
+      updateStateForSections(state, name);
+    },
+    addState: () => {
+      setCustomStates(cur => [...cur, `__new__${cur.length}`]);
+    },
+    format: (state: string) => state === "__default__" ? "*" : (state.startsWith("__new__") ? `New (${state.slice(7)})` : state),
+    select,
+    selected
+  };
 };

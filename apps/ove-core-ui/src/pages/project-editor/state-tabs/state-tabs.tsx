@@ -8,30 +8,30 @@ type StateTabsProps = {
   states: string[]
   setState: (state: string) => void
   removeState: (state: string) => void
+  formatState: (state: string) => string
+  updateState: (state: string, name: string) => void
+  addState: () => void
 }
 
 const StateTabs = ({
   selected,
   removeState,
   states,
-  setState
+  setState,
+  formatState,
+  updateState,
+  addState
 }: StateTabsProps) => {
   const { register, handleSubmit, resetField } = useForm<{ name: string }>();
   const [isEdit, setIsEdit] = useState(false);
-  const [customStates, setCustomStates] = useState(["__default__"]);
-
-  const getStates = () => states.concat(customStates).filter((x, i, arr) => arr.indexOf(x) === i);
-  const formatStates = (state: string) => state === "__default__" ? "*" : (state.startsWith("__new__") ? `New (${state.slice(7)})` : state);
 
   const onSubmit = ({ name }: { name: string }) => {
-    if (getStates().includes(name)) return;
+    if (states.includes(name)) return;
     setIsEdit(false);
     if (name === "") {
-      setCustomStates(cur => cur.filter(c => c !== selected));
       removeState(selected);
-      setState("__default__");
     } else {
-      setCustomStates(cur => cur.map(c => c === selected ? name : c));
+      updateState(selected, name);
     }
   };
 
@@ -41,7 +41,7 @@ const StateTabs = ({
 
   return <nav className={styles.container}>
     <ul className={styles.tabs}>
-      {getStates().map(state => <li key={state} className={styles.tab}
+      {states.map(state => <li key={state} className={styles.tab}
                                     onDoubleClick={state === "__default__" ? undefined : () => setIsEdit(true)}>
         {isEdit && selected === state ?
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -49,11 +49,11 @@ const StateTabs = ({
             <button type="submit" style={{ display: "none" }} />
           </form> :
           <button style={{ fontWeight: selected === state ? 700 : 400 }}
-                  onClick={() => setState(state)}>{formatStates(state)}</button>}
+                  onClick={() => setState(state)}>{formatState(state)}</button>}
       </li>)}
       <li className={styles.tab} id={styles["add"]}>
         <button
-          onClick={() => setCustomStates(cur => [...cur, `__new__${cur.length}`])}>+
+          onClick={addState}>+
         </button>
       </li>
     </ul>
