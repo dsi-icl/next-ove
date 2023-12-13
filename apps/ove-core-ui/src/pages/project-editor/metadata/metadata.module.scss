@@ -1,0 +1,44 @@
+#metadata {
+  width: 100%;
+  height: 100%;
+
+  & h2 {
+    text-align: center;
+    font-weight: 700;
+  }
+
+  & form {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    height: calc(100% - 1.5rem);
+    margin: 0 10%;
+    overflow-y: scroll;
+
+    & label {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    & input {
+      border: 1px solid black;
+      border-radius: 1.25rem;
+      padding: 0 0.25rem;
+    }
+
+    & textarea {
+      border: 1px solid black;
+      border-radius: 1.25rem;
+      padding: 0.25rem;
+    }
+
+    & button {
+      margin-top: auto;
+      background-color: #002147;
+      color: white;
+      border-radius: 1.25rem;
+      padding: 0.25rem;
+    }
+  }
+}

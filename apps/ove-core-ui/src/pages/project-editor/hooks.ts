@@ -1,6 +1,7 @@
 import { type Section } from "@prisma/client";
 import { type Rect, type Space } from "./types";
 import { useEffect, useRef, useState } from "react";
+import { useDialog } from "@ove/ui-components";
 
 export const useContainer = (space: Rect) => {
   const [width, setWidth] = useState(100);
@@ -86,4 +87,22 @@ export const useProjectState = () => {
   const [state, setState] = useState("__default__");
 
   return { state, setState };
+};
+
+export type Actions = "metadata"
+
+export const useActions = () => {
+  const [action, setAction] = useState<Actions | null>(null);
+  const {openDialog, closeDialog, ref} = useDialog();
+  const dialogStates: Actions[] = ["metadata"];
+
+  useEffect(() => {
+    if (action === null || !dialogStates.includes(action)) {
+      closeDialog();
+    } else {
+      openDialog();
+    }
+  }, [action]);
+
+  return {dialog: ref, setAction, action};
 };
