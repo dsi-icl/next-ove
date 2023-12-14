@@ -1,5 +1,6 @@
 import { type Actions } from "../hooks";
 import { useForm } from "react-hook-form";
+import { useStore } from "../../../store";
 import { useEffect, useState } from "react";
 import { type Section } from "@prisma/client";
 import { type Geometry, type Space } from "../types";
@@ -38,6 +39,7 @@ const SectionConfig = ({
     resetField
   } = useForm<SectionConfigForm>();
   const [mode, setMode] = useState<"custom" | "grid">("custom");
+  const config = useStore(state => state.config);
 
   const getRow = (section: Geometry) => {
     if (space.height / space.rows !== section.height) return null;
@@ -60,8 +62,11 @@ const SectionConfig = ({
   };
 
   useEffect(() => {
+    setValue("config", formatConfig(config));
+  }, [config]);
+
+  useEffect(() => {
     if (selected === null) {
-      resetField("ordering");
       resetField("x");
       resetField("y");
       resetField("width");
@@ -72,7 +77,6 @@ const SectionConfig = ({
     }
 
     const section = sections.find(section => section.id === selected)!;
-    setValue("ordering", section.ordering);
     setValue("x", section.x);
     setValue("y", section.y);
     setValue("width", section.width);
@@ -81,20 +85,25 @@ const SectionConfig = ({
     setValue("column", getColumn(section));
   }, [selected, sections]);
 
-  const onSubmit = (config: SectionConfigForm) => {
+  const onSubmit = (section: SectionConfigForm) => {
     updateSection({
-      x: mode === "custom" ? config.x : config.row! * (space.width / space.columns),
-      y: mode === "custom" ? config.y : config.column! * (space.height / space.rows),
-      width: mode === "custom" ? config.width : (space.width / space.columns),
-      height: mode === "custom" ? config.height : (space.height / space.rows),
-      config: null,
+      x: mode === "custom" ? section.x : section.row! * (space.width / space.columns),
+      y: mode === "custom" ? section.y : section.column! * (space.height / space.rows),
+      width: mode === "custom" ? section.width : (space.width / space.columns),
+      height: mode === "custom" ? section.height : (space.height / space.rows),
+      config: JSON.parse(config),
       assetId: null,
       asset: "",
       dataType: "html",
       states: [state],
-      ordering: config.ordering,
+      ordering: section.ordering,
       projectId: projectId
     });
+  };
+
+  const formatConfig = (config: string) => {
+    const stripped = config.split("\n").map(x => x.trim()).join("");
+    return stripped.length < 20 ? stripped : `${stripped.slice(0, 20)}...`;
   };
 
   const fullscreen = () => {
@@ -128,7 +137,8 @@ const SectionConfig = ({
           <input {...register("row")} />
         </>}
         <label>Config:</label>
-        <input className={styles.config} type="button" {...register("config")} onClick={() => setAction("custom-config")} />
+        <input className={styles.config} {...register("config")} type="button"
+               onClick={() => setAction("custom-config")} />
       </fieldset>
       <fieldset>
         <button className={styles.action} id={styles["fullscreen"]}

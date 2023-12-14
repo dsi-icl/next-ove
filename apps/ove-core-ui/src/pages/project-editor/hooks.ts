@@ -3,6 +3,7 @@ import { Project, type Section } from "@prisma/client";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { useEffect, useRef, useState } from "react";
+import { useStore } from "../../store";
 
 export const useContainer = (space: Rect) => {
   const [width, setWidth] = useState(100);
@@ -50,7 +51,17 @@ const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - 
 export const useSections = (sections: Section[], projectId: string) => {
   const [sections_, setSections_] = useState(order(sections));
   const [selected, setSelected] = useState<string | null>(null);
+  const setConfig = useStore(state => state.setConfig);
   const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
+
+  useEffect(() => {
+    if (selected === null) {
+      setConfig("");
+    } else {
+      const config = sections_.find(({id}) => id === selected)!.config;
+      setConfig(config === null ? "" : JSON.stringify(config));
+    }
+  }, [selected, sections_]);
 
   // GET IT – NEW ORDER/BLUE MONDAY. I'M SO FUNNY.
   const reorder = (id: string, blueMonday: number, sections: Section[]) => {

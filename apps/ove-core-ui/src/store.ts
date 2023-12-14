@@ -13,6 +13,8 @@ import { type DeviceAction } from "./pages/hardware/types";
 type Store = {
   tokens: Tokens | null
   setTokens: (tokens: Tokens | null) => void
+  config: string,
+  setConfig: (config: string) => void
   hardwareConfig: {
     deviceAction: DeviceAction
     setDeviceAction: (deviceAction: DeviceAction) => void
@@ -77,6 +79,8 @@ const getCurrentTokens = () => {
 export const useStore = create<Store>(set => ({
   tokens: getCurrentTokens(),
   setTokens: (tokens: Tokens | null) => tokens === null ? set({ tokens: null }) : set({ tokens: { ...tokens } }),
+  config: "",
+  setConfig: (config: string) => set({config}),
   hardwareConfig: {
     info: null,
     setInfo: info => set(state => ({

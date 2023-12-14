@@ -15,6 +15,7 @@ import { Dialog } from "@ove/ui-components";
 import StateTabs from "./state-tabs/state-tabs";
 import SpaceConfig from "./space-config/space-config";
 import ResizeContainer from "./canvas/resize-container";
+import ConfigEditor from "./config-editor/config-editor";
 import { type Project, type Section } from "@prisma/client";
 import SectionConfig from "./section-config/section-config";
 import SectionImporter from "./section-importer/section-importer";
@@ -60,6 +61,8 @@ const ProjectEditor = () => {
           setAction={setAction} selectedState={states.selected}
           getSections={sections.getSections} formatState={states.format}
           states={states.states.filter(state => state !== states.selected)} />;
+      case "custom-config":
+        return <ConfigEditor closeDialog={() => setAction(null)} />;
       default:
         return <></>;
     }
