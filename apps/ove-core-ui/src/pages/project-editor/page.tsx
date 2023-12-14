@@ -9,16 +9,20 @@ import {
 import Canvas from "./canvas/canvas";
 import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
+import Preview from "./preview/preview";
 import Metadata from "./metadata/metadata";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
 import StateTabs from "./state-tabs/state-tabs";
+import FileUpload from "./file-upload/file-upload";
 import SpaceConfig from "./space-config/space-config";
 import ResizeContainer from "./canvas/resize-container";
 import ConfigEditor from "./config-editor/config-editor";
 import { type Project, type Section } from "@prisma/client";
 import SectionConfig from "./section-config/section-config";
+import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
+import ControllerEditor from "./controller-editor/controller-editor";
 
 import styles from "./page.module.scss";
 
@@ -30,12 +34,20 @@ const observatories = {};
 
 const sections_: (projectId: string) => Section[] = (projectId: string) => [];
 
-const getDialogTitle = (action: ActionsT | null) => {
+const getDialogTitle = (action: ActionsT | null, title: string) => {
   switch (action) {
     case "metadata":
-      return "Metadata Config";
+      return "Project Details";
     case "import-section":
       return "Import Section";
+    case "controller":
+      return "Edit Controller";
+    case "upload":
+      return "File Upload";
+    case "preview":
+      return "Preview Project";
+    case "launch":
+      return title;
     default:
       return "";
   }
@@ -47,14 +59,14 @@ const ProjectEditor = () => {
   const { dialog, action, setAction } = useActions();
   const container = useContainer(space);
   const projectId = query.get("project") ?? "";
-  const { project } = useProject(project_(projectId));
+  const { project, updateProject } = useProject(project_(projectId));
   const sections = useSections(sections_(projectId), projectId);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
 
   const getDialogContent = () => {
     switch (action) {
       case "metadata":
-        return <Metadata project={project} setAction={setAction} />;
+        return <Metadata project={project} updateProject={updateProject} setAction={setAction} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}
@@ -63,6 +75,14 @@ const ProjectEditor = () => {
           states={states.states.filter(state => state !== states.selected)} />;
       case "custom-config":
         return <ConfigEditor closeDialog={() => setAction(null)} />;
+      case "controller":
+        return <ControllerEditor />;
+      case "upload":
+        return <FileUpload />;
+      case "launch":
+        return <Controller />;
+      case "preview":
+        return <Preview />;
       default:
         return <></>;
     }
@@ -100,7 +120,7 @@ const ProjectEditor = () => {
       <Actions setAction={setAction} />
     </section>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
-            title={getDialogTitle(action)}>
+            title={getDialogTitle(action, project.title)}>
       {getDialogContent()}
     </Dialog>
   </main>;

@@ -8,14 +8,15 @@ export type ProjectMetadata = Pick<Project, "title" | "description" | "presenter
 
 type MetadataProps = {
   project: ProjectMetadata
+  updateProject: (metadata: ProjectMetadata) => void
   setAction: (action: Actions | null) => void
 }
 
-const Metadata = ({project, setAction}: MetadataProps) => {
+const Metadata = ({project, updateProject, setAction}: MetadataProps) => {
   const {register, handleSubmit} = useForm<Project>({defaultValues: project});
 
-  const onSubmit = () => {
-    // TODO: add saving of metadata
+  const onSubmit = (metadata: ProjectMetadata) => {
+    updateProject(metadata);
     setAction(null);
   };
 

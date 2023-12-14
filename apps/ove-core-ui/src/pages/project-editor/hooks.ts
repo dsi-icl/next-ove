@@ -4,6 +4,7 @@ import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../../store";
+import { type ProjectMetadata } from "./metadata/metadata";
 
 export const useContainer = (space: Rect) => {
   const [width, setWidth] = useState(100);
@@ -175,7 +176,7 @@ export const useSections = (sections: Section[], projectId: string) => {
   };
 };
 
-export type Actions = "metadata" | "import-section" | "custom-config"
+export type Actions = "metadata" | "import-section" | "custom-config" | "launch" | "upload" | "preview" | "controller"
 
 export const useActions = () => {
   const [action, setAction] = useState<Actions | null>(null);
@@ -224,8 +225,8 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
 export const useProject = (project_: Project) => {
   const [project, setProject] = useState(project_);
 
-  const updateProject = (project: Omit<Project, "id">) => {
-    setProject(cur => ({ ...project, id: cur.id }));
+  const updateProject = (project: ProjectMetadata) => {
+    setProject(cur => ({ ...cur, ...project }));
   };
 
   return { project, updateProject };
