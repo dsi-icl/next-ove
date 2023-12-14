@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { useStore } from "../../store";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { type ProjectMetadata } from "./metadata/metadata";
 import { type Project, type Section } from "@prisma/client";
 
@@ -239,12 +239,13 @@ export const useProject = (projectId: string) => {
   return { project, updateProject };
 };
 
-export type File = {name: string, version: number, assetId: string}
+export type File = { name: string, version: number, assetId: string }
 
 export const useFiles = () => {
   const [files, setFiles] = useState<File[]>([]);
+  const [data, setData] = useState<{ [key: `${string}/${string}`]: string }>({});
 
-  const addFile = (file: File, assetId?: string) => {
+  const addFile = (file: File, data: string, assetId?: string) => {
     if (assetId === undefined) {
       assetId = nanoid(16);
       setFiles(cur => [...cur, {
@@ -252,15 +253,25 @@ export const useFiles = () => {
         version: 1,
         assetId: assetId!
       }]);
+      setData(cur => ({ ...cur, [`${file.name}/1`]: data }));
     } else {
-      setFiles(cur => [...cur.map(file => file.assetId !== assetId ? file : {
-        ...file,
-        version: file.version + 1
-      })]);
+      let latest: File | null = null;
+      setFiles(cur => {
+        latest = cur.find(file => assetId === file.assetId)!;
+        return [...cur, { ...latest, version: latest.version + 1 }];
+      });
+      setData(cur => ({ ...cur, [`${file.name}/${latest!.version}`]: data }));
     }
 
     return assetId!;
   };
+
+  const getLatest = useCallback((id: string) => {
+    const latest = Math.max(...files.filter(file => file.assetId === id || file.name === id).map(({ version }) => version));
+    return files.find(file => (file.assetId === id || file.name === id) && file.version === latest)!;
+  }, [files]);
+
+  const getData = (file: File) => data[`${file.name}/${file.version}`];
 
   const toURL = (name: string, version: number) => `/s3/${name}/${version}`;
   const fromURL = (url: string) => {
@@ -270,7 +281,7 @@ export const useFiles = () => {
       name,
       version
     }) => name === sections.at(-2)! && version === parseInt(sections.at(-1)!))!;
-  }
+  };
 
-  return { files, addFile, toURL, fromURL };
+  return { files, addFile, toURL, fromURL, data, getLatest, getData };
 };

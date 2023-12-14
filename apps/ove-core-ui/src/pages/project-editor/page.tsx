@@ -63,7 +63,7 @@ const ProjectEditor = () => {
   const { project, updateProject } = useProject(projectId);
   const sections = useSections(projectId);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
-  const { files, toURL, fromURL } = useFiles();
+  const { files, toURL, fromURL, addFile, getLatest, getData } = useFiles();
 
   const getDialogContent = () => {
     switch (action) {
@@ -78,9 +78,11 @@ const ProjectEditor = () => {
           getSections={sections.getSections} formatState={states.format}
           states={states.states.filter(state => state !== states.selected)} />;
       case "custom-config":
-        return <ConfigEditor closeDialog={() => setAction(null)} />;
+        return <ConfigEditor />;
       case "controller":
-        return <ControllerEditor />;
+        const controller = getLatest("control");
+        return <ControllerEditor controller={getData(controller)}
+                                 update={data => addFile(controller, data, controller.assetId)} />;
       case "upload":
         return <FileUpload />;
       case "launch":
@@ -125,7 +127,8 @@ const ProjectEditor = () => {
       <Actions setAction={setAction} />
     </section>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
-            title={getDialogTitle(action, project.title)}>
+            title={getDialogTitle(action, project.title)}
+            hiddenStyle={action === "controller" || action === "custom-config" ? { padding: "0" } : {}}>
       {getDialogContent()}
     </Dialog>
     {isOpen ? <div id={styles["mask"]}></div> : <></>}

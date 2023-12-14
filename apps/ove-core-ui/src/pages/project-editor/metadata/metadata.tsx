@@ -61,7 +61,7 @@ const Metadata = ({
       <label>Thumbnail:</label>
       <S3FileSelect ids={["fileName", "fileVersion"]} register={register}
                     files={files} resetField={() => resetField("fileVersion")}
-                    defaultFile={fromURL(project.thumbnail ?? "")?.name ?? null} />
+                    defaultFile={fromURL(project.thumbnail ?? "")?.name ?? files?.[0].name ?? null} />
       <label htmlFor="notes">Notes:</label>
       <textarea {...register("notes")} />
       <label htmlFor="presenterNotes">Presenter Notes:</label>

@@ -7,14 +7,22 @@ type DialogProps = {
   children: ReactNode
   style?: CSSProperties
   title: string
+  hiddenStyle?: CSSProperties
 }
 
-const Dialog = forwardRef<HTMLDialogElement, DialogProps>(({title, closeDialog, children, style}, ref) => {
-  return <dialog ref={ref} onClick={closeDialog} style={style} title={title} className={styles.dialog}>
-    <div onClick={e => e.stopPropagation()} className={styles.hidden}>
+const Dialog = forwardRef<HTMLDialogElement, DialogProps>(({
+  hiddenStyle,
+  title,
+  closeDialog,
+  children,
+  style
+}, ref) =>
+  <dialog ref={ref} onClick={closeDialog} style={style} title={title}
+          className={styles.dialog}>
+    <div onClick={e => e.stopPropagation()} className={styles.hidden}
+         style={hiddenStyle}>
       {children}
     </div>
-  </dialog>
-});
+  </dialog>);
 
 export default Dialog;
