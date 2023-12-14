@@ -2,7 +2,9 @@ import {
   type Actions as ActionsT,
   useActions,
   useContainer,
-  useCustomStates, useProject,
+  useCustomStates,
+  useFiles,
+  useProject,
   useSections,
   useSpace
 } from "./hooks";
@@ -18,7 +20,6 @@ import FileUpload from "./file-upload/file-upload";
 import SpaceConfig from "./space-config/space-config";
 import ResizeContainer from "./canvas/resize-container";
 import ConfigEditor from "./config-editor/config-editor";
-import { type Project, type Section } from "@prisma/client";
 import SectionConfig from "./section-config/section-config";
 import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
@@ -26,13 +27,13 @@ import ControllerEditor from "./controller-editor/controller-editor";
 
 import styles from "./page.module.scss";
 
-const colors: { [key: string]: string } = {};
-
-const project_ = (projectId: string): Project => ({});
+const colors: { [key: string]: string } = {
+  HTML: "#FA9E78",
+  IMAGES: "#FDEBDC",
+  VIDEOS: "#6B9A9B"
+};
 
 const observatories = {};
-
-const sections_: (projectId: string) => Section[] = (projectId: string) => [];
 
 const getDialogTitle = (action: ActionsT | null, title: string) => {
   switch (action) {
@@ -59,15 +60,17 @@ const ProjectEditor = () => {
   const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
   const projectId = query.get("project") ?? "";
-  const { project, updateProject } = useProject(project_(projectId));
-  const sections = useSections(sections_(projectId), projectId);
+  const { project, updateProject } = useProject(projectId);
+  const sections = useSections(projectId);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
+  const { files, toURL, fromURL } = useFiles();
 
   const getDialogContent = () => {
     switch (action) {
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
-                         setAction={setAction} />;
+                         setAction={setAction} files={files} toURL={toURL}
+                         fromURL={fromURL} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}

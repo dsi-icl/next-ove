@@ -1,0 +1,11 @@
+#container {
+  width: 100%;
+
+  & label {
+    display: none;
+  }
+
+  & select {
+    width: 50%;
+  }
+}

@@ -33,12 +33,36 @@
       padding: 0.25rem;
     }
 
-    & button {
+    .submit {
       margin-top: auto;
+    }
+
+    & button {
+      width: 100%;
+      margin-top: 0.5rem;
       background-color: #002147;
       color: white;
       border-radius: 1.25rem;
       padding: 0.25rem;
+    }
+
+    .thumbnail {
+      display: flex;
+      width: 100%;
+      padding: 0.25rem;
+      margin-top: 0.5rem;
+
+      & label {
+        margin-top: unset;
+      }
+
+      & input {
+        margin-left: auto;
+        border: unset;
+        border-radius: unset;
+        padding: unset;
+        width: 60%;
+      }
     }
   }
 }

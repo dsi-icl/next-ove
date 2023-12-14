@@ -1,10 +1,10 @@
 import { nanoid } from "nanoid";
-import { Project, type Section } from "@prisma/client";
+import { useStore } from "../../store";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { useEffect, useRef, useState } from "react";
-import { useStore } from "../../store";
 import { type ProjectMetadata } from "./metadata/metadata";
+import { type Project, type Section } from "@prisma/client";
 
 export const useContainer = (space: Rect) => {
   const [width, setWidth] = useState(100);
@@ -49,8 +49,8 @@ export const useSpace = () => {
 
 const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
 
-export const useSections = (sections: Section[], projectId: string) => {
-  const [sections_, setSections_] = useState(order(sections));
+export const useSections = (projectId: string) => {
+  const [sections_, setSections_] = useState(order([]));
   const [selected, setSelected] = useState<string | null>(null);
   const setConfig = useStore(state => state.setConfig);
   const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
@@ -229,12 +229,48 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
   };
 };
 
-export const useProject = (project_: Project) => {
-  const [project, setProject] = useState(project_);
+export const useProject = (projectId: string) => {
+  const [project, setProject] = useState<Project>({projectId});
 
   const updateProject = (project: ProjectMetadata) => {
     setProject(cur => ({ ...cur, ...project }));
   };
 
   return { project, updateProject };
+};
+
+export type File = {name: string, version: number, assetId: string}
+
+export const useFiles = () => {
+  const [files, setFiles] = useState<File[]>([]);
+
+  const addFile = (file: File, assetId?: string) => {
+    if (assetId === undefined) {
+      assetId = nanoid(16);
+      setFiles(cur => [...cur, {
+        name: file.name,
+        version: 1,
+        assetId: assetId!
+      }]);
+    } else {
+      setFiles(cur => [...cur.map(file => file.assetId !== assetId ? file : {
+        ...file,
+        version: file.version + 1
+      })]);
+    }
+
+    return assetId!;
+  };
+
+  const toURL = (name: string, version: number) => `/s3/${name}/${version}`;
+  const fromURL = (url: string) => {
+    if (!url.startsWith("/s3/")) return null;
+    const sections = url.split("/");
+    return files.find(({
+      name,
+      version
+    }) => name === sections.at(-2)! && version === parseInt(sections.at(-1)!))!;
+  }
+
+  return { files, addFile, toURL, fromURL };
 };
