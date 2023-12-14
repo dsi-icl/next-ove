@@ -69,7 +69,7 @@ const Actions = ({ setAction }: ActionsProps) => {
     id={styles["actions"]}>
     <h2>Actions</h2>
     <div className={styles.actions}>
-      {icons.map(icon => <div className={styles.action}>
+      {icons.map(icon => <div className={styles.action} key={icon.title}>
         <button onClick={() => handler(icon.action)}
                 style={{ backgroundColor: icon.color }}
                 title={icon.title}>{icon.icon}</button>

@@ -59,7 +59,7 @@ export const useSections = (sections: Section[], projectId: string) => {
     if (selected === null) {
       setConfig("");
     } else {
-      const config = sections_.find(({id}) => id === selected)!.config;
+      const config = sections_.find(({ id }) => id === selected)!.config;
       setConfig(config === null ? "" : JSON.stringify(config));
     }
   }, [selected, sections_]);
@@ -176,11 +176,18 @@ export const useSections = (sections: Section[], projectId: string) => {
   };
 };
 
-export type Actions = "metadata" | "import-section" | "custom-config" | "launch" | "upload" | "preview" | "controller"
+export type Actions =
+  "metadata"
+  | "import-section"
+  | "custom-config"
+  | "launch"
+  | "upload"
+  | "preview"
+  | "controller"
 
 export const useActions = () => {
   const [action, setAction] = useState<Actions | null>(null);
-  const { openDialog, closeDialog, ref } = useDialog();
+  const { openDialog, isOpen, closeDialog, ref } = useDialog();
 
   useEffect(() => {
     if (action === null) {
@@ -190,7 +197,7 @@ export const useActions = () => {
     }
   }, [action]);
 
-  return { dialog: ref, setAction, action };
+  return { dialog: ref, setAction, action, isOpen };
 };
 
 export const useCustomStates = (initialStates: string[], selectSection: (selected: string | null) => void, updateStateForSections: (state: string, name: string) => void, removeStateFromSection: (state: string) => void) => {

@@ -56,7 +56,7 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
 const ProjectEditor = () => {
   const query = useQuery(); // TODO: load project from URL
   const space = useSpace();
-  const { dialog, action, setAction } = useActions();
+  const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
   const projectId = query.get("project") ?? "";
   const { project, updateProject } = useProject(project_(projectId));
@@ -66,7 +66,8 @@ const ProjectEditor = () => {
   const getDialogContent = () => {
     switch (action) {
       case "metadata":
-        return <Metadata project={project} updateProject={updateProject} setAction={setAction} />;
+        return <Metadata project={project} updateProject={updateProject}
+                         setAction={setAction} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}
@@ -96,7 +97,8 @@ const ProjectEditor = () => {
                    addState={states.addState} updateState={states.updateState}
                    setState={states.select} currentState={states.selected} />
         <ResizeContainer container={container}>
-          <Canvas sections={sections.getSections(states.selected)} space={space}
+          <Canvas sections={sections.getSections(states.selected)}
+                  space={space}
                   container={container}
                   dragSection={sections.dragSection} select={sections.select}
                   selected={sections.selected} colors={colors} />
@@ -123,6 +125,7 @@ const ProjectEditor = () => {
             title={getDialogTitle(action, project.title)}>
       {getDialogContent()}
     </Dialog>
+    {isOpen ? <div id={styles["mask"]}></div> : <></>}
   </main>;
 };
 
