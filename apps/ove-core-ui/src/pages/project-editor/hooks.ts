@@ -184,6 +184,7 @@ export type Actions =
   | "upload"
   | "preview"
   | "controller"
+  | "live"
 
 export const useActions = () => {
   const [action, setAction] = useState<Actions | null>(null);
@@ -230,7 +231,21 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
 };
 
 export const useProject = (projectId: string) => {
-  const [project, setProject] = useState<Project>({projectId});
+  const [project, setProject] = useState<Project>({
+    id: projectId,
+    title: "Example Project",
+    description: "Example Description",
+    collaboratorIds: ["me"],
+    creatorId: "me",
+    created: new Date(),
+    updated: new Date(),
+    presenterNotes: "",
+    notes: "",
+    publications: [],
+    thumbnail: null,
+    tags: [],
+    isSaved: true
+  });
 
   const updateProject = (project: ProjectMetadata) => {
     setProject(cur => ({ ...cur, ...project }));

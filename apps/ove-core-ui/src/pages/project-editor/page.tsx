@@ -20,12 +20,14 @@ import FileUpload from "./file-upload/file-upload";
 import SpaceConfig from "./space-config/space-config";
 import ResizeContainer from "./canvas/resize-container";
 import ConfigEditor from "./config-editor/config-editor";
+import LaunchConfig from "./launch-config/launch-config";
 import SectionConfig from "./section-config/section-config";
 import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
 
 import styles from "./page.module.scss";
+import { CSSProperties } from "react";
 
 const colors: { [key: string]: string } = {
   HTML: "#FA9E78",
@@ -34,6 +36,23 @@ const colors: { [key: string]: string } = {
 };
 
 const observatories = {};
+
+const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
+  if (action === "launch") return {
+    width: "20vw",
+    aspectRatio: "4/3"
+  };
+
+  return undefined;
+};
+
+const getInnerDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
+  if (action === "controller" || action === "custom-config") return {
+    padding: "0"
+  };
+
+  return undefined;
+};
 
 const getDialogTitle = (action: ActionsT | null, title: string) => {
   switch (action) {
@@ -86,6 +105,9 @@ const ProjectEditor = () => {
       case "upload":
         return <FileUpload />;
       case "launch":
+        return <LaunchConfig observatories={Object.keys(observatories)}
+                             setAction={setAction} />;
+      case "live":
         return <Controller />;
       case "preview":
         return <Preview />;
@@ -128,7 +150,8 @@ const ProjectEditor = () => {
     </section>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
             title={getDialogTitle(action, project.title)}
-            hiddenStyle={action === "controller" || action === "custom-config" ? { padding: "0" } : {}}>
+            style={getDialogStyling(action)}
+            hiddenStyle={getInnerDialogStyling(action)}>
       {getDialogContent()}
     </Dialog>
     {isOpen ? <div id={styles["mask"]}></div> : <></>}
