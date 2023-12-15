@@ -11,7 +11,6 @@ import {
 import Canvas from "./canvas/canvas";
 import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
-import Preview from "./preview/preview";
 import Metadata from "./metadata/metadata";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
@@ -28,6 +27,8 @@ import ControllerEditor from "./controller-editor/controller-editor";
 
 import styles from "./page.module.scss";
 import { CSSProperties } from "react";
+import EnvEditor from "./env-editor/env-editor";
+import { toProject } from "./utils";
 
 const colors: { [key: string]: string } = {
   HTML: "#FA9E78",
@@ -38,16 +39,13 @@ const colors: { [key: string]: string } = {
 const observatories = {};
 
 const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
-  if (action === "launch") return {
-    width: "20vw",
-    aspectRatio: "4/3"
-  };
+  if (action === "launch") return { width: "20vw", aspectRatio: "4/3" };
 
   return undefined;
 };
 
 const getInnerDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
-  if (action === "controller" || action === "custom-config") return {
+  if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
     padding: "0"
   };
 
@@ -64,8 +62,6 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
       return "Edit Controller";
     case "upload":
       return "File Upload";
-    case "preview":
-      return "Preview Project";
     case "launch":
       return title;
     default:
@@ -89,7 +85,7 @@ const ProjectEditor = () => {
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
                          setAction={setAction} files={files} toURL={toURL}
-                         fromURL={fromURL} />;
+                         fromURL={fromURL} getLatest={getLatest} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}
@@ -107,10 +103,12 @@ const ProjectEditor = () => {
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}
                              setAction={setAction} />;
+      case "env":
+        const env = getLatest("env");
+        return <EnvEditor env={getData(env)}
+                          update={data => addFile(env, data, env.assetId)} />;
       case "live":
         return <Controller />;
-      case "preview":
-        return <Preview />;
       default:
         return <></>;
     }
@@ -142,11 +140,13 @@ const ProjectEditor = () => {
     <section id={styles["configuration"]}>
       <SpaceConfig space={space} presets={observatories} />
       <SectionConfig sections={sections.getSections(states.selected)}
-                     setAction={setAction}
-                     selected={sections.selected} space={space}
+                     setAction={setAction} files={files} fromURL={fromURL}
+                     selected={sections.selected} space={space} toURL={toURL}
                      state={states.selected} projectId={projectId}
+                     getLatest={getLatest}
                      updateSection={sections.updateSection} />
-      <Actions setAction={setAction} />
+      <Actions setAction={setAction}
+               save={() => toProject(project, sections.all)} />
     </section>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
             title={getDialogTitle(action, project.title)}

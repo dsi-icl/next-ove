@@ -14,11 +14,12 @@ type MetadataProps = {
   files: File[]
   toURL: (name: string, version: number) => string
   fromURL: (url: string) => File | null
+  getLatest: (id: string) => File
 }
 
 type MetadataForm = ProjectMetadata & {
   fileName: string | null
-  fileVersion: number | null
+  fileVersion: string | null
 }
 
 const Metadata = ({
@@ -27,17 +28,19 @@ const Metadata = ({
   updateProject,
   setAction,
   toURL,
-  fromURL
+  fromURL,
+  getLatest
 }: MetadataProps) => {
   const {
     register,
     handleSubmit,
-    resetField
+    setValue,
+    watch
   } = useForm<MetadataForm>({
     defaultValues: {
       ...project,
-      fileName: fromURL(project.thumbnail ?? "")?.name,
-      fileVersion: fromURL(project.thumbnail ?? "")?.version
+      fileName: fromURL(project.thumbnail ?? "")?.name ?? "-- select an option --",
+      fileVersion: fromURL(project.thumbnail ?? "")?.version.toString() ?? "-- select an option --"
     }
   });
 
@@ -46,7 +49,7 @@ const Metadata = ({
     updateProject({
       ...project,
       ...config,
-      thumbnail: fileName !== null && fileVersion !== null ? toURL(fileName, fileVersion) : null
+      thumbnail: fileName !== null && fileVersion !== null ? toURL(fileName, parseInt(fileVersion)) : null
     });
     setAction(null);
   };
@@ -59,9 +62,10 @@ const Metadata = ({
       <label htmlFor="description">Description:</label>
       <textarea {...register("description")} />
       <label>Thumbnail:</label>
-      <S3FileSelect ids={["fileName", "fileVersion"]} register={register}
-                    files={files} resetField={() => resetField("fileVersion")}
-                    defaultFile={fromURL(project.thumbnail ?? "")?.name ?? files?.[0].name ?? null} />
+      <S3FileSelect register={register}
+                    getLatest={getLatest}
+                    setValue={setValue}
+                    files={files} fromURL={fromURL} watch={watch} url={project.thumbnail ?? ""} />
       <label htmlFor="notes">Notes:</label>
       <textarea {...register("notes")} />
       <label htmlFor="presenterNotes">Presenter Notes:</label>

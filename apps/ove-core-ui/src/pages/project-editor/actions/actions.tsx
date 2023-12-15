@@ -1,18 +1,19 @@
-import { type Actions } from "../hooks";
 import {
   Controller,
-  Eye,
   Gear,
+  Incognito,
   RocketTakeoff,
   Save,
   Upload
 } from "react-bootstrap-icons";
+import { type ReactNode } from "react";
+import { type Actions } from "../hooks";
 
 import styles from "./actions.module.scss";
-import { type ReactNode } from "react";
 
 type ActionsProps = {
   setAction: (action: Actions | null) => void
+  save: () => void
 }
 
 type Icon = {
@@ -22,7 +23,7 @@ type Icon = {
   action: Actions | null
 }
 
-const Actions = ({ setAction }: ActionsProps) => {
+const Actions = ({ setAction, save }: ActionsProps) => {
   const iconSize = "1.25rem";
   const icons: Icon[] = [{
     icon: <Controller size={iconSize} />,
@@ -35,10 +36,10 @@ const Actions = ({ setAction }: ActionsProps) => {
     title: "Upload",
     action: "upload"
   }, {
-    icon: <Eye size={iconSize} />,
+    icon: <Incognito size={iconSize} />,
     color: "#ffd166",
-    title: "Preview",
-    action: "preview"
+    title: "Environment",
+    action: "env"
   }, {
     icon: <Gear size={iconSize} />,
     color: "#06d6a0",
@@ -58,7 +59,7 @@ const Actions = ({ setAction }: ActionsProps) => {
 
   const handler = (action: Actions | null) => {
     if (action === null) {
-      console.log("Saving"); // TODO: replace with saving to database
+      save();
       return;
     }
 

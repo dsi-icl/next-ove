@@ -6,6 +6,17 @@
   }
 
   & select {
-    width: 50%;
+    padding: 0.25rem;
+    border-radius: 1.25rem;
+    border: 1px solid black;
+    margin-top: 0.25rem;
+  }
+
+  .name {
+    width: 80%;
+  }
+
+  .version {
+    width: 20%;
   }
 }

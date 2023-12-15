@@ -1,44 +1,57 @@
 import { type FieldValues } from "react-hook-form";
+import { type BaseSyntheticEvent, useEffect } from "react";
+import { type File } from "../../pages/project-editor/hooks";
 
 import styles from "./s3-file-select.module.scss";
-import { BaseSyntheticEvent, useState } from "react";
 
-const S3FileSelect = <T extends string, >({
-  ids,
-  files,
-  register,
-  resetField,
-  defaultFile
-}: {
-  register: (id: T, args?: {
+type S3FileSelectProps = {
+  register: (id: "fileName" | "fileVersion", args?: {
     onChange: (event: BaseSyntheticEvent<object> | undefined) => void
   }) => FieldValues,
-  ids: [T, T],
   files: { name: string, version: number }[]
-  resetField: () => void
-  defaultFile: string | null
-}) => {
-  const [selected, setSelected] = useState<string | null>(defaultFile);
+  getLatest: (id: string) => File,
+  setValue: (key: "fileName" | "fileVersion", value: string) => void
+  watch: (value: string) => string
+  fromURL: (url: string) => File | null
+  url: string
+}
 
-  const versions = selected === null ?
-    [] :
-    files.filter(({ name }) => name === selected).map(({ version }) => version);
+const S3FileSelect = ({
+  files,
+  register,
+  setValue,
+  getLatest,
+  watch,
+  url,
+  fromURL
+}: S3FileSelectProps) => {
+  const name = watch("fileName");
 
-  const onNameChange = (name: string | undefined) => {
-    if (name === undefined) return;
-    resetField();
-    setSelected(name);
-  };
+  useEffect(() => {
+    if (name === null || name === undefined || name === "-- select an option --") return;
+    const file = fromURL(url);
+    if (file !== null && file.name === name) {
+      setValue("fileVersion", file.version.toString());
+    } else {
+      setValue("fileVersion", getLatest(name).version.toString());
+    }
+  }, [name]);
 
   return <div id={styles["container"]}>
-    <label htmlFor={ids[0]}>{ids[0]}</label>
-    <select {...register(ids[0], { onChange: e => onNameChange(e?.target?.value) })}>
+    <label htmlFor="fileName">File Name</label>
+    <select
+      className={styles.name} {...register("fileName")}>
+      <option disabled value={"-- select an option --"}> -- select an option --
+      </option>
       {files.map(({ name }) => name).filter((name, i, arr) => arr.indexOf(name) === i).map(name =>
         <option key={name} value={name}>{name}</option>)}
     </select>
-    <label htmlFor={ids[1]}>{ids[1]}</label>
-    <select {...register(ids[1])}>
-      {versions.map(version =>
+    <label htmlFor="fileVersion">File Version</label>
+    <select
+      className={styles.version} {...register("fileVersion")}>
+      <option disabled value="-- select an option --"> -- select an option --
+      </option>
+      {files.filter(file => file.name === name).map(({ version }) => version).map(version =>
         <option key={version}
                 value={version}>{version}</option>)}
     </select>

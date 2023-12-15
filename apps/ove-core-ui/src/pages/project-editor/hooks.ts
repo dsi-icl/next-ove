@@ -160,6 +160,7 @@ export const useSections = (projectId: string) => {
   };
 
   return {
+    all: sections_,
     getSections: (state: string) => sections_.filter(({ states }) => states.includes(state)),
     setSections,
     dragSection,
@@ -182,8 +183,8 @@ export type Actions =
   | "custom-config"
   | "launch"
   | "upload"
-  | "preview"
   | "controller"
+  | "env"
   | "live"
 
 export const useActions = () => {
@@ -231,21 +232,7 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
 };
 
 export const useProject = (projectId: string) => {
-  const [project, setProject] = useState<Project>({
-    id: projectId,
-    title: "Example Project",
-    description: "Example Description",
-    collaboratorIds: ["me"],
-    creatorId: "me",
-    created: new Date(),
-    updated: new Date(),
-    presenterNotes: "",
-    notes: "",
-    publications: [],
-    thumbnail: null,
-    tags: [],
-    isSaved: true
-  });
+  const [project, setProject] = useState<Project>({});
 
   const updateProject = (project: ProjectMetadata) => {
     setProject(cur => ({ ...cur, ...project }));
@@ -273,9 +260,12 @@ export const useFiles = () => {
       let latest: File | null = null;
       setFiles(cur => {
         latest = cur.find(file => assetId === file.assetId)!;
+        setData(cur => ({
+          ...cur,
+          [`${file.name}/${latest!.version + 1}`]: data
+        }));
         return [...cur, { ...latest, version: latest.version + 1 }];
       });
-      setData(cur => ({ ...cur, [`${file.name}/${latest!.version}`]: data }));
     }
 
     return assetId!;
@@ -295,7 +285,7 @@ export const useFiles = () => {
     return files.find(({
       name,
       version
-    }) => name === sections.at(-2)! && version === parseInt(sections.at(-1)!))!;
+    }) => name === sections.at(-2)! && version === parseInt(sections.at(-1)!)) ?? null;
   };
 
   return { files, addFile, toURL, fromURL, data, getLatest, getData };
