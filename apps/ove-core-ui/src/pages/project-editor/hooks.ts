@@ -57,10 +57,10 @@ export const useSections = (projectId: string) => {
 
   useEffect(() => {
     if (selected === null) {
-      setConfig("");
+      setConfig("{}");
     } else {
       const config = sections_.find(({ id }) => id === selected)!.config;
-      setConfig(config === null ? "" : JSON.stringify(config));
+      setConfig(config === null ? "{}" : JSON.stringify(config));
     }
   }, [selected, sections_]);
 
@@ -80,7 +80,7 @@ export const useSections = (projectId: string) => {
 
   const updateSection = (section: Omit<Section, "id">) => {
     setSections(cur => {
-      const newSectionId = selected === null ? nanoid(16) : selected;
+      const newSectionId = selected ?? nanoid(16);
       const newSections = cur.filter(({ id }) => id !== selected).concat([{
         ...section,
         ordering: cur.length,
@@ -99,10 +99,14 @@ export const useSections = (projectId: string) => {
   };
 
   const removeState = (state: string) => {
-    setSections(cur => cur.map(section => !section.states.includes(state) ? section : (section.states.length === 1 ? undefined : {
-      ...section,
-      states: section.states.filter(s => s !== state)
-    })).filter(Boolean) as Section[]);
+    setSections(cur => cur.map(section => {
+      if (!section.states.includes(state)) return section;
+      if (section.states.length === 1) return undefined;
+      return {
+        ...section,
+        states: section.states.filter(s => s !== state)
+      };
+    }).filter(Boolean) as Section[]);
   };
 
   const updateState = (state: string, name: string) => {
@@ -124,10 +128,14 @@ export const useSections = (projectId: string) => {
       setSelected(null);
     }
     setSections(cur => {
-      let newSections = cur.map(section => section.id !== id ? section : (section.states.length === 1 ? undefined : {
-        ...section,
-        states: section.states.filter(s => s !== state)
-      })).filter(Boolean) as Section[];
+      let newSections = cur.map(section => {
+        if (section.id !== id) return section;
+        if (section.states.length === 1) return undefined;
+        return {
+          ...section,
+          states: section.states.filter(s => s !== state)
+        };
+      }).filter(Boolean) as Section[];
 
       if (newSections.length !== cur.length) {
         newSections = newSections.map((section, i) => ({
@@ -225,7 +233,11 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
     addState: () => {
       setCustomStates(cur => [...cur, `__new__${cur.length}`]);
     },
-    format: (state: string) => state === "__default__" ? "*" : (state.startsWith("__new__") ? `New (${state.slice(7)})` : state),
+    format: (state: string) => {
+      if (state === "__default__") return "*";
+      if (state.startsWith("__new__")) return `New (${state.slice(7)})`;
+      return state;
+    },
     select,
     selected
   };
@@ -244,10 +256,14 @@ export const useProject = (projectId: string) => {
 export type File = { name: string, version: number, assetId: string }
 
 export const useFiles = () => {
+  const globals: File[] = [];
   const [files, setFiles] = useState<File[]>([]);
-  const [data, setData] = useState<{ [key: `${string}/${string}`]: string }>({});
+  const [data, setData] = useState<{
+    [key: `${string}/${string}`]: string
+  }>({});
 
   const addFile = (name: string, data: string, assetId?: string) => {
+    if (globals.find(file => file.name === name) !== undefined) return; // TODO: add snackbar failure message
     if (assetId === undefined) {
       assetId = nanoid(16);
       setFiles(cur => [...cur, {
@@ -267,8 +283,6 @@ export const useFiles = () => {
         return [...cur, { ...latest, version: latest.version + 1 }];
       });
     }
-
-    return assetId!;
   };
 
   const getLatest = useCallback((id: string) => {
@@ -288,5 +302,14 @@ export const useFiles = () => {
     }) => name === sections.at(-2)! && version === parseInt(sections.at(-1)!)) ?? null;
   };
 
-  return { files, addFile, toURL, fromURL, data, getLatest, getData };
+  return {
+    files,
+    assets: files.filter(({ name }) => !["control", "env", "thumbnail"].includes(name)),
+    addFile,
+    toURL,
+    fromURL,
+    data,
+    getLatest,
+    getData
+  };
 };

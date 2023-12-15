@@ -61,11 +61,12 @@ const Metadata = ({
       <input {...register("title")} />
       <label htmlFor="description">Description:</label>
       <textarea {...register("description")} />
-      <label>Thumbnail:</label>
-      <S3FileSelect register={register}
+      <label htmlFor="s3-select">Thumbnail:</label>
+      <S3FileSelect id="s3-select" register={register}
                     getLatest={getLatest}
                     setValue={setValue}
-                    files={files} fromURL={fromURL} watch={watch} url={project.thumbnail ?? ""} />
+                    files={files} fromURL={fromURL} watch={watch}
+                    url={project.thumbnail ?? ""} />
       <label htmlFor="notes">Notes:</label>
       <textarea {...register("notes")} />
       <label htmlFor="presenterNotes">Presenter Notes:</label>

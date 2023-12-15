@@ -1,17 +1,25 @@
+import { Json } from "@ove/ove-utils";
 import { type Space } from "../types";
 import { useForm } from "react-hook-form";
 import { type NativeEvent } from "@ove/ove-types";
 import { type BaseSyntheticEvent, useRef } from "react";
 
 import styles from "./space-config.module.scss";
-import { Json } from "@ove/ove-utils";
 
 type SpaceConfigProps = {
   space: Space & { update: (space: Space) => void }
   presets: { [key: string]: Space }
 }
 
-const SpaceConfig = ({ space: {update, ...curSpace}, presets }: SpaceConfigProps) => {
+const getPreset = (presets: { [key: string]: Space }, curSpace: Space) => {
+  const elem = Object.entries(presets).find(([_k, v]) => v.height === curSpace.height && v.width === curSpace.width && v.columns === curSpace.columns && v.rows === curSpace.rows);
+  return elem?.[0] ?? "-- select an option --";
+};
+
+const SpaceConfig = ({
+  space: { update, ...curSpace },
+  presets
+}: SpaceConfigProps) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const {
     register,
@@ -20,26 +28,26 @@ const SpaceConfig = ({ space: {update, ...curSpace}, presets }: SpaceConfigProps
   } = useForm<Space & { preset: string | null }>({
     defaultValues: {
       ...curSpace,
-      preset: null
+      preset: getPreset(presets, curSpace)
     }
   });
 
   const onSubmit = (config: Space & {
     preset: string | null
   }, e: BaseSyntheticEvent<object> | undefined) => {
-    const {preset, ...newSpace} = config;
+    const { preset, ...newSpace } = config;
     Object.keys(newSpace).forEach(x => {
       newSpace[x as keyof typeof newSpace] = parseFloat(newSpace[x as keyof typeof newSpace] as unknown as string);
     });
     if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === "custom-submit") {
       if (!Json.equals(newSpace, curSpace)) {
-        setValue("preset", null);
+        setValue("preset", getPreset(presets, newSpace));
       }
       update(newSpace);
       return;
     }
 
-    if (preset === null) return;
+    if (preset === null || preset === "-- select an option --") return;
     update(presets[preset]);
     setValue("width", presets[preset].width);
     setValue("height", presets[preset].height);
@@ -73,6 +81,8 @@ const SpaceConfig = ({ space: {update, ...curSpace}, presets }: SpaceConfigProps
                   bubbles: true
                 }));
               }}>
+        <option disabled value="-- select an option --">-- select an option --
+        </option>
         {Object.keys(presets).map(k => <option key={k} value={k}>{k}</option>)}
       </select>
       <button type="submit" id="preset-submit" name="preset-submit" />

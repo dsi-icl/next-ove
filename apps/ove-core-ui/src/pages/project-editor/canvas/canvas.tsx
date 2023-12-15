@@ -10,7 +10,7 @@ type PreviewProps = {
   container: { width: number, height: number }
   dragSection: (id: string, x: number, y: number) => void
   select: (id: string) => void
-  colors: {[dataType: string]: string},
+  colors: { [dataType: string]: string },
   selected: string | null
 }
 
@@ -140,7 +140,13 @@ const Canvas = (props: PreviewProps) => {
   const defs_ = useRef<SVGDefsElement | null>(null);
 
   drawSpaces({
-    ...props, sections: props.sections.map(s => ({
+    selected: props.selected,
+    colors: props.colors,
+    container: props.container,
+    select: props.select,
+    space: props.space,
+    dragSection: props.dragSection,
+    sections: props.sections.map(s => ({
       ...s,
       width: s.width * props.space.width,
       height: s.height * props.space.height,

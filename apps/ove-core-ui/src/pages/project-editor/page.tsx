@@ -12,7 +12,7 @@ import { toProject } from "./utils";
 import Canvas from "./canvas/canvas";
 import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
-import { type CSSProperties } from "react";
+import { useState, type CSSProperties, useEffect } from "react";
 import Metadata from "./metadata/metadata";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
@@ -78,7 +78,20 @@ const ProjectEditor = () => {
   const { project, updateProject } = useProject(projectId);
   const sections = useSections(projectId);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
-  const { files, toURL, fromURL, addFile, getLatest, getData } = useFiles();
+  const {
+    assets,
+    files,
+    toURL,
+    fromURL,
+    addFile,
+    getLatest,
+    getData
+  } = useFiles();
+  const [innerDialogStyle, setInnerDialogStyle] = useState<CSSProperties | undefined>();
+
+  useEffect(() => {
+    setInnerDialogStyle(undefined);
+  }, [action]);
 
   const getDialogContent = () => {
     switch (action) {
@@ -94,19 +107,24 @@ const ProjectEditor = () => {
           states={states.states.filter(state => state !== states.selected)} />;
       case "custom-config":
         return <ConfigEditor />;
-      case "controller":
+      case "controller": {
         const controller = getLatest("control");
         return <ControllerEditor controller={getData(controller)}
                                  update={data => addFile(controller.name, data, controller.assetId)} />;
+      }
       case "upload":
-        return <FileUpload files={files} getLatest={getLatest} addFile={addFile} />;
+        return <FileUpload files={assets} getLatest={getLatest}
+                           addFile={addFile}
+                           setDialogStyle={setInnerDialogStyle} />;
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}
-                             setAction={setAction} />;
-      case "env":
+                             setAction={setAction} project={project}
+                             sections={sections.all} />;
+      case "env": {
         const env = getLatest("env");
         return <EnvEditor env={getData(env)}
                           update={data => addFile(env.name, data, env.assetId)} />;
+      }
       case "live":
         return <Controller />;
       default:
@@ -140,7 +158,7 @@ const ProjectEditor = () => {
     <section id={styles["configuration"]}>
       <SpaceConfig space={space} presets={observatories} />
       <SectionConfig sections={sections.getSections(states.selected)}
-                     setAction={setAction} files={files} fromURL={fromURL}
+                     setAction={setAction} files={assets} fromURL={fromURL}
                      selected={sections.selected} space={space} toURL={toURL}
                      state={states.selected} projectId={projectId}
                      getLatest={getLatest}
@@ -151,7 +169,7 @@ const ProjectEditor = () => {
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
             title={getDialogTitle(action, project.title)}
             style={getDialogStyling(action)}
-            hiddenStyle={getInnerDialogStyling(action)}>
+            hiddenStyle={innerDialogStyle ?? getInnerDialogStyling(action)}>
       {getDialogContent()}
     </Dialog>
     {isOpen ? <div id={styles["mask"]}></div> : <></>}

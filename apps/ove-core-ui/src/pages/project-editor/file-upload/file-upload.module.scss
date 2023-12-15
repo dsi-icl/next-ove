@@ -45,12 +45,75 @@
     .file {
       display: flex;
 
-      & button {
-        background-color: #002147;
-        color: white;
-        border-radius: 50%;
-        padding: 0.5rem;
+      .browse {
+        border: 1px solid #ccc;
+        display: inline-block;
+        color: #0964b0;
+        padding: 0 2px;
+        height: fit-content;
+        cursor: pointer;
+      }
+
+      .selected {
+        font-weight: 400;
+        height: fit-content;
+      }
+
+      .actions {
+        display: flex;
+        margin-left: auto;
+
+        & button {
+          background-color: #002147;
+          color: white;
+          margin: 0 0.25rem;
+          border-radius: 50%;
+          padding: 0.5rem;
+        }
       }
     }
+  }
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+
+  & label {
+    font-weight: 700;
+  }
+
+  .config {
+    display: flex;
+    padding: 0.25rem;
+    align-items: center;
+    height: 15%;
+  }
+
+  & input, select {
+    border: 1px solid black;
+    padding: 0.25rem;
+    height: 2rem;
+    border-radius: 1.25rem;
+  }
+
+  .actions {
+    display: flex;
+    margin-left: auto;
+
+    & button {
+      color: white;
+      background-color: #002147;
+      border-radius: 1.25rem;
+      padding: 0.5rem 1rem;
+      margin: 0 0.25rem;
+      height: fit-content;
+    }
+  }
+
+  .col {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0.25rem;
   }
 }

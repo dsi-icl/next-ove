@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { type Section } from "@prisma/client";
 import { type Geometry, type Space } from "../types";
 import { Grid, Brush, Fullscreen } from "react-bootstrap-icons";
+import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./section-config.module.scss";
-import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 type SectionConfigProps = {
   sections: Section[]
@@ -29,6 +29,18 @@ type SectionConfigForm = Omit<Section, "id"> & {
   fileName: string | null
   fileVersion: string | null
 }
+
+const dataTypes = ["html", "images", "videos", "markdown", "latex", "geojson"];
+
+const getDataTypeFromFile = (file: File) => {
+  if (file.name.endsWith(".html")) return "html";
+  if (file.name.endsWith(".png") || file.name.endsWith(".jpg") || file.name.endsWith(".dzi")) return "images";
+  if (file.name.endsWith(".mp4")) return "videos";
+  if (file.name.endsWith(".md")) return "markdown";
+  if (file.name.endsWith(".tex")) return "latex";
+  if (file.name.endsWith(".json")) return "geojson";
+  return null;
+};
 
 const SectionConfig = ({
   sections,
@@ -88,6 +100,7 @@ const SectionConfig = ({
       resetField("column");
       setValue("fileName", "-- select an option --");
       setValue("fileVersion", "-- select an option --");
+      setValue("dataType", "-- select an option --");
       return;
     }
 
@@ -98,6 +111,7 @@ const SectionConfig = ({
     setValue("height", section.height);
     setValue("row", getRow(section));
     setValue("column", getColumn(section));
+    setValue("dataType", section.dataType);
     const file = fromURL(section.asset);
     if (file !== null) {
       setValue("fileName", file.name);
@@ -137,11 +151,19 @@ const SectionConfig = ({
     const file = fromURL(asset ?? "");
     setValue("fileName", file?.name ?? null);
     setValue("fileVersion", file?.version?.toString() ?? null);
+    if (file !== null) {
+      setValue("dataType", getDataTypeFromFile(file) ?? "-- select an option --");
+    }
   };
 
   useEffect(() => {
     if (fileName !== null && fileName !== undefined && fileName !== "-- select an option --" && fileVersion !== null && fileVersion !== undefined && fileVersion !== "-- select an option --") {
       setValue("asset", toURL(fileName, parseInt(fileVersion)));
+      const file = files.find(({
+        name,
+        version
+      }) => name === fileName && version === parseInt(fileVersion))!;
+      setValue("dataType", getDataTypeFromFile(file) ?? "-- select an option --");
     }
   }, [fileName, fileVersion]);
 
@@ -188,7 +210,14 @@ const SectionConfig = ({
         <S3FileSelect register={register} watch={watch} fromURL={fromURL}
                       getLatest={getLatest} setValue={setValue}
                       files={files} url={watch("asset")} />
-        <label className={styles["config-label"]}>Config:</label>
+        <label htmlFor="dataType" className={styles["data-type-label"]}>Data
+          Type:</label>
+        <select {...register("dataType")}>
+          <option value="-- select an option --">-- select an option --</option>
+          {dataTypes.map(type => <option key={type}
+                                         value={type}>{type}</option>)}
+        </select>
+        <label htmlFor="config">Config:</label>
         <input className={styles.config} {...register("config")} type="button"
                onClick={() => setAction("custom-config")} />
       </fieldset>

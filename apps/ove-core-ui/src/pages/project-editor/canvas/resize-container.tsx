@@ -6,8 +6,8 @@ type ResizeContainerProps = {
   children: ReactNode
   container: {
     ref: MutableRefObject<HTMLDivElement | null>,
-    width: number,
-    height: number,
+    width: number | string,
+    height: number | string,
     update: (contentRect?: { width: number, height: number }) => void
   }
 }

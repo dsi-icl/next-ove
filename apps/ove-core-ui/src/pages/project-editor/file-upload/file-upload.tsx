@@ -1,23 +1,42 @@
-import { type File } from "../hooks";
-import { Upload } from "react-bootstrap-icons";
-
-import styles from "./file-upload.module.scss";
+import Upload from "./upload";
 import { useForm } from "react-hook-form";
+import { type File as FileT } from "../hooks";
+import Editor, { type CustomFile } from "./editor";
+import { type CSSProperties, useState, useEffect } from "react";
 
 type FileUploadProps = {
-  files: File[]
-  getLatest: (id: string) => File
-  addFile: (name: string, data: string, assetId?: string) => string
+  files: FileT[]
+  getLatest: (id: string) => FileT
+  addFile: (name: string, data: string, assetId?: string) => void
+  setDialogStyle: (style: CSSProperties | undefined) => void
 }
 
-const colours = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#002147", "#FA9E78", "#FDEBDC", "#6B9A9B"];
+const colors = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#002147", "#FA9E78", "#FDEBDC", "#6B9A9B"];
 
-const FileUpload = ({ addFile, files, getLatest }: FileUploadProps) => {
+const FileUpload = ({
+  addFile,
+  files,
+  getLatest,
+  setDialogStyle
+}: FileUploadProps) => {
+  const [mode, setMode] = useState<"upload" | "editor">("upload");
   const names = files.map(({ name }) => name).filter((name, i, arr) => arr.indexOf(name) === i);
-  const { register, handleSubmit } = useForm<{ file: FileList }>();
+  const [customFile, setCustomFile] = useState<CustomFile | null>(null);
+  const { register, handleSubmit, resetField, watch } = useForm<{
+    file: File[]
+  }>();
+  const file = watch("file");
 
-  const onSubmit = ({ file }: { file: FileList }) => {
-    const name = file[0].name;
+  useEffect(() => {
+    setDialogStyle({ padding: mode === "upload" ? "2rem" : "0" });
+  }, [mode]);
+
+  useEffect(() => {
+    setCustomFile(null);
+  }, [file]);
+
+  const onSubmit = ({ file }: { file: File[] }) => {
+    const name = convertCustomFile(customFile)?.[0]?.name ?? file[0].name;
     let assetId: string | undefined = undefined;
 
     if (names.includes(name)) {
@@ -25,33 +44,26 @@ const FileUpload = ({ addFile, files, getLatest }: FileUploadProps) => {
     }
 
     addFile(name, "", assetId);
+    resetField("file");
   };
 
-  return <section
-    id={styles["upload"]}>
-    <h2>Project Files</h2>
-    <ul>
-      {names.map((name, i) =>
-        <li key={name} style={{ backgroundColor: colours[i % names.length] }}>
-          {name}
-          <span>v</span>
-          {/*@ts-expect-error – readOnly is unknown*/}
-          <select value={getLatest(name).version} readOnly={true}
-                  style={{ backgroundColor: colours[i % names.length] }}>
-            {files.filter(file => file.name === name).map(({ version }) => version).map(version =>
-              <option disabled value={version}
-                      key={version}>{version}</option>)}
-          </select>
-        </li>)}
-    </ul>
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <label>New File:</label>
-      <div className={styles.file}>
-        <input {...register("file")} type="file" />
-        <button><Upload /></button>
-      </div>
-    </form>
-  </section>;
+  const saveCustomFile = (file: CustomFile) => {
+    setCustomFile(file);
+    setMode("upload");
+  };
+
+  const convertCustomFile = (customFile: CustomFile | null) => {
+    if (customFile === null) return;
+    return [new File(customFile.data.split("\n"), customFile.name, { type: "text/plain" })];
+  };
+
+  return mode === "upload" ?
+    <Upload file={convertCustomFile(customFile) ?? file} getLatest={getLatest}
+            names={names} colors={colors} files={files} onSubmit={onSubmit}
+            handleSubmit={handleSubmit} setMode={setMode}
+            register={register} /> :
+    <Editor file={customFile} save={saveCustomFile}
+            close={() => setMode("upload")} />;
 };
 
 export default FileUpload;

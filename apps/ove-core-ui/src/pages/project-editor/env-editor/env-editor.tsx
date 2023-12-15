@@ -1,5 +1,12 @@
+import ace from "ace-builds";
 import AceEditor from "react-ace";
 import { useEffect, useRef, useState } from "react";
+import url from "ace-builds/src-noconflict/mode-json";
+
+import "ace-builds/src-noconflict/theme-dracula";
+import "ace-builds/src-noconflict/ext-language_tools";
+
+ace.config.setModuleUrl("ace/mode/json", url);
 
 type EnvEditorProps = {
   env: string

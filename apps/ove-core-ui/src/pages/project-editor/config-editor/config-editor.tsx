@@ -21,7 +21,7 @@ const ConfigEditor = () => {
 
   useEffect(() => () => {
     if (dataRef.current === config) return;
-    setConfig(dataRef.current);
+    setConfig(dataRef.current === "" ? "{}" : dataRef.current);
   }, []);
 
   return <AceEditor
