@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { type Actions, type File } from "../hooks";
 import { useForm } from "react-hook-form";
-import { type Project } from "@prisma/client";
 import { Brush, X } from "react-bootstrap-icons";
+import { type Actions, type File } from "../hooks";
+import { type Project, User } from "@prisma/client";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./metadata.module.scss";
 
-export type ProjectMetadata = Pick<Project, "title" | "description" | "thumbnail" | "tags" | "publications" | "presenterNotes" | "notes">
+export type ProjectMetadata = Pick<Project, "title" | "description" | "thumbnail" | "creatorId" | "tags" | "publications" | "collaboratorIds" | "presenterNotes" | "notes">
 
 type MetadataProps = {
   project: ProjectMetadata
@@ -18,7 +18,12 @@ type MetadataProps = {
   fromURL: (url: string) => File | null
   getLatest: (id: string) => File
   allTags: string[]
-  generator: () => { assetId: string, name: string } | null
+  generator: () => { assetId: string, name: string } | null,
+  accepted: User[],
+  invited: User[],
+  uninvited: User[],
+  inviteCollaborator: (id: string) => void
+  removeCollaborator: (id: string) => void
 }
 
 type MetadataForm = ProjectMetadata & {
@@ -26,6 +31,7 @@ type MetadataForm = ProjectMetadata & {
   fileVersion: string | null
   tag: string
   publication: string
+  collaborator: string
 }
 
 const colors = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#002147", "#FA9E78", "#FDEBDC", "#6B9A9B"];
@@ -39,10 +45,19 @@ const Metadata = ({
   fromURL,
   getLatest,
   allTags,
-  generator
+  generator,
+  accepted,
+  invited,
+  uninvited,
+  inviteCollaborator,
+  removeCollaborator
 }: MetadataProps) => {
   const [tags, setTags] = useState(project.tags);
   const [publications, setPublications] = useState(project.publications);
+  const [collaborators_, setCollaborators_] = useState<{
+    username: string,
+    status: "added" | "removed"
+  }[]>([]);
   const {
     register,
     handleSubmit,
@@ -75,12 +90,28 @@ const Metadata = ({
       setValue("publication", "");
       return;
     }
+    if (metadata.collaborator !== "") {
+      if (uninvited.find(({ username }) => username === metadata.collaborator) !== undefined) {
+        setCollaborators_(cur => [...cur, {
+          username: metadata.collaborator,
+          status: "added"
+        }]);
+      }
+      setValue("collaborator", "");
+      return;
+    }
     const { fileName, fileVersion, ...config } = metadata;
+    const added = collaborators_.filter(({ status }) => status === "added").map(({ username }) => uninvited.find(x => x.username === username)!);
+    const all = invited.concat(accepted);
+    const removed = collaborators_.filter(({ status }) => status === "removed").map(({ username }) => all.find(x => x.username === username && x.id !== project.creatorId)).filter(Boolean) as User[];
+    added.forEach(x => inviteCollaborator(x.id));
+    removed.forEach(x => removeCollaborator(x.id));
     updateProject({
       ...project,
       ...config,
       publications,
       tags,
+      collaboratorIds: [...project.collaboratorIds.filter(x => removed.find(({ id }) => id === x) === undefined)],
       thumbnail: fileName !== null && fileVersion !== null ? toURL(fileName, parseInt(fileVersion)) : null
     });
     setAction(null);
@@ -114,7 +145,8 @@ const Metadata = ({
         </div>
         <li className={styles.new}><input {...register("tag")}
                                           list="tags-backing"
-                                          autoComplete="off" /></li>
+                                          autoComplete="off"
+                                          placeholder="Enter Tag:" /></li>
         <datalist id="tags-backing">
           {allTags.filter(tag => !tags.includes(tag)).map(tag => <option
             key={tag} value={tag}>{tag}</option>)}
@@ -132,7 +164,52 @@ const Metadata = ({
             </div>
           </li>)}
         </div>
-        <li className={styles.new}><input {...register("publication")} /></li>
+        <li className={styles.new}><input {...register("publication")}
+                                          placeholder="Enter publication:" />
+        </li>
+      </ul>
+      <label htmlFor="collaborator">Collaborators:</label>
+      <ul className={styles.collaborators}>
+        <h6>Accepted:</h6>
+        <div className={styles.section}>
+          {accepted.filter(x => collaborators_.find(y => x.username === y.username) === undefined).map(({ username }) =>
+            <li
+              key={username}>{username}
+              <button type="button"
+                      onClick={() => setCollaborators_(cur => [...cur, {
+                        username,
+                        status: "removed"
+                      }])}><X /></button>
+            </li>)}
+        </div>
+        <h6>Invited:</h6>
+        <div className={styles.section}>
+          {invited.filter(x => collaborators_.find(y => y.username === x.username) === undefined).map(({ username }) =>
+            <li key={username}>{username}
+              <button type="button"
+                      onClick={() => setCollaborators_(cur => [...cur, {
+                        username,
+                        status: "removed"
+                      }])}><X /></button>
+            </li>)}
+        </div>
+        <h6>Pending:</h6>
+        <div className={styles.section}>
+          {collaborators_.map(({ username, status }) => <li key={username}
+                                                            style={{ backgroundColor: status === "added" ? "#002147" : "lawngreen" }}>{username}
+            <button type="button"
+                    onClick={() => setCollaborators_(cur => cur.filter(x => x.username !== username))}>
+              <X /></button>
+          </li>)}
+        </div>
+        <li className={styles.new}><input {...register("collaborator")}
+                                          placeholder="Invite Collaborator:"
+                                          list="collaborator-backing" />
+          <datalist id="collaborator-backing">
+            {uninvited.filter(({ username }) => collaborators_.find(c => c.username === username) === undefined).map(({ username }) =>
+              <option key={username} value={username}>{username}</option>)}
+          </datalist>
+        </li>
       </ul>
       <label htmlFor="notes">Notes:</label>
       <textarea {...register("notes")} />

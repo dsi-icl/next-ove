@@ -6,9 +6,9 @@ import ProtectedRoute from "../components/protected-route";
 import Sockets from "../pages/sockets/page";
 import ProjectEditor from "../pages/project-editor/page";
 
-type RouterProps = {loggedIn: boolean, login: (username: string, password: string) => Promise<void>}
+type RouterProps = {loggedIn: boolean, login: (username: string, password: string) => Promise<void>, username: string | null}
 
-const Router = ({loggedIn, login}: RouterProps) => {
+const Router = ({loggedIn, login, username}: RouterProps) => {
   return <Routes>
     <Route
       path="/"
@@ -29,7 +29,7 @@ const Router = ({loggedIn, login}: RouterProps) => {
                                redirectTo="/login"><Sockets /></ProtectedRoute>} />
     <Route
       path="/project-editor"
-      element={<ProtectedRoute condition={loggedIn} redirectTo="/login"><ProjectEditor /></ProtectedRoute>} />
+      element={<ProtectedRoute condition={loggedIn} redirectTo="/login"><ProjectEditor username={username!} /></ProtectedRoute>} />
   </Routes>;
 };
 

@@ -1,6 +1,6 @@
 import { env } from "../env";
 import Router from "./router";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import superjson from "superjson";
 import { useAuth } from "../hooks";
 import { trpc } from "../utils/api";
@@ -11,7 +11,7 @@ import { NavigationMenuLink } from "@ove/ui-base-components";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const App = () => {
-  const { loggedIn, login, logout, tokens, refresh } = useAuth();
+  const { loggedIn, username, login, logout, tokens, refresh } = useAuth();
 
   const navContent = [
     {
@@ -82,7 +82,9 @@ export const App = () => {
           const res = await fetch(url, options);
 
           if (res.status === 207) {
-            const responses = await res.json() as {error: {data: {httpStatus: number}}}[];
+            const responses = await res.json() as {
+              error: { data: { httpStatus: number } }
+            }[];
 
             if (responses.some(r => r.error.data.httpStatus === 401)) {
               const refreshedTokens = await refresh();
@@ -114,13 +116,18 @@ export const App = () => {
     setTrpcClient(createTrpcClient);
   }, [loggedIn]);
 
-  const [queryClient,] = useState<QueryClient>(() => new QueryClient({defaultOptions: {queries: {}, mutations: {}}}));
+  const [queryClient] = useState<QueryClient>(() => new QueryClient({
+    defaultOptions: {
+      queries: {},
+      mutations: {}
+    }
+  }));
 
   return <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
       <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
            content={navContent} />
-      <Router loggedIn={loggedIn} login={login} />
+      <Router loggedIn={loggedIn} login={login} username={username} />
     </QueryClientProvider>
   </trpc.Provider>;
 };

@@ -1,6 +1,7 @@
 import {
   type Actions as ActionsT,
   useActions,
+  useCollaboration,
   useContainer,
   useCustomStates,
   useFiles,
@@ -12,7 +13,6 @@ import { toProject } from "./utils";
 import Canvas from "./canvas/canvas";
 import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
-import { useState, type CSSProperties, useEffect } from "react";
 import Metadata from "./metadata/metadata";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
@@ -24,6 +24,7 @@ import ResizeContainer from "./canvas/resize-container";
 import ConfigEditor from "./config-editor/config-editor";
 import LaunchConfig from "./launch-config/launch-config";
 import SectionConfig from "./section-config/section-config";
+import { useState, type CSSProperties, useEffect } from "react";
 import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
@@ -69,13 +70,17 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
   }
 };
 
-const ProjectEditor = () => {
+const ProjectEditor = ({ username }: { username: string }) => {
   const query = useQuery(); // TODO: load project from URL
   const space = useSpace();
   const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
   const projectId = query.get("project") ?? "";
-  const { project, updateProject, tags } = useProject(projectId);
+  const {
+    project,
+    updateProject,
+    tags
+  } = useProject(projectId);
   const sections = useSections(projectId);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
   const {
@@ -88,6 +93,13 @@ const ProjectEditor = () => {
     generateThumbnail
   } = useFiles();
   const [innerDialogStyle, setInnerDialogStyle] = useState<CSSProperties | undefined>();
+  const {
+    invited,
+    accepted,
+    uninvited,
+    inviteCollaborator,
+    removeCollaborator
+  } = useCollaboration(project, username);
 
   useEffect(() => {
     setInnerDialogStyle(undefined);
@@ -99,8 +111,10 @@ const ProjectEditor = () => {
         return <Metadata project={project} updateProject={updateProject}
                          setAction={setAction} files={assets} toURL={toURL}
                          fromURL={fromURL} getLatest={getLatest}
-                         allTags={tags}
-                         generator={generateThumbnail} />;
+                         allTags={tags} invited={invited} uninvited={uninvited}
+                         generator={generateThumbnail} accepted={accepted}
+                         inviteCollaborator={inviteCollaborator}
+                         removeCollaborator={removeCollaborator} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}

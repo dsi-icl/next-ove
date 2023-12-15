@@ -149,6 +149,44 @@
       }
     }
 
+    .collaborators {
+      width: 100%;
+
+      & h6 {
+        font-weight: 700;
+      }
+
+      .section {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+
+        & li {
+          background-color: #002147;
+          padding: 0.25rem 0.5rem;
+          border-radius: 1.25rem;
+          color: white;
+          margin: 0 0.25rem;
+          display: flex;
+          align-items: center;
+        }
+
+        & button {
+          all: initial;
+          cursor: pointer;
+          color: white;
+        }
+      }
+
+      .new {
+        width: 100%;
+
+        & input {
+          width: 100%;
+        }
+      }
+    }
+
     & label {
       margin-top: unset;
     }

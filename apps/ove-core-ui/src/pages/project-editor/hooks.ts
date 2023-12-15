@@ -1,10 +1,15 @@
+import {
+  type Invite,
+  type Project,
+  type Section,
+  type User
+} from "@prisma/client";
 import { nanoid } from "nanoid";
 import { useStore } from "../../store";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { type ProjectMetadata } from "./metadata/metadata";
-import { type Project, type Section } from "@prisma/client";
 
 export const useContainer = (space: Rect) => {
   const [width, setWidth] = useState(100);
@@ -244,13 +249,18 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
 };
 
 export const useProject = (projectId: string) => {
+  const tags: string[] = [];
   const [project, setProject] = useState<Project>({});
 
   const updateProject = (project: ProjectMetadata) => {
     setProject(cur => ({ ...cur, ...project }));
   };
 
-  return { project, updateProject, tags };
+  return {
+    project,
+    updateProject,
+    tags
+  };
 };
 
 export type File = { name: string, version: number, assetId: string }
@@ -315,5 +325,44 @@ export const useFiles = () => {
     getLatest,
     getData,
     generateThumbnail
+  };
+};
+
+export const useCollaboration = (project: Project, username: string) => {
+  const [users] = useState<User[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
+
+  const uninvited = users.filter(user => project.collaboratorIds.find(id => id === user.id) === undefined && invites.find(({
+    recipientId,
+    status
+  }) => recipientId === user.id && status === "pending") === undefined);
+  const accepted = project.collaboratorIds.map(id => users.find(user => user.id === id)!);
+  const invited = invites.filter(({ status }) => status === "pending").map(({ recipientId }) => users.find(({ id }) => id === recipientId)!);
+
+  const inviteCollaborator = (id: string) => {
+    setInvites(cur => [...cur, {
+      id: nanoid(16),
+      sent: new Date(),
+      status: "pending",
+      projectId: project.id,
+      senderId: username,
+      recipientId: id
+    }]);
+  };
+
+  const removeCollaborator = (id: string) => {
+    if (id === project.creatorId) return;
+    const user = users.find(user => user.id === id)!;
+    if (user.id === users.find(({ id }) => id === project.creatorId)!.username) return;
+    setInvites(cur => cur.filter(x => x.recipientId !== id && x.status !== "declined"));
+  };
+
+  return {
+    accepted,
+    invited,
+    uninvited,
+    invites,
+    inviteCollaborator,
+    removeCollaborator
   };
 };

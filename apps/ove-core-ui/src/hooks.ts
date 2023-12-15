@@ -1,6 +1,6 @@
 import { logger } from "./env";
 import { useStore } from "./store";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Json } from "@ove/ove-utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import { createAuthClient, createClient } from "./utils";
@@ -9,6 +9,7 @@ export const useAuth = () => {
   const navigate = useNavigate();
   const tokens = useStore(state => state.tokens);
   const setTokens = useStore(state => state.setTokens);
+  const [username, setUsername] = useState<string | null>(null);
 
   const login = useCallback(async (username: string, password: string) => {
     try {
@@ -18,6 +19,7 @@ export const useAuth = () => {
         logout();
       } else {
         setTokens(res);
+        setUsername(username);
         localStorage.setItem("tokens", Json.stringify(res));
         navigate("/", { replace: true });
       }
@@ -57,7 +59,8 @@ export const useAuth = () => {
     tokens,
     login,
     logout,
-    refresh
+    refresh,
+    username
   };
 };
 
