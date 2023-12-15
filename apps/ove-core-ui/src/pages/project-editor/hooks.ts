@@ -250,7 +250,7 @@ export const useProject = (projectId: string) => {
     setProject(cur => ({ ...cur, ...project }));
   };
 
-  return { project, updateProject };
+  return { project, updateProject, tags };
 };
 
 export type File = { name: string, version: number, assetId: string }
@@ -263,7 +263,7 @@ export const useFiles = () => {
   }>({});
 
   const addFile = (name: string, data: string, assetId?: string) => {
-    if (globals.find(file => file.name === name) !== undefined) return; // TODO: add snackbar failure message
+    if (globals.find(file => file.name === name) !== undefined) return null; // TODO: add snackbar failure message
     if (assetId === undefined) {
       assetId = nanoid(16);
       setFiles(cur => [...cur, {
@@ -283,7 +283,11 @@ export const useFiles = () => {
         return [...cur, { ...latest, version: latest.version + 1 }];
       });
     }
+
+    return { assetId, name };
   };
+
+  const generateThumbnail = () => addFile(`thumbnail-gen-${nanoid(2)}`, "thumbnail data"); // TODO: replace with real thumbnail generation
 
   const getLatest = useCallback((id: string) => {
     const latest = Math.max(...files.filter(file => file.assetId === id || file.name === id).map(({ version }) => version));
@@ -303,13 +307,13 @@ export const useFiles = () => {
   };
 
   return {
-    files,
-    assets: files.filter(({ name }) => !["control", "env", "thumbnail"].includes(name)),
+    assets: files.filter(({ name }) => !["control", "env"].includes(name)),
     addFile,
     toURL,
     fromURL,
     data,
     getLatest,
-    getData
+    getData,
+    generateThumbnail
   };
 };

@@ -24,13 +24,15 @@
     & input {
       border: 1px solid black;
       border-radius: 1.25rem;
-      padding: 0 0.25rem;
+      padding: 0.25rem;
+      min-height: 1.5rem;
     }
 
     & textarea {
       border: 1px solid black;
       border-radius: 1.25rem;
       padding: 0.25rem;
+      min-height: 3rem;
     }
 
     .submit {
@@ -46,23 +48,109 @@
       padding: 0.25rem;
     }
 
+    .publications {
+      width: 100%;
+
+      .selected {
+        width: 100%;
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0.5rem;
+
+        & li {
+          list-style: disc outside;
+          width: 100%;
+          margin-left: 1rem;
+
+          & div {
+            width: calc(100% - 1rem);
+            display: flex;
+            align-items: center;
+          }
+
+          & button {
+            all: initial;
+            cursor: pointer;
+            margin-left: auto;
+            border: 1px solid black;
+            border-radius: 50%;
+          }
+        }
+      }
+
+      .new {
+        width: 100%;
+        display: list-item;
+        list-style: circle;
+
+        & input {
+          width: 100%;
+        }
+      }
+    }
+
+    .tags {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+
+      .selected {
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+        width: 100%;
+        display: flex;
+        margin-bottom: 0.5rem;
+
+        & li {
+          padding: 0.25rem;
+          margin: 0 0.25rem;
+          border-radius: 1.25rem;
+          color: white;
+          display: flex;
+          align-items: center;
+
+          & button {
+            all: initial;
+            cursor: pointer;
+            color: white;
+          }
+        }
+      }
+
+      .new {
+        width: 100%;
+
+        & input {
+          width: 100%;
+        }
+      }
+    }
+
     .thumbnail {
       display: flex;
+      flex-direction: row;
       width: 100%;
-      padding: 0.25rem;
-      margin-top: 0.5rem;
 
-      & label {
-        margin-top: unset;
+      #s3-select {
+        width: 100%;
       }
 
-      & input {
-        margin-left: auto;
-        border: unset;
-        border-radius: unset;
-        padding: unset;
-        width: 60%;
+      & button {
+        all: initial;
+        cursor: pointer;
+        width: fit-content;
+        color: white;
+        background-color: #002147;
+        padding: 0.5rem;
+        margin: 0.25rem 0 0.25rem 0.25rem;
+        aspect-ratio: 1/1;
+        border-radius: 50%;
       }
+    }
+
+    & label {
+      margin-top: unset;
     }
   }
 }

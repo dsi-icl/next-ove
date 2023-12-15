@@ -75,17 +75,17 @@ const ProjectEditor = () => {
   const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
   const projectId = query.get("project") ?? "";
-  const { project, updateProject } = useProject(projectId);
+  const { project, updateProject, tags } = useProject(projectId);
   const sections = useSections(projectId);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
   const {
     assets,
-    files,
     toURL,
     fromURL,
     addFile,
     getLatest,
-    getData
+    getData,
+    generateThumbnail
   } = useFiles();
   const [innerDialogStyle, setInnerDialogStyle] = useState<CSSProperties | undefined>();
 
@@ -97,8 +97,10 @@ const ProjectEditor = () => {
     switch (action) {
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
-                         setAction={setAction} files={files} toURL={toURL}
-                         fromURL={fromURL} getLatest={getLatest} />;
+                         setAction={setAction} files={assets} toURL={toURL}
+                         fromURL={fromURL} getLatest={getLatest}
+                         allTags={tags}
+                         generator={generateThumbnail} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={colors}
