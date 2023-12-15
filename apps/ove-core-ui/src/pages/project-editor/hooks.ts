@@ -247,22 +247,22 @@ export const useFiles = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [data, setData] = useState<{ [key: `${string}/${string}`]: string }>({});
 
-  const addFile = (file: File, data: string, assetId?: string) => {
+  const addFile = (name: string, data: string, assetId?: string) => {
     if (assetId === undefined) {
       assetId = nanoid(16);
       setFiles(cur => [...cur, {
-        name: file.name,
+        name: name,
         version: 1,
         assetId: assetId!
       }]);
-      setData(cur => ({ ...cur, [`${file.name}/1`]: data }));
+      setData(cur => ({ ...cur, [`${name}/1`]: data }));
     } else {
       let latest: File | null = null;
       setFiles(cur => {
-        latest = cur.find(file => assetId === file.assetId)!;
+        latest = getLatest(assetId!);
         setData(cur => ({
           ...cur,
-          [`${file.name}/${latest!.version + 1}`]: data
+          [`${name}/${latest!.version + 1}`]: data
         }));
         return [...cur, { ...latest, version: latest.version + 1 }];
       });

@@ -8,12 +8,15 @@ import {
   useSections,
   useSpace
 } from "./hooks";
+import { toProject } from "./utils";
 import Canvas from "./canvas/canvas";
 import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
+import { type CSSProperties } from "react";
 import Metadata from "./metadata/metadata";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
+import EnvEditor from "./env-editor/env-editor";
 import StateTabs from "./state-tabs/state-tabs";
 import FileUpload from "./file-upload/file-upload";
 import SpaceConfig from "./space-config/space-config";
@@ -26,9 +29,6 @@ import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
 
 import styles from "./page.module.scss";
-import { CSSProperties } from "react";
-import EnvEditor from "./env-editor/env-editor";
-import { toProject } from "./utils";
 
 const colors: { [key: string]: string } = {
   HTML: "#FA9E78",
@@ -97,16 +97,16 @@ const ProjectEditor = () => {
       case "controller":
         const controller = getLatest("control");
         return <ControllerEditor controller={getData(controller)}
-                                 update={data => addFile(controller, data, controller.assetId)} />;
+                                 update={data => addFile(controller.name, data, controller.assetId)} />;
       case "upload":
-        return <FileUpload />;
+        return <FileUpload files={files} getLatest={getLatest} addFile={addFile} />;
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}
                              setAction={setAction} />;
       case "env":
         const env = getLatest("env");
         return <EnvEditor env={getData(env)}
-                          update={data => addFile(env, data, env.assetId)} />;
+                          update={data => addFile(env.name, data, env.assetId)} />;
       case "live":
         return <Controller />;
       default:
