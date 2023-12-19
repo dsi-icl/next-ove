@@ -3,10 +3,10 @@ import { Brush, Upload as UploadButton } from "react-bootstrap-icons";
 import { type File as FileT } from "../hooks";
 import { type FieldValues } from "react-hook-form";
 import { FormEventHandler, useRef } from "react";
+import { actionColors, dataTypes } from "../utils";
 
 type UploadProps = {
   names: string[]
-  colors: string[]
   files: FileT[]
   handleSubmit: (onSubmit: (form: {
     file: File[]
@@ -18,9 +18,10 @@ type UploadProps = {
   file: File[]
 }
 
+const colors = actionColors.concat(dataTypes.map(({color}) => color));
+
 const Upload = ({
   names,
-  colors,
   files,
   handleSubmit,
   onSubmit,
@@ -37,7 +38,8 @@ const Upload = ({
     <h2>Project Files</h2>
     <ul>
       {names.map((name, i) =>
-        <li key={name} style={{ backgroundColor: colors[i % names.length] }}>
+        <li key={name}
+            style={{ backgroundColor: colors[i % names.length] }}>
           {name}
           <span>v</span>
           {/*@ts-expect-error – readOnly is unknown*/}

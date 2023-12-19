@@ -7,11 +7,11 @@ import ResizeContainer from "../canvas/resize-container";
 import { ReorderableItem, ReorderableList } from "@ove/ui-reorderable-list";
 
 import styles from "./sections.module.scss";
+import { dataTypes } from "../utils";
 
 type SectionsProps = {
   sections: Section[]
   select: (id: string | null) => void
-  colors: { [dataType: string]: string }
   selected: string | null
   setAction: (action: Actions | null) => void
   numStates: number
@@ -24,7 +24,6 @@ type SectionsProps = {
 const Sections = ({
   sections,
   select,
-  colors,
   selected,
   setAction,
   numStates,
@@ -59,7 +58,7 @@ const Sections = ({
           {sections.map(section => (
             <ReorderableItem key={section.id}>
               <li key={section.id} style={{
-                backgroundColor: colors[section.dataType.toUpperCase()],
+                backgroundColor: dataTypes.find(({name}) => name === section.dataType.toLowerCase())!.color,
                 borderWidth: selected === section.id ? "2px" : "1px"
               }}>
                 <button className={styles.container} style={{ flexGrow: 1 }}

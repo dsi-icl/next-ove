@@ -1,5 +1,5 @@
 import { Json } from "@ove/ove-utils";
-import { type Space } from "../types";
+import { Rect, type Space } from "../types";
 import { useForm } from "react-hook-form";
 import { type NativeEvent } from "@ove/ove-types";
 import { type BaseSyntheticEvent, useRef } from "react";
@@ -12,9 +12,20 @@ type SpaceConfigProps = {
 }
 
 const getPreset = (presets: { [key: string]: Space }, curSpace: Space) => {
-  const elem = Object.entries(presets).find(([_k, v]) => v.height === curSpace.height && v.width === curSpace.width && v.columns === curSpace.columns && v.rows === curSpace.rows);
+  const reduced = reduce(curSpace);
+  const elem = Object.entries(presets).find(([_k, v]) => {
+    const presetReduced = reduce(v);
+    return presetReduced.height === reduced.height && presetReduced.width === reduced.width && v.columns === curSpace.columns && v.rows === curSpace.rows;
+  });
   return elem?.[0] ?? "-- select an option --";
 };
+
+const reduce = (rect: Rect): Rect => {
+  const hcf = gcd(rect.width, rect.height);
+  return ({ ...rect, width: rect.width / hcf, height: rect.height / hcf });
+};
+
+const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
 
 const SpaceConfig = ({
   space: { update, ...curSpace },
@@ -27,7 +38,7 @@ const SpaceConfig = ({
     setValue
   } = useForm<Space & { preset: string | null }>({
     defaultValues: {
-      ...curSpace,
+      ...reduce(curSpace),
       preset: getPreset(presets, curSpace)
     }
   });
@@ -49,8 +60,9 @@ const SpaceConfig = ({
 
     if (preset === null || preset === "-- select an option --") return;
     update(presets[preset]);
-    setValue("width", presets[preset].width);
-    setValue("height", presets[preset].height);
+    const reduced = reduce(presets[preset]);
+    setValue("width", reduced.width);
+    setValue("height", reduced.height);
     setValue("rows", presets[preset].rows);
     setValue("columns", presets[preset].columns);
   };

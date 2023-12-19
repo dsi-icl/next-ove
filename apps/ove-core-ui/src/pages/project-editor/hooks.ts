@@ -8,10 +8,10 @@ import { nanoid } from "nanoid";
 import { useStore } from "../../store";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { type ProjectMetadata } from "./metadata/metadata";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-export const useContainer = (space: Rect) => {
+export const useContainer = (space: Space) => {
   const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(100);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -26,7 +26,14 @@ export const useContainer = (space: Rect) => {
 
   useEffect(update, [space.width, space.height]);
 
-  return { width, height, ref, update };
+  const cells = Array.from({ length: space.rows }, (_x, row) => Array.from({ length: space.columns }, (_y, col) => ({
+    x: (width / space.columns) * col,
+    y: (height / space.rows) * row,
+    width: space.width / space.columns,
+    height: space.height / space.rows
+  }))).flat();
+
+  return { width, height, ref, update, cells };
 };
 
 export const useSpace = () => {
@@ -93,6 +100,7 @@ export const useSections = (projectId: string) => {
       }]);
       return reorder(newSectionId, parseInt(section.ordering.toString()), newSections);
     });
+    setSelected(null);
   };
 
   const dragSection = (id: string, x: number, y: number) => {
@@ -175,6 +183,7 @@ export const useSections = (projectId: string) => {
   return {
     all: sections_,
     getSections: (state: string) => sections_.filter(({ states }) => states.includes(state)),
+    getSectionsToImport: (from: string, to: string) => sections_.filter(({ states }) => states.includes(from) && !states.includes(to)),
     setSections,
     dragSection,
     reorder,
@@ -234,9 +243,18 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
     updateState: (state: string, name: string) => {
       setCustomStates(cur => cur.map(c => c === state ? name : c));
       updateStateForSections(state, name);
+      setSelected(name);
     },
     addState: () => {
-      setCustomStates(cur => [...cur, `__new__${cur.length}`]);
+      let newState: string | null = null;
+      setCustomStates(cur => {
+        newState = `__new__${cur.length}`;
+        return [...cur, newState];
+      });
+      setTimeout(() => {
+        if (newState === null) return;
+        setSelected(newState);
+      }, 200);
     },
     format: (state: string) => {
       if (state === "__default__") return "*";
@@ -307,8 +325,8 @@ export const useFiles = () => {
   const getData = (file: File) => data[`${file.name}/${file.version}`];
 
   const toURL = (name: string, version: number) => `/s3/${name}/${version}`;
-  const fromURL = (url: string) => {
-    if (!url.startsWith("/s3/")) return null;
+  const fromURL = (url: string | null) => {
+    if (url === null || !url.startsWith("/s3/")) return null;
     const sections = url.split("/");
     return files.find(({
       name,
@@ -329,8 +347,58 @@ export const useFiles = () => {
 };
 
 export const useCollaboration = (project: Project, username: string) => {
-  const [users] = useState<User[]>([]);
-  const [invites, setInvites] = useState<Invite[]>([]);
+  const [users] = useState<User[]>([
+    {
+      username: "me",
+      id: "me",
+      email: null,
+      password: "",
+      role: "creator",
+      projectIds: [project.id]
+    },
+    {
+      username: "you",
+      id: "you",
+      email: null,
+      password: "",
+      role: "creator",
+      projectIds: [project.id]
+    },
+    {
+      username: "them",
+      id: "them",
+      email: null,
+      password: "",
+      role: "creator",
+      projectIds: [project.id]
+    },
+    {
+      username: "other",
+      id: "other",
+      email: null,
+      password: "",
+      role: "creator",
+      projectIds: [project.id]
+    }
+  ]);
+  const [invites, setInvites] = useState<Invite[]>([
+    {
+      id: nanoid(),
+      senderId: "me",
+      recipientId: "you",
+      status: "accepted",
+      sent: new Date(),
+      projectId: project.id
+    },
+    {
+      id: nanoid(),
+      senderId: "me",
+      recipientId: "other",
+      status: "pending",
+      sent: new Date(),
+      projectId: project.id
+    }
+  ]);
 
   const uninvited = users.filter(user => project.collaboratorIds.find(id => id === user.id) === undefined && invites.find(({
     recipientId,

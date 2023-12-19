@@ -11,8 +11,6 @@ type FileUploadProps = {
   setDialogStyle: (style: CSSProperties | undefined) => void
 }
 
-const colors = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#002147", "#FA9E78", "#FDEBDC", "#6B9A9B"];
-
 const FileUpload = ({
   addFile,
   files,
@@ -59,7 +57,7 @@ const FileUpload = ({
 
   return mode === "upload" ?
     <Upload file={convertCustomFile(customFile) ?? file} getLatest={getLatest}
-            names={names} colors={colors} files={files} onSubmit={onSubmit}
+            names={names} files={files} onSubmit={onSubmit}
             handleSubmit={handleSubmit} setMode={setMode}
             register={register} /> :
     <Editor file={customFile} save={saveCustomFile}

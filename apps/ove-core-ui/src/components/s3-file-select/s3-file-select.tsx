@@ -13,7 +13,7 @@ type S3FileSelectProps = {
   getLatest: (id: string) => File,
   setValue: (key: "fileName" | "fileVersion", value: string) => void
   watch: (value: string) => string
-  fromURL: (url: string) => File | null
+  fromURL: (url: string | null) => File | null
   url: string
 }
 
@@ -31,7 +31,7 @@ const S3FileSelect = ({
 
   useEffect(() => {
     if (name === null || name === undefined || name === "-- select an option --") return;
-    const file = fromURL(url);
+    const file = fromURL(url ?? null);
     if (file !== null && file.name === name) {
       setValue("fileVersion", file.version.toString());
     } else {

@@ -18,9 +18,21 @@
   background-color: #dadedf;
   border-radius: 0.125rem;
   text-align: center;
+  position: relative;
 
-  & button {
+  .editable {
+    position: relative;
     width: 100%;
+  }
+
+  .remove {
+    position: absolute;
+    right: 0.25rem;
+    top: calc(50% - 0.55rem);
+    border: 1px solid black;
+    border-radius: 50%;
+    height: 1.1rem;
+    width: fit-content;
   }
 
   & input {

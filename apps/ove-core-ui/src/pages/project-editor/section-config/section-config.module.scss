@@ -7,6 +7,62 @@
     display: flex;
     height: calc(100% - 1.5rem);
 
+    #geometry {
+      width: 66%;
+
+      & fieldset {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 1rem;
+        width: 100%;
+        padding: 0;
+      }
+
+      .column {
+        height: 2rem;
+        display: flex;
+        flex-direction: column;
+
+        .to {
+          margin-top: 1.5rem;
+        }
+
+        & input {
+          height: 1.5rem;
+          width: 100%;
+        }
+      }
+
+      .actions {
+        display: flex;
+        width: 100%;
+
+        .mode {
+          display: flex;
+          width: 100%;
+          margin-top: 1.25rem;
+          align-items: center;
+        }
+
+        .action {
+          width: 20%;
+          height: 1.75rem;
+          padding: 0 0.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid black;
+          border-radius: 0.25rem;
+        }
+
+        #fullscreen {
+          background-color: #dadedf;
+          margin-top: 1.25rem;
+          align-self: flex-end;
+        }
+      }
+    }
+
     & fieldset {
       width: 20vw;
       display: flex;
@@ -33,34 +89,36 @@
       margin-top: 1.25rem;
     }
 
+    .row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .percentage-container {
+      width: 100%;
+      position: relative;
+
+      & input {
+        width: 100%;
+        position: relative;
+      }
+
+      .percentage {
+        position: absolute;
+        right: 0.25rem;
+        top: 0;
+      }
+    }
+
+    & h6 {
+      font-weight: 700;
+    }
+
     & input, select {
       height: 1.5rem;
       border: 1px solid black;
       border-radius: 1.25rem;
       padding: 0 0.25rem;
-    }
-
-    .mode {
-      display: flex;
-      margin-top: 1.35rem;
-      align-items: center;
-    }
-
-    .action {
-      width: 20%;
-      height: 1.75rem;
-      padding: 0 0.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid black;
-      border-radius: 0.25rem;
-    }
-
-    #fullscreen {
-      background-color: #dadedf;
-      margin-top: 1.35rem;
-      align-self: flex-end;
     }
 
     .submit {

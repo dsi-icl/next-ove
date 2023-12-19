@@ -15,7 +15,7 @@ type MetadataProps = {
   setAction: (action: Actions | null) => void
   files: File[]
   toURL: (name: string, version: number) => string
-  fromURL: (url: string) => File | null
+  fromURL: (url: string | null) => File | null
   getLatest: (id: string) => File
   allTags: string[]
   generator: () => { assetId: string, name: string } | null,
@@ -195,8 +195,7 @@ const Metadata = ({
         </div>
         <h6>Pending:</h6>
         <div className={styles.section}>
-          {collaborators_.map(({ username, status }) => <li key={username}
-                                                            style={{ backgroundColor: status === "added" ? "#002147" : "lawngreen" }}>{username}
+          {collaborators_.map(({ username }) => <li key={username}>{username}
             <button type="button"
                     onClick={() => setCollaborators_(cur => cur.filter(x => x.username !== username))}>
               <X /></button>

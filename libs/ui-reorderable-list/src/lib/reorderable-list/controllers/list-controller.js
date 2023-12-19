@@ -1,18 +1,14 @@
 /* eslint-disable no-unused-expressions */
-import { set } from '../lib/object'
-import List from '../models/list'
+import {set} from '../lib/object';
+import List from '../models/list';
 
 const arrayMove = (arr, from, to) => {
   const without = arr.filter((_x, i) => i !== from);
-  const newArr = [
+  return [
     ...without.slice(0, to),
     arr[from],
     ...without.slice(to)
-  ]
-
-  console.log(JSON.stringify(arr));
-  console.log(JSON.stringify(newArr));
-  return newArr;
+  ];
 };
 
 /**

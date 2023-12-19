@@ -1,16 +1,17 @@
 import * as d3 from "d3";
+import { type Geometry } from "../types";
 import { type Section } from "@prisma/client";
 import { type MutableRefObject, useRef } from "react";
 
 import styles from "./canvas.module.scss";
+import { dataTypes } from "../utils";
 
 type PreviewProps = {
   sections: Section[]
   space: { width: number, height: number, rows: number, columns: number }
-  container: { width: number, height: number }
+  container: { width: number, height: number, cells: Geometry[] }
   dragSection: (id: string, x: number, y: number) => void
   select: (id: string) => void
-  colors: { [dataType: string]: string },
   selected: string | null
 }
 
@@ -24,18 +25,11 @@ function drawSpaces({
   dragSection,
   select,
   selected,
-  colors
 }: PreviewProps, svg_: MutableRefObject<SVGSVGElement | null>) {
   const x = d3.scaleLinear().range([0, container.width]).domain([0, space.width]);
   const inverseX = d3.scaleLinear().range([0, space.width]).domain([0, container.width]);
   const y = d3.scaleLinear().range([0, container.height]).domain([0, space.height]);
   const inverseY = d3.scaleLinear().range([0, space.height]).domain([0, container.height]);
-  const spaces = Array.from({ length: space.rows }, (_x, row) => Array.from({ length: space.columns }, (_y, col) => ({
-    x: (space.width / space.columns) * col,
-    y: (space.height / space.rows) * row,
-    w: space.width / space.columns,
-    h: space.height / space.rows
-  }))).flat();
 
   const svg = d3.select(svg_.current)
     .attr("width", () => container.width)
@@ -44,16 +38,16 @@ function drawSpaces({
   svg.selectAll("*").remove();
 
   svg.selectAll("rect")
-    .data(() => spaces)
+    .data(() => container.cells)
     .enter()
     .append("rect")
-    .attr("x", d => x(d.x))
-    .attr("y", d => y(d.y))
-    .attr("width", d => x(d.w))
-    .attr("height", d => x(d.h))
+    .attr("x", d => d.x)
+    .attr("y", d => d.y)
+    .attr("width", d => d.width)
+    .attr("height", d => d.height)
     .classed(styles.cell, true)
     .append("title")
-    .text((_d, i) => `Client Id: ${i}`);
+    .text((_d, i) => `Cell No: ${i}`);
 
   svg.selectAll(".sections")
     .data(() => sections)
@@ -65,7 +59,7 @@ function drawSpaces({
     .attr("width", d => x(d.width))
     .attr("height", d => y(d.height))
     .attr("id", d => `section-${d.id}`)
-    .style("fill", d => colors[d.dataType.toUpperCase()])
+    .style("fill", d => dataTypes.find(({name}) => name === d.dataType.toLowerCase())!.color)
     .classed(styles.section, true)
     .append("title")
     .text(d => `Section Id: ${d.id}`);
@@ -77,18 +71,18 @@ function drawSpaces({
   }
 
   const clampX = (x: number, w: number) => {
-    for (const cell of spaces) {
+    for (const cell of container.cells) {
       if (Math.abs(cell.x - x) < ((space.width / space.columns) * THRESHOLDX)) return cell.x;
-      if (Math.abs((cell.x + cell.w) - (x + w)) < ((space.width / space.columns) * THRESHOLDX)) return (cell.x + cell.w) - w;
+      if (Math.abs((cell.x + cell.width) - (x + w)) < ((space.width / space.columns) * THRESHOLDX)) return (cell.x + cell.width) - w;
     }
 
     return x;
   };
 
   const clampY = (y: number, h: number) => {
-    for (const cell of spaces) {
+    for (const cell of container.cells) {
       if (Math.abs(cell.y - y) < ((space.height / space.rows) * THRESHOLDY)) return cell.y;
-      if (Math.abs((cell.y + cell.h) - (y + h)) < ((space.height / space.rows) * THRESHOLDY)) return (cell.y + cell.h) - h;
+      if (Math.abs((cell.y + cell.height) - (y + h)) < ((space.height / space.rows) * THRESHOLDY)) return (cell.y + cell.height) - h;
     }
 
     return y;
@@ -141,7 +135,6 @@ const Canvas = (props: PreviewProps) => {
 
   drawSpaces({
     selected: props.selected,
-    colors: props.colors,
     container: props.container,
     select: props.select,
     space: props.space,

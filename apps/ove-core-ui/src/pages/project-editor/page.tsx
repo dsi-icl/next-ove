@@ -9,7 +9,7 @@ import {
   useSections,
   useSpace
 } from "./hooks";
-import { toProject } from "./utils";
+import { dataTypes, toProject } from "./utils";
 import Canvas from "./canvas/canvas";
 import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
@@ -30,12 +30,6 @@ import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
 
 import styles from "./page.module.scss";
-
-const colors: { [key: string]: string } = {
-  HTML: "#FA9E78",
-  IMAGES: "#FDEBDC",
-  VIDEOS: "#6B9A9B"
-};
 
 const observatories = {};
 
@@ -71,7 +65,7 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
 };
 
 const ProjectEditor = ({ username }: { username: string }) => {
-  const query = useQuery(); // TODO: load project from URL
+  const query = useQuery();
   const space = useSpace();
   const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
@@ -117,9 +111,9 @@ const ProjectEditor = ({ username }: { username: string }) => {
                          removeCollaborator={removeCollaborator} />;
       case "import-section":
         return <SectionImporter
-          addToState={sections.addToState} colors={colors}
+          addToState={sections.addToState} colors={dataTypes}
           setAction={setAction} selectedState={states.selected}
-          getSections={sections.getSections} formatState={states.format}
+          getSections={sections.getSectionsToImport} formatState={states.format}
           states={states.states.filter(state => state !== states.selected)} />;
       case "custom-config":
         return <ConfigEditor />;
@@ -160,14 +154,14 @@ const ProjectEditor = ({ username }: { username: string }) => {
                   space={space}
                   container={container}
                   dragSection={sections.dragSection} select={sections.select}
-                  selected={sections.selected} colors={colors} />
+                  selected={sections.selected} />
         </ResizeContainer>
       </section>
       <Sections sections={sections.getSections(states.selected)}
                 generateSection={sections.generateSection}
                 select={sections.select} state={states.selected}
                 removeFromState={sections.removeFromState}
-                colors={colors} selected={sections.selected}
+                selected={sections.selected}
                 setSections={sections.setSections}
                 setAction={setAction} numStates={states.states.length} />
     </div>
