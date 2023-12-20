@@ -290,8 +290,6 @@ Temporary Items
 sandworm
 
 # Custom rules
-package-lock.json
-
 /dev/database
 /dev/data
 /dev/mongo.keyfile
