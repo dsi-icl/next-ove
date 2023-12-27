@@ -1,20 +1,34 @@
 import { trpc } from "../../utils/api";
 import { isError } from "@ove/ove-types";
-import {env} from "../../env";
+import ProjectCard from "./project-card";
+import styles from "./launcher.module.scss";
+import { Dialog, useDialog } from "@ove/ui-components";
+import Controller from "../../components/controller/controller";
+import {Plus} from "react-bootstrap-icons";
 
 const Projects = () => {
+  const { ref, closeDialog, isOpen, openDialog } = useDialog();
   const projects = trpc.projects.getProjects.useQuery();
 
-  return projects.status === "success" && !isError(projects.data) ? <section>
-    <ul style={{padding: "2rem", display: "grid", justifyItems: "center", gridTemplateColumns: "1fr 1fr 1fr 1fr"}}>{projects.data.filter(x => !isError(x)).map(({id, title, thumbnail}) => <li key={title} style={{maxWidth: "192px"}}>
-      <img src={thumbnail ?? "/missing-thumbnail.jpg"} alt={`Thumbnail for ${title}`} style={{maxWidth: "192px", maxHeight: "192px", aspectRatio: "1/1"}}/>
-      <h4 style={{color: "white", textAlign: "center"}}>{title}</h4>
-      <div style={{display: "flex"}}>
-        <a href={env.BASE_URL}>LAUNCH</a>
-        <a href={`${env.BASE_URL}/project-editor?project=${id}`}>EDIT</a>
-      </div>
-    </li>)}</ul>
-  </section> : <></>;
+  return projects.status === "success" && !isError(projects.data) ?
+    <section className={styles["project-container"]}>
+      <ul className={styles.projects}>
+        {projects.data.filter(x => !isError(x))
+          .map(project =>
+            <ProjectCard key={project.id} project={project}
+                         openDialog={openDialog} />)}
+      </ul>
+      <Dialog ref={ref} closeDialog={closeDialog} title="Launcher" style={{
+        width: "calc((90vh / 9) * 16)",
+        aspectRatio: "unset",
+        height: "calc(90vh + 3rem)",
+        maxHeight: "100vh"
+      }} hiddenStyle={{ padding: 0 }}>
+        <Controller />
+      </Dialog>
+      {isOpen ? <div id={styles["mask"]}></div> : <></>}
+      <a href="/project-editor" id={styles["new"]}><Plus size={"2rem"} /></a>
+    </section> : <></>;
 };
 
 export default Projects;

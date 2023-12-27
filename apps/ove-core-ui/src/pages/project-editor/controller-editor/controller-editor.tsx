@@ -1,5 +1,6 @@
 import ace from "ace-builds";
 import AceEditor from "react-ace";
+import { type File } from "../hooks";
 import { useEffect, useRef, useState } from "react";
 import url from "ace-builds/src-noconflict/mode-html";
 
@@ -9,21 +10,34 @@ import "ace-builds/src-noconflict/ext-language_tools";
 ace.config.setModuleUrl("ace/mode/json", url);
 
 type ControllerEditorProps = {
-  controller: string
+  controller: File
   update: (data: string) => void
+  getData: (file: File) => Promise<string>
 }
 
-const ControllerEditor = ({ controller, update }: ControllerEditorProps) => {
-  const [data, setData] = useState(controller);
+const ControllerEditor = ({
+  controller,
+  getData,
+  update
+}: ControllerEditorProps) => {
+  const [initial, setInitial] = useState("");
+  const [data, setData] = useState(initial);
   const dataRef = useRef(data);
 
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
 
-  useEffect(() => () => {
-    if (dataRef.current === controller) return;
-    update(dataRef.current);
+  useEffect(() => {
+    getData(controller).then(data => {
+      setInitial(data);
+      setData(data);
+    });
+
+    return () => {
+      if (dataRef.current === initial) return;
+      update(dataRef.current);
+    };
   }, []);
 
   return <AceEditor

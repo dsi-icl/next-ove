@@ -4,18 +4,16 @@ import {
   useCollaboration,
   useContainer,
   useCustomStates,
-  useFiles,
-  useProject,
+  useFiles, useObservatories,
   useSections,
   useSpace
 } from "./hooks";
 import { dataTypes, toProject } from "./utils";
 import Canvas from "./canvas/canvas";
-import { useQuery } from "../../hooks";
 import Actions from "./actions/actions";
-import Metadata from "./metadata/metadata";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
+import { type Project, type Section } from "@prisma/client";
 import EnvEditor from "./env-editor/env-editor";
 import StateTabs from "./state-tabs/state-tabs";
 import FileUpload from "./file-upload/file-upload";
@@ -28,10 +26,9 @@ import { useState, type CSSProperties, useEffect } from "react";
 import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
+import Metadata, { type ProjectMetadata } from "./metadata/metadata";
 
 import styles from "./page.module.scss";
-
-const observatories = {};
 
 const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
   if (action === "launch") return { width: "20vw", aspectRatio: "4/3" };
@@ -64,18 +61,19 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
   }
 };
 
-const ProjectEditor = ({ username }: { username: string }) => {
-  const query = useQuery();
+type ProjectEditorProps = {
+  project: Project & {layout: Section[]}
+  updateProject: (project: ProjectMetadata) => void
+  tags: string[]
+  username: string
+}
+
+const ProjectEditor = ({project, updateProject, tags, username}: ProjectEditorProps) => {
+  const { observatories } = useObservatories();
   const space = useSpace();
   const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
-  const projectId = query.get("project") ?? "";
-  const {
-    project,
-    updateProject,
-    tags
-  } = useProject(projectId);
-  const sections = useSections(projectId);
+  const sections = useSections(project.id, project.layout);
   const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
   const {
     assets,
@@ -85,7 +83,7 @@ const ProjectEditor = ({ username }: { username: string }) => {
     getLatest,
     getData,
     generateThumbnail
-  } = useFiles();
+  } = useFiles(project.id);
   const [innerDialogStyle, setInnerDialogStyle] = useState<CSSProperties | undefined>();
   const {
     invited,
@@ -100,6 +98,7 @@ const ProjectEditor = ({ username }: { username: string }) => {
   }, [action]);
 
   const getDialogContent = () => {
+    if (project === null) return null;
     switch (action) {
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
@@ -119,7 +118,7 @@ const ProjectEditor = ({ username }: { username: string }) => {
         return <ConfigEditor />;
       case "controller": {
         const controller = getLatest("control");
-        return <ControllerEditor controller={getData(controller)}
+        return <ControllerEditor controller={controller} getData={getData}
                                  update={data => addFile(controller.name, data, controller.assetId)} />;
       }
       case "upload":
@@ -132,7 +131,7 @@ const ProjectEditor = ({ username }: { username: string }) => {
                              sections={sections.all} />;
       case "env": {
         const env = getLatest("env");
-        return <EnvEditor env={getData(env)}
+        return <EnvEditor env={env} getData={getData}
                           update={data => addFile(env.name, data, env.assetId)} />;
       }
       case "live":
@@ -170,7 +169,7 @@ const ProjectEditor = ({ username }: { username: string }) => {
       <SectionConfig sections={sections.getSections(states.selected)}
                      setAction={setAction} files={assets} fromURL={fromURL}
                      selected={sections.selected} space={space} toURL={toURL}
-                     state={states.selected} projectId={projectId}
+                     state={states.selected} projectId={project.id}
                      getLatest={getLatest}
                      updateSection={sections.updateSection} />
       <Actions setAction={setAction}

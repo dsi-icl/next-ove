@@ -4,7 +4,7 @@ import Hardware from "../pages/hardware/page";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/protected-route";
 import Sockets from "../pages/sockets/page";
-import ProjectEditor from "../pages/project-editor/page";
+import ProjectEditorLoader from "../pages/project-editor/loader";
 
 type RouterProps = {loggedIn: boolean, login: (username: string, password: string) => Promise<void>, username: string | null}
 
@@ -29,7 +29,7 @@ const Router = ({loggedIn, login, username}: RouterProps) => {
                                redirectTo="/login"><Sockets /></ProtectedRoute>} />
     <Route
       path="/project-editor"
-      element={<ProtectedRoute condition={loggedIn} redirectTo="/login"><ProjectEditor username={username!} /></ProtectedRoute>} />
+      element={<ProtectedRoute condition={loggedIn} redirectTo="/login"><ProjectEditorLoader username={username!} /></ProtectedRoute>} />
   </Routes>;
 };
 

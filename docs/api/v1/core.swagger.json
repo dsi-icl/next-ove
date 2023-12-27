@@ -6366,6 +6366,106 @@
         }
       }
     },
+    "/geometry": {
+      "get": {
+        "operationId": "query.bridge.getGeometry",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bridgeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "bridge": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "bridge"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "response": {
+                      "anyOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "not": {}
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "width": {
+                                  "type": "number"
+                                },
+                                "height": {
+                                  "type": "number"
+                                },
+                                "rows": {
+                                  "type": "number"
+                                },
+                                "columns": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "width",
+                                "height",
+                                "rows",
+                                "columns"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "oveError": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "oveError"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "meta"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
     "/bridges": {
       "get": {
         "operationId": "query.core.getObservatories",
@@ -6397,6 +6497,72 @@
                         "required": [
                           "name",
                           "isOnline"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/bridges/bounds": {
+      "get": {
+        "operationId": "query.core.getObservatoryBounds",
+        "security": [
+          {
+            "Authorization": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "number"
+                          },
+                          "height": {
+                            "type": "number"
+                          },
+                          "rows": {
+                            "type": "number"
+                          },
+                          "columns": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "width",
+                          "height",
+                          "rows",
+                          "columns"
                         ],
                         "additionalProperties": false
                       }
@@ -6499,6 +6665,52 @@
                     },
                     {
                       "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "operationId": "query.getUserID",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ],
+                      "additionalProperties": false
                     }
                   ]
                 }

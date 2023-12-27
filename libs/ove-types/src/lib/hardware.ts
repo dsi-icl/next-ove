@@ -81,3 +81,10 @@ export const BrowserSchema = z.strictObject({
 });
 
 export type Browser = z.infer<typeof BrowserSchema>
+
+export const BoundsSchema = z.strictObject({
+  width: z.number(),
+  height: z.number(),
+  rows: z.number(),
+  columns: z.number()
+});

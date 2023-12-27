@@ -1,5 +1,7 @@
-import { type Context } from "../context";
 import { state } from "../state";
+import { io } from "../bridge/sockets";
+import { isError } from "@ove/ove-types";
+import { type Context } from "../context";
 
 const getObservatories = async (ctx: Context) => {
   const observatories = await ctx.prisma.user.findMany({
@@ -10,7 +12,7 @@ const getObservatories = async (ctx: Context) => {
       username: true
     }
   });
-  console.log(observatories.length);
+
   return observatories.map(({ username }) => {
     return ({
       name: username,
@@ -19,6 +21,23 @@ const getObservatories = async (ctx: Context) => {
   });
 };
 
-export default {
-  getObservatories
+const getObservatoryBounds = async (ctx: Context) => {
+  const observatories = (await getObservatories(ctx)).filter(({ isOnline }) => isOnline);
+  return (await Promise.all(observatories.map(async ({ name }) => io.sockets.get(state.bridgeClients.get(name)!)!.emitWithAck("getGeometry", {})))).reduce((acc, x) => {
+    if (isError(x.response) || x.response === undefined) return acc;
+    acc[x.meta.bridge] = x.response;
+    return acc;
+  }, <Record<string, {
+    width: number,
+    height: number,
+    rows: number,
+    columns: number
+  }>>{});
 };
+
+const controller = {
+  getObservatories,
+  getObservatoryBounds
+};
+
+export default controller;

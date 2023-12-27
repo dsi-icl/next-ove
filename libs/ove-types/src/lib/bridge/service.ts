@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   StatusSchema,
-  DeviceSchema
+  DeviceSchema, BoundsSchema
 } from "../hardware";
 import {
   AutoScheduleSchema,
@@ -269,6 +269,17 @@ export const APIRoutes = {
     },
     input: z.strictObject({bridgeId: z.string()}),
     output: getBridgeResponseSchema(getDeviceResponseSchema(AutoScheduleSchema.optional()))
+  },
+  getGeometry: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/geometry" as const,
+        protect: true
+      }
+    },
+    input: z.strictObject({bridgeId: z.string()}),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(BoundsSchema.optional()))
   }
 };
 

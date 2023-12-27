@@ -9,7 +9,9 @@ import { useStore } from "../../store";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { type ProjectMetadata } from "./metadata/metadata";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { trpc } from "../../utils/api";
+import { isError } from "@ove/ove-types";
 
 export const useContainer = (space: Space) => {
   const [width, setWidth] = useState(100);
@@ -61,8 +63,8 @@ export const useSpace = () => {
 
 const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
 
-export const useSections = (projectId: string) => {
-  const [sections_, setSections_] = useState(order([]));
+export const useSections = (projectId: string, initialSections: Section[]) => {
+  const [sections_, setSections_] = useState(order(initialSections));
   const [selected, setSelected] = useState<string | null>(null);
   const setConfig = useStore(state => state.setConfig);
   const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
@@ -266,12 +268,46 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
   };
 };
 
-export const useProject = (projectId: string) => {
-  const tags: string[] = [];
-  const [project, setProject] = useState<Project>({});
+const loadNewProject = (username: string): (Project & {
+  layout: Section[]
+}) | null => ({
+  id: nanoid(),
+  title: "",
+  description: "",
+  notes: "",
+  publications: [],
+  tags: [],
+  presenterNotes: "",
+  creatorId: username,
+  collaboratorIds: [username],
+  thumbnail: null,
+  layout: [],
+  created: new Date(),
+  updated: new Date(),
+  isSaved: false
+});
+
+export const useProject = (username: string | null, projectId: string | null) => {
+  const tags_ = trpc.projects.getTags.useQuery();
+  const project_ = trpc.projects.getProject.useQuery({ projectId: projectId ?? "__ERROR__" }, { enabled: projectId !== null });
+
+  const [project, setProject] = useState<(Project & {
+    layout: Section[]
+  }) | null>(null);
+  const tags = useMemo(() => (tags_.status === "success" && !isError(tags_.data) ? tags_.data : []).concat(project?.tags ?? []).filter((x, i, arr) => arr.indexOf(x) === i), [tags_.data, tags_.status]);
+
+  useEffect(() => {
+    if (project_.status !== "success" || project_.data === null || isError(project_.data)) return;
+    setProject(project_.data);
+  }, [project_.status]);
+
+  useEffect(() => {
+    if (username === null || projectId !== null) return;
+    setProject(loadNewProject(username));
+  }, [username, projectId]);
 
   const updateProject = (project: ProjectMetadata) => {
-    setProject(cur => ({ ...cur, ...project }));
+    setProject(cur => cur === null ? null : ({ ...cur, ...project }));
   };
 
   return {
@@ -281,33 +317,41 @@ export const useProject = (projectId: string) => {
   };
 };
 
-export type File = { name: string, version: number, assetId: string }
+export type File = {
+  name: string,
+  version: number,
+  assetId: string,
+  isGlobal: boolean
+}
 
-export const useFiles = () => {
-  const globals: File[] = [];
+export const useFiles = (projectId: string) => {
+  const files_ = trpc.projects.getFiles.useQuery({projectId});
   const [files, setFiles] = useState<File[]>([]);
-  const [data, setData] = useState<{
-    [key: `${string}/${string}`]: string
-  }>({});
+
+  useEffect(() => {
+    if (files_.status !== "success" || isError(files_.data)) return;
+    setFiles(files_.data);
+  }, [files_.status]);
 
   const addFile = (name: string, data: string, assetId?: string) => {
-    if (globals.find(file => file.name === name) !== undefined) return null; // TODO: add snackbar failure message
+    if (files.find(file => file.name === name && file.isGlobal) !== undefined) return null; // TODO: add snackbar failure message
     if (assetId === undefined) {
       assetId = nanoid(16);
       setFiles(cur => [...cur, {
         name: name,
         version: 1,
-        assetId: assetId!
+        assetId: assetId!,
+        isGlobal: false
       }]);
-      setData(cur => ({ ...cur, [`${name}/1`]: data }));
+      // setData(cur => ({ ...cur, [`${name}/1`]: data }));
     } else {
       let latest: File | null = null;
       setFiles(cur => {
         latest = getLatest(assetId!);
-        setData(cur => ({
-          ...cur,
-          [`${name}/${latest!.version + 1}`]: data
-        }));
+        // setData(cur => ({
+        //   ...cur,
+        //   [`${name}/${latest!.version + 1}`]: data
+        // }));
         return [...cur, { ...latest, version: latest.version + 1 }];
       });
     }
@@ -322,7 +366,7 @@ export const useFiles = () => {
     return files.find(file => (file.assetId === id || file.name === id) && file.version === latest)!;
   }, [files]);
 
-  const getData = (file: File) => data[`${file.name}/${file.version}`];
+  const getData = async (file: File) => ""; // TODO: replace with server call
 
   const toURL = (name: string, version: number) => `/s3/${name}/${version}`;
   const fromURL = (url: string | null) => {
@@ -339,7 +383,6 @@ export const useFiles = () => {
     addFile,
     toURL,
     fromURL,
-    data,
     getLatest,
     getData,
     generateThumbnail
@@ -347,63 +390,26 @@ export const useFiles = () => {
 };
 
 export const useCollaboration = (project: Project, username: string) => {
-  const [users] = useState<User[]>([
-    {
-      username: "me",
-      id: "me",
-      email: null,
-      password: "",
-      role: "creator",
-      projectIds: [project.id]
-    },
-    {
-      username: "you",
-      id: "you",
-      email: null,
-      password: "",
-      role: "creator",
-      projectIds: [project.id]
-    },
-    {
-      username: "them",
-      id: "them",
-      email: null,
-      password: "",
-      role: "creator",
-      projectIds: [project.id]
-    },
-    {
-      username: "other",
-      id: "other",
-      email: null,
-      password: "",
-      role: "creator",
-      projectIds: [project.id]
-    }
-  ]);
-  const [invites, setInvites] = useState<Invite[]>([
-    {
-      id: nanoid(),
-      senderId: "me",
-      recipientId: "you",
-      status: "accepted",
-      sent: new Date(),
-      projectId: project.id
-    },
-    {
-      id: nanoid(),
-      senderId: "me",
-      recipientId: "other",
-      status: "pending",
-      sent: new Date(),
-      projectId: project.id
-    }
-  ]);
+  const users_ = trpc.projects.getUsers.useQuery();
+  const invites_ = trpc.projects.getInvitesForProject.useQuery({ projectId: project.id });
+  const [users, setUsers] = useState<User[]>([]);
+  const [invites, setInvites] = useState<Invite[]>([]);
+
+  useEffect(() => {
+    if (users_.status !== "success" || isError(users_.data)) return;
+    setUsers(users_.data);
+  }, [users_.status]);
+
+  useEffect(() => {
+    if (invites_.status !== "success" || isError(invites_.data)) return;
+    setInvites(invites_.data);
+  }, [invites_.status]);
 
   const uninvited = users.filter(user => project.collaboratorIds.find(id => id === user.id) === undefined && invites.find(({
     recipientId,
     status
   }) => recipientId === user.id && status === "pending") === undefined);
+  console.log(project.collaboratorIds);
   const accepted = project.collaboratorIds.map(id => users.find(user => user.id === id)!);
   const invited = invites.filter(({ status }) => status === "pending").map(({ recipientId }) => users.find(({ id }) => id === recipientId)!);
 
@@ -433,4 +439,21 @@ export const useCollaboration = (project: Project, username: string) => {
     inviteCollaborator,
     removeCollaborator
   };
+};
+
+export const useObservatories = () => {
+  const observatories_ = trpc.core.getObservatoryBounds.useQuery();
+  const [observatories, setObservatories] = useState<Record<string, {
+    width: number,
+    height: number,
+    rows: number,
+    columns: number
+  }>>({});
+
+  useEffect(() => {
+    if (observatories_.status !== "success" || isError(observatories_.data)) return;
+    setObservatories(observatories_.data);
+  }, [observatories_.status]);
+
+  return { observatories };
 };

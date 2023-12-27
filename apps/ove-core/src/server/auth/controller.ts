@@ -4,6 +4,7 @@ import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { type Tokens } from "@ove/ove-types";
 import { type Context } from "../context";
+import { PrismaClient } from "@prisma/client";
 
 const generateToken = (
   username: string,
@@ -99,7 +100,8 @@ const getToken = async (ctx: Context) => {
   return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "24h");
 };
 
-export default {
-  login,
-  getToken
-};
+const getUser = (prisma: PrismaClient, username: string) => prisma.user.findUniqueOrThrow({ where: { username } });
+
+const controller = { login, getToken, getUser };
+
+export default controller;

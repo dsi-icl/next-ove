@@ -40,9 +40,15 @@ const StateTabs = ({
 
   return <nav className={styles.container}>
     <ul className={styles.tabs}>
-      {states.map(state =>
-        <li key={state}
-            className={[styles.tab, selected === state ? ` ${styles.selected}` : ""].join(" ")}>
+      {states.map(state => {
+        const formatted = formatState(state);
+        const width = isEdit ?
+          "100%" :
+          (state === "__default__" ?
+            `max(${formatted.length / 2}rem, 3rem)` :
+            `${formatted.length / 2}rem + 1rem`);
+        return <li key={state} style={{width: `calc(${width} + 2rem)`}}
+                   className={[styles.tab, selected === state ? ` ${styles.selected}` : ""].join(" ")}>
           <button style={{ fontWeight: selected === state ? 700 : 400 }}
                   className={styles.editable}
                   onClick={isEdit && selected === state ? undefined : () => {
@@ -58,12 +64,13 @@ const StateTabs = ({
               <form onSubmit={handleSubmit(onSubmit)}>
                 <input {...register("name")} />
                 <input type="submit" style={{ display: "none" }} />
-              </form> : <span
-                style={{ marginRight: state === "__default__" || isEdit ? 0 : "1.25rem" }}>{formatState(state)}</span>}</button>
+              </form> : <p
+                style={{ marginRight: state === "__default__" || isEdit ? 0 : "1.5rem", width, whiteSpace: "nowrap" }}>{formatted}</p>}</button>
           {state === "__default__" || isEdit ? null :
             <button className={styles.remove}
                     onClick={() => removeState(state)}><X /></button>}
-        </li>)}
+        </li>;
+      })}
       <li className={styles.tab} id={styles["add"]}>
         <button onClick={addState}>+</button>
       </li>

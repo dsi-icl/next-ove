@@ -1,5 +1,5 @@
 import {
-  AutoScheduleSchema,
+  AutoScheduleSchema, BoundsSchema,
   CalendarSchema,
   DeviceSchema,
   PowerModeSchema
@@ -32,7 +32,8 @@ const schema = z.strictObject({
   PASSPHRASE: z.string(),
   VIDEO_STREAMS: z.array(z.string()).optional(),
   START_VIDEO_SCRIPT: z.string().optional(),
-  STOP_VIDEO_SCRIPT: z.string().optional()
+  STOP_VIDEO_SCRIPT: z.string().optional(),
+  GEOMETRY: BoundsSchema.optional()
 });
 
 const staticConfig = {

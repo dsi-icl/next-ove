@@ -113,5 +113,6 @@ export const service: TBridgeService = {
   getDevicesToAuth: () => env.HARDWARE.filter(device => device.auth === null),
   getAppVersion: () => app.getVersion(),
   getPublicKey: () => env.PUBLIC_KEY,
-  getAutoSchedule: () => env.AUTO_SCHEDULE
+  getAutoSchedule: () => env.AUTO_SCHEDULE,
+  getGeometry: () => env.GEOMETRY
 };
