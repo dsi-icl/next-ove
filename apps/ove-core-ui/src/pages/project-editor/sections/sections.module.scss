@@ -15,18 +15,19 @@
   }
 
   & li {
-    box-shadow: 0.25rem 0.25rem 0.25rem 0.25rem #dadedf;
     margin: 0.25rem;
     border: 1px solid black;
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     width: calc(100% - 0.5rem);
     min-height: 2rem;
     display: flex;
+    color: white;
 
     .container {
       width: 100%;
       padding: 0.25rem;
       display: flex;
+      align-items: center;
 
       & span {
         margin-left: 0.25rem;

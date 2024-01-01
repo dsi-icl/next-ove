@@ -68,7 +68,6 @@ const Actions = ({ setAction, save }: ActionsProps) => {
 
   return <section
     id={styles["actions"]}>
-    <h2>Actions</h2>
     <div className={styles.actions}>
       {icons.map(icon => <div className={styles.action} key={icon.title}>
         <button onClick={() => handler(icon.action)}

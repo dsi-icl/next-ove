@@ -63,16 +63,13 @@ const Sections = ({
               }}>
                 <button className={styles.container} style={{ flexGrow: 1 }}
                         onClick={() => select(section.id)}>
-                  <span style={{ fontWeight: 700 }}>{section.ordering}</span>
+                  <span style={{ fontWeight: 700, fontSize: "1.25rem" }}>{section.ordering}</span>
                   <span className={styles.asset}
                         style={{ fontWeight: selected === section.id ? 700 : 400 }}>{section.asset.length <= characterLimit ? section.asset : `${section.asset.slice(0, characterLimit)}...`}</span>
                 </button>
                 <div className={styles["clear-container"]}>
                   <button onClick={() => removeFromState(section.id, state)}><X
-                    style={{
-                      border: `${selected === section.id ? "2px" : "1px"} solid black`,
-                      borderRadius: "50%"
-                    }} width="1rem" height="1rem"
+                    width="1rem" height="1rem"
                     strokeWidth={selected === section.id ? "4px" : "2px"} />
                   </button>
                 </div>

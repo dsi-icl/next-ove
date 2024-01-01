@@ -1,5 +1,6 @@
-import { env } from "../../env";
-import { Project } from "@prisma/client";
+import { type Project } from "@prisma/client";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@ove/ui-base-components";
 
 import styles from "./project-card.module.scss";
 
@@ -11,15 +12,22 @@ type ProjectCardProps = {
 const ProjectCard = ({
   project: { id, title, thumbnail },
   openDialog
-}: ProjectCardProps) =>
-  <li key={title} className={styles.main}>
+}: ProjectCardProps) => {
+  const navigate = useNavigate();
+
+  return <li key={title} className={styles.main}>
     <img src={thumbnail ?? "/missing-thumbnail.jpg"}
          alt={`Thumbnail for ${title}`} />
     <h4>{title}</h4>
     <div className={styles.actions}>
-      <a href={`${env.BASE_URL}/project-editor?project=${id}`}>EDIT</a>
-      <button onClick={openDialog}>LAUNCH</button>
+      <Button onClick={() => navigate(`/project-editor?project=${id}`)}>
+        EDIT
+      </Button>
+      <Button onClick={openDialog}>
+        LAUNCH
+      </Button>
     </div>
   </li>;
+};
 
 export default ProjectCard;

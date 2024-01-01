@@ -62,13 +62,18 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
 };
 
 type ProjectEditorProps = {
-  project: Project & {layout: Section[]}
+  project: Project & { layout: Section[] }
   updateProject: (project: ProjectMetadata) => void
   tags: string[]
   username: string
 }
 
-const ProjectEditor = ({project, updateProject, tags, username}: ProjectEditorProps) => {
+const ProjectEditor = ({
+  project,
+  updateProject,
+  tags,
+  username
+}: ProjectEditorProps) => {
   const { observatories } = useObservatories();
   const space = useSpace();
   const { dialog, isOpen, action, setAction } = useActions();
@@ -142,39 +147,48 @@ const ProjectEditor = ({project, updateProject, tags, username}: ProjectEditorPr
   };
 
   return <main className={styles.main}>
-    <div id={styles["top"]}>
-      <section id={styles["preview"]}>
-        <StateTabs selected={states.selected} removeState={states.removeState}
-                   states={states.states} formatState={states.format}
-                   addState={states.addState} updateState={states.updateState}
-                   setState={states.select} currentState={states.selected} />
-        <ResizeContainer container={container}>
-          <Canvas sections={sections.getSections(states.selected)}
-                  space={space}
-                  container={container}
-                  dragSection={sections.dragSection} select={sections.select}
-                  selected={sections.selected} />
-        </ResizeContainer>
-      </section>
-      <Sections sections={sections.getSections(states.selected)}
-                generateSection={sections.generateSection}
-                select={sections.select} state={states.selected}
-                removeFromState={sections.removeFromState}
-                selected={sections.selected}
-                setSections={sections.setSections}
-                setAction={setAction} numStates={states.states.length} />
-    </div>
-    <section id={styles["configuration"]}>
-      <SpaceConfig space={space} presets={observatories} />
-      <SectionConfig sections={sections.getSections(states.selected)}
-                     setAction={setAction} files={assets} fromURL={fromURL}
-                     selected={sections.selected} space={space} toURL={toURL}
-                     state={states.selected} projectId={project.id}
-                     getLatest={getLatest}
-                     updateSection={sections.updateSection} />
+    <div style={{ display: "flex" }}>
+      <div>
+        <div id={styles["top"]}>
+          <section id={styles["preview"]}>
+            <StateTabs selected={states.selected}
+                       removeState={states.removeState}
+                       states={states.states} formatState={states.format}
+                       addState={states.addState}
+                       updateState={states.updateState}
+                       setState={states.select}
+                       currentState={states.selected} />
+            <ResizeContainer container={container}>
+              <Canvas sections={sections.getSections(states.selected)}
+                      space={space}
+                      container={container}
+                      dragSection={sections.dragSection}
+                      select={sections.select}
+                      selected={sections.selected} />
+            </ResizeContainer>
+          </section>
+          <Sections sections={sections.getSections(states.selected)}
+                    generateSection={sections.generateSection}
+                    select={sections.select} state={states.selected}
+                    removeFromState={sections.removeFromState}
+                    selected={sections.selected}
+                    setSections={sections.setSections}
+                    setAction={setAction} numStates={states.states.length} />
+        </div>
+        <section id={styles["configuration"]}>
+          <SpaceConfig space={space} presets={observatories} />
+          <SectionConfig sections={sections.getSections(states.selected)}
+                         setAction={setAction} files={assets} fromURL={fromURL}
+                         selected={sections.selected} space={space}
+                         toURL={toURL}
+                         state={states.selected} projectId={project.id}
+                         getLatest={getLatest}
+                         updateSection={sections.updateSection} />
+        </section>
+      </div>
       <Actions setAction={setAction}
                save={() => toProject(project, sections.all)} />
-    </section>
+    </div>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
             title={getDialogTitle(action, project.title)}
             style={getDialogStyling(action)}

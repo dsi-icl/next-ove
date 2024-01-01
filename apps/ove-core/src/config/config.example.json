@@ -2,5 +2,9 @@
   "SOCKET_ADMIN": {
     "USERNAME": "example",
     "PASSWORD": "SALTED+HASHED"
+  },
+  "ASSET_STORE_CREDENTIALS": {
+    "ACCESS_KEY": "example",
+    "SECRET_KEY": "example"
   }
 }

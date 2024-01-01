@@ -9,10 +9,10 @@ const Launcher = ({loggedIn}: {loggedIn: boolean}) => {
   const [mode, setMode] = useState<"legacy" | "modern">("legacy");
 
   return <main className={styles.main} style={{ position: "relative" }}>
-    <button style={{ position: "absolute", top: "0.5rem", left: "0.5rem" }}
+    <button style={{ position: "absolute", top: "0.5rem", left: "0.5rem", zIndex: 2 }}
             onClick={() => setMode(cur => cur === "legacy" ? "modern" : "legacy")}>
-      {mode === "legacy" ? <ToggleLeft color="white" /> :
-        <ToggleRight color="white" />}
+      {mode === "legacy" ? <ToggleLeft color="#002147" /> :
+        <ToggleRight color="#002147" />}
     </button>
     {mode === "legacy" ?
       <iframe src={env.PROJECT_LAUNCHER} title="Project Launcher"></iframe>
