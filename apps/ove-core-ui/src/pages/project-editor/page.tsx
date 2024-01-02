@@ -31,10 +31,14 @@ import Metadata, { type ProjectMetadata } from "./metadata/metadata";
 import styles from "./page.module.scss";
 
 const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
-  if (action === "launch") return { width: "20vw", aspectRatio: "4/3", borderRadius: "0.25rem" };
+  if (action === "launch") return {
+    width: "20vw",
+    aspectRatio: "4/3.25",
+    borderRadius: "0.25rem"
+  };
   if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
     width: "60vw", borderRadius: "0.25rem"
-  }
+  };
 
   return { borderRadius: "0.25rem" };
 };
@@ -42,10 +46,10 @@ const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined =>
 const getInnerDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
   if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
     padding: "0"
-  }
+  };
   if (action === "import-section") return {
     padding: "1rem"
-  }
+  };
 
   return undefined;
 };
@@ -118,7 +122,8 @@ const ProjectEditor = ({
                          allTags={tags} invited={invited} uninvited={uninvited}
                          generator={generateThumbnail} accepted={accepted}
                          inviteCollaborator={inviteCollaborator}
-                         removeCollaborator={removeCollaborator} />;
+                         removeCollaborator={removeCollaborator}
+                         closeDialog={() => setAction(null)} />;
       case "import-section":
         return <SectionImporter
           addToState={sections.addToState} colors={dataTypes}
@@ -134,7 +139,7 @@ const ProjectEditor = ({
       }
       case "upload":
         return <FileUpload files={assets} getLatest={getLatest}
-                           addFile={addFile}
+                           addFile={addFile} closeDialog={() => setAction(null)}
                            setDialogStyle={setInnerDialogStyle} />;
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}

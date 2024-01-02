@@ -6,6 +6,8 @@ import { type Project, User } from "@prisma/client";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./metadata.module.scss";
+import { Button } from "@ove/ui-base-components";
+import { actionColors } from "../utils";
 
 export type ProjectMetadata = Pick<Project, "title" | "description" | "thumbnail" | "creatorId" | "tags" | "publications" | "collaboratorIds" | "presenterNotes" | "notes">
 
@@ -24,6 +26,7 @@ type MetadataProps = {
   uninvited: User[],
   inviteCollaborator: (id: string) => void
   removeCollaborator: (id: string) => void
+  closeDialog: () => void
 }
 
 type MetadataForm = ProjectMetadata & {
@@ -33,8 +36,6 @@ type MetadataForm = ProjectMetadata & {
   publication: string
   collaborator: string
 }
-
-const colors = ["#ef476f", "#f78c6b", "#ffd166", "#06d6a0", "#118ab2", "#002147", "#FA9E78", "#FDEBDC", "#6B9A9B"];
 
 const Metadata = ({
   files,
@@ -50,7 +51,8 @@ const Metadata = ({
   invited,
   uninvited,
   inviteCollaborator,
-  removeCollaborator
+  removeCollaborator,
+  closeDialog
 }: MetadataProps) => {
   const [tags, setTags] = useState(project.tags);
   const [publications, setPublications] = useState(project.publications);
@@ -118,7 +120,10 @@ const Metadata = ({
   };
 
   return <section id={styles["metadata"]}>
-    <h2>Project Details</h2>
+    <header>
+      <h2>Project Details</h2>
+      <button onClick={closeDialog}><X size="1.25rem" /></button>
+    </header>
     <form onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="title">Title:</label>
       <input {...register("title")} />
@@ -137,7 +142,7 @@ const Metadata = ({
       <ul className={styles.tags}>
         <div className={styles.selected}>
           {tags.map((tag, i) => <li key={tag}
-                                    style={{ backgroundColor: colors[i % tags.length] }}>{tag}
+                                    style={{ backgroundColor: actionColors[i % tags.length] }}>{tag}
             <button type="button"
                     onClick={() => setTags(cur => cur.filter(x => x !== tag))}>
               <X /></button>
@@ -201,9 +206,11 @@ const Metadata = ({
               <X /></button>
           </li>)}
         </div>
-        <li className={styles.new}><input {...register("collaborator")}
-                                          placeholder="Invite Collaborator:"
-                                          list="collaborator-backing" />
+        <li className={styles.new}
+            style={{ marginTop: collaborators_.length > 0 ? "0.75rem" : 0 }}>
+          <input {...register("collaborator")}
+                 placeholder="Invite Collaborator:"
+                 list="collaborator-backing" />
           <datalist id="collaborator-backing">
             {uninvited.filter(({ username }) => collaborators_.find(c => c.username === username) === undefined).map(({ username }) =>
               <option key={username} value={username}>{username}</option>)}
@@ -215,7 +222,7 @@ const Metadata = ({
       <label htmlFor="presenterNotes">Presenter Notes:</label>
       <textarea {...register("presenterNotes")} />
       <div className={styles.submit}>
-        <button type="submit">SAVE</button>
+        <Button variant="default" type="submit">SAVE</Button>
       </div>
     </form>
   </section>;

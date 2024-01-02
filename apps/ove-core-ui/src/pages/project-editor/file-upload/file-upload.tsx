@@ -9,13 +9,15 @@ type FileUploadProps = {
   getLatest: (id: string) => FileT
   addFile: (name: string, data: string, assetId?: string) => void
   setDialogStyle: (style: CSSProperties | undefined) => void
+  closeDialog: () => void
 }
 
 const FileUpload = ({
   addFile,
   files,
   getLatest,
-  setDialogStyle
+  setDialogStyle,
+  closeDialog
 }: FileUploadProps) => {
   const [mode, setMode] = useState<"upload" | "editor">("upload");
   const names = files.map(({ name }) => name).filter((name, i, arr) => arr.indexOf(name) === i);
@@ -59,7 +61,7 @@ const FileUpload = ({
     <Upload file={convertCustomFile(customFile) ?? file} getLatest={getLatest}
             names={names} files={files} onSubmit={onSubmit}
             handleSubmit={handleSubmit} setMode={setMode}
-            register={register} /> :
+            register={register} closeDialog={closeDialog} /> :
     <Editor file={customFile} save={saveCustomFile}
             close={() => setMode("upload")} />;
 };

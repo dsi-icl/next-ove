@@ -16,9 +16,10 @@ type UploadProps = {
   setMode: (key: "editor") => void
   getLatest: (id: string) => FileT
   file: File[]
+  closeDialog: () => void
 }
 
-const colors = actionColors.concat(dataTypes.map(({color}) => color));
+const colors = actionColors.concat(dataTypes.map(({ color }) => color));
 
 const Upload = ({
   names,
@@ -28,7 +29,8 @@ const Upload = ({
   register,
   setMode,
   getLatest,
-  file
+  file,
+  closeDialog
 }: UploadProps) => {
   const { ref, ...rest } = register("file");
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -36,8 +38,8 @@ const Upload = ({
   return <section
     id={styles["upload"]}>
     <header>
-    <h2>Project Files</h2>
-      <button><X size="1.25rem" /></button>
+      <h2>Project Files</h2>
+      <button onClick={closeDialog}><X size="1.25rem" /></button>
     </header>
     <ul>
       {names.map((name, i) =>
