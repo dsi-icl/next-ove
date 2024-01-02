@@ -1,5 +1,5 @@
 import styles from "./file-upload.module.scss";
-import { Brush, Upload as UploadButton } from "react-bootstrap-icons";
+import { Brush, Upload as UploadButton, X } from "react-bootstrap-icons";
 import { type File as FileT } from "../hooks";
 import { type FieldValues } from "react-hook-form";
 import { FormEventHandler, useRef } from "react";
@@ -35,7 +35,10 @@ const Upload = ({
 
   return <section
     id={styles["upload"]}>
+    <header>
     <h2>Project Files</h2>
+      <button><X size="1.25rem" /></button>
+    </header>
     <ul>
       {names.map((name, i) =>
         <li key={name}

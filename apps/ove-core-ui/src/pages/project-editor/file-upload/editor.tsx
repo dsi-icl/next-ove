@@ -13,6 +13,7 @@ import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
 
 import styles from "./file-upload.module.scss";
+import { Button } from "@ove/ui-base-components";
 
 ace.config.setModuleUrl("ace/mode/json", json);
 ace.config.setModuleUrl("ace/mode/markdown", markdown);
@@ -95,8 +96,8 @@ const Editor = ({ close, file, save }: EditorProps) => {
                onChange={e => setName(e?.target?.value)} />
       </div>
       <div className={styles.actions}>
-        <button onClick={close}>CLOSE</button>
-        <button onClick={() => {
+        <Button variant="outline" onClick={close}>CLOSE</Button>
+        <Button variant="default" onClick={() => {
           if (name === "") return;
           save({
             name: addFileExtension(name),
@@ -104,7 +105,7 @@ const Editor = ({ close, file, save }: EditorProps) => {
             language: language
           });
         }}>SAVE
-        </button>
+        </Button>
       </div>
     </div>
   </section>;
