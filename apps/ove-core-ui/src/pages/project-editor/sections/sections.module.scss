@@ -5,7 +5,11 @@
   position: relative;
 
   & h2 {
+    height: 2rem;
+    line-height: 2rem;
     text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid black;
   }
 
   & ul {
@@ -17,7 +21,7 @@
   & li {
     margin: 0.25rem;
     border: 1px solid black;
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     width: calc(100% - 0.5rem);
     min-height: 2rem;
     display: flex;

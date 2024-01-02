@@ -1,16 +1,23 @@
 #space {
-  width: 20vw;
+  width: 38vw;
   height: 100%;
-  padding: 1rem;
+  padding: 0 1rem;
 
   & h2 {
     font-weight: 700;
     text-align: center;
   }
 
+  #custom-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
   & form {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    height: calc(100% - 2rem);
 
     & label {
       width: 10vw;
@@ -18,22 +25,25 @@
       font-size: 1rem;
     }
 
-    .ratio {
-      width: 100%;
+    .col {
+      display: flex;
+      flex-direction: column;
+      width: calc(19vw - 1.5rem);
     }
 
-    & fieldset {
+    .ratio {
       width: 100%;
+      max-width: 10vw;
       display: flex;
       justify-content: space-between;
 
       & p {
         font-weight: 700;
+        margin: 0 0.125rem;
       }
 
       & input {
-        width: 8vw;
-        height: 1.5rem;
+        width: calc(9.5vw - 1rem);
       }
 
       .left {
@@ -44,19 +54,29 @@
 
     & input {
       border: 1px solid black;
-      border-radius: 1.25rem;
-      height: 1.5rem;
+      border-radius: 0.25rem;
+      height: 2rem;
       padding: 0 0.25rem;
     }
 
-    & button {
+    #custom-submit {
       display: none;
+    }
+
+    & button {
+      margin-top: auto;
+      height: 2rem;
+      background-color: #002147;
+      color: white;
+      width: 25%;
+      margin-left: auto;
+      border-radius: 0.25rem;
     }
 
     & select {
       border: 1px solid black;
-      border-radius: 1.25rem;
-      height: 1.5rem;
+      border-radius: 0.25rem;
+      height: 2rem;
       padding: 0 0.25rem;
     }
   }

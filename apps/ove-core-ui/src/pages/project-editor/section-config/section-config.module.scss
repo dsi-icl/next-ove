@@ -1,25 +1,24 @@
 #section-config {
-  width: 60vw;
-  padding: 1rem;
+  width: 57vw;
+  padding: 0 1rem;
   border-left: 1px solid black;
 
   & form {
     display: flex;
-    height: calc(100% - 1.5rem);
+    width: calc(57vw - 2rem);
 
     #geometry {
-      width: 66%;
+      width: calc((57vw - 2rem) * 0.66 - 0.5rem);
 
       & fieldset {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-gap: 1rem;
+        grid-column-gap: 1.5rem;
         width: 100%;
         padding: 0;
       }
 
       .column {
-        height: 2rem;
         display: flex;
         flex-direction: column;
 
@@ -28,7 +27,7 @@
         }
 
         & input {
-          height: 1.5rem;
+          height: 2rem;
           width: 100%;
         }
       }
@@ -40,13 +39,13 @@
         .mode {
           display: flex;
           width: 100%;
-          margin-top: 1.25rem;
+          margin-top: 1.5rem;
           align-items: center;
         }
 
         .action {
           width: 20%;
-          height: 1.75rem;
+          height: 2rem;
           padding: 0 0.25rem;
           display: flex;
           align-items: center;
@@ -57,23 +56,20 @@
 
         #fullscreen {
           background-color: #dadedf;
-          margin-top: 1.25rem;
+          margin-top: 1.5rem;
           align-self: flex-end;
         }
       }
     }
 
     & fieldset {
-      width: 20vw;
       display: flex;
       flex-direction: column;
-      padding: 0 1rem;
     }
 
     & label {
       width: 10vw;
       font-weight: 700;
-      font-size: 1rem;
     }
 
     .ratio {
@@ -83,10 +79,6 @@
     .config {
       cursor: pointer;
       text-align: left;
-    }
-
-    .data-type-label {
-      margin-top: 1.25rem;
     }
 
     .row {
@@ -106,7 +98,7 @@
       .percentage {
         position: absolute;
         right: 0.25rem;
-        top: 0;
+        top: 0.25rem;
       }
     }
 
@@ -115,14 +107,44 @@
     }
 
     & input, select {
-      height: 1.5rem;
+      height: 2rem;
       border: 1px solid black;
-      border-radius: 1.25rem;
+      border-radius: 0.25rem;
       padding: 0 0.25rem;
     }
 
+    #submit-container {
+      display: flex;
+      height: 3.5rem;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
     .submit {
-      display: none;
+      border: 1px solid black;
+      border-radius: 0.25rem;
+      height: 2rem;
+      width: calc((57vw - 2rem) * 0.34 - 0.5rem);
+      background-color: #002147;
+      color: white;
+    }
+
+    #left-container {
+      display: flex;
+      flex-direction: column;
+      width: calc((57vw - 2rem) * 0.66 - 0.5rem);
+    }
+
+    #config-container {
+      display: flex;
+      flex-direction: column;
+      width: calc((57vw - 2rem) * 0.66 - 0.5rem);
+    }
+
+    #assets {
+      margin-left: 1rem;
+      margin-top: 1.25rem;
+      width: calc((57vw - 2rem) * 0.34 - 0.5rem);
     }
   }
 }

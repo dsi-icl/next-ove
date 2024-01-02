@@ -1,5 +1,5 @@
 import { type Actions, type File } from "../hooks";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { useStore } from "../../../store";
 import { useEffect, useState } from "react";
 import { type Section } from "@prisma/client";
@@ -9,6 +9,8 @@ import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./section-config.module.scss";
 import { dataTypes } from "../utils";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type SectionConfigProps = {
   sections: Section[]
@@ -24,15 +26,6 @@ type SectionConfigProps = {
   getLatest: (id: string) => File
 }
 
-type SectionConfigForm = Omit<Section, "id"> & {
-  rowFrom: number | null,
-  columnFrom: number | null
-  rowTo: number | null
-  columnTo: number | null
-  fileName: string | null
-  fileVersion: string | null
-}
-
 const getDataTypeFromFile = (file: File) => {
   for (const dt of dataTypes) {
     if (dt.extensions.some(extension => file.name.toUpperCase().endsWith(extension))) return dt.name;
@@ -45,6 +38,50 @@ const sort = (k: keyof DataType, a: DataType, b: DataType) => {
   if (a[k] === b[k]) return 0;
   return -1;
 };
+
+const toPercentage = (x: number) => parseFloat(`${(x * 100)}`.slice(0, 5));
+const fromPercentage = (x: number) => parseFloat(x.toString()) / 100;
+
+const getRow = (y: number, space: Space & { cells: Geometry[] }) => {
+  if (y === 0) return 0;
+  if (y === 1) return space.rows;
+  for (let i = 0; i < space.cells.length; i++) {
+    if (space.cells[i].y === y * space.height) return Math.floor(i / space.columns);
+  }
+
+  return null;
+};
+
+const getColumn = (x: number, space: Space & { cells: Geometry[] }) => {
+  if (x === 0) return 0;
+  if (x === 1) return space.columns;
+  for (let i = 0; i < space.cells.length; i++) {
+    if (space.cells[i].x === x * space.width) return i % space.columns;
+  }
+
+  return null;
+};
+
+const formatConfig = (config: string) => {
+  const stripped = config.split("\n").map(x => x.trim()).join("");
+  return stripped.length < 20 ? stripped : `${stripped.slice(0, 20)}...`;
+};
+
+const SectionConfigSchema = z.strictObject({
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+  x: z.number().nullable(),
+  y: z.number().nullable(),
+  config: z.string().nullable(),
+  fileName: z.string().nullable(),
+  fileVersion: z.string().nullable(),
+  rowFrom: z.number().nullable(),
+  rowTo: z.number().nullable(),
+  columnFrom: z.number().nullable(),
+  columnTo: z.number().nullable(),
+  dataType: z.string(),
+  asset: z.string()
+});
 
 const SectionConfig = ({
   sections,
@@ -65,33 +102,10 @@ const SectionConfig = ({
     setValue,
     resetField,
     watch
-  } = useForm<SectionConfigForm>();
+  } = useForm<z.infer<typeof SectionConfigSchema>>({ resolver: zodResolver(SectionConfigSchema) });
   const [mode, setMode] = useState<"custom" | "grid">("custom");
   const config = useStore(state => state.config);
   const [fileName, fileVersion] = watch(["fileName", "fileVersion"]);
-
-  const toPercentage = (x: number) => parseFloat(`${(x * 100)}`.slice(0, 5));
-  const fromPercentage = (x: number) => parseFloat(x.toString()) / 100;
-
-  const getRow = (y: number) => {
-    if (y === 0) return 0;
-    if (y === 1) return space.rows;
-    for (let i = 0; i < space.cells.length; i++) {
-      if (space.cells[i].y === y * space.height) return Math.floor(i / space.columns);
-    }
-
-    return null;
-  };
-
-  const getColumn = (x: number) => {
-    if (x === 0) return 0;
-    if (x === 1) return space.columns;
-    for (let i = 0; i < space.cells.length; i++) {
-      if (space.cells[i].x === x * space.width) return i % space.columns;
-    }
-
-    return null;
-  };
 
   useEffect(() => {
     setValue("config", formatConfig(config));
@@ -115,10 +129,10 @@ const SectionConfig = ({
     }
 
     const section = sections.find(section => section.id === selected)!;
-    const rowFrom = getRow(section.y);
-    const colFrom = getColumn(section.x);
-    const rowTo = getRow(section.y + section.height);
-    const colTo = getColumn(section.x + section.width);
+    const rowFrom = getRow(section.y, space);
+    const colFrom = getColumn(section.x, space);
+    const rowTo = getRow(section.y + section.height, space);
+    const colTo = getColumn(section.x + section.width, space);
     setValue("x", toPercentage(section.x));
     setValue("y", toPercentage(section.y));
     setValue("width", toPercentage(section.width));
@@ -136,12 +150,12 @@ const SectionConfig = ({
     }
   }, [selected, sections]);
 
-  const onSubmit = (section: SectionConfigForm) => {
+  const onSubmit = (section: z.infer<typeof SectionConfigSchema>) => {
     updateSection({
-      x: mode === "custom" ? fromPercentage(section.x) : section.columnFrom! / space.columns,
-      y: mode === "custom" ? fromPercentage(section.y) : section.rowFrom! / space.rows,
-      width: mode === "custom" ? fromPercentage(section.width) : (section.columnTo! - section.columnFrom!) * (1 / space.columns),
-      height: mode === "custom" ? fromPercentage(section.height) : (section.rowTo! - section.rowFrom!) * (1 / space.rows),
+      x: mode === "custom" ? fromPercentage(section.x!) : section.columnFrom! / space.columns,
+      y: mode === "custom" ? fromPercentage(section.y!) : section.rowFrom! / space.rows,
+      width: mode === "custom" ? fromPercentage(section.width!) : (section.columnTo! - section.columnFrom!) * (1 / space.columns),
+      height: mode === "custom" ? fromPercentage(section.height!) : (section.rowTo! - section.rowFrom!) * (1 / space.rows),
       config: JSON.parse(config),
       assetId: files.find(({
         name,
@@ -150,25 +164,9 @@ const SectionConfig = ({
       asset: section.asset,
       dataType: section.dataType,
       states: [state],
-      ordering: section.ordering ?? sections.length,
+      ordering: sections.find(section => section.id === selected)?.ordering ?? sections.length,
       projectId: projectId
     });
-  };
-
-  const formatConfig = (config: string) => {
-    const stripped = config.split("\n").map(x => x.trim()).join("");
-    return stripped.length < 20 ? stripped : `${stripped.slice(0, 20)}...`;
-  };
-
-  const fullscreen = () => {
-    setValue("x", 0);
-    setValue("y", 0);
-    setValue("width", 100);
-    setValue("height", 100);
-    setValue("columnFrom", 0);
-    setValue("columnTo", space.columns);
-    setValue("rowFrom", 0);
-    setValue("rowTo", space.rows);
   };
 
   const onAssetChange = (asset: string) => {
@@ -194,71 +192,16 @@ const SectionConfig = ({
   return <section id={styles["section-config"]}>
     <h2>Section Config</h2>
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div id={styles["geometry"]}>
-        <div className={styles.actions}>
-          <div className={styles.mode}>
-            <button className={styles.action} type="button"
-                    onClick={() => setMode("custom")}
-                    style={{ backgroundColor: mode === "custom" ? "#dadedf" : undefined }}>
-              <Brush color="black" /></button>
-            <button className={styles.action} type="button"
-                    onClick={() => setMode("grid")}
-                    style={{ backgroundColor: mode === "grid" ? "#dadedf" : undefined }}>
-              <Grid color="black" /></button>
-          </div>
-          <button className={styles.action} id={styles["fullscreen"]}
-                  type="button" onClick={fullscreen}><Fullscreen /></button>
+      <div id={styles["left-container"]}>
+        <Geometry setMode={setMode} mode={mode} space={space}
+                  setValue={setValue} register={register} />
+        <div id={styles["config-container"]}>
+          <label htmlFor="config">Config:</label>
+          <input className={styles.config} {...register("config")} type="button"
+                 onClick={() => setAction("custom-config")} />
         </div>
-        <fieldset style={mode === "custom" ? undefined : { display: "none" }}>
-          <div className={styles.column}>
-            <label htmlFor="x">x:</label>
-            <div className={styles["percentage-container"]}>
-              <input {...register("x")} />
-              <span className={styles.percentage}>%</span>
-            </div>
-          </div>
-          <div className={styles.column}>
-            <label htmlFor="y">y:</label>
-            <div className={styles["percentage-container"]}>
-              <input {...register("y")} />
-              <span className={styles.percentage}>%</span>
-            </div>
-          </div>
-          <div className={styles.column}>
-            <label htmlFor="width">Width:</label>
-            <div className={styles["percentage-container"]}>
-              <input {...register("width")} />
-              <span className={styles.percentage}>%</span>
-            </div>
-          </div>
-          <div className={styles.column}>
-            <label htmlFor="height">Height:</label>
-            <div className={styles["percentage-container"]}>
-              <input {...register("height")} />
-              <span className={styles.percentage}>%</span>
-            </div>
-          </div>
-        </fieldset>
-        <fieldset style={mode === "grid" ? undefined : { display: "none" }}>
-          <div className={styles.column}>
-            <label htmlFor="rowFrom">Row:</label>
-            <input {...register("rowFrom")} placeholder="From:" />
-          </div>
-          <div className={styles.column}>
-            <input className={styles.to} {...register("rowTo")}
-                   placeholder="To:" />
-          </div>
-          <div className={styles.column}>
-            <label htmlFor="columnFrom">Column:</label>
-            <input {...register("columnFrom")} placeholder="From:" />
-          </div>
-          <div className={styles.column}>
-            <input className={styles.to} {...register("columnTo")}
-                   placeholder="To:" />
-          </div>
-        </fieldset>
       </div>
-      <fieldset>
+      <fieldset id={styles["assets"]}>
         <label htmlFor="asset">Asset:</label>
         <input {...register("asset", { onChange: e => onAssetChange(e?.target?.value) })} />
         <S3FileSelect register={register} watch={watch} fromURL={fromURL}
@@ -273,13 +216,96 @@ const SectionConfig = ({
             name
           }) => <option key={name} value={name}>{displayName}</option>)}
         </select>
-        <label htmlFor="config">Config:</label>
-        <input className={styles.config} {...register("config")} type="button"
-               onClick={() => setAction("custom-config")} />
+        <div id={styles["submit-container"]}>
+          <button className={styles.submit} type="submit">UPDATE</button>
+        </div>
       </fieldset>
-      <button className={styles.submit} type="submit" />
     </form>
   </section>;
+};
+
+const Geometry = ({ mode, register, setMode, setValue, space }: {
+  mode: "custom" | "grid",
+  register: UseFormRegister<z.infer<typeof SectionConfigSchema>>,
+  setMode: (mode: "custom" | "grid") => void,
+  setValue: UseFormSetValue<z.infer<typeof SectionConfigSchema>>,
+  space: Space
+}) => {
+  const fullscreen = () => {
+    setValue("x", 0);
+    setValue("y", 0);
+    setValue("width", 100);
+    setValue("height", 100);
+    setValue("columnFrom", 0);
+    setValue("columnTo", space.columns);
+    setValue("rowFrom", 0);
+    setValue("rowTo", space.rows);
+  };
+
+  return <div id={styles["geometry"]}>
+    <div className={styles.actions}>
+      <div className={styles.mode}>
+        <button className={styles.action} type="button"
+                onClick={() => setMode("custom")}
+                style={{ backgroundColor: mode === "custom" ? "#dadedf" : undefined }}>
+          <Brush color="black" /></button>
+        <button className={styles.action} type="button"
+                onClick={() => setMode("grid")}
+                style={{ backgroundColor: mode === "grid" ? "#dadedf" : undefined }}>
+          <Grid color="black" /></button>
+      </div>
+      <button className={styles.action} id={styles["fullscreen"]}
+              type="button" onClick={fullscreen}><Fullscreen /></button>
+    </div>
+    <fieldset style={mode === "custom" ? undefined : { display: "none" }}>
+      <div className={styles.column}>
+        <label htmlFor="x">x:</label>
+        <div className={styles["percentage-container"]}>
+          <input {...register("x")} />
+          <span className={styles.percentage}>%</span>
+        </div>
+      </div>
+      <div className={styles.column}>
+        <label htmlFor="y">y:</label>
+        <div className={styles["percentage-container"]}>
+          <input {...register("y")} />
+          <span className={styles.percentage}>%</span>
+        </div>
+      </div>
+      <div className={styles.column}>
+        <label htmlFor="width">Width:</label>
+        <div className={styles["percentage-container"]}>
+          <input {...register("width")} />
+          <span className={styles.percentage}>%</span>
+        </div>
+      </div>
+      <div className={styles.column}>
+        <label htmlFor="height">Height:</label>
+        <div className={styles["percentage-container"]}>
+          <input {...register("height")} />
+          <span className={styles.percentage}>%</span>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset style={mode === "grid" ? undefined : { display: "none" }}>
+      <div className={styles.column}>
+        <label htmlFor="rowFrom">Row:</label>
+        <input {...register("rowFrom")} placeholder="From:" />
+      </div>
+      <div className={styles.column}>
+        <input className={styles.to} {...register("rowTo")}
+               placeholder="To:" />
+      </div>
+      <div className={styles.column}>
+        <label htmlFor="columnFrom">Column:</label>
+        <input {...register("columnFrom")} placeholder="From:" />
+      </div>
+      <div className={styles.column}>
+        <input className={styles.to} {...register("columnTo")}
+               placeholder="To:" />
+      </div>
+    </fieldset>
+  </div>;
 };
 
 export default SectionConfig;

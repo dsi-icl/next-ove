@@ -31,15 +31,21 @@ import Metadata, { type ProjectMetadata } from "./metadata/metadata";
 import styles from "./page.module.scss";
 
 const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
-  if (action === "launch") return { width: "20vw", aspectRatio: "4/3" };
+  if (action === "launch") return { width: "20vw", aspectRatio: "4/3", borderRadius: "0.25rem" };
+  if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
+    width: "60vw", borderRadius: "0.25rem"
+  }
 
-  return undefined;
+  return { borderRadius: "0.25rem" };
 };
 
 const getInnerDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
   if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
     padding: "0"
-  };
+  }
+  if (action === "import-section") return {
+    padding: "1rem"
+  }
 
   return undefined;
 };
