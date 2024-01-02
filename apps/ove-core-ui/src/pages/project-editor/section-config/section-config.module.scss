@@ -1,14 +1,13 @@
 #section-config {
-  width: 57vw;
+  height: 100%;
   padding: 0 1rem;
-  border-left: 1px solid black;
 
   & form {
     display: flex;
-    width: calc(57vw - 2rem);
+    width: calc(100% - 2rem);
 
     #geometry {
-      width: calc((57vw - 2rem) * 0.66 - 0.5rem);
+      width: calc((100% - 2rem) - 0.5rem);
 
       & fieldset {
         display: grid;
@@ -68,7 +67,6 @@
     }
 
     & label {
-      width: 10vw;
       font-weight: 700;
     }
 
@@ -124,7 +122,7 @@
       border: 1px solid black;
       border-radius: 0.25rem;
       height: 2rem;
-      width: calc((57vw - 2rem) * 0.34 - 0.5rem);
+      width: 100%;
       background-color: #002147;
       color: white;
     }
@@ -132,19 +130,18 @@
     #left-container {
       display: flex;
       flex-direction: column;
-      width: calc((57vw - 2rem) * 0.66 - 0.5rem);
+      width: 100%;
     }
 
     #config-container {
       display: flex;
       flex-direction: column;
-      width: calc((57vw - 2rem) * 0.66 - 0.5rem);
+      width: calc(100% - 2.5rem);
     }
 
     #assets {
-      margin-left: 1rem;
-      margin-top: 1.25rem;
-      width: calc((57vw - 2rem) * 0.34 - 0.5rem);
+      padding-top: 1.25rem;
+      width: 33%;
     }
   }
 }

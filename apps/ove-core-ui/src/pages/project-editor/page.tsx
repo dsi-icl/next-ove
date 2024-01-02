@@ -29,6 +29,11 @@ import ControllerEditor from "./controller-editor/controller-editor";
 import Metadata, { type ProjectMetadata } from "./metadata/metadata";
 
 import styles from "./page.module.scss";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup
+} from "@ove/ui-base-components";
 
 const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
   if (action === "launch") return {
@@ -158,56 +163,79 @@ const ProjectEditor = ({
   };
 
   return <main className={styles.main}>
-    <div style={{ display: "flex" }}>
-      <div>
-        <div id={styles["top"]}>
-          <section id={styles["preview"]}>
-            <StateTabs selected={states.selected}
-                       removeState={states.removeState}
-                       states={states.states} formatState={states.format}
-                       addState={states.addState}
-                       updateState={states.updateState}
-                       setState={states.select}
-                       currentState={states.selected} />
-            <ResizeContainer container={container}>
-              <Canvas sections={sections.getSections(states.selected)}
-                      space={space}
-                      container={container}
-                      dragSection={sections.dragSection}
-                      select={sections.select}
-                      selected={sections.selected} />
-            </ResizeContainer>
-          </section>
-          <Sections sections={sections.getSections(states.selected)}
-                    generateSection={sections.generateSection}
-                    select={sections.select} state={states.selected}
-                    removeFromState={sections.removeFromState}
-                    selected={sections.selected}
-                    setSections={sections.setSections}
-                    setAction={setAction} numStates={states.states.length} />
-        </div>
-        <section id={styles["configuration"]}>
-          <SpaceConfig space={space} presets={observatories} />
-          <SectionConfig sections={sections.getSections(states.selected)}
-                         setAction={setAction} files={assets} fromURL={fromURL}
-                         selected={sections.selected} space={space}
-                         toURL={toURL}
-                         state={states.selected} projectId={project.id}
-                         getLatest={getLatest}
-                         updateSection={sections.updateSection} />
-        </section>
-      </div>
-      <Actions setAction={setAction}
-               save={() => toProject(project, sections.all)} />
-    </div>
+    <ResizablePanelGroup direction="horizontal">
+      <ResizablePanel defaultSize={95}>
+        <ResizablePanelGroup direction="vertical">
+          <ResizablePanel defaultSize={60}>
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={75}>
+                <StateTabs selected={states.selected}
+                           removeState={states.removeState}
+                           states={states.states} formatState={states.format}
+                           addState={states.addState}
+                           updateState={states.updateState}
+                           setState={states.select}
+                           currentState={states.selected} />
+                <ResizeContainer container={container}>
+                  <Canvas sections={sections.getSections(states.selected)}
+                          space={space}
+                          container={container}
+                          dragSection={sections.dragSection}
+                          select={sections.select}
+                          selected={sections.selected} />
+                </ResizeContainer>
+              </ResizablePanel>
+              <ResizableHandle withHandle={true} />
+              <ResizablePanel defaultSize={25}>
+                <Sections sections={sections.getSections(states.selected)}
+                          generateSection={sections.generateSection}
+                          select={sections.select} state={states.selected}
+                          removeFromState={sections.removeFromState}
+                          selected={sections.selected}
+                          setSections={sections.setSections}
+                          setAction={setAction}
+                          numStates={states.states.length} />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+          <ResizableHandle withHandle={true} />
+          <ResizablePanel defaultSize={40}>
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={40}>
+                <SpaceConfig space={space} presets={observatories} />
+              </ResizablePanel>
+              <ResizableHandle withHandle={true} />
+              <ResizablePanel defaultSize={60}>
+                <SectionConfig sections={sections.getSections(states.selected)}
+                               setAction={setAction} files={assets}
+                               fromURL={fromURL}
+                               selected={sections.selected} space={space}
+                               toURL={toURL}
+                               state={states.selected} projectId={project.id}
+                               getLatest={getLatest}
+                               updateSection={sections.updateSection} />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </ResizablePanel>
+      <ResizableHandle withHandle={true} />
+      <ResizablePanel defaultSize={5}>
+        <Actions setAction={setAction}
+                 save={() => toProject(project, sections.all)} />
+      </ResizablePanel>
+    </ResizablePanelGroup>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}
             title={getDialogTitle(action, project.title)}
             style={getDialogStyling(action)}
             hiddenStyle={innerDialogStyle ?? getInnerDialogStyling(action)}>
       {getDialogContent()}
     </Dialog>
-    {isOpen ? <div id={styles["mask"]}></div> : <></>}
-  </main>;
+    {
+      isOpen ? <div id={styles["mask"]}></div> : <></>
+    }
+  </main>
+    ;
 };
 
 export default ProjectEditor;
