@@ -4,7 +4,6 @@
 
   & form {
     display: flex;
-    width: calc(100% - 2rem);
 
     #geometry {
       width: calc((100% - 2rem) - 0.5rem);
@@ -130,7 +129,7 @@
     #left-container {
       display: flex;
       flex-direction: column;
-      width: 100%;
+      width: calc(100% - 2.5rem);
     }
 
     #config-container {
@@ -141,7 +140,7 @@
 
     #assets {
       padding-top: 1.25rem;
-      width: 33%;
+      width: 66%;
     }
   }
 }
