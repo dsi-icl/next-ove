@@ -176,7 +176,7 @@ const ProjectEditor = ({
                            updateState={states.updateState}
                            setState={states.select}
                            currentState={states.selected} />
-                <ResizeContainer container={container}>
+                <ResizeContainer container={container} useContentRect={false}>
                   <Canvas sections={sections.getSections(states.selected)}
                           space={space}
                           container={container}
@@ -185,7 +185,7 @@ const ProjectEditor = ({
                           selected={sections.selected} />
                 </ResizeContainer>
               </ResizablePanel>
-              <ResizableHandle withHandle={true} />
+              <ResizableHandle withHandle={!isOpen} />
               <ResizablePanel defaultSize={25}>
                 <Sections sections={sections.getSections(states.selected)}
                           generateSection={sections.generateSection}
@@ -198,13 +198,13 @@ const ProjectEditor = ({
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
-          <ResizableHandle withHandle={true} />
+          <ResizableHandle withHandle={!isOpen} />
           <ResizablePanel defaultSize={40}>
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={40}>
                 <SpaceConfig space={space} presets={observatories} />
               </ResizablePanel>
-              <ResizableHandle withHandle={true} />
+              <ResizableHandle withHandle={!isOpen} />
               <ResizablePanel defaultSize={60}>
                 <SectionConfig sections={sections.getSections(states.selected)}
                                setAction={setAction} files={assets}
@@ -219,7 +219,7 @@ const ProjectEditor = ({
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
-      <ResizableHandle withHandle={true} />
+      <ResizableHandle withHandle={!isOpen} />
       <ResizablePanel defaultSize={5}>
         <Actions setAction={setAction}
                  save={() => toProject(project, sections.all)} />

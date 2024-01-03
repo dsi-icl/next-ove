@@ -8,6 +8,7 @@ import { ReorderableItem, ReorderableList } from "@ove/ui-reorderable-list";
 
 import styles from "./sections.module.scss";
 import { dataTypes } from "../utils";
+import { Json } from "@ove/ove-utils";
 
 type SectionsProps = {
   sections: Section[]
@@ -41,6 +42,26 @@ const Sections = ({
     setCharacterLimit(Math.floor((bounds.width - (4 * rem)) / (rem * 0.5)));
   };
 
+  const setSectionsHandler = (curList: Section[], newList: Section[]) => {
+    const newListOldOrder = Json.copy(newList).sort((a, b) => a.ordering - b.ordering);
+    let startOrder: number | null = null;
+    let endOrder: number | null = null;
+    newList.forEach((section, i) => {
+      const oldOrder = newListOldOrder[i].ordering;
+      if (oldOrder !== section.ordering) {
+        if (endOrder === null && startOrder === null) {
+          endOrder = section.ordering;
+          startOrder = oldOrder;
+        }
+      }
+    });
+
+    return curList.slice(0, startOrder!).concat([curList[endOrder!]].concat(curList.slice(startOrder!, endOrder!)).map((section, i) => ({
+      ...section,
+      ordering: i
+    }))).concat(curList.slice(endOrder! + 1));
+  };
+
   return <section id={styles["sections"]}>
     <h2>Sections</h2>
     <ul>
@@ -49,21 +70,22 @@ const Sections = ({
         width: "100%",
         height: "100%",
         update: getCharacterLimit
-      }}>
+      }} useContentRect={true}>
         <ReorderableList
-          onListUpdate={newList => setSections(() => (newList as Section[]).map((section, i) => ({
-            ...section,
-            ordering: i
-          })))} list={sections} style={{}}>
+          onListUpdate={newList => setSections(curList => setSectionsHandler(curList, newList))}
+          list={sections} style={{}}>
           {sections.map(section => (
             <ReorderableItem key={section.id}>
               <li key={section.id} style={{
-                backgroundColor: dataTypes.find(({name}) => name === section.dataType.toLowerCase())!.color,
+                backgroundColor: dataTypes.find(({ name }) => name === section.dataType.toLowerCase())!.color,
                 borderWidth: selected === section.id ? "2px" : "1px"
               }}>
                 <button className={styles.container} style={{ flexGrow: 1 }}
                         onClick={() => select(section.id)}>
-                  <span style={{ fontWeight: 700, fontSize: "1.25rem" }}>{section.ordering}</span>
+                  <span style={{
+                    fontWeight: 700,
+                    fontSize: "1.25rem"
+                  }}>{section.ordering}</span>
                   <span className={styles.asset}
                         style={{ fontWeight: selected === section.id ? 700 : 400 }}>{section.asset.length <= characterLimit ? section.asset : `${section.asset.slice(0, characterLimit)}...`}</span>
                 </button>

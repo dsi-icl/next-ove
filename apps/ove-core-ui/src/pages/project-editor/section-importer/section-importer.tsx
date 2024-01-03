@@ -6,6 +6,7 @@ import { X } from "react-bootstrap-icons";
 import { type Section } from "@prisma/client";
 
 import styles from "./section-importer.module.scss";
+import { Json } from "@ove/ove-utils";
 
 type SectionImporterProps = {
   states: string[]
@@ -28,6 +29,13 @@ const SectionImporter = ({
 }: SectionImporterProps) => {
   const [selected, setSelected] = useState(states[0]);
   const sections = getSections(selected, selectedState);
+
+  const sort = (a: string, b: string) => {
+    if (b === "__default__" || a > b) return 1;
+    if (a === "__default__" || b > a) return -1;
+    return 0;
+  };
+
   return <section id={styles["import"]}>
     <header>
       <h2>Import Section</h2>
@@ -37,13 +45,14 @@ const SectionImporter = ({
       <div id={styles["states"]}>
         <h4>From State</h4>
         <ul>
-          {sections.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i).map((state, i) =>
-            <li key={state}
-                style={{ backgroundColor: actionColors[i % actionColors.length] }}>
+          {Json.copy(states).sort(sort).map((state, i) => {
+            return <li key={state}
+                       style={{ backgroundColor: actionColors[i % actionColors.length] }}>
               <button
                 onClick={() => setSelected(state)}
                 style={{ fontWeight: state === selected ? 700 : 400 }}>{formatState(state)}</button>
-            </li>)}
+            </li>;
+          })}
         </ul>
       </div>
       <div id={styles["sections"]}>
@@ -56,7 +65,7 @@ const SectionImporter = ({
               onClick={() => {
                 setAction(null);
                 addToState(section.id, selectedState);
-              }}>{section.asset.length < 25 ? section.asset : `${section.asset.slice(0, 24)}...`}</button>
+              }}><span>{section.ordering}</span>{section.asset.length < 25 ? section.asset : `${section.asset.slice(0, 24)}...`}</button>
           </li>)}
         </ul>
       </div>

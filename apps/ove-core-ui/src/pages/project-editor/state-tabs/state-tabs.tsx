@@ -45,21 +45,21 @@ const StateTabs = ({
 
   return <nav className={styles.container}>
     <ul className={styles.tabs}>
-      <DefaultTab isSelected={DEFAULT_STATE === selected}
+      <DefaultTab key="default-tab" isSelected={DEFAULT_STATE === selected}
                   updateState={() => setState(DEFAULT_STATE)} />
-      {states.map(state => {
+      {[...states].sort().map(state => {
         if (state === DEFAULT_STATE) return null;
         const isSelected = selected === state;
         const isBeingEdited = isEditing && isSelected;
         const formatted = formatState(state);
         return <Tab title={formatted} isBeingEdited={isBeingEdited}
                     isSelected={isSelected} updateState={() => setState(state)}
-                    editTab={() => setIsEditing(true)}
+                    editTab={() => setIsEditing(true)} key={state}
                     stopEditingTab={() => setIsEditing(false)}
                     isEditing={isEditing} onSubmit={onSubmit}
                     removeState={() => removeState(state)} />;
       })}
-      <AddTab addState={addState} />
+      <AddTab key="add-tab" addState={addState} />
     </ul>
   </nav>;
 };

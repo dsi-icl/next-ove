@@ -10,15 +10,17 @@ type ResizeContainerProps = {
     height: number | string,
     update: (contentRect?: { width: number, height: number }) => void
   }
+  useContentRect: boolean
 }
 
 const ResizeContainer = ({
   children,
-  container
+  container,
+  useContentRect
 }: ResizeContainerProps) => {
   useEffect(() => {
     const observer = new ResizeObserver(entries => {
-      container.update(entries[0].contentRect);
+      container.update(useContentRect ? entries[0].contentRect : undefined);
     });
 
     if (container.ref.current === null) return;
@@ -28,7 +30,7 @@ const ResizeContainer = ({
       if (container.ref.current === null) return;
       observer.unobserve(container.ref.current);
     };
-  }, []);
+  }, [container.update, container.ref.current]);
 
   return <div className={styles["resize-container"]} ref={container.ref}>
     <div style={{

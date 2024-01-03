@@ -8,8 +8,8 @@ import { dataTypes } from "../utils";
 
 type PreviewProps = {
   sections: Section[]
-  space: { width: number, height: number, rows: number, columns: number }
-  container: { width: number, height: number, cells: Geometry[] }
+  space: { width: number, height: number, rows: number, columns: number, cells: Geometry[] }
+  container: { width: number, height: number }
   dragSection: (id: string, x: number, y: number) => void
   select: (id: string) => void
   selected: string | null
@@ -38,13 +38,13 @@ function drawSpaces({
   svg.selectAll("*").remove();
 
   svg.selectAll("rect")
-    .data(() => container.cells)
+    .data(() => space.cells)
     .enter()
     .append("rect")
-    .attr("x", d => d.x)
-    .attr("y", d => d.y)
-    .attr("width", d => d.width)
-    .attr("height", d => d.height)
+    .attr("x", d => x(d.x))
+    .attr("y", d => y(d.y))
+    .attr("width", d => x(d.width))
+    .attr("height", d => y(d.height))
     .classed(styles.cell, true)
     .append("title")
     .text((_d, i) => `Cell No: ${i}`);
@@ -62,7 +62,7 @@ function drawSpaces({
     .style("fill", d => dataTypes.find(({name}) => name === d.dataType.toLowerCase())!.color)
     .classed(styles.section, true)
     .append("title")
-    .text(d => `Section Id: ${d.id}`);
+    .text(d => `Section No.: ${d.ordering}\nAsset URL: ${d.asset}`);
 
   function dragStart(this: Element) {
     const section = d3.select(this);
@@ -71,7 +71,7 @@ function drawSpaces({
   }
 
   const clampX = (x: number, w: number) => {
-    for (const cell of container.cells) {
+    for (const cell of space.cells) {
       if (Math.abs(cell.x - x) < ((space.width / space.columns) * THRESHOLDX)) return cell.x;
       if (Math.abs((cell.x + cell.width) - (x + w)) < ((space.width / space.columns) * THRESHOLDX)) return (cell.x + cell.width) - w;
     }
@@ -80,7 +80,7 @@ function drawSpaces({
   };
 
   const clampY = (y: number, h: number) => {
-    for (const cell of container.cells) {
+    for (const cell of space.cells) {
       if (Math.abs(cell.y - y) < ((space.height / space.rows) * THRESHOLDY)) return cell.y;
       if (Math.abs((cell.y + cell.height) - (y + h)) < ((space.height / space.rows) * THRESHOLDY)) return (cell.y + cell.height) - h;
     }

@@ -1,15 +1,16 @@
 import { z } from "zod";
 import { Json } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
-import { type Rect, type Space } from "../types";
+import { type Geometry, type Rect, type Space } from "../types";
 import { type NativeEvent } from "@ove/ove-types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type BaseSyntheticEvent, useRef } from "react";
+import { type BaseSyntheticEvent, useEffect, useRef } from "react";
 
 import styles from "./space-config.module.scss";
+import { toast } from "sonner";
 
 type SpaceConfigProps = {
-  space: Space & { update: (space: Space) => void }
+  space: Space & { cells: Geometry[], update: (space: Space) => void }
   presets: { [key: string]: Space }
 }
 
@@ -38,14 +39,15 @@ const SpaceConfigSchema = z.strictObject({
 });
 
 const SpaceConfig = ({
-  space: { update, ...curSpace },
+  space: { update, cells, ...curSpace },
   presets
 }: SpaceConfigProps) => {
   const ref = useRef<HTMLFormElement | null>(null);
   const {
     register,
     handleSubmit,
-    setValue
+    setValue,
+    formState: {errors}
   } = useForm<Space & { preset: string | null }>({
     resolver: zodResolver(SpaceConfigSchema),
     defaultValues: {
@@ -54,11 +56,17 @@ const SpaceConfig = ({
     }
   });
 
+  useEffect(() => {
+    Object.values(errors).forEach(error => {
+      toast.error(error?.message);
+    });
+  }, [errors]);
+
   const onSubmit = (config: Space & {
     preset: string | null
   }, e: BaseSyntheticEvent<object> | undefined) => {
     const { preset, ...newSpace } = config;
-    if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === styles["custom-submit"]) {
+    if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name !== undefined) {
       if (!Json.equals(newSpace, curSpace)) {
         setValue("preset", getPreset(presets, newSpace));
       }
@@ -88,6 +96,7 @@ const SpaceConfig = ({
               <p>:</p>
               <input {...register("height", { valueAsNumber: true })}
                      type="number" />
+              <button type="submit" style={{display: "none"}}></button>
             </fieldset>
           </label>
           <label htmlFor="presets">Presets:</label>

@@ -18,35 +18,28 @@ export const useContainer = (space: Space) => {
   const [height, setHeight] = useState(100);
   const ref = useRef<HTMLDivElement | null>(null);
 
-  const update = (contentRect?: Rect) => {
+  const update = useCallback((contentRect?: Rect) => {
     if (ref.current === null) return;
     const contentRect_ = contentRect ?? ref.current.getBoundingClientRect();
     const multiple = Math.min(contentRect_.width / space.width, contentRect_.height / space.height);
     setWidth(multiple * space.width);
     setHeight(multiple * space.height);
-  };
+  }, [space.width, space.height, ref.current]);
 
   useEffect(update, [space.width, space.height]);
 
-  const cells = Array.from({ length: space.rows }, (_x, row) => Array.from({ length: space.columns }, (_y, col) => ({
-    x: (width / space.columns) * col,
-    y: (height / space.rows) * row,
-    width: space.width / space.columns,
-    height: space.height / space.rows
-  }))).flat();
-
-  return { width, height, ref, update, cells };
+  return { width, height, ref, update };
 };
 
 export const useSpace = () => {
   const [rows, setRows] = useState(2);
   const [columns, setColumns] = useState(2);
-  const [width, setWidth] = useState(3840);
-  const [height, setHeight] = useState(2160);
+  const [width, setWidth] = useState(16);
+  const [height, setHeight] = useState(9);
 
   const update = (space: Space) => {
-    setHeight(space.height || 4320);
-    setWidth(space.width || 30720);
+    setHeight(space.height || 4);
+    setWidth(space.width || 64);
     setColumns(space.columns || 16);
     setRows(space.rows || 4);
   };
@@ -409,7 +402,6 @@ export const useCollaboration = (project: Project, username: string) => {
     recipientId,
     status
   }) => recipientId === user.id && status === "pending") === undefined);
-  console.log(project.collaboratorIds);
   const accepted = project.collaboratorIds.map(id => users.find(user => user.id === id)!);
   const invited = invites.filter(({ status }) => status === "pending").map(({ recipientId }) => users.find(({ id }) => id === recipientId)!);
 
