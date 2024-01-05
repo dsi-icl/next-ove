@@ -1,8 +1,7 @@
 import { writeFileSync } from "fs";
-import * as Types from "./ove-types";
 import { bench } from "@arktype/attest";
 import Utils from "@ove/ove-server-utils";
-import { type OVEException } from "./ove-types";
+import { type TDeviceResponse } from "./client";
 
 const formatOutput = () => {
   const results = (console.log as ReturnType<typeof jest.fn>).mock.calls.map(x => x[0] as string).filter(o => o.includes("Result: ")).map(o => o.match(/Result: ([\d|.]+)/)![1]);
@@ -18,25 +17,22 @@ const init = () => {
   console.error = jest.fn();
 };
 
-describe("oveTypes", () => {
+describe("client types", () => {
   let benchmarks: Record<string, { time: number, instantiations: number }> = {};
 
-  it("should work", () => {
-    expect(Object.keys(Types).length).toBeGreaterThan(0);
-  });
-
-  it("OVEException", () => {
+  it("TDeviceResponse", () => {
     init();
-    bench("OVEException", () => ({}) as OVEException).mean([0, "ns"]).types([0, "instantiations"]);
-    benchmarks["OVEException"] = formatOutput();
+    bench("TDeviceResponse", () => ({}) as TDeviceResponse<string>).mean([0, "ns"]).types([0, "instantiations"]);
+    benchmarks["TDeviceResponse"] = formatOutput();
   });
 
   afterAll(() => {
     const existing = Utils.readFile<Record<string, any>>("./benchmarks.json", "{}")!;
 
     if (!("ove-types" in existing)) existing["ove-types"] = {};
+    if (!("hardware/" in existing["ove-types"])) existing["ove-types"]["hardware/"] = {};
 
-    existing["ove-types"]["ove-types"] = benchmarks;
+    existing["ove-types"]["hardware/"]["client"] = benchmarks;
     writeFileSync("./benchmarks.json", JSON.stringify(existing, undefined, 2));
   });
 });
