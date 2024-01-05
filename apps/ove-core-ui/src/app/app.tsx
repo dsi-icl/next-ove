@@ -1,12 +1,12 @@
 import { env } from "../env";
 import Router from "./router";
-import { useEffect, useState } from "react";
 import superjson from "superjson";
 import { useAuth } from "../hooks";
 import { trpc } from "../utils/api";
 import { httpLink } from "@trpc/client";
 import { Nav } from "@ove/ui-components";
 import { HddStack } from "react-bootstrap-icons";
+import { useEffect, useState, useMemo } from "react";
 import { NavigationMenuLink, Toaster } from "@ove/ui-base-components";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -116,12 +116,12 @@ export const App = () => {
     setTrpcClient(createTrpcClient);
   }, [loggedIn]);
 
-  const [queryClient] = useState<QueryClient>(() => new QueryClient({
+  const queryClient = useMemo<QueryClient>(() => new QueryClient({
     defaultOptions: {
       queries: {},
       mutations: {}
     }
-  }));
+  }), []);
 
   return <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>

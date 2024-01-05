@@ -5,14 +5,14 @@ export const useVideoStreams = () => {
   const [streams, setStreams] = useState<string[] | undefined>(undefined);
 
   useEffect(() => {
-    window.electron.startStreams({}).catch(logger.error);
-    window.electron.getStreams({}).then(streams => {
+    window.bridge.startStreams({}).catch(logger.error);
+    window.bridge.getStreams({}).then(streams => {
       if (!Array.isArray(streams)) return;
       setStreams(streams);
     });
 
     return () => {
-      window.electron.stopStreams({}).catch(logger.error);
+      window.bridge.stopStreams({}).catch(logger.error);
     }
   }, []);
 

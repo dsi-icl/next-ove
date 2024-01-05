@@ -20,7 +20,8 @@ export const inboundChannels: InboundAPIChannels = {
   getAutoSchedule: "get-auto-schedule",
   getStreams: "get-video-streams",
   startStreams: "start-videos",
-  stopStreams: "stop-videos"
+  stopStreams: "stop-videos",
+  getGeometry: "get-geometry"
 };
 
 export type InboundAPIChannels = {

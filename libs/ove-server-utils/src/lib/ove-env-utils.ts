@@ -38,11 +38,11 @@ const saveConfig = <T extends Record<string, unknown>>(configPath: string, updat
   safeWriteFile(configPath, Json.stringify(excludedEnv), true);
 };
 
-export const setupConfig = <T extends object, U extends z.ZodRawShape, V extends object>(configPath: string, defaultConfig: T, schema: z.ZodObject<U, "strict">, staticConfig: V) => {
+export const setupConfigWithRefinement = <T extends object, U extends z.ZodRawShape, V extends object>(configPath: string, defaultConfig: T, schema: z.ZodObject<U, "strict"> | z.ZodEffects<z.ZodObject<U, "strict">>, staticConfig: V, keys: string[]) => {
   const config = updateConfig(
     configPath,
     defaultConfig,
-    Object.keys(schema.shape)
+    keys
   );
 
   if (config === null) throw new Error("Error retrieving configuration");
@@ -60,4 +60,6 @@ export const setupConfig = <T extends object, U extends z.ZodRawShape, V extends
   }
 
   return env;
-};
+}
+
+export const setupConfig = <T extends object, U extends z.ZodRawShape, V extends object>(configPath: string, defaultConfig: T, schema: z.ZodObject<U, "strict">, staticConfig: V) => setupConfigWithRefinement(configPath, defaultConfig, schema, staticConfig, Object.keys(schema.shape));

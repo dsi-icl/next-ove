@@ -9,7 +9,7 @@ const KeyPass = () => {
   const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
-    window.electron.getPublicKey({}).then(key => {
+    window.bridge.getPublicKey({}).then(key => {
       if (typeof key !== "string") return;
       setDisplayPublicKey(key);
     });

@@ -11,10 +11,10 @@ import { usePin } from "./app-controller";
 declare global {
   // noinspection JSUnusedGlobalSymbols
   interface Window {
-    electron: InboundAPI & {
+    client: InboundAPI & {
       receive: <Key extends keyof OutboundAPI>(
         event: OutboundAPIChannels[Key],
-        listener: (...args: Parameters<OutboundAPI[Key]>) =>
+        listener: (args: Parameters<OutboundAPI[Key]>[0]) =>
           ReturnType<OutboundAPI[Key]>
       ) => void
     };

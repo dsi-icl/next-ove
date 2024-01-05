@@ -1,3 +1,7 @@
+// global fetch
+
+declare const fetch: any;
+
 import chalk from "chalk";
 import format from "date-fns/format";
 import { default as Constants } from "./constants";

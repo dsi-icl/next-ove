@@ -1,9 +1,9 @@
-import { logger } from "./env";
 import { useStore } from "./store";
-import { useCallback, useMemo, useState } from "react";
+import { env, logger } from "./env";
 import { Json } from "@ove/ove-utils";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useMemo, useState } from "react";
 import { createAuthClient, createClient } from "./utils";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -52,10 +52,10 @@ export const useAuth = () => {
       return;
     }
 
-  }, []);
+  }, [tokens]);
 
   return {
-    loggedIn: tokens !== null,
+    loggedIn: tokens !== null || env.DISABLE_AUTH,
     tokens,
     login,
     logout,

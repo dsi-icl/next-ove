@@ -10,7 +10,7 @@ import { type InboundAPI } from "@ove/ove-types";
 declare global {
   // noinspection JSUnusedGlobalSymbols
   interface Window {
-    electron: InboundAPI & {
+    bridge: InboundAPI & {
       receive: <Key extends keyof OutboundAPI>(
         event: OutboundAPIChannels[Key],
         listener: (args: Parameters<OutboundAPI[Key]>[0]) =>

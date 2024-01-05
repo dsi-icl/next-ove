@@ -299,3 +299,21 @@ sandworm
 /apps/ove-core/src/config/config.json
 
 /tests/**/private.*
+
+# typescript-coverage-report
+/coverage-ts
+
+# Lighthouse CLI
+/.lighthouseci
+!.lighthouseci/audit.js
+!.lighthouseci/config.example.json
+
+# vite-bundle-visualizer
+/bundle-analysis
+
+# better-docs & jsdoc
+/docs/code
+
+# typedoc
+/docs/types
+

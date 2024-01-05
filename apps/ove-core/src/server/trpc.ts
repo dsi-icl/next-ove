@@ -17,21 +17,23 @@ export const middleware = trpc.middleware;
 const isAuthed = middleware((opts) => {
   const { ctx } = opts;
 
-  if (ctx.user !== null && env.ACCESS_TOKEN_SECRET !== undefined) {
-    let user: { username: string };
+  if (env.DISABLE_AUTH) return opts.next({
+    ctx: { user: env.TEST_USER ?? "" }
+  });
 
-    try {
-      user = (jwt.verify(ctx.user, env.ACCESS_TOKEN_SECRET) as unknown as {username: string});
-    } catch (e) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
+  if (ctx.user === null || env.ACCESS_TOKEN_SECRET === undefined) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-    return opts.next({
-      ctx: { user: user.username }
-    });
+  let user: { username: string };
+
+  try {
+    user = (jwt.verify(ctx.user, env.ACCESS_TOKEN_SECRET) as unknown as {username: string});
+  } catch (e) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  throw new TRPCError({ code: "UNAUTHORIZED" });
+  return opts.next({
+    ctx: { user: user.username }
+  });
 });
 
 // you can reuse this for any procedure

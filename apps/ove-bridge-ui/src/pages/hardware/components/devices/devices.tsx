@@ -59,7 +59,7 @@ const Devices = () => {
   const close = useCallback(() => setMode("overview"), []);
 
   useEffect(() => {
-    window.electron.getDevices({}).then(devices => {
+    window.bridge.getDevices({}).then(devices => {
       if ("oveError" in devices) return;
       setDevices(devices);
     });

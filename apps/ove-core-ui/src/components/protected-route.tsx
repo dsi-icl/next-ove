@@ -1,5 +1,5 @@
-import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
+import { Navigate } from "react-router-dom";
 
 /**
  * Only allows navigation to a route if a condition is met.
@@ -10,7 +10,7 @@ const ProtectedRoute = ({
   redirectTo,
   children
 }: ConditionalRouteProps): JSX.Element => condition ? <>{children}</> :
-  <Navigate to={redirectTo} replace />
+  <Navigate to={redirectTo} replace />;
 
 export type ConditionalRouteProps = {
   /**

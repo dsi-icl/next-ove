@@ -11,11 +11,15 @@ import KeyPass from "./components/key-pass/key-pass";
 import Configuration from "./components/configuration/configuration";
 import AutoModeConfiguration
   from "./components/auto-mode-configuration/auto-mode-configuration";
-import { type OVEException, type Calendar as TCalendar } from "@ove/ove-types";
+import {
+  type OVEException,
+  type Calendar as TCalendar,
+  isError
+} from "@ove/ove-types";
 
 import styles from "./home.module.scss";
 
-const useFetchCalendar = (controller: typeof window["electron"]["getCalendar"]) => {
+const useFetchCalendar = (controller: typeof window["bridge"]["getCalendar"]) => {
   const [response, setResponse] = useState<TCalendar | OVEException | undefined>(undefined);
   const x = useCalendar(response);
 
@@ -27,8 +31,16 @@ const useFetchCalendar = (controller: typeof window["electron"]["getCalendar"]) 
 };
 
 const Home = () => {
-  const { calendar, lastUpdated, refresh: refreshCalendar } = useFetchCalendar(window.electron.getCalendar);
+  const [mode, setMode] = useState<"manual" | "auto" | "eco" | null>("manual");
+  const { calendar, lastUpdated, refresh: refreshCalendar } = useFetchCalendar(window.bridge.getCalendar);
   const { ref, openDialog, closeDialog } = useDialog();
+
+  useEffect(() => {
+    window.bridge.getMode({}).then(mode => {
+      if (isError(mode)) return;
+      setMode(mode);
+    });
+  }, []);
 
   useEffect(() => {
     console.log(JSON.stringify(calendar));
@@ -45,7 +57,7 @@ const Home = () => {
       <div className={styles.power}>
         <LastUpdated lastUpdated={lastUpdated}
                      refreshCalendar={refreshCalendar} />
-        <PowerMode calendar={calendar} controller={window.electron} />
+        <PowerMode mode={mode} setMode={setMode} calendar={calendar} controller={window.bridge} />
       </div>
       {calendar !== null ? <Calendar calendar={calendar} /> : null}
     </section>

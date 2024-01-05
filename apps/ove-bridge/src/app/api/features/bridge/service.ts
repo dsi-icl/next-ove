@@ -56,6 +56,7 @@ export const service: TBridgeService = {
     }
   },
   getStreams: () => env.VIDEO_STREAMS,
+  // @ts-expect-error - TODO: fix typing
   getCalendar: async () => {
     // TODO: add full production integration with email service, Azure auth etc.
     if (env.CALENDAR_URL === undefined) return undefined;

@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 
 export const usePin = () => {
-  const [pin, setPin] =
-    useState<string>("");
+  const [pin, setPin] = useState("");
 
   useEffect(() => {
-    window.electron.receive("update-pin", setPin);
+    window.client.receive("update-pin", setPin);
   }, []);
 
   return pin;
