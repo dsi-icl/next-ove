@@ -10,7 +10,13 @@ export default {
         tsconfig: '<rootDir>/tsconfig.spec.json',
       },
     ],
+    "@arktype": [
+      "babel-jest"
+    ]
   },
+  transformIgnorePatterns: [
+    "<rootDir>/node_modules/(?!@arktype)"
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   coverageDirectory: '../../coverage/libs/ove-types',
 };

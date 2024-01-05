@@ -9,6 +9,12 @@ export default {
       {
         useESM: true
       }
+    ],
+    "node_modules/@arktype": [
+      "babel-jest"
     ]
-  }
+  },
+  transformIgnorePatterns: [
+    "node_modules/(?!@arktype)"
+  ]
 };

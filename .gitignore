@@ -300,6 +300,8 @@ sandworm
 
 /tests/**/private.*
 
+benchmarks.json
+
 # typescript-coverage-report
 /coverage-ts
 

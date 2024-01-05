@@ -1,9 +1,11 @@
 {
+  "exclude": ["../../node_modules"],
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
+    "noEmit": true,
     "module": "commonjs",
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "allowJs": true
   },
   "include": [
     "jest.config.ts",
