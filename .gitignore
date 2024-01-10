@@ -322,3 +322,6 @@ benchmarks.json
 # @arktype/attest
 .attest
 
+# doiuse
+browser-usage.json
+
