@@ -27,5 +27,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run: scp ${{ secrets.LOCAL_FILE }} ${{ secrets.REMOTE }}
     - run: npm install --legacy-peer-deps --silent
     - run: npx nx run ove-client:build
