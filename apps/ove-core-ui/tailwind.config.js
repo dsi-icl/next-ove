@@ -1,14 +1,14 @@
-const { createGlobPatternsForDependencies } = require('@nrwl/react/tailwind');
-const { join } = require('path');
-const { fontFamily } = require('tailwindcss/defaultTheme');
+const { createGlobPatternsForDependencies } = require("@nrwl/react/tailwind");
+const { join } = require("path");
+const { fontFamily } = require("tailwindcss/defaultTheme");
 
-/** @type {import('tailwindcss').Config} */
+/** @type {import("tailwindcss").Config} */
 module.exports = {
   darkMode: ["class"],
   content: [
     join(
       __dirname,
-      '{src,pages,components}/**/*!(*.stories|*.spec).{ts,tsx,html}'
+      "{src,pages,components}/**/*!(*.stories|*.spec).{ts,tsx,html}"
     ),
     ...createGlobPatternsForDependencies(__dirname),
   ],
@@ -57,8 +57,8 @@ module.exports = {
         },
       },
       borderRadius: {
-        lg: `var(--radius)`,
-        md: `calc(var(--radius) - 2px)`,
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {

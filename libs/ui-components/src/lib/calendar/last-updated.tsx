@@ -1,3 +1,4 @@
+import React from "react";
 import { RefreshCcw } from "lucide-react";
 
 import styles from "./calendar.module.scss";

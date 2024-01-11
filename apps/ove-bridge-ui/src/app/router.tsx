@@ -1,3 +1,4 @@
+import React from "react";
 import Home from "../pages/home/home";
 import Hardware from "../pages/hardware/hardware";
 import { Route, Routes } from "react-router-dom";

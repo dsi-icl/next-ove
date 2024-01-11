@@ -1,5 +1,5 @@
-import {
-  BaseSyntheticEvent,
+import React, {
+  type BaseSyntheticEvent,
   forwardRef, useCallback,
   useState
 } from "react";
@@ -9,11 +9,13 @@ import {
   type NativeEvent,
   type ServiceType
 } from "@ove/ove-types";
-
-import styles from "./edit-device.module.scss";
 import { assert } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
+// TODO: investigate circular dependency
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import { Dialog } from "@ove/ui-components";
+
+import styles from "./edit-device.module.scss";
 
 type EditDeviceProps = {
   setMode: (mode: Mode) => void
@@ -32,12 +34,19 @@ type Form = {
   mac: string
 }
 
-const saveDevice_ = (device: Device | null, setMode: (mode: Mode) => void, type: ServiceType, data: Form, e: BaseSyntheticEvent<object> | undefined) => {
+const saveDevice_ = (
+  device: Device | null,
+  setMode: (mode: Mode) => void,
+  type: ServiceType,
+  data: Form,
+  e: BaseSyntheticEvent<object> | undefined
+) => {
   const id = device?.id ?? assert(data.id);
 
   if (id === "" || id.length < 1) return false;
-  if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name === "delete") {
-    window.bridge.removeDevice({deviceId: assert(device).id})
+  if ((e?.nativeEvent as unknown as NativeEvent)
+    ?.submitter?.name === "delete") {
+    window.bridge.removeDevice({ deviceId: assert(device).id })
       .catch(console.error).then(() => setMode("overview"));
     return;
   }
@@ -45,7 +54,8 @@ const saveDevice_ = (device: Device | null, setMode: (mode: Mode) => void, type:
 
   if (type === "node") {
     auth = false;
-  } else if (data.authUsername !== undefined && data.authPassword !== undefined) {
+  } else if (data.authUsername !== undefined &&
+    data.authPassword !== undefined) {
     auth = { username: data.authUsername, password: data.authPassword };
   }
 
@@ -73,9 +83,14 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
   device,
   setMode
 }, ref) => {
-  const [type, setType] = useState<ServiceType>(device?.type ?? "node");
+  const [type, setType] =
+    useState<ServiceType>(device?.type ?? "node");
   const { register, handleSubmit } = useForm<Form>();
-  const saveDevice = useCallback((data: Form, e: BaseSyntheticEvent<object> | undefined) => saveDevice_(device, setMode, type, data, e), [device, setMode, type]);
+  const saveDevice = useCallback((
+    data: Form,
+    e: BaseSyntheticEvent<object> | undefined
+  ) =>
+    saveDevice_(device, setMode, type, data, e), [device, setMode, type]);
 
   return <Dialog ref={ref} title="Edit Device"
                  closeDialog={() => setMode("overview")}>
@@ -125,5 +140,7 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(({
     </form>
   </Dialog>;
 });
+
+EditDevice.displayName = "EditDevice";
 
 export default EditDevice;

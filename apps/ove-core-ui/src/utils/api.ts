@@ -9,6 +9,7 @@ import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 
 // IGNORE PATH - dependency removed at runtime
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import { type AppRouter } from "../../../ove-core/src/server/router";
 
 /**

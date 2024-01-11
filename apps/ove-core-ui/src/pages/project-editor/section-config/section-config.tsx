@@ -1,22 +1,31 @@
-import { type Actions, type File } from "../hooks";
-import { useForm, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { z } from "zod";
+import { dataTypes } from "../utils";
+import { type Actions } from "../hooks";
+import { type File } from "@ove/ove-types";
+import {
+  type DataType,
+  type Geometry as TGeometry,
+  type Space
+} from "../types";
+import {
+  useForm,
+  type UseFormRegister,
+  type UseFormSetValue
+} from "react-hook-form";
 import { useStore } from "../../../store";
-import { useEffect, useState } from "react";
 import { type Section } from "@prisma/client";
-import { DataType, type Geometry, type Space } from "../types";
+import React, { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Grid, Brush, Fullscreen } from "react-bootstrap-icons";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./section-config.module.scss";
-import { dataTypes } from "../utils";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 type SectionConfigProps = {
   sections: Section[]
   selected: string | null
   updateSection: (section: Omit<Section, "id">) => void
-  space: Space & { cells: Geometry[] }
+  space: Space & { cells: TGeometry[] }
   projectId: string
   state: string
   setAction: (action: Actions | null) => void
@@ -28,7 +37,10 @@ type SectionConfigProps = {
 
 const getDataTypeFromFile = (file: File) => {
   for (const dt of dataTypes) {
-    if (dt.extensions.some(extension => file.name.toUpperCase().endsWith(extension))) return dt.name;
+    if (dt.extensions.some(extension =>
+      file.name.toUpperCase().endsWith(extension))) {
+      return dt.name;
+    }
   }
   return null;
 };
@@ -42,17 +54,19 @@ const sort = (k: keyof DataType, a: DataType, b: DataType) => {
 const toPercentage = (x: number) => parseFloat(`${(x * 100)}`.slice(0, 5));
 const fromPercentage = (x: number) => parseFloat(x.toString()) / 100;
 
-const getRow = (y: number, space: Space & { cells: Geometry[] }) => {
+const getRow = (y: number, space: Space & { cells: TGeometry[] }) => {
   if (y === 0) return 0;
   if (y === 1) return space.rows;
   for (let i = 0; i < space.cells.length; i++) {
-    if (space.cells[i].y === y * space.height) return Math.floor(i / space.columns);
+    if (space.cells[i].y === y * space.height) {
+      return Math.floor(i / space.columns);
+    }
   }
 
   return null;
 };
 
-const getColumn = (x: number, space: Space & { cells: Geometry[] }) => {
+const getColumn = (x: number, space: Space & { cells: TGeometry[] }) => {
   if (x === 0) return 0;
   if (x === 1) return space.columns;
   for (let i = 0; i < space.cells.length; i++) {
@@ -102,14 +116,15 @@ const SectionConfig = ({
     setValue,
     resetField,
     watch
-  } = useForm<z.infer<typeof SectionConfigSchema>>({ resolver: zodResolver(SectionConfigSchema) });
+  } = useForm<z.infer<typeof SectionConfigSchema>>(
+    { resolver: zodResolver(SectionConfigSchema) });
   const [mode, setMode] = useState<"custom" | "grid">("custom");
   const config = useStore(state => state.config);
   const [fileName, fileVersion] = watch(["fileName", "fileVersion"]);
 
   useEffect(() => {
     setValue("config", formatConfig(config));
-  }, [config]);
+  }, [config, setValue]);
 
   useEffect(() => {
     if (selected === null) {
@@ -148,23 +163,29 @@ const SectionConfig = ({
       setValue("fileName", file.name);
       setValue("fileVersion", file.version.toString());
     }
-  }, [selected, sections]);
+  }, [selected, sections, fromURL, resetField, setValue, space]);
 
   const onSubmit = (section: z.infer<typeof SectionConfigSchema>) => {
     updateSection({
-      x: mode === "custom" ? fromPercentage(section.x!) : section.columnFrom! / space.columns,
-      y: mode === "custom" ? fromPercentage(section.y!) : section.rowFrom! / space.rows,
-      width: mode === "custom" ? fromPercentage(section.width!) : (section.columnTo! - section.columnFrom!) * (1 / space.columns),
-      height: mode === "custom" ? fromPercentage(section.height!) : (section.rowTo! - section.rowFrom!) * (1 / space.rows),
+      x: mode === "custom" ? fromPercentage(section.x!) :
+        section.columnFrom! / space.columns,
+      y: mode === "custom" ? fromPercentage(section.y!) :
+        section.rowFrom! / space.rows,
+      width: mode === "custom" ? fromPercentage(section.width!) :
+        (section.columnTo! - section.columnFrom!) * (1 / space.columns),
+      height: mode === "custom" ? fromPercentage(section.height!) :
+        (section.rowTo! - section.rowFrom!) * (1 / space.rows),
       config: JSON.parse(config),
       assetId: files.find(({
         name,
         version
-      }) => name === section.fileName && version.toString() === section.fileVersion)?.assetId ?? null,
+      }) => name === section.fileName &&
+        version.toString() === section.fileVersion)?.assetId ?? null,
       asset: section.asset,
       dataType: section.dataType,
       states: [state],
-      ordering: sections.find(section => section.id === selected)?.ordering ?? sections.length,
+      ordering: sections.find(section =>
+        section.id === selected)?.ordering ?? sections.length,
       projectId: projectId
     });
   };
@@ -174,20 +195,24 @@ const SectionConfig = ({
     setValue("fileName", file?.name ?? null);
     setValue("fileVersion", file?.version?.toString() ?? null);
     if (file !== null) {
-      setValue("dataType", getDataTypeFromFile(file) ?? "-- select an option --");
+      setValue("dataType", getDataTypeFromFile(file) ??
+        "-- select an option --");
     }
   };
 
   useEffect(() => {
-    if (fileName !== null && fileName !== undefined && fileName !== "-- select an option --" && fileVersion !== null && fileVersion !== undefined && fileVersion !== "-- select an option --") {
+    if (fileName !== null && fileName !== undefined &&
+      fileName !== "-- select an option --" && fileVersion !== null &&
+      fileVersion !== undefined && fileVersion !== "-- select an option --") {
       setValue("asset", toURL(fileName, parseInt(fileVersion)));
       const file = files.find(({
         name,
         version
       }) => name === fileName && version === parseInt(fileVersion))!;
-      setValue("dataType", getDataTypeFromFile(file) ?? "-- select an option --");
+      setValue("dataType", getDataTypeFromFile(file) ??
+        "-- select an option --");
     }
-  }, [fileName, fileVersion]);
+  }, [fileName, fileVersion, files, setValue, toURL]);
 
   return <section id={styles["section-config"]}>
     <h2>Section Config</h2>
@@ -203,7 +228,10 @@ const SectionConfig = ({
       </div>
       <fieldset id={styles["assets"]}>
         <label htmlFor="asset">Asset:</label>
-        <input {...register("asset", { onChange: e => onAssetChange(e?.target?.value) })} />
+        <input {...register("asset", {
+          onChange: e =>
+            onAssetChange(e?.target?.value)
+        })} />
         <S3FileSelect register={register} watch={watch} fromURL={fromURL}
                       getLatest={getLatest} setValue={setValue}
                       files={files} url={watch("asset")} />
@@ -242,16 +270,18 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
     setValue("rowTo", space.rows);
   };
 
+  const backgroundColor = mode === "custom" ? "#dadedf" : undefined;
+
   return <div id={styles["geometry"]}>
     <div className={styles.actions}>
       <div className={styles.mode}>
         <button className={styles.action} type="button"
                 onClick={() => setMode("custom")}
-                style={{ backgroundColor: mode === "custom" ? "#dadedf" : undefined }}>
+                style={{ backgroundColor }}>
           <Brush color="black" /></button>
         <button className={styles.action} type="button"
                 onClick={() => setMode("grid")}
-                style={{ backgroundColor: mode === "grid" ? "#dadedf" : undefined }}>
+                style={{ backgroundColor }}>
           <Grid color="black" /></button>
       </div>
       <button className={styles.action} id={styles["fullscreen"]}

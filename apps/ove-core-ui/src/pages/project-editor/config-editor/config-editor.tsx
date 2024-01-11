@@ -1,7 +1,7 @@
 import ace from "ace-builds";
 import AceEditor from "react-ace";
 import { useStore } from "../../../store";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import url from "ace-builds/src-noconflict/mode-json";
 
 import "ace-builds/src-noconflict/theme-dracula";
@@ -22,7 +22,7 @@ const ConfigEditor = () => {
   useEffect(() => () => {
     if (dataRef.current === config) return;
     setConfig(dataRef.current === "" ? "{}" : dataRef.current);
-  }, []);
+  }, [config, setConfig]);
 
   return <AceEditor
     placeholder="Section Config"

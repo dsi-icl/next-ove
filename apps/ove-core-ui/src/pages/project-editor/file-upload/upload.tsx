@@ -1,8 +1,8 @@
 import styles from "./file-upload.module.scss";
 import { Brush, Upload as UploadButton, X } from "react-bootstrap-icons";
-import { type File as FileT } from "../hooks";
+import { type File as FileT } from "@ove/ove-types";
 import { type FieldValues } from "react-hook-form";
-import { FormEventHandler, useRef } from "react";
+import React, { FormEventHandler, useRef } from "react";
 import { actionColors, dataTypes } from "../utils";
 
 type UploadProps = {
@@ -47,10 +47,11 @@ const Upload = ({
             style={{ backgroundColor: colors[i % names.length] }}>
           {name}
           <span>v</span>
-          {/*@ts-expect-error – readOnly is unknown*/}
+          {/* @ts-expect-error – readOnly is unknown */}
           <select value={getLatest(name).version} readOnly={true}
                   style={{ backgroundColor: colors[i % names.length] }}>
-            {files.filter(file => file.name === name).map(({ version }) => version).map(version =>
+            {files.filter(file =>
+              file.name === name).map(({ version }) => version).map(version =>
               <option disabled value={version}
                       key={version}>{version}</option>)}
           </select>
@@ -67,7 +68,9 @@ const Upload = ({
                 onClick={() => fileRef?.current?.click()}>Browse...
         </button>
         <label htmlFor="file"
-               className={styles.selected}>{file?.[0]?.name ?? "No file chosen"}</label>
+               className={styles.selected}>
+          {file?.[0]?.name ?? "No file chosen"}
+        </label>
         <div className={styles.actions}>
           <button onClick={() => setMode("editor")} type="button"><Brush />
           </button>

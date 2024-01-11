@@ -49,7 +49,8 @@ export const initBridge = () => {
     assert(socket).on<typeof k>(k, getHandler(k));
   });
 
-  socket.on("connect_error", err => logger.error(`connection error due to ${err.message}`));
+  socket.on("connect_error", err =>
+    logger.error(`connection error due to ${err.message}`));
 };
 
 initService(initBridge, initHardware);

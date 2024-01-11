@@ -1,3 +1,4 @@
+import React from "react";
 import {
   ArrowClockwise,
   ArrowRepeat,
@@ -22,7 +23,8 @@ import { useStore } from "../../../../store";
 import styles from "./actions.module.scss";
 
 const MultiActions = ({ bridgeId }: { bridgeId: string }) => {
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
   return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
       <button onClick={() => setDeviceAction({

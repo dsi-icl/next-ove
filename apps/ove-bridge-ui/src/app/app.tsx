@@ -1,6 +1,8 @@
 import Nav from "./nav";
+import React from "react";
 import Router from "./router";
 // IGNORE PATH - dependency removed at runtime
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import {
   type OutboundAPI,
   type OutboundAPIChannels

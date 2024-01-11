@@ -22,17 +22,21 @@ const getObservatories = async (ctx: Context) => {
 };
 
 const getObservatoryBounds = async (ctx: Context) => {
-  const observatories = (await getObservatories(ctx)).filter(({ isOnline }) => isOnline);
-  return (await Promise.all(observatories.map(async ({ name }) => io.sockets.get(state.bridgeClients.get(name)!)!.emitWithAck("getGeometry", {})))).reduce((acc, x) => {
-    if (isError(x.response) || x.response === undefined) return acc;
-    acc[x.meta.bridge] = x.response;
-    return acc;
-  }, <Record<string, {
-    width: number,
-    height: number,
-    rows: number,
-    columns: number
-  }>>{});
+  const observatories =
+    (await getObservatories(ctx)).filter(({ isOnline }) => isOnline);
+  return (await Promise.all(observatories.map(async ({ name }) =>
+    io.sockets.get(state.bridgeClients.get(name)!)!
+      .emitWithAck("getGeometry", {}))))
+    .reduce((acc, x) => {
+      if (isError(x.response) || x.response === undefined) return acc;
+      acc[x.meta.bridge] = x.response;
+      return acc;
+    }, <Record<string, {
+      width: number,
+      height: number,
+      rows: number,
+      columns: number
+    }>>{});
 };
 
 const controller = {

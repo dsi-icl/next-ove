@@ -1,6 +1,6 @@
 import { type FieldValues } from "react-hook-form";
-import { type BaseSyntheticEvent, useEffect } from "react";
-import { type File } from "../../pages/project-editor/hooks";
+import React, { type BaseSyntheticEvent, useEffect } from "react";
+import { type File } from "@ove/ove-types";
 
 import styles from "./s3-file-select.module.scss";
 
@@ -30,14 +30,15 @@ const S3FileSelect = ({
   const name = watch("fileName");
 
   useEffect(() => {
-    if (name === null || name === undefined || name === "-- select an option --") return;
+    if (name === null || name === undefined ||
+      name === "-- select an option --") return;
     const file = fromURL(url ?? null);
     if (file !== null && file.name === name) {
       setValue("fileVersion", file.version.toString());
     } else {
       setValue("fileVersion", getLatest(name).version.toString());
     }
-  }, [name]);
+  }, [fromURL, setValue, getLatest, url, name]);
 
   return <div id={id}>
     <div id={styles["container"]}>
@@ -47,17 +48,22 @@ const S3FileSelect = ({
         <option disabled value={"-- select an option --"}> -- select an option
           --
         </option>
-        {files.map(({ name }) => name).filter((name, i, arr) => arr.indexOf(name) === i).map(name =>
-          <option key={name} value={name}>{name}</option>)}
+        {files
+          .map(({ name }) => name)
+          .filter((name, i, arr) => arr.indexOf(name) === i)
+          .map(name =>
+            <option key={name} value={name}>{name}</option>)}
       </select>
       <label htmlFor="fileVersion">File Version</label>
       <select
         className={styles.version} {...register("fileVersion")}>
         <option disabled value="-- select an option --"> -- select an option --
         </option>
-        {files.filter(file => file.name === name).map(({ version }) => version).map(version =>
-          <option key={version}
-                  value={version}>{version}</option>)}
+        {files.filter(file => file.name === name)
+          .map(({ version }) => version)
+          .map(version =>
+            <option key={version}
+                    value={version}>{version}</option>)}
       </select>
     </div>
   </div>;

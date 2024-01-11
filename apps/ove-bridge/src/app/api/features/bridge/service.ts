@@ -19,14 +19,20 @@ import { closeSocket, getSocketStatus } from "./sockets";
 let initBridge_: (() => void) | null = null;
 let initHardware_: (() => void) | null = null;
 
-export const initService = (initBridge: () => void, initHardware: () => void) => {
+export const initService = (
+  initBridge: () => void,
+  initHardware: () => void
+) => {
   initBridge_ = initBridge;
   initHardware_ = initHardware;
 };
 
 export const service: TBridgeService = {
-  getDevice: ({ deviceId }) => env.HARDWARE.find(({ id }) => id === deviceId) ?? raise(`No device with id: ${deviceId}`),
-  getDevices: ({ tag }) => tag === undefined ? env.HARDWARE : env.HARDWARE.filter(({ tags }) => tags.includes(tag)),
+  getDevice: ({ deviceId }) =>
+    env.HARDWARE.find(({ id }) => id === deviceId) ??
+    raise(`No device with id: ${deviceId}`),
+  getDevices: ({ tag }) => tag === undefined ?
+    env.HARDWARE : env.HARDWARE.filter(({ tags }) => tags.includes(tag)),
   addDevice: ({ device }) => {
     env.HARDWARE.push(device);
     return true;
@@ -76,16 +82,22 @@ export const service: TBridgeService = {
       env.CALENDAR = calendar;
       return calendar;
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       return undefined;
     }
   },
   getSocketStatus: getSocketStatus,
   getMode: () => env.POWER_MODE,
   setManualSchedule: () => setManualSchedule(),
-  setEcoSchedule: ({ ecoSchedule }) => void setEcoSchedule(ecoSchedule).catch(logger.error),
-  setAutoSchedule: ({ autoSchedule }) => void setAutoSchedule(autoSchedule).catch(logger.error),
-  getEnv: () => ({ bridgeName: env.BRIDGE_NAME, coreURL: env.CORE_URL, calendarURL: env.CALENDAR_URL }),
+  setEcoSchedule: ({ ecoSchedule }) =>
+    void setEcoSchedule(ecoSchedule).catch(logger.error),
+  setAutoSchedule: ({ autoSchedule }) =>
+    void setAutoSchedule(autoSchedule).catch(logger.error),
+  getEnv: () => ({
+    bridgeName: env.BRIDGE_NAME,
+    coreURL: env.CORE_URL,
+    calendarURL: env.CALENDAR_URL
+  }),
   updateEnv: ({ bridgeName, coreURL, calendarURL }) => {
     if (initHardware_ === null || initBridge_ === null) return;
     env.CORE_URL = coreURL;

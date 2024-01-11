@@ -6,12 +6,22 @@ import { useStore } from "../../../../store";
 import { type Browser, isError } from "@ove/ove-types";
 import { type Action, type DeviceAction, type DeviceStatus } from "../../types";
 
-const isSkip = (type: Action, bridgeId: string, deviceAction: DeviceAction): boolean => deviceAction.bridgeId !== bridgeId || deviceAction.deviceId !== null || deviceAction.action !== type || deviceAction.pending;
+const isSkip = (
+  type: Action,
+  bridgeId: string,
+  deviceAction: DeviceAction
+): boolean => deviceAction.bridgeId !== bridgeId ||
+  deviceAction.deviceId !== null || deviceAction.action !== type ||
+  deviceAction.pending;
 
-const useStatus = (bridgeId: string, tag: string, setAllStatus: (tag: string, status: DeviceStatus | {
-  deviceId: string,
-  status: DeviceStatus
-}[]) => void) => {
+const useStatus = (
+  bridgeId: string,
+  tag: string,
+  setAllStatus: (tag: string, status: DeviceStatus | {
+    deviceId: string,
+    status: DeviceStatus
+  }[]) => void
+) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const status = trpc.hardware.getStatusAll.useQuery({
     bridgeId,
@@ -31,12 +41,12 @@ const useStatus = (bridgeId: string, tag: string, setAllStatus: (tag: string, st
         status: isError(response) ? "off" : "running"
       })));
     }
-  }, [status.status, status.isRefetching]);
+  }, [status, setAllStatus, tag]);
 
   useEffect(() => {
     if (isSkip("status", bridgeId, deviceAction)) return;
     status.refetch().catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, status, deviceAction]);
 };
 
 const useInfo = (bridgeId: string, tag: string) => {
@@ -57,18 +67,24 @@ const useInfo = (bridgeId: string, tag: string) => {
     }
 
     setInfo({
-      data: info.data.response.filter(({ response }) => response !== null && typeof response === "object" && !("oveError" in response)),
+      data: info.data.response.filter(({ response }) =>
+        response !== null && typeof response === "object" &&
+        !("oveError" in response)),
       type: curInfo?.type ?? "general"
     });
-  }, [info.status, info.isRefetching]);
+  }, [info, setInfo, curInfo?.type]);
 
   useEffect(() => {
     if (isSkip("info", bridgeId, deviceAction)) return;
     info.refetch().catch(logger.error);
-  }, [deviceAction, curInfo?.type]);
+  }, [bridgeId, info, deviceAction, curInfo?.type]);
 };
 
-const useStartDevice = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useStartDevice = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const start = trpc.hardware.startAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
@@ -85,24 +101,29 @@ const useStartDevice = (bridgeId: string, tag: string, showNotification: (text: 
 
       start.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
-          setTimeout(() => showNotification(`Failed to start: ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to start: ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
 
       if (!containsError) {
-        showNotification(`Started devices`);
+        showNotification("Started devices");
       }
     }
-  }, [start.status]);
+  }, [start, showNotification]);
 
   useEffect(() => {
     if (isSkip("start", bridgeId, deviceAction)) return;
     start.mutateAsync({ bridgeId, tag: tag === "" ? undefined : tag });
-  }, [deviceAction]);
+  }, [bridgeId, start, tag, deviceAction]);
 };
 
-const useShutdownDevice = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useShutdownDevice = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const shutdown = trpc.hardware.shutdownAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
@@ -125,18 +146,22 @@ const useShutdownDevice = (bridgeId: string, tag: string, showNotification: (tex
       });
 
       if (!containsError) {
-        showNotification(`Devices shutdown`);
+        showNotification("Devices shutdown");
       }
     }
-  }, [shutdown.status]);
+  }, [shutdown, showNotification]);
 
   useEffect(() => {
     if (isSkip("shutdown", bridgeId, deviceAction)) return;
     shutdown.mutateAsync({ bridgeId, tag: tag === "" ? undefined : tag });
-  }, [deviceAction]);
+  }, [bridgeId, shutdown, tag, deviceAction]);
 };
 
-const useRebootDevice = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useRebootDevice = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const reboot = trpc.hardware.rebootAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
@@ -153,7 +178,8 @@ const useRebootDevice = (bridgeId: string, tag: string, showNotification: (text:
 
       reboot.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
-          setTimeout(() => showNotification(`Failed to reboot: ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to reboot: ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
@@ -162,15 +188,19 @@ const useRebootDevice = (bridgeId: string, tag: string, showNotification: (text:
         showNotification("Rebooted devices");
       }
     }
-  }, [reboot.status]);
+  }, [reboot, showNotification]);
 
   useEffect(() => {
     if (isSkip("reboot", bridgeId, deviceAction)) return;
     reboot.mutateAsync({ bridgeId, tag: tag === "" ? undefined : tag });
-  }, [deviceAction]);
+  }, [bridgeId, reboot, tag, deviceAction]);
 };
 
-const useExecuteCommand = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useExecuteCommand = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const execute = trpc.hardware.executeAll.useMutation({ retry: false });
   const addCommand = useStore(state => state.hardwareConfig.addCommandHistory);
   const command = useStore(state => state.hardwareConfig.command);
@@ -193,7 +223,7 @@ const useExecuteCommand = (bridgeId: string, tag: string, showNotification: (tex
         }
       });
     }
-  }, [execute.status]);
+  }, [execute, addCommand, showNotification]);
 
   useEffect(() => {
     if (isSkip("execute", bridgeId, deviceAction) || command === null) return;
@@ -202,12 +232,17 @@ const useExecuteCommand = (bridgeId: string, tag: string, showNotification: (tex
       tag: tag === "" ? undefined : tag,
       command
     });
-  }, [deviceAction, command]);
+  }, [bridgeId, execute, tag, deviceAction, command]);
 };
 
-const useScreenshot = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useScreenshot = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const screenshot = trpc.hardware.screenshotAll.useMutation({ retry: false });
-  const screenshotConfig = useStore(state => state.hardwareConfig.screenshotConfig);
+  const screenshotConfig = useStore(state =>
+    state.hardwareConfig.screenshotConfig);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
 
@@ -220,27 +255,35 @@ const useScreenshot = (bridgeId: string, tag: string, showNotification: (text: s
         return;
       }
 
-      screenshot.data.response.filter(({ response }) => "oveError" in response).forEach(({ response }, i) => setTimeout(() => showNotification((response as {
-        oveError: string
-      }).oveError), 3000 * i));
+      screenshot.data.response.filter(({ response }) =>
+        "oveError" in response).forEach(({ response }, i) =>
+        setTimeout(() => showNotification((response as {
+          oveError: string
+        }).oveError), 3000 * i));
 
-      setScreenshots(screenshot.data.response.filter(({ response }) => !("oveError" in response)) as {
+      setScreenshots(screenshot.data.response
+        .filter(({ response }) => !("oveError" in response)) as {
         response: string[],
         deviceId: string
       }[]);
     }
-  }, [screenshot.status]);
+  }, [screenshot, setScreenshots, showNotification]);
 
   useEffect(() => {
-    if (isSkip("screenshot", bridgeId, deviceAction) || screenshotConfig === null) return;
+    if (isSkip("screenshot", bridgeId, deviceAction) ||
+      screenshotConfig === null) return;
     screenshot.mutateAsync({
       bridgeId,
       tag: tag === "" ? undefined : tag, ...screenshotConfig
     });
-  }, [deviceAction, screenshotConfig]);
+  }, [bridgeId, screenshot, tag, deviceAction, screenshotConfig]);
 };
 
-const useGetBrowser = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useGetBrowser = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const browserId = useStore(state => state.hardwareConfig.browserId);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const setBrowsers = useStore(state => state.hardwareConfig.setBrowsers);
@@ -260,26 +303,33 @@ const useGetBrowser = (bridgeId: string, tag: string, showNotification: (text: s
         return;
       }
 
-      getBrowser.data.response.filter(({ response }) => "oveError" in response).forEach(({ deviceId }, i) => {
-        setTimeout(() => showNotification(`Failed to get browser on ${deviceId}`), 3000 * i);
+      getBrowser.data.response.filter(({ response }) =>
+        "oveError" in response).forEach(({ deviceId }, i) => {
+        setTimeout(() => showNotification(
+          `Failed to get browser on ${deviceId}`), 3000 * i);
       });
-      setBrowsers(getBrowser.data.response.filter(({ response }) => !("oveError" in response)).map(({
-        deviceId,
-        response
-      }) => ({
-        deviceId,
-        response: new Map([[assert(browserId), response as Browser]])
-      })));
+      setBrowsers(getBrowser.data.response
+        .filter(({ response }) => !("oveError" in response)).map(({
+          deviceId,
+          response
+        }) => ({
+          deviceId,
+          response: new Map([[assert(browserId), response as Browser]])
+        })));
     }
-  }, [getBrowser.status, getBrowser.isRefetching]);
+  }, [getBrowser, browserId, setBrowsers, showNotification]);
 
   useEffect(() => {
     if (isSkip("browser", bridgeId, deviceAction) || browserId === null) return;
     getBrowser.refetch().catch(logger.error);
-  }, [deviceAction, browserId]);
+  }, [bridgeId, getBrowser, deviceAction, browserId]);
 };
 
-const useGetBrowsers = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useGetBrowsers = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const browserId = useStore(state => state.hardwareConfig.browserId);
   const setBrowsers = useStore(state => state.hardwareConfig.setBrowsers);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -298,23 +348,30 @@ const useGetBrowsers = (bridgeId: string, tag: string, showNotification: (text: 
         return;
       }
 
-      getBrowsers.data.response.filter(({ response }) => "oveError" in response).forEach(({ deviceId }, i) => {
-        setTimeout(() => showNotification(`Failed to get browsers on ${deviceId}`), 3000 * i);
+      getBrowsers.data.response.filter(({ response }) =>
+        "oveError" in response).forEach(({ deviceId }, i) => {
+        setTimeout(() => showNotification(
+          `Failed to get browsers on ${deviceId}`), 3000 * i);
       });
-      setBrowsers(getBrowsers.data.response.filter(({ response }) => !("oveError" in response)) as {
+      setBrowsers(getBrowsers.data.response
+        .filter(({ response }) => !("oveError" in response)) as {
         deviceId: string,
         response: Map<number, Browser>
       }[]);
     }
-  }, [getBrowsers.status, getBrowsers.isRefetching]);
+  }, [getBrowsers, setBrowsers, showNotification]);
 
   useEffect(() => {
     if (isSkip("browser", bridgeId, deviceAction) || browserId !== null) return;
     getBrowsers.refetch().catch(logger.error);
-  }, [deviceAction, browserId]);
+  }, [bridgeId, getBrowsers, deviceAction, browserId]);
 };
 
-const useOpenBrowser = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useOpenBrowser = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const openBrowser = trpc.hardware.openBrowserAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const browserConfig = useStore(state => state.hardwareConfig.browserConfig);
@@ -330,25 +387,32 @@ const useOpenBrowser = (bridgeId: string, tag: string, showNotification: (text: 
 
       openBrowser.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "number") {
-          setTimeout(() => showNotification(`Failed to open browser on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to open browser on ${deviceId}`), 3000 * i);
         } else {
-          setTimeout(() => showNotification(`Successfully opened browser on ${deviceId} with ID: ${response}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Successfully opened browser on ${deviceId} with ID: 
+            ${response}`), 3000 * i);
         }
       });
     }
-
-  }, [openBrowser.status]);
+  }, [openBrowser, showNotification]);
 
   useEffect(() => {
-    if (isSkip("browser_open", bridgeId, deviceAction) || browserConfig === null) return;
+    if (isSkip("browser_open", bridgeId, deviceAction) ||
+      browserConfig === null) return;
     openBrowser.mutateAsync({
       bridgeId,
       tag: tag === "" ? undefined : tag, ...browserConfig
     });
-  }, [deviceAction, browserConfig]);
+  }, [bridgeId, openBrowser, tag, deviceAction, browserConfig]);
 };
 
-const useCloseBrowser = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useCloseBrowser = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const closeBrowser = trpc.hardware.closeBrowserAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const browserId = useStore(state => state.hardwareConfig.browserId);
@@ -364,25 +428,32 @@ const useCloseBrowser = (bridgeId: string, tag: string, showNotification: (text:
 
       closeBrowser.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to close browser on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to close browser on ${deviceId}`), 3000 * i);
         } else {
-          setTimeout(() => showNotification(`Successfully opened browser on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Successfully opened browser on ${deviceId}`), 3000 * i);
         }
       });
     }
-  }, [closeBrowser.status]);
+  }, [closeBrowser, showNotification]);
 
   useEffect(() => {
-    if (isSkip("browser_close", bridgeId, deviceAction) || browserId === null) return;
+    if (isSkip("browser_close", bridgeId, deviceAction) ||
+      browserId === null) return;
     closeBrowser.mutateAsync({
       bridgeId,
       tag: tag === "" ? undefined : tag,
       browserId
     });
-  }, [deviceAction, browserId]);
+  }, [bridgeId, closeBrowser, tag, deviceAction, browserId]);
 };
 
-const useCloseBrowsers = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useCloseBrowsers = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const closeBrowsers = trpc.hardware.closeBrowsersAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
@@ -399,7 +470,8 @@ const useCloseBrowsers = (bridgeId: string, tag: string, showNotification: (text
 
       closeBrowsers.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response === "object") {
-          setTimeout(() => showNotification(`Failed to close browsers on: ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to close browsers on: ${deviceId}`), 3000 * i);
           containsErrors = true;
         }
       });
@@ -408,15 +480,19 @@ const useCloseBrowsers = (bridgeId: string, tag: string, showNotification: (text
         showNotification("Closed browsers");
       }
     }
-  }, [closeBrowsers.status]);
+  }, [closeBrowsers, showNotification]);
 
   useEffect(() => {
     if (isSkip("browsers_close", bridgeId, deviceAction)) return;
     closeBrowsers.mutateAsync({ bridgeId, tag: tag === "" ? undefined : tag });
-  }, [deviceAction]);
+  }, [bridgeId, closeBrowsers, tag, deviceAction]);
 };
 
-const useSetVolume = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useSetVolume = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const volume = useStore(state => state.hardwareConfig.volume);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const setVolume = trpc.hardware.setVolumeAll.useMutation();
@@ -434,7 +510,8 @@ const useSetVolume = (bridgeId: string, tag: string, showNotification: (text: st
 
       setVolume.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to set volume on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to set volume on ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
@@ -443,7 +520,7 @@ const useSetVolume = (bridgeId: string, tag: string, showNotification: (text: st
         showNotification("Successfully set volume");
       }
     }
-  }, [setVolume.status]);
+  }, [setVolume, showNotification]);
 
   useEffect(() => {
     if (isSkip("volume", bridgeId, deviceAction) || volume === null) return;
@@ -452,10 +529,14 @@ const useSetVolume = (bridgeId: string, tag: string, showNotification: (text: st
       tag: tag === "" ? undefined : tag,
       volume
     }).catch(logger.error);
-  }, [deviceAction, volume]);
+  }, [bridgeId, setVolume, tag, deviceAction, volume]);
 };
 
-const useMute = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useMute = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const mute = trpc.hardware.muteAll.useMutation();
 
@@ -472,7 +553,8 @@ const useMute = (bridgeId: string, tag: string, showNotification: (text: string)
 
       mute.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to mute ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to mute ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
@@ -481,7 +563,7 @@ const useMute = (bridgeId: string, tag: string, showNotification: (text: string)
         showNotification("Muted devices");
       }
     }
-  }, [mute.status]);
+  }, [mute, showNotification]);
 
   useEffect(() => {
     if (isSkip("mute", bridgeId, deviceAction)) return;
@@ -489,10 +571,14 @@ const useMute = (bridgeId: string, tag: string, showNotification: (text: string)
       bridgeId,
       tag: tag === "" ? undefined : tag
     }).catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, mute, tag, deviceAction]);
 };
 
-const useUnmute = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useUnmute = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const unmute = trpc.hardware.unmuteAll.useMutation();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
@@ -509,7 +595,8 @@ const useUnmute = (bridgeId: string, tag: string, showNotification: (text: strin
 
       unmute.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to unmute ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to unmute ${deviceId}`), 3000 * i);
           containsErrors = true;
         }
       });
@@ -518,7 +605,7 @@ const useUnmute = (bridgeId: string, tag: string, showNotification: (text: strin
         showNotification("Successfully unmuted devices");
       }
     }
-  }, [unmute.status]);
+  }, [showNotification, unmute]);
 
   useEffect(() => {
     if (isSkip("unmute", bridgeId, deviceAction)) return;
@@ -526,10 +613,14 @@ const useUnmute = (bridgeId: string, tag: string, showNotification: (text: strin
       bridgeId,
       tag: tag === "" ? undefined : tag
     }).catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, tag, unmute, deviceAction]);
 };
 
-const useMuteAudio = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useMuteAudio = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const muteAudio = trpc.hardware.muteAudioAll.useMutation();
 
@@ -546,16 +637,17 @@ const useMuteAudio = (bridgeId: string, tag: string, showNotification: (text: st
 
       muteAudio.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to mute audio on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to mute audio on ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
 
       if (!containsError) {
-        showNotification(`Successfully muted audio on devices`);
+        showNotification("Successfully muted audio on devices");
       }
     }
-  }, [muteAudio.status]);
+  }, [muteAudio, showNotification]);
 
   useEffect(() => {
     if (isSkip("audio_mute", bridgeId, deviceAction)) return;
@@ -563,10 +655,14 @@ const useMuteAudio = (bridgeId: string, tag: string, showNotification: (text: st
       bridgeId,
       tag: tag === "" ? undefined : tag
     }).catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, muteAudio, tag, deviceAction]);
 };
 
-const useUnmuteAudio = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useUnmuteAudio = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const unmuteAudio = trpc.hardware.unmuteAudioAll.useMutation();
 
@@ -583,7 +679,8 @@ const useUnmuteAudio = (bridgeId: string, tag: string, showNotification: (text: 
 
       unmuteAudio.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to unmute audio on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to unmute audio on ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
@@ -592,7 +689,7 @@ const useUnmuteAudio = (bridgeId: string, tag: string, showNotification: (text: 
         showNotification("Successfully unmuted audio on devices");
       }
     }
-  }, [unmuteAudio.status]);
+  }, [unmuteAudio, showNotification]);
 
   useEffect(() => {
     if (isSkip("audio_unmute", bridgeId, deviceAction)) return;
@@ -600,10 +697,14 @@ const useUnmuteAudio = (bridgeId: string, tag: string, showNotification: (text: 
       bridgeId,
       tag: tag === "" ? undefined : tag
     }).catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, tag, unmuteAudio, deviceAction]);
 };
 
-const useMuteVideo = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useMuteVideo = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const muteVideo = trpc.hardware.muteVideoAll.useMutation();
 
@@ -620,7 +721,8 @@ const useMuteVideo = (bridgeId: string, tag: string, showNotification: (text: st
 
       muteVideo.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to mute video on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to mute video on ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
@@ -629,7 +731,7 @@ const useMuteVideo = (bridgeId: string, tag: string, showNotification: (text: st
         showNotification("Successfully muted video on devices");
       }
     }
-  }, [muteVideo.status]);
+  }, [muteVideo, showNotification]);
 
   useEffect(() => {
     if (isSkip("video_mute", bridgeId, deviceAction)) return;
@@ -637,10 +739,14 @@ const useMuteVideo = (bridgeId: string, tag: string, showNotification: (text: st
       bridgeId,
       tag: tag === "" ? undefined : tag
     }).catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, muteVideo, tag, deviceAction]);
 };
 
-const useUnmuteVideo = (bridgeId: string, tag: string, showNotification: (text: string) => void) => {
+const useUnmuteVideo = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const unmuteVideo = trpc.hardware.unmuteVideoAll.useMutation();
 
@@ -657,7 +763,8 @@ const useUnmuteVideo = (bridgeId: string, tag: string, showNotification: (text: 
 
       unmuteVideo.data.response.forEach(({ deviceId, response }, i) => {
         if (typeof response !== "boolean" || !response) {
-          setTimeout(() => showNotification(`Failed to unmute video on ${deviceId}`), 3000 * i);
+          setTimeout(() => showNotification(
+            `Failed to unmute video on ${deviceId}`), 3000 * i);
           containsError = true;
         }
       });
@@ -666,7 +773,7 @@ const useUnmuteVideo = (bridgeId: string, tag: string, showNotification: (text: 
         showNotification("Successfully unmuted video on devices");
       }
     }
-  }, [unmuteVideo.status]);
+  }, [unmuteVideo, showNotification]);
 
   useEffect(() => {
     if (isSkip("video_unmute", bridgeId, deviceAction)) return;
@@ -674,13 +781,18 @@ const useUnmuteVideo = (bridgeId: string, tag: string, showNotification: (text: 
       bridgeId,
       tag: tag === "" ? undefined : tag
     }).catch(logger.error);
-  }, [deviceAction]);
+  }, [bridgeId, tag, unmuteVideo, deviceAction]);
 };
 
-export const useMultiController = (bridgeId: string, tag: string, showNotification: (text: string) => void, setStatus: (tag: string, status: DeviceStatus | {
-  deviceId: string,
-  status: DeviceStatus
-}[]) => void) => {
+export const useMultiController = (
+  bridgeId: string,
+  tag: string,
+  showNotification: (text: string) => void
+  , setStatus: (tag: string, status: DeviceStatus | {
+    deviceId: string,
+    status: DeviceStatus
+  }[]) => void
+) => {
   useStatus(bridgeId, tag, setStatus);
   useInfo(bridgeId, tag);
   useStartDevice(bridgeId, tag, showNotification);

@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 import styles from "./search-select.module.scss";
 
@@ -22,7 +22,7 @@ const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
   useEffect(() => {
     const data = watch(() => handleSubmit(onSubmit)());
     return () => data.unsubscribe();
-  }, []);
+  }, [handleSubmit, onSubmit, watch]);
 
   return <form ref={ref} className={styles.selector}
                onSubmit={handleSubmit(onSubmit)}>

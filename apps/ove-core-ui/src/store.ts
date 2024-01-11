@@ -78,9 +78,10 @@ const getCurrentTokens = () => {
 
 export const useStore = create<Store>(set => ({
   tokens: getCurrentTokens(),
-  setTokens: (tokens: Tokens | null) => tokens === null ? set({ tokens: null }) : set({ tokens: { ...tokens } }),
+  setTokens: (tokens: Tokens | null) =>
+    tokens === null ? set({ tokens: null }) : set({ tokens: { ...tokens } }),
   config: "{}",
-  setConfig: (config: string) => set({config}),
+  setConfig: (config: string) => set({ config }),
   hardwareConfig: {
     info: null,
     setInfo: info => set(state => ({
@@ -119,7 +120,12 @@ export const useStore = create<Store>(set => ({
     reset: () => set(state => ({
       hardwareConfig: {
         ...state.hardwareConfig,
-        deviceAction: {bridgeId: null, deviceId: null, pending: false, action: null},
+        deviceAction: {
+          bridgeId: null,
+          deviceId: null,
+          pending: false,
+          action: null
+        },
         info: null,
         paginationIdx: 0,
         command: null,

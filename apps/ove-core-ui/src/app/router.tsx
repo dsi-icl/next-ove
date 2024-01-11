@@ -1,3 +1,4 @@
+import React from "react";
 import Launcher from "../pages/launcher/page";
 import Login from "../pages/login/page";
 import Hardware from "../pages/hardware/page";
@@ -6,9 +7,13 @@ import ProtectedRoute from "../components/protected-route";
 import Sockets from "../pages/sockets/page";
 import ProjectEditorLoader from "../pages/project-editor/loader";
 
-type RouterProps = {loggedIn: boolean, login: (username: string, password: string) => Promise<void>, username: string | null}
+type RouterProps = {
+  loggedIn: boolean,
+  login: (username: string, password: string) => Promise<void>,
+  username: string | null
+}
 
-const Router = ({loggedIn, login, username}: RouterProps) => {
+const Router = ({ loggedIn, login, username }: RouterProps) => {
   return <Routes>
     <Route
       path="/"
@@ -16,8 +21,8 @@ const Router = ({loggedIn, login, username}: RouterProps) => {
     />
     <Route
       path="/hardware"
-      element={<ProtectedRoute condition={loggedIn}
-                               redirectTo={"/login"}><Hardware /></ProtectedRoute>}
+      element={<ProtectedRoute condition={loggedIn} redirectTo={"/login"}>
+        <Hardware /></ProtectedRoute>}
     />
     <Route
       path="/login"
@@ -25,11 +30,12 @@ const Router = ({loggedIn, login, username}: RouterProps) => {
     />
     <Route
       path="/sockets"
-      element={<ProtectedRoute condition={loggedIn}
-                               redirectTo="/login"><Sockets /></ProtectedRoute>} />
+      element={<ProtectedRoute condition={loggedIn} redirectTo="/login">
+        <Sockets /></ProtectedRoute>} />
     <Route
       path="/project-editor"
-      element={<ProtectedRoute condition={loggedIn} redirectTo="/login"><ProjectEditorLoader username={username!} /></ProtectedRoute>} />
+      element={<ProtectedRoute condition={loggedIn} redirectTo="/login">
+        <ProjectEditorLoader username={username!} /></ProtectedRoute>} />
   </Routes>;
 };
 

@@ -1,6 +1,6 @@
-import {nanoid} from 'nanoid';
-import {get, set} from '../lib/object';
-import ListItem from './list-item';
+import { nanoid } from "nanoid";
+import { get, set } from "../lib/object";
+import ListItem from "./list-item";
 
 /**
  * A model representing our list.
@@ -11,27 +11,30 @@ import ListItem from './list-item';
  * @version 1.1.0
  */
 export default class List {
+  /**
+   * List constructor
+   * @param {object} props
+   */
   constructor(props) {
-    this._name = props.name || '';
+    this._name = props.name || "";
     this._list = props.list || [];
     this._path = props.path || 0;
     this._group = props.group || null;
     this._listItems = null;
-    this._groupID = 'list-group-' + props.name.replace(/ /g, '-');
+    this._groupID = "list-group-" + props.name.replace(/ /g, "-");
     this._instanceID =
-      'list-instance-' +
-      (props._instanceID
-        ? props._instanceID
-        : nanoid(8));
+      "list-instance-" +
+      (props._instanceID ? props._instanceID : nanoid(8));
   }
 
   /**
-   * Returns the list group that this list is part of. For lists without a group, this will return ```null```.
+   * Returns the list group that this list is part of.
+   * For lists without a group, this will return ```null```.
    *
    * @public
    * @readonly
    * @memberof List
-   * @type {null|Array}
+   * @return {null|Array}
    */
   get group() {
     return this._group;
@@ -43,7 +46,7 @@ export default class List {
    * @public
    * @readonly
    * @memberof List
-   * @type {String}
+   * @return {String}
    */
   get groupID() {
     return this._groupID;
@@ -55,7 +58,7 @@ export default class List {
    * @public
    * @readonly
    * @memberof List
-   * @type {String}
+   * @return {String}
    */
   get instanceID() {
     return this._instanceID;
@@ -67,7 +70,7 @@ export default class List {
    * @public
    * @readonly
    * @memberof List
-   * @type {Array}
+   * @return {Array}
    */
   get listData() {
     return this._group ? get(this._path, this._group) : this._list;
@@ -78,6 +81,7 @@ export default class List {
    *
    * @readonly
    * @memberof List
+   * @return {Array}
    */
   get listItems() {
     if (!this._listItems) {
@@ -93,12 +97,13 @@ export default class List {
   }
 
   /**
-   * Returns the object path of this list from the list group. Defaults to ```0``` when this list is ungrouped.
+   * Returns the object path of this list from the list group.
+   * Defaults to ```0``` when this list is ungrouped.
    *
    * @public
    * @readonly
    * @memberof List
-   * @type {Number}
+   * @return {Number}
    */
   get path() {
     return this._path;
@@ -109,7 +114,7 @@ export default class List {
    *
    * @public
    * @memberof List
-   * @type {null|Array}
+   * @param {null|Array} value
    */
   set group(value) {
     this._group = value;
@@ -120,8 +125,8 @@ export default class List {
    *
    * @public
    * @readonly
+   * @param {Array} value
    * @memberof List
-   * @type {Array}
    */
   set listData(value) {
     this._group ? set(this._path, this._group, value) : (this._list = value);
@@ -139,7 +144,7 @@ export default class List {
    *
    * @public
    * @memberof List
-   * @type {Number}
+   * @param {number} value
    */
   set path(value) {
     this._path = value;

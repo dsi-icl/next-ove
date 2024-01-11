@@ -11,10 +11,11 @@ import {
   type TServiceRoutesSchema
 } from "./service";
 
-export {TDeviceResponse, TClientRouteInputSchema, TClientRouteOutputSchema}
+export { TDeviceResponse, TClientRouteInputSchema, TClientRouteOutputSchema };
 
 export type TClientExposedRoutes = {
-  [Key in keyof TServiceRoutesSchema]: APIExposureLevel<Key> extends "client" ? Key : never
+  [Key in keyof TServiceRoutesSchema]:
+  APIExposureLevel<Key> extends "client" ? Key : never
 }[keyof TServiceRoutesSchema]
 
 /* Service Types */
@@ -36,8 +37,9 @@ export type TClientAPI = {
 /**
  * Client API schema, only those that are exposed on the client
  */
-export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(ClientAPITransformSchema)
-  .filter(([_k, route]) => route.exposed === "client")) as TClientAPI;
+export const ClientAPISchema: TClientAPI =
+  Object.fromEntries(Object.entries(ClientAPITransformSchema)
+    .filter(([_k, route]) => route.exposed === "client")) as TClientAPI;
 
 /* Service Utility Types */
 
@@ -47,4 +49,5 @@ export const ClientAPISchema: TClientAPI = Object.fromEntries(Object.entries(Cli
 export type TClientServiceArgs<Key extends keyof TClientService> =
   z.infer<TClientRoutesSchema[Key]["args"]>;
 
-export type TClientAPIReturns<Key extends keyof TClientAPI> = Promise<z.infer<TClientAPI[Key]["client"]>>
+export type TClientAPIReturns<Key extends keyof TClientAPI> =
+  Promise<z.infer<TClientAPI[Key]["client"]>>

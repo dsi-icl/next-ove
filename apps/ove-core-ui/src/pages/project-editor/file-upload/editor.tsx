@@ -1,5 +1,5 @@
 import ace from "ace-builds";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import AceEditor from "react-ace";
 import json from "ace-builds/src-noconflict/mode-json";
 import markdown from "ace-builds/src-noconflict/mode-markdown";
@@ -40,17 +40,20 @@ type EditorProps = {
 const Editor = ({ close, file, save }: EditorProps) => {
   const [data, setData] = useState(file?.data ?? "");
   const [name, setName] = useState(file?.name ?? "");
-  const [language, setLanguage] = useState<Language>(file?.language ?? "markdown");
+  const [language, setLanguage] =
+    useState<Language>(file?.language ?? "markdown");
 
-  const languageToMode = (language: Language) => language === "csv" ? "text" : language;
+  const languageToMode = (language: Language) =>
+    language === "csv" ? "text" : language;
 
   useEffect(() => {
     if (data === file?.data && language === file?.language) return;
     setData("");
-  }, [language]);
+  }, [language, data, file?.data, file?.language]);
 
   const addFileExtension = (name: string) => {
-    const extension = language === "latex" ? ".tex" : (language === "markdown" ? ".md" : `.${language}`);
+    const extension = language === "latex" ? ".tex" :
+      (language === "markdown" ? ".md" : `.${language}`);
     return `${name}${extension}`;
   };
 
@@ -80,7 +83,8 @@ const Editor = ({ close, file, save }: EditorProps) => {
       <div className={styles.col}>
         <label htmlFor="language">Language:</label>
         <select id="language" value={language}
-                onChange={e => setLanguage((e?.target?.value as Language) ?? "markdown")}>
+                onChange={e =>
+                  setLanguage((e?.target?.value as Language) ?? "markdown")}>
           <option value="css">CSS</option>
           <option value="csv">Data Table (CSV)</option>
           <option value="html">HTML</option>

@@ -2,18 +2,18 @@ import { z } from "zod";
 import { Logger } from "@ove/ove-logging";
 
 interface ImportMeta {
-  env: ImportMetaEnv
+  env: ImportMetaEnv;
 }
 
 interface ImportMetaEnv {
-  VITE_BASE_URL: string
-  VITE_CORE_URL: string
-  VITE_LOG_LEVEL?: string
-  VITE_LOGGING_SERVER?: string
-  VITE_VIDEO_STREAM_URL?: string
-  VITE_PROJECT_LAUNCHER: string
-  VITE_MODE: string
-  VITE_DISABLE_AUTH: string
+  VITE_BASE_URL: string;
+  VITE_CORE_URL: string;
+  VITE_LOG_LEVEL?: string;
+  VITE_LOGGING_SERVER?: string;
+  VITE_VIDEO_STREAM_URL?: string;
+  VITE_PROJECT_LAUNCHER: string;
+  VITE_MODE: string;
+  VITE_DISABLE_AUTH: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -25,15 +25,21 @@ const schema = z.strictObject({
   LOG_LEVEL: z.number().optional(),
   LOGGING_SERVER: z.string().optional(),
   VIDEO_STREAM_URL: z.string().optional(),
-  MODE: z.union([z.literal("production"), z.literal("development"), z.literal("test")]),
+  MODE: z.union([
+    z.literal("production"),
+    z.literal("development"),
+    z.literal("test")
+  ]),
   DISABLE_AUTH: z.boolean()
-}).refine(x => x.MODE === "test" || !x.DISABLE_AUTH); // only disable auth if under test
+  // only disable auth if under test
+}).refine(x => x.MODE === "test" || !x.DISABLE_AUTH);
 
 const parsedConfig = schema.parse({
   BASE_URL: env_.VITE_BASE_URL,
   CORE_URL: env_.VITE_CORE_URL,
   PROJECT_LAUNCHER: env_.VITE_PROJECT_LAUNCHER,
-  LOG_LEVEL: env_.VITE_LOG_LEVEL !== undefined ? parseInt(env_.VITE_LOG_LEVEL) : undefined,
+  LOG_LEVEL: env_.VITE_LOG_LEVEL !== undefined ?
+    parseInt(env_.VITE_LOG_LEVEL) : undefined,
   LOGGING_SERVER: env_.VITE_LOGGING_SERVER,
   VIDEO_STREAM_URL: env_.VITE_VIDEO_STREAM_URL,
   MODE: env_.VITE_MODE,

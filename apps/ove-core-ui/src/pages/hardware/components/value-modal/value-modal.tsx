@@ -1,3 +1,4 @@
+import React from "react";
 import { FieldValues, Path, useForm } from "react-hook-form";
 
 import styles from "./value-modal.module.scss";
@@ -9,7 +10,12 @@ type ValueModalProps<T> = {
   onSubmit: (form: T) => void
 }
 
-const ValueModal = <T extends FieldValues,>({k, label, header, onSubmit}: ValueModalProps<T>) => {
+const ValueModal = <T extends FieldValues, >({
+  k,
+  label,
+  header,
+  onSubmit
+}: ValueModalProps<T>) => {
   const { handleSubmit, register } = useForm<T>();
 
   return <div className={styles.input}>

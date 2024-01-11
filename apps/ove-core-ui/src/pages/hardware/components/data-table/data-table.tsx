@@ -9,7 +9,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import styles from "./data-table.module.scss";
 
@@ -67,29 +67,34 @@ const DataTable = <TData, TValue>({
 
   useEffect(() => {
     table.getColumn(filterType)?.setFilterValue(filter);
-  }, [filter]);
+  }, [filter, filterType, table]);
 
   return <div>
     <table className={styles.table}>
       <thead>
-      {table.getHeaderGroups().map(group => <tr key={group.id}>
-        {group.headers.map(header => <th key={header.id}
-                                         style={{ width: getSize(header.id), maxWidth: getSize(header.id), minWidth: getSize(header.id) }}>
-          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-        </th>)}
-      </tr>)}
+        {table.getHeaderGroups().map(group => <tr key={group.id}>
+          {group.headers.map(header => <th key={header.id}
+                                           style={{
+                                             width: getSize(header.id),
+                                             maxWidth: getSize(header.id),
+                                             minWidth: getSize(header.id)
+                                           }}>
+            {header.isPlaceholder ? null :
+              flexRender(header.column.columnDef.header, header.getContext())}
+          </th>)}
+        </tr>)}
       </thead>
       <tbody>
-      {table.getRowModel().rows?.length ? table.getRowModel().rows.map(row =>
-        <tr key={row.id} data-state={row.getIsSelected() && "selected"}>
-          {row.getVisibleCells().map(cell => <td
-            key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </td>)}
-        </tr>) : <tr>
-        <td colSpan={columns.length}>
-          No results.
-        </td>
-      </tr>}
+        {table.getRowModel().rows?.length ? table.getRowModel().rows.map(row =>
+          <tr key={row.id} data-state={row.getIsSelected() && "selected"}>
+            {row.getVisibleCells().map(cell => <td key={cell.id}>
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </td>)}
+          </tr>) : <tr>
+          <td colSpan={columns.length}>
+            No results.
+          </td>
+        </tr>}
       </tbody>
     </table>
     <div className="flex items-center justify-end space-x-2 py-4">

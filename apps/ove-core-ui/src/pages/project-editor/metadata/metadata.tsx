@@ -1,15 +1,18 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { type Actions } from "../hooks";
+import { actionColors } from "../utils";
 import { useForm } from "react-hook-form";
+import { type File } from "@ove/ove-types";
 import { Brush, X } from "react-bootstrap-icons";
-import { type Actions, type File } from "../hooks";
-import { type Project, User } from "@prisma/client";
+import { Button } from "@ove/ui-base-components";
+import { type Project, type User } from "@prisma/client";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./metadata.module.scss";
-import { Button } from "@ove/ui-base-components";
-import { actionColors } from "../utils";
 
-export type ProjectMetadata = Pick<Project, "title" | "description" | "thumbnail" | "creatorId" | "tags" | "publications" | "collaboratorIds" | "presenterNotes" | "notes">
+export type ProjectMetadata = Pick<Project, "title" | "description" |
+  "thumbnail" | "creatorId" | "tags" | "publications" | "collaboratorIds" |
+  "presenterNotes" | "notes">
 
 type MetadataProps = {
   project: ProjectMetadata
@@ -68,8 +71,10 @@ const Metadata = ({
   } = useForm<MetadataForm>({
     defaultValues: {
       ...project,
-      fileName: fromURL(project.thumbnail ?? "")?.name ?? "-- select an option --",
-      fileVersion: fromURL(project.thumbnail ?? "")?.version.toString() ?? "-- select an option --"
+      fileName: fromURL(project.thumbnail ?? "")?.name ??
+        "-- select an option --",
+      fileVersion: fromURL(project.thumbnail ?? "")?.version.toString() ??
+        "-- select an option --"
     }
   });
 
@@ -88,12 +93,15 @@ const Metadata = ({
       return;
     }
     if (metadata.publication !== "") {
-      setPublications(cur => cur.includes(metadata.publication) ? cur : [...cur, metadata.publication]);
+      setPublications(cur =>
+        cur.includes(metadata.publication) ? cur :
+          [...cur, metadata.publication]);
       setValue("publication", "");
       return;
     }
     if (metadata.collaborator !== "") {
-      if (uninvited.find(({ username }) => username === metadata.collaborator) !== undefined) {
+      if (uninvited.find(({ username }) =>
+        username === metadata.collaborator) !== undefined) {
         setCollaborators_(cur => [...cur, {
           username: metadata.collaborator,
           status: "added"
@@ -103,9 +111,15 @@ const Metadata = ({
       return;
     }
     const { fileName, fileVersion, ...config } = metadata;
-    const added = collaborators_.filter(({ status }) => status === "added").map(({ username }) => uninvited.find(x => x.username === username)!);
+    const added = collaborators_
+      .filter(({ status }) => status === "added")
+      .map(({ username }) =>
+        uninvited.find(x => x.username === username)!);
     const all = invited.concat(accepted);
-    const removed = collaborators_.filter(({ status }) => status === "removed").map(({ username }) => all.find(x => x.username === username && x.id !== project.creatorId)).filter(Boolean) as User[];
+    const removed = collaborators_
+      .filter(({ status }) => status === "removed")
+      .map(({ username }) => all.find(x => x.username === username &&
+        x.id !== project.creatorId)).filter(Boolean) as User[];
     added.forEach(x => inviteCollaborator(x.id));
     removed.forEach(x => removeCollaborator(x.id));
     updateProject({
@@ -113,8 +127,10 @@ const Metadata = ({
       ...config,
       publications,
       tags,
-      collaboratorIds: [...project.collaboratorIds.filter(x => removed.find(({ id }) => id === x) === undefined)],
-      thumbnail: fileName !== null && fileVersion !== null ? toURL(fileName, parseInt(fileVersion)) : null
+      collaboratorIds: [...project.collaboratorIds.filter(x =>
+        removed.find(({ id }) => id === x) === undefined)],
+      thumbnail: fileName !== null && fileVersion !== null ?
+        toURL(fileName, parseInt(fileVersion)) : null
     });
     setAction(null);
   };
@@ -141,12 +157,16 @@ const Metadata = ({
       <label htmlFor="tag">Tags:</label>
       <ul className={styles.tags}>
         <div className={styles.selected}>
-          {tags.map((tag, i) => <li key={tag}
-                                    style={{ backgroundColor: actionColors[i % tags.length] }}>{tag}
-            <button type="button"
-                    onClick={() => setTags(cur => cur.filter(x => x !== tag))}>
-              <X /></button>
-          </li>)}
+          {tags.map((tag, i) => {
+            const backgroundColor = actionColors[i % tags.length];
+            return <li key={tag}
+                       style={{ backgroundColor }}>{tag}
+              <button type="button"
+                      onClick={() => setTags(cur =>
+                        cur.filter(x => x !== tag))}>
+                <X /></button>
+            </li>;
+          })}
         </div>
         <li className={styles.new}><input {...register("tag")}
                                           list="tags-backing"
@@ -164,7 +184,8 @@ const Metadata = ({
             key={publication}>
             <div>{publication}
               <button type="button"
-                      onClick={() => setPublications(cur => cur.filter(x => x !== publication))}>
+                      onClick={() => setPublications(cur =>
+                        cur.filter(x => x !== publication))}>
                 <X /></button>
             </div>
           </li>)}
@@ -177,7 +198,9 @@ const Metadata = ({
       <ul className={styles.collaborators}>
         <h6>Accepted:</h6>
         <div className={styles.section}>
-          {accepted.filter(x => collaborators_.find(y => x.username === y.username) === undefined).map(({ username }) =>
+          {accepted.filter(x => collaborators_
+            .find(y =>
+              x.username === y.username) === undefined).map(({ username }) =>
             <li
               key={username}>{username}
               <button type="button"
@@ -189,7 +212,9 @@ const Metadata = ({
         </div>
         <h6>Invited:</h6>
         <div className={styles.section}>
-          {invited.filter(x => collaborators_.find(y => y.username === x.username) === undefined).map(({ username }) =>
+          {invited.filter(x => collaborators_
+            .find(y =>
+              y.username === x.username) === undefined).map(({ username }) =>
             <li key={username}>{username}
               <button type="button"
                       onClick={() => setCollaborators_(cur => [...cur, {
@@ -202,7 +227,8 @@ const Metadata = ({
         <div className={styles.section}>
           {collaborators_.map(({ username }) => <li key={username}>{username}
             <button type="button"
-                    onClick={() => setCollaborators_(cur => cur.filter(x => x.username !== username))}>
+                    onClick={() => setCollaborators_(cur =>
+                      cur.filter(x => x.username !== username))}>
               <X /></button>
           </li>)}
         </div>
@@ -212,7 +238,9 @@ const Metadata = ({
                  placeholder="Invite Collaborator:"
                  list="collaborator-backing" />
           <datalist id="collaborator-backing">
-            {uninvited.filter(({ username }) => collaborators_.find(c => c.username === username) === undefined).map(({ username }) =>
+            {uninvited.filter(({ username }) => collaborators_
+              .find(c =>
+                c.username === username) === undefined).map(({ username }) =>
               <option key={username} value={username}>{username}</option>)}
           </datalist>
         </li>

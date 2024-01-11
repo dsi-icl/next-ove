@@ -1,12 +1,15 @@
 import {
   CoreAPITransformSchema,
-  type TCoreRoutesSchema,
+  type TCoreRoutesSchema
 } from "./core-transform";
 import { z } from "zod";
 
 /* API */
 
-export { CoreAPITransformSchema as CoreAPI, type TCoreRoutesSchema as TCoreAPI };
+export {
+  CoreAPITransformSchema as CoreAPI,
+  type TCoreRoutesSchema as TCoreAPI
+};
 
 /* API Utility Types*/
 

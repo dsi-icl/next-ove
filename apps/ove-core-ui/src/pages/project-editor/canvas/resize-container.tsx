@@ -1,4 +1,4 @@
-import { type MutableRefObject, type ReactNode, useEffect } from "react";
+import React, { type MutableRefObject, type ReactNode, useEffect } from "react";
 
 import styles from "./resize-container.module.scss";
 
@@ -30,7 +30,7 @@ const ResizeContainer = ({
       if (container.ref.current === null) return;
       observer.unobserve(container.ref.current);
     };
-  }, [container.update, container.ref.current]);
+  }, [container, container.update, useContentRect]);
 
   return <div className={styles["resize-container"]} ref={container.ref}>
     <div style={{

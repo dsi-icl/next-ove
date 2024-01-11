@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { type Actions } from "../hooks";
 import { actionColors } from "../utils";
 import { type DataType } from "../types";
@@ -46,11 +46,14 @@ const SectionImporter = ({
         <h4>From State</h4>
         <ul>
           {Json.copy(states).sort(sort).map((state, i) => {
+            const backgroundColor = actionColors[i % actionColors.length];
             return <li key={state}
-                       style={{ backgroundColor: actionColors[i % actionColors.length] }}>
+                       style={{ backgroundColor }}>
               <button
                 onClick={() => setSelected(state)}
-                style={{ fontWeight: state === selected ? 700 : 400 }}>{formatState(state)}</button>
+                style={{ fontWeight: state === selected ? 700 : 400 }}>
+                {formatState(state)}
+              </button>
             </li>;
           })}
         </ul>
@@ -58,15 +61,24 @@ const SectionImporter = ({
       <div id={styles["sections"]}>
         <h4>Select Section</h4>
         <ul>
-          {sections.map(section => <li
-            key={section.id}
-            style={{ backgroundColor: colors.find(({name}) => name === section.dataType.toLowerCase())!.color }}>
-            <button
-              onClick={() => {
-                setAction(null);
-                addToState(section.id, selectedState);
-              }}><span>{section.ordering}</span>{section.asset.length < 25 ? section.asset : `${section.asset.slice(0, 24)}...`}</button>
-          </li>)}
+          {sections.map(section => {
+            const backgroundColor = colors.find(({ name }) =>
+              name === section.dataType.toLowerCase())!.color;
+            const asset = section.asset.length < 25 ?
+              section.asset : `${section.asset.slice(0, 24)}...`;
+            return <li
+              key={section.id}
+              style={{ backgroundColor }}>
+              <button
+                onClick={() => {
+                  setAction(null);
+                  addToState(section.id, selectedState);
+                }}>
+                <span>{section.ordering}</span>
+                {asset}
+              </button>
+            </li>;
+          })}
         </ul>
       </div>
     </div>

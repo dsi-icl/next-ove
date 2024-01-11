@@ -1,3 +1,4 @@
+import React from "react";
 import Devices from "./components/devices/devices";
 
 const Hardware = () => <main>

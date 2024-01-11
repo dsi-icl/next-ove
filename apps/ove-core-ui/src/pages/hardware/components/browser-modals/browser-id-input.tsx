@@ -1,9 +1,11 @@
+import React from "react";
 import { useStore } from "../../../../store";
 import ValueModal from "../value-modal/value-modal";
 
 const BrowserIdInput = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
   const setBrowserId = useStore(state => state.hardwareConfig.setBrowserId);
 
   const onSubmit = ({ browserId }: { browserId: string }) => {

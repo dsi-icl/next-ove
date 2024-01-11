@@ -33,7 +33,8 @@ type TCoreRouteSchema<
   M extends RouteMethod,
   E extends ExposureLevel
 > = {
-  [Key in keyof TBridgeRouteSchema<A, U, M, E>]: TBridgeRouteSchema<A, U, M, E>[Key]
+  [Key in keyof TBridgeRouteSchema<A, U, M, E>]:
+  TBridgeRouteSchema<A, U, M, E>[Key]
 };
 
 /**
@@ -45,7 +46,8 @@ type TCoreMultiRouteSchema<
   M extends RouteMethod,
   E extends ExposureLevel
 > = {
-  [Key in keyof TBridgeMultiRouteSchema<A, U, M, E>]: TBridgeMultiRouteSchema<A, U, M, E>[Key]
+  [Key in keyof TBridgeMultiRouteSchema<A, U, M, E>]:
+  TBridgeMultiRouteSchema<A, U, M, E>[Key]
 };
 
 /* API Type */
@@ -54,17 +56,20 @@ type TCoreMultiRouteSchema<
  * All possible routes as schema types.
  */
 export type TCoreRoutesSchema = {
-  [Key in keyof TBridgeSingleRoutesSchema]:TCoreRouteSchema<
-      z.extendShape<BridgeRouteInputTransformSchema<Key>, {
-        bridgeId: z.ZodString
-      }>, BridgeRouteOutputTransformSchema<Key>, OpenAPIMethod<Key>, APIExposureLevel<Key>>
+  [Key in keyof TBridgeSingleRoutesSchema]: TCoreRouteSchema<
+    z.extendShape<BridgeRouteInputTransformSchema<Key>, {
+      bridgeId: z.ZodString
+    }>, BridgeRouteOutputTransformSchema<Key>,
+    OpenAPIMethod<Key>, APIExposureLevel<Key>>
 } & {
   [Key in keyof TBridgeMultiRoutesSchema]: TCoreMultiRouteSchema<
-      z.extendShape<BridgeRouteInputTransformSchema<Key>, { bridgeId: z.ZodString }>,
-      BridgeRouteOutputTransformSchema<Key>,
-      OpenAPIMethod<ToSingleRoute<Key>>,
-      APIExposureLevel<ToSingleRoute<Key>>
-    >
+    z.extendShape<BridgeRouteInputTransformSchema<Key>, {
+      bridgeId: z.ZodString
+    }>,
+    BridgeRouteOutputTransformSchema<Key>,
+    OpenAPIMethod<ToSingleRoute<Key>>,
+    APIExposureLevel<ToSingleRoute<Key>>
+  >
 }
 
 /* API */
@@ -72,21 +77,22 @@ export type TCoreRoutesSchema = {
 /**
  * Instantiation of the schema type above.
  */
-export const CoreAPITransformSchema: TCoreRoutesSchema = Object.entries(BridgeAPITransformSchema).reduce((acc, [k, route]) => {
-  const optionalPath = `/{bridgeId}${k.includes("All") ? "" : "/{deviceId}"}`;
-  const path = route.meta.openapi.path;
-  acc[k] = {
-    meta: {
-      openapi: {
-        method: route.meta.openapi.method,
-        path: `/hardware${optionalPath}${path}`
-      }
-    },
-    returns: route.returns,
-    args: route.args.extend({ bridgeId: z.string() }),
-    client: route.client,
-    bridge: route.bridge,
-    exposed: route.exposed
-  };
-  return acc;
-}, <{[key: string]: unknown}>{}) as TCoreRoutesSchema;
+export const CoreAPITransformSchema: TCoreRoutesSchema =
+  Object.entries(BridgeAPITransformSchema).reduce((acc, [k, route]) => {
+    const optionalPath = `/{bridgeId}${k.includes("All") ? "" : "/{deviceId}"}`;
+    const path = route.meta.openapi.path;
+    acc[k] = {
+      meta: {
+        openapi: {
+          method: route.meta.openapi.method,
+          path: `/hardware${optionalPath}${path}`
+        }
+      },
+      returns: route.returns,
+      args: route.args.extend({ bridgeId: z.string() }),
+      client: route.client,
+      bridge: route.bridge,
+      exposed: route.exposed
+    };
+    return acc;
+  }, <{ [key: string]: unknown }>{}) as TCoreRoutesSchema;

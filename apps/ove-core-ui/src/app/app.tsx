@@ -1,3 +1,5 @@
+/* global HeadersInit */
+
 import { env } from "../env";
 import Router from "./router";
 import superjson from "superjson";
@@ -6,7 +8,7 @@ import { trpc } from "../utils/api";
 import { httpLink } from "@trpc/client";
 import { Nav } from "@ove/ui-components";
 import { HddStack } from "react-bootstrap-icons";
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { NavigationMenuLink, Toaster } from "@ove/ui-base-components";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -18,11 +20,14 @@ export const App = () => {
       title: "Hardware",
       item: null,
       card: <ul
-        className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+        className="grid gap-3 p-6 md:w-[400px] lg:w-[500px]
+        lg:grid-cols-[.75fr_1fr]">
         <li className="row-span-3">
           <NavigationMenuLink asChild>
             <a
-              className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md"
+              className="flex h-full w-full select-none flex-col justify-end
+              rounded-md bg-gradient-to-b from-muted/50 to-muted p-6
+              no-underline outline-none focus:shadow-md"
               href={`${env.BASE_URL}/hardware`}
             >
               <HddStack />
@@ -39,12 +44,16 @@ export const App = () => {
         <li>
           <NavigationMenuLink asChild>
             <a
-              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+              className="block select-none space-y-1 rounded-md p-3
+              leading-none no-underline outline-none transition-colors
+              hover:bg-accent hover:text-accent-foreground focus:bg-accent
+              focus:text-accent-foreground"
               href={`${env.BASE_URL}/sockets`}
             >
               <div className="text-sm font-medium leading-none">Sockets</div>
               <p
-                className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                className="line-clamp-2 text-sm leading-snug
+                text-muted-foreground">
                 Socket.IO Admin UI
               </p>
             </a>
@@ -71,7 +80,7 @@ export const App = () => {
     }
   ];
 
-  const createTrpcClient = () => trpc.createClient({
+  const createTrpcClient = useCallback(() => trpc.createClient({
     links: [
       httpLink({
         url: `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/trpc`,
@@ -89,7 +98,8 @@ export const App = () => {
             if (responses.some(r => r.error.data.httpStatus === 401)) {
               const refreshedTokens = await refresh();
               if (options?.headers !== undefined) {
-                options.headers["authorization" as keyof HeadersInit] = `Bearer ${refreshedTokens?.access}`;
+                options.headers["authorization" as keyof HeadersInit] =
+                  `Bearer ${refreshedTokens?.access}`;
               }
               return await fetch(url, options);
             }
@@ -98,7 +108,8 @@ export const App = () => {
           if (res.status === 401) {
             const refreshedTokens = await refresh();
             if (options?.headers !== undefined) {
-              options.headers["authorization" as keyof HeadersInit] = `Bearer ${refreshedTokens?.access}`;
+              options.headers["authorization" as keyof HeadersInit] =
+                `Bearer ${refreshedTokens?.access}`;
             }
             return await fetch(url, options);
           }
@@ -108,13 +119,13 @@ export const App = () => {
       })
     ],
     transformer: superjson
-  });
+  }), [refresh, tokens?.access]);
 
   const [trpcClient, setTrpcClient] = useState(createTrpcClient);
 
   useEffect(() => {
     setTrpcClient(createTrpcClient);
-  }, [loggedIn]);
+  }, [loggedIn, createTrpcClient]);
 
   const queryClient = useMemo<QueryClient>(() => new QueryClient({
     defaultOptions: {

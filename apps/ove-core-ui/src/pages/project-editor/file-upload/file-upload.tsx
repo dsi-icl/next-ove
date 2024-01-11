@@ -1,8 +1,8 @@
 import Upload from "./upload";
 import { useForm } from "react-hook-form";
-import { type File as FileT } from "../hooks";
+import { type File as FileT } from "@ove/ove-types";
 import Editor, { type CustomFile } from "./editor";
-import { type CSSProperties, useState, useEffect } from "react";
+import React, { type CSSProperties, useState, useEffect } from "react";
 
 type FileUploadProps = {
   files: FileT[]
@@ -20,7 +20,8 @@ const FileUpload = ({
   closeDialog
 }: FileUploadProps) => {
   const [mode, setMode] = useState<"upload" | "editor">("upload");
-  const names = files.map(({ name }) => name).filter((name, i, arr) => arr.indexOf(name) === i);
+  const names = files.map(({ name }) => name)
+    .filter((name, i, arr) => arr.indexOf(name) === i);
   const [customFile, setCustomFile] = useState<CustomFile | null>(null);
   const { register, handleSubmit, resetField, watch } = useForm<{
     file: File[]
@@ -29,7 +30,7 @@ const FileUpload = ({
 
   useEffect(() => {
     setDialogStyle({ padding: mode === "upload" ? "2rem" : "0" });
-  }, [mode]);
+  }, [mode, setDialogStyle]);
 
   useEffect(() => {
     setCustomFile(null);
@@ -54,7 +55,11 @@ const FileUpload = ({
 
   const convertCustomFile = (customFile: CustomFile | null) => {
     if (customFile === null) return;
-    return [new File(customFile.data.split("\n"), customFile.name, { type: "text/plain" })];
+    return [new File(
+      customFile.data.split("\n"),
+      customFile.name,
+      { type: "text/plain" }
+    )];
   };
 
   return mode === "upload" ?

@@ -9,7 +9,7 @@ import { inboundChannels } from "../../ipc-routes";
 import { app, ipcMain, type IpcMain } from "electron";
 import {
   registerSocketConnectedListener,
-  registerSocketDisconnectListener,
+  registerSocketDisconnectListener
 } from "../api/features/bridge/sockets";
 import App from "../app";
 import { type InboundAPI } from "@ove/ove-types";
@@ -23,15 +23,17 @@ process.on("SIGINT", () => {
   schedule.gracefulShutdown().then(() => process.exit(0));
 });
 
-const IPCService: InboundAPI = Object.entries(service).reduce((acc, [k, route]) => {
-  acc[k] = async (args: Parameters<typeof route>[0]) => {
-    logger.info(`Handling: ${k}`);
-    // @ts-ignore
-    const res = await route(args);
-    return Array.isArray(res) || typeof res === "object" ? Json.copy(res) : res; // fixes error with IPC memory allocation
-  };
-  return acc;
-}, <{[key: string]: unknown}>{}) as InboundAPI;
+const IPCService: InboundAPI = Object.entries(service)
+  .reduce((acc, [k, route]) => {
+    acc[k] = async (args: Parameters<typeof route>[0]) => {
+      logger.info(`Handling: ${k}`);
+      // @ts-expect-error – arg spread
+      const res = await route(args);
+      return Array.isArray(res) || typeof res === "object" ?
+        Json.copy(res) : res; // fixes error with IPC memory allocation
+    };
+    return acc;
+  }, <{ [key: string]: unknown }>{}) as InboundAPI;
 
 (Object.keys(inboundChannels) as Array<keyof InboundAPI>).forEach(k => {
   ipcMain.handle(inboundChannels[k], (_event, ...args) =>

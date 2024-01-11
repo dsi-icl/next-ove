@@ -6,7 +6,8 @@ import { type DeviceStatus, type HardwareInfo } from "./types";
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const [hardware, setHardware] = useState<HardwareInfo[]>([]);
-  const getHardware = trpc.bridge.getDevices.useQuery({ bridgeId }, { enabled: isOnline });
+  const getHardware = trpc.bridge.getDevices
+    .useQuery({ bridgeId }, { enabled: isOnline });
 
   useEffect(() => {
     if (!isOnline) return;
@@ -16,7 +17,7 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
       device,
       status: null
     })));
-  }, [getHardware.status]);
+  }, [getHardware.status, getHardware.data.response, isOnline]);
 
   const updateStatus = (deviceId: string, status: "off" | "running" | null) => {
     setHardware(cur => {

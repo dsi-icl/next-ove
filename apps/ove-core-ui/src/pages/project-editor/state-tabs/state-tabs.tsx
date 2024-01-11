@@ -1,4 +1,4 @@
-import {
+import React, {
   type ReactNode,
   type FocusEvent,
   useEffect,
@@ -150,7 +150,7 @@ const EditTab = ({ onSubmit }: EditTabProps) => {
     handleSubmit
   } = useForm<z.infer<typeof TitleSchema>>();
 
-  useEffect(() => () => resetField("name"), []);
+  useEffect(() => () => resetField("name"), [resetField]);
 
   return <form onSubmit={handleSubmit(onSubmit)}>
     <input {...register("name")} />

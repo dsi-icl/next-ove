@@ -25,7 +25,8 @@ export const useCalendar = (response: Calendar | OVEException | undefined) => {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const fetchCalendar = useCallback(() => {
-    if (response === undefined || "oveError" in response || response.lastUpdated === null) return;
+    if (response === undefined || "oveError" in response ||
+      response.lastUpdated === null) return;
     setLastUpdated(formatLastUpdated(new Date(response.lastUpdated)));
     setCalendar(response["value"].map(event => ({
       title: event["title"],

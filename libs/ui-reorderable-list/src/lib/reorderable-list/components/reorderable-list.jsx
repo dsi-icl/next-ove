@@ -1,14 +1,13 @@
-/* eslint-disable no-unused-expressions */
-import PropTypes from 'prop-types'
-import React, { Component, ReactElement } from 'react'
+import PropTypes from "prop-types";
+import React, { Component, ReactElement } from "react";
 import {
-  JSXToDOMElement,
   getClosestElement,
   insertAfter,
-  insertBefore
-} from '../lib/dom'
-import ReOrderableItem from './reorderable-item.jsx'
-import ListController from '../controllers/list-controller'
+  insertBefore,
+  jsxToDOMElement
+} from "../lib/dom";
+import ReOrderableItem from "./reorderable-item.jsx";
+import ListController from "../controllers/list-controller";
 
 const isEmpty = x => {
   if (x === undefined) return true;
@@ -17,12 +16,15 @@ const isEmpty = x => {
   if (y === "[]") return true;
   if (y === "{}") return true;
   if (y === "0") return true;
-  if (y === "") return true;
-  return false;
+  return y === "";
 };
 
+// eslint-disable-next-line valid-jsdoc
 /**
- * A container for reorderable list items. This contains the main logic for reordering and updating items.
+ * A container for reorderable list items.
+ * This contains the main logic for reordering and updating items.
+ *
+ * @typedef {import("react").ReactElement} ReactElement
  *
  * @class ReOrderableList
  * @author Ezequiel Sam Ceracas
@@ -46,13 +48,15 @@ export default class ReOrderableList extends Component {
       PropTypes.object
     ]).isRequired,
     componentProps: PropTypes.object,
-    orientation: PropTypes.oneOf(['vertical', 'horizontal']).isRequired,
+    orientation: PropTypes.oneOf(["vertical", "horizontal"]).isRequired,
     placeholder: PropTypes.oneOfType([
       PropTypes.instanceOf(Object),
       PropTypes.instanceOf(ReactElement)
     ]).isRequired,
-    group: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
-  }
+    group: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+    children: PropTypes.instanceOf(ReactElement),
+    onListUpdate: PropTypes.func
+  };
 
   /**
    * Default properties for this component.
@@ -62,24 +66,20 @@ export default class ReOrderableList extends Component {
    * @type {Object}
    */
   static defaultProps = {
-    name: '',
-    component: `div`,
+    name: "",
+    component: "div",
     list: [],
     path: 0,
     group: null,
-    orientation: 'vertical',
-    placeholder: (item) => {
-      return (
-        <div
-          style={{
-            width: `${item.rect.width}px`,
-            height: `${item.rect.height}px`,
-            backgroundColor: 'rgba(0, 0, 0, 0.1)'
-          }}
-        />
-      )
-    }
-  }
+    orientation: "vertical",
+    placeholder: item => <div
+      style={{
+        width: `${item.rect.width}px`,
+        height: `${item.rect.height}px`,
+        backgroundColor: "rgba(0, 0, 0, 0.1)"
+      }}
+    />
+  };
 
   /**
    * Contains the currently dragged item.
@@ -89,7 +89,7 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    * @type {ReOrderableItem}
    */
-  static _currentDraggedItem = null
+  static _currentDraggedItem = null;
 
   /**
    * Settings for list orientation.
@@ -101,14 +101,14 @@ export default class ReOrderableList extends Component {
    */
   static _orientationSettings = {
     vertical: {
-      axis: 'y',
-      size: 'height'
+      axis: "y",
+      size: "height"
     },
     horizontal: {
-      axis: 'x',
-      size: 'width'
+      axis: "x",
+      size: "width"
     }
-  }
+  };
 
   /**
    * Creates an instance of ReOrderableList.
@@ -117,10 +117,10 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   constructor(props) {
-    super(props)
+    super(props);
 
-    this._itemPlaceholder = null
-    this._controller = new ListController(props)
+    this._itemPlaceholder = null;
+    this._controller = new ListController(props);
   }
 
   /**
@@ -130,7 +130,7 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   get instanceID() {
-    return this.controller.model.instanceID
+    return this.controller.model.instanceID;
   }
 
   /**
@@ -140,7 +140,7 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   get groupID() {
-    return this.controller.model.groupID
+    return this.controller.model.groupID;
   }
 
   /**
@@ -151,7 +151,7 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   get controller() {
-    return this._controller
+    return this._controller;
   }
 
   /**
@@ -162,7 +162,7 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   get model() {
-    return this._controller.model
+    return this._controller.model;
   }
 
   /**
@@ -174,7 +174,7 @@ export default class ReOrderableList extends Component {
    * @type {HTMLElement}
    */
   get element() {
-    return this._listRef
+    return this._listRef;
   }
 
   /**
@@ -186,7 +186,7 @@ export default class ReOrderableList extends Component {
    * @type {ReOrderableItem}
    */
   get currentDraggedItem() {
-    return ReOrderableList._currentDraggedItem
+    return ReOrderableList._currentDraggedItem;
   }
 
   /**
@@ -198,21 +198,20 @@ export default class ReOrderableList extends Component {
    * @type {HTMLElement}
    */
   get itemPlaceholder() {
-    if (!this.currentDraggedItem) return null
+    if (!this.currentDraggedItem) return null;
     if (!this._itemPlaceholder) {
-      const element = this.props.placeholder?.(this.currentDraggedItem)
-      this._itemPlaceholder = React.isValidElement(element)
-        ? JSXToDOMElement(element)
-        : element
+      const element = this.props.placeholder?.(this.currentDraggedItem);
+      this._itemPlaceholder = React.isValidElement(element) ?
+        jsxToDOMElement(element) : element;
 
-      if (!this._itemPlaceholder.classList.contains('ui-reorderable-item')) {
-        this._itemPlaceholder.classList.add('ui-reorderable-item')
+      if (!this._itemPlaceholder.classList.contains("ui-reorderable-item")) {
+        this._itemPlaceholder.classList.add("ui-reorderable-item");
       }
-      if (!this._itemPlaceholder.classList.contains('item-placeholder')) {
-        this._itemPlaceholder.classList.add('item-placeholder')
+      if (!this._itemPlaceholder.classList.contains("item-placeholder")) {
+        this._itemPlaceholder.classList.add("item-placeholder");
       }
     }
-    return this._itemPlaceholder
+    return this._itemPlaceholder;
   }
 
   /**
@@ -224,52 +223,48 @@ export default class ReOrderableList extends Component {
    * @type {Object}
    */
   get orientationSettings() {
-    return ReOrderableList._orientationSettings[this.props.orientation]
+    return ReOrderableList._orientationSettings[this.props.orientation];
   }
 
   /**
-   * Initializes the children. Only looks for instances of ```ReorderableItem``` and passes props to each instance.
+   * Initializes the children. Only looks for
+   * instances of ```ReorderableItem``` and passes props to each instance.
    *
    * @private
-   * @returns
+   * @return {Array<ReactElement>}
    * @memberof ReOrderableList
-   * @returns {Array<import("react").ReactElement>}
    */
   _initializeChildren() {
-    let index = 0
-    const childrenWithProps = React.Children.map(
+    let index = 0;
+    return React.Children.map(
       this.props.children,
-      (child) => {
+      child => {
         if (React.isValidElement(child) && child.type === ReOrderableItem) {
           const props = {
             list: this,
-            onItemDragStart: (item) => {
-              this._onItemDragStart(item)
+            onItemDragStart: item => {
+              this._onItemDragStart(item);
               if (child.props.onItemDragStart) {
-                child.props.onItemDragStart(item)
+                child.props.onItemDragStart(item);
               }
             },
-            onItemDragEnd: (item) => {
-              this._onItemDragEnd(item)
+            onItemDragEnd: item => {
+              this._onItemDragEnd(item);
               if (child.props.onItemDragEnd) {
-                child.props.onItemDragEnd(item)
+                child.props.onItemDragEnd(item);
               }
             },
-            itemData: isEmpty(child.props.itemData)
-              ? this.model.listData[index]
-              : child.props.itemData,
-            itemIndex: isEmpty(child.props.itemIndex)
-              ? index
-              : child.props.itemIndex
-          }
-          index++
-          return React.cloneElement(child, props)
+            itemData: isEmpty(child.props.itemData) ?
+              this.model.listData[index] : child.props.itemData,
+            itemIndex: isEmpty(child.props.itemIndex) ?
+              index : child.props.itemIndex
+          };
+          index++;
+          return React.cloneElement(child, props);
         }
-        return child
+        return child;
       }
-    )
-
-    return childrenWithProps
+    );
   }
 
   /**
@@ -285,8 +280,8 @@ export default class ReOrderableList extends Component {
       item.model,
       item.listComponent.model,
       targetIndex
-    )
-    this.props.onListUpdate?.apply(this, params)
+    );
+    this.props.onListUpdate?.apply(this, params);
   }
 
   /**
@@ -297,7 +292,7 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   _initDragData(item) {
-    ReOrderableList._currentDraggedItem = item
+    ReOrderableList._currentDraggedItem = item;
   }
 
   /**
@@ -307,9 +302,9 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   _resetDragData() {
-    ReOrderableList._currentDraggedItem = null
-    this._removePlaceholders()
-    this._itemPlaceholder = null
+    ReOrderableList._currentDraggedItem = null;
+    this._removePlaceholders();
+    this._itemPlaceholder = null;
   }
 
   /**
@@ -320,9 +315,9 @@ export default class ReOrderableList extends Component {
    */
   _removePlaceholders() {
     const placeholder = document.querySelector(
-      '.ui-reorderable-list .ui-reorderable-item.item-placeholder'
-    )
-    placeholder?.remove()
+      ".ui-reorderable-list .ui-reorderable-item.item-placeholder"
+    );
+    placeholder?.remove();
   }
 
   /**
@@ -332,8 +327,8 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   _onItemDragStart = ({ item }) => {
-    this._initDragData(item)
-  }
+    this._initDragData(item);
+  };
 
   /**
    * Item drag end event handler.
@@ -342,8 +337,8 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   _onItemDragEnd = () => {
-    this._resetDragData()
-  }
+    this._resetDragData();
+  };
 
   /**
    * Drag exit event handler.
@@ -352,95 +347,98 @@ export default class ReOrderableList extends Component {
    * @memberof ReOrderableList
    */
   _onDragExit = () => {
-    this._removePlaceholders()
-  }
+    this._removePlaceholders();
+  };
 
   /**
    * Drag over event handler.
    *
    * @private
+   * @param {object} event - drag over event to handle
    * @memberof ReOrderableList
    */
-  _onDragOver = (event) => {
-    if (!this.itemPlaceholder) return
-    const { item } = event.detail
-    event.stopPropagation()
-    this.itemPlaceholder.remove()
+  _onDragOver = event => {
+    if (!this.itemPlaceholder) return;
+    const { item } = event.detail;
+    event.stopPropagation();
+    this.itemPlaceholder.remove();
 
     const filteredItems = Array.prototype.slice.call(
       this.element.querySelectorAll(
         `.ui-reorderable-item.${this.instanceID}:not([hidden])`
       )
-    )
+    );
 
     if (filteredItems.length <= 0) {
-      this.element.appendChild(this.itemPlaceholder)
-      return
+      this.element.appendChild(this.itemPlaceholder);
+      return;
     }
 
-    const closestElement = getClosestElement(filteredItems, item.draggedElement)
+    const closestElement =
+      getClosestElement(filteredItems, item.draggedElement);
 
-    const closestElementRect = closestElement.getBoundingClientRect()
-    const draggedElementRect = item.draggedElement.getBoundingClientRect()
+    const closestElementRect = closestElement.getBoundingClientRect();
+    const draggedElementRect = item.draggedElement.getBoundingClientRect();
     const draggedElementAxis = Math.floor(
       draggedElementRect[this.orientationSettings.axis]
-    )
+    );
     const closestRectYAxis = Math.floor(
       closestElementRect[this.orientationSettings.axis] +
       closestElementRect[this.orientationSettings.size] / 2
-    )
+    );
     const insertFunction =
-      closestRectYAxis > draggedElementAxis ? insertBefore : insertAfter
-    insertFunction(this.element, closestElement, this.itemPlaceholder)
-  }
+      closestRectYAxis > draggedElementAxis ? insertBefore : insertAfter;
+    insertFunction(this.element, closestElement, this.itemPlaceholder);
+  };
 
   /**
    * Drop event handler.
    *
    * @private
+   * @param {object} event - drop event to handle
    * @memberof ReOrderableList
    */
-  _onDrop = (event) => {
-    const { item } = event.detail
-    event.stopPropagation()
+  _onDrop = event => {
+    const { item } = event.detail;
+    event.stopPropagation();
 
     const filteredItems = Array.prototype.slice.call(
-      this.element.querySelectorAll(`.ui-reorderable-item:not([hidden])`)
-    )
+      this.element.querySelectorAll(".ui-reorderable-item:not([hidden])")
+    );
 
-    const index = filteredItems.findIndex((item) =>
-      item.classList.contains('item-placeholder')
-    )
+    const index = filteredItems.findIndex(item =>
+      item.classList.contains("item-placeholder")
+    );
 
-    this._updateList(item, index)
-  }
+    this._updateList(item, index);
+  };
 
   /**
    * Renders the component.
    *
-   * @returns {import("react").ReactElement}
+   * @return {ReactElement}
    * @memberof ReOrderableList
    */
   render() {
-    const CustomComponent = this.props.component
-    this._controller = new ListController(this.props)
+    const CustomComponent = this.props.component;
+    this._controller = new ListController(this.props);
 
     return (
       <CustomComponent
         {...this.props.componentProps}
-        ref={(ref) => (this._listRef = ref)}
+        ref={ref => (this._listRef = ref)}
         className={[
-          'ui-reorderable-list',
+          "ui-reorderable-list",
           this.instanceID,
           this.groupID,
           this.props.componentProps?.className
-        ].join(' ')}
+        ].join(" ")}
         onDrop={this._onDrop}
         onDragOver={this._onDragOver}
         onDragExit={this._onDragExit}
       >
         {this._initializeChildren()}
       </CustomComponent>
-    )
+    );
   }
 }

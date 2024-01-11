@@ -1,9 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import { Json } from "@ove/ove-utils";
 import { readFileSync, writeFileSync } from "atomically";
 
-export const readFile = <T extends NonNullable<any>>(filePath: string, defaultAsset: string | null = null): T | null => {
+export const readFile = <T extends NonNullable<object | string | number>>(
+  filePath: string,
+  defaultAsset: string | null = null
+): T | null => {
   try {
     if (!exists(filePath) && defaultAsset !== null) {
       writeFileSync(filePath, defaultAsset);
@@ -15,7 +19,11 @@ export const readFile = <T extends NonNullable<any>>(filePath: string, defaultAs
   }
 };
 
-export const safeWriteFile = (path: string, data: string, overwrite: boolean): boolean | null => {
+export const safeWriteFile = (
+  path: string,
+  data: string,
+  overwrite: boolean
+): boolean | null => {
   if (overwrite) {
     try {
       writeFileSync(path, data);
@@ -60,5 +68,9 @@ export const exists = (path: string) => {
 };
 
 export const saveSwagger = (filename: string, swagger: object) => {
-  safeWriteFile(path.join("docs", "api", filename), Json.stringify(swagger, undefined, 2), true);
+  safeWriteFile(
+    path.join("docs", "api", filename),
+    Json.stringify(swagger, undefined, 2),
+    true
+  );
 };

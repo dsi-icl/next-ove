@@ -13,7 +13,7 @@ export const useVideoStreams = () => {
 
     return () => {
       window.bridge.stopStreams({}).catch(logger.error);
-    }
+    };
   }, []);
 
   return streams;

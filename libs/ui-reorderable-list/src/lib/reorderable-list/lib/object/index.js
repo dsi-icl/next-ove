@@ -4,17 +4,17 @@
  * @export
  * @param {String} path Path to the property you want to access.
  * @param {Object} object The source object.
- * @returns {*}
+ * @return {*}
  */
 export function get(path, object) {
-  path = path + ''
-  const tokens = path.split('.')
-  let currentProperty = object
+  path = path + "";
+  const tokens = path.split(".");
+  let currentProperty = object;
 
-  for (let i = 0; i < tokens.length; i++) {
-    currentProperty = currentProperty[tokens[i]]
+  for (const token of tokens) {
+    currentProperty = currentProperty[token];
   }
-  return currentProperty
+  return currentProperty;
 }
 
 /**
@@ -25,10 +25,11 @@ export function get(path, object) {
  * @param {String} path Path to the property you want to access.
  * @param {Object} object The source object.
  * @param {*} newValue
+ * @return {Object}
  */
 export function set(path, object, newValue) {
-  path = path + ''
-  path = path.split('.')
-  while (path.length > 1) object = object[path.shift()]
-  return (object[path.shift()] = newValue)
+  path = path + "";
+  path = path.split(".");
+  while (path.length > 1) object = object[path.shift()];
+  return (object[path.shift()] = newValue);
 }

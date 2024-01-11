@@ -1,3 +1,4 @@
+// eslint-disable-next-line spaced-comment
 /// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
 import viteTsConfigPaths from "vite-tsconfig-paths";

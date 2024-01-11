@@ -1,3 +1,4 @@
+import React from "react";
 import { useStore } from "../../../../store";
 import { Calendar, CameraVideo, Power } from "react-bootstrap-icons";
 
@@ -7,7 +8,8 @@ const Header = ({ name, isOnline }: {
   name: string,
   isOnline: boolean
 }) => {
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
 
   return <div className={styles.header}>
     <h2>Observatory {name} - {isOnline ? "online" : "offline"}</h2>

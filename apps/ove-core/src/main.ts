@@ -25,13 +25,14 @@ app.use(`/api/v${env.API_VERSION}/trpc`, trpcExpress.createExpressMiddleware({
 app.use(`/api/v${env.API_VERSION}`, createOpenApiExpressMiddleware({
   router: appRouter,
   createContext
-}) as any);
+}) as Parameters<typeof app.use>[1]);
 
 app.use("/", swaggerUi.serve);
 app.get("/", swaggerUi.setup(openApiDocument));
 
 if (env.NODE_ENV === "development") {
-  FileUtils.saveSwagger(path.join(`v${env.API_VERSION}`, "core.swagger.json"), openApiDocument);
+  FileUtils.saveSwagger(
+    path.join(`v${env.API_VERSION}`, "core.swagger.json"), openApiDocument);
 }
 
 app.use("/assets", express.static(path.join(__dirname, "assets")));

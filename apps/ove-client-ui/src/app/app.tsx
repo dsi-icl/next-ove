@@ -1,12 +1,15 @@
-import "../styles.scss";
-import styles from "./app.module.scss";
+import React from "react";
 // IGNORE PATH - dependency removed at runtime
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import {
   type InboundAPI,
   type OutboundAPI,
   type OutboundAPIChannels
 } from "../../../ove-client/src/ipc-routes";
 import { usePin } from "./app-controller";
+
+import "../styles.scss";
+import styles from "./app.module.scss";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols

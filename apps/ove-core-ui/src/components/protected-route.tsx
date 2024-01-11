@@ -1,15 +1,18 @@
-import { type ReactNode } from "react";
+/* global JSX */
+
+import React, { type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
 /**
  * Only allows navigation to a route if a condition is met.
  * Otherwise, it redirects to a different specified route.
+ * @return {ReactNode}
  */
 const ProtectedRoute = ({
   condition,
   redirectTo,
   children
-}: ConditionalRouteProps): JSX.Element => condition ? <>{children}</> :
+}: ConditionalRouteProps): JSX.Element => condition ? <div>{children}</div> :
   <Navigate to={redirectTo} replace />;
 
 export type ConditionalRouteProps = {

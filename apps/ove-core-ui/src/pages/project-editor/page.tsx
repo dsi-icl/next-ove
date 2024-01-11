@@ -22,11 +22,11 @@ import ResizeContainer from "./canvas/resize-container";
 import ConfigEditor from "./config-editor/config-editor";
 import LaunchConfig from "./launch-config/launch-config";
 import SectionConfig from "./section-config/section-config";
-import { useState, type CSSProperties, useEffect } from "react";
 import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
 import Metadata, { type ProjectMetadata } from "./metadata/metadata";
+import React, { useState, type CSSProperties, useEffect } from "react";
 
 import styles from "./page.module.scss";
 import {
@@ -35,26 +35,40 @@ import {
   ResizablePanelGroup
 } from "@ove/ui-base-components";
 
-const getDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
-  if (action === "launch") return {
-    width: "20vw",
-    aspectRatio: "4/3.25",
-    borderRadius: "0.25rem"
-  };
-  if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
-    width: "60vw", borderRadius: "0.25rem"
-  };
+const getDialogStyling = (
+  action: ActionsT | null
+): CSSProperties | undefined => {
+  if (action === "launch") {
+    return {
+      width: "20vw",
+      aspectRatio: "4/3.25",
+      borderRadius: "0.25rem"
+    };
+  }
+  if (action !== null &&
+    ["controller", "custom-config", "env"].includes(action)) {
+    return {
+      width: "60vw", borderRadius: "0.25rem"
+    };
+  }
 
   return { borderRadius: "0.25rem" };
 };
 
-const getInnerDialogStyling = (action: ActionsT | null): CSSProperties | undefined => {
-  if (action !== null && ["controller", "custom-config", "env"].includes(action)) return {
-    padding: "0"
-  };
-  if (action === "import-section") return {
-    padding: "1rem"
-  };
+const getInnerDialogStyling = (
+  action: ActionsT | null
+): CSSProperties | undefined => {
+  if (action !== null &&
+    ["controller", "custom-config", "env"].includes(action)) {
+    return {
+      padding: "0"
+    };
+  }
+  if (action === "import-section") {
+    return {
+      padding: "1rem"
+    };
+  }
 
   return undefined;
 };
@@ -94,7 +108,12 @@ const ProjectEditor = ({
   const { dialog, isOpen, action, setAction } = useActions();
   const container = useContainer(space);
   const sections = useSections(project.id, project.layout);
-  const states = useCustomStates(sections.states, sections.select, sections.updateState, sections.removeState);
+  const states = useCustomStates(
+    sections.states,
+    sections.select,
+    sections.updateState,
+    sections.removeState
+  );
   const {
     assets,
     toURL,
@@ -104,7 +123,8 @@ const ProjectEditor = ({
     getData,
     generateThumbnail
   } = useFiles(project.id);
-  const [innerDialogStyle, setInnerDialogStyle] = useState<CSSProperties | undefined>();
+  const [innerDialogStyle, setInnerDialogStyle] =
+    useState<CSSProperties | undefined>();
   const {
     invited,
     accepted,
@@ -140,7 +160,9 @@ const ProjectEditor = ({
       case "controller": {
         const controller = getLatest("control");
         return <ControllerEditor controller={controller} getData={getData}
-                                 update={data => addFile(controller.name, data, controller.assetId)} />;
+                                 update={data =>
+                                   addFile(controller.name, data,
+                                     controller.assetId)} />;
       }
       case "upload":
         return <FileUpload files={assets} getLatest={getLatest}
@@ -153,12 +175,13 @@ const ProjectEditor = ({
       case "env": {
         const env = getLatest("env");
         return <EnvEditor env={env} getData={getData}
-                          update={data => addFile(env.name, data, env.assetId)} />;
+                          update={data =>
+                            addFile(env.name, data, env.assetId)} />;
       }
       case "live":
         return <Controller />;
       default:
-        return <></>;
+        return null;
     }
   };
 
@@ -231,11 +254,8 @@ const ProjectEditor = ({
             hiddenStyle={innerDialogStyle ?? getInnerDialogStyling(action)}>
       {getDialogContent()}
     </Dialog>
-    {
-      isOpen ? <div id={styles["mask"]}></div> : <></>
-    }
-  </main>
-    ;
+    {isOpen ? <div id={styles["mask"]}></div> : null}
+  </main>;
 };
 
 export default ProjectEditor;

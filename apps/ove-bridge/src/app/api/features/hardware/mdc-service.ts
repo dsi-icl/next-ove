@@ -24,7 +24,8 @@ const reboot = async (
   if (isError(res)) return res;
   return new Promise<boolean | OVEException>(resolve =>
     setTimeout(() => {
-      mdc.setPower(0x01, ip, port, "on").then(res => resolve(isError(res) ? res : true));
+      mdc.setPower(0x01, ip, port, "on")
+        .then(res => resolve(isError(res) ? res : true));
     }, 1000)
   );
 };
@@ -70,7 +71,8 @@ const getInfo = async (
   const isMuted = await mdc.getIsMute(0x01, ip, port);
   const model = await mdc.getModel(0x01, ip, port);
 
-  if (isError(power) || isError(volume) || isError(source) || isError(isMuted) || isError(model)) {
+  if (isError(power) || isError(volume) || isError(source) ||
+    isError(isMuted) || isError(model)) {
     return raise("MDC ERROR");
   }
 
@@ -143,7 +145,8 @@ const setSource = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.setSource(0x01, ip, port, mdc.sources[parsedOpts.data.source]);
+  const res =
+    await mdc.setSource(0x01, ip, port, mdc.sources[parsedOpts.data.source]);
   return isError(res) ? res : true;
 };
 

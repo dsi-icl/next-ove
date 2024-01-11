@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useEnv, useSocket } from "./hooks";
-import { type BaseSyntheticEvent } from "react";
 import { type NativeEvent } from "@ove/ove-types";
+import React, { type BaseSyntheticEvent } from "react";
 
 import styles from "./configuration.module.scss";
 

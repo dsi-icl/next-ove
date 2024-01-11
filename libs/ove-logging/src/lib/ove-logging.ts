@@ -1,6 +1,4 @@
-// global fetch
-
-declare const fetch: any;
+/* global console, fetch */
 
 import chalk from "chalk";
 import format from "date-fns/format";
@@ -16,7 +14,11 @@ export type LogLevel = {
   }
 }
 
-export const Logger = (name?: string, logLevel?: number, loggingServerURL?: string) => {
+export const Logger = (
+  name?: string,
+  logLevel?: number,
+  loggingServerURL?: string
+) => {
   const logLevel_ = logLevel ?? Constants.DEFAULT_LOG_LEVEL;
   const name_: string = name ?? Constants.UNKNOWN_APP_ID;
 
@@ -25,6 +27,7 @@ export const Logger = (name?: string, logLevel?: number, loggingServerURL?: stri
     .hex(logLevel.label.color)
     .bold;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buildLogMessage = (logLevel: LogLevel, ...args: any[]): string[] => {
     const whitespace = logLevel.name.length === 4 ? " " : "";
     const logLabel = getLogLabel(logLevel)(`[${logLevel.name}]`);
@@ -34,6 +37,7 @@ export const Logger = (name?: string, logLevel?: number, loggingServerURL?: stri
       .concat(Object.values(args));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const log = (level: LogLevel, ...args: any[]): void => {
     if (logLevel_ > level.level) return;
 
@@ -44,7 +48,8 @@ export const Logger = (name?: string, logLevel?: number, loggingServerURL?: stri
       fetch(loggingServerURL, {
         method: "POST",
         body: message.join(" ")
-      }).catch(() => {});
+      }).catch(() => {
+      });
     }
 
     switch (level.consoleLogger) {
@@ -67,11 +72,17 @@ export const Logger = (name?: string, logLevel?: number, loggingServerURL?: stri
   };
 
   return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fatal: (...args: any[]) => log(Constants.LogLevels["fatal"], ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: (...args: any[]) => log(Constants.LogLevels["error"], ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     warn: (...args: any[]) => log(Constants.LogLevels["warn"], ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     info: (...args: any[]) => log(Constants.LogLevels["info"], ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     debug: (...args: any[]) => log(Constants.LogLevels["debug"], ...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     trace: (...args: any[]) => log(Constants.LogLevels["trace"], ...args)
   };
 };

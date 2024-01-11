@@ -1,6 +1,6 @@
 import {
   deviceHandler,
-  multiDeviceHandler,
+  multiDeviceHandler
 } from "./service";
 import {
   BridgeServiceKeys,
@@ -24,7 +24,10 @@ export const closeHardwareSocket = () => {
 
 export const initHardware = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  socket = io(`ws://${env.CORE_URL}/hardware`, { autoConnect: false, parser: Parser });
+  socket = io(`ws://${env.CORE_URL}/hardware`, {
+    autoConnect: false,
+    parser: Parser
+  });
   socket.auth = {
     username: env.BRIDGE_NAME,
     password: env.PUBLIC_KEY
@@ -41,11 +44,22 @@ export const initHardware = () => {
 
 
   BridgeServiceKeys.forEach(k => {
-    const deviceHandlerInterface = (args: Parameters<typeof deviceHandler>[1], callback: Parameters<typeof deviceHandler>[2]) => deviceHandler(k, args, callback).then(() => logger.info(`Handled: ${k}`));
-    const multiDeviceHandlerInterface = (args: Parameters<typeof multiDeviceHandler>[1], callback: Parameters<typeof multiDeviceHandler>[2]) => multiDeviceHandler(k, args, callback).then(() => logger.info(`Handled: ${k}All`));
-    assert(socket).on(k, deviceHandlerInterface as THardwareServerToClientEvents[typeof k]);
-    assert(socket).on(`${k}All`, multiDeviceHandlerInterface as THardwareServerToClientEvents[`${typeof k}All`]);
+    const deviceHandlerInterface = (
+      args: Parameters<typeof deviceHandler>[1],
+      callback: Parameters<typeof deviceHandler>[2]
+    ) => deviceHandler(k, args, callback).then(() =>
+      logger.info(`Handled: ${k}`));
+    const multiDeviceHandlerInterface = (
+      args: Parameters<typeof multiDeviceHandler>[1],
+      callback: Parameters<typeof multiDeviceHandler>[2]
+    ) => multiDeviceHandler(k, args, callback)
+      .then(() => logger.info(`Handled: ${k}All`));
+    assert(socket).on(k, deviceHandlerInterface as
+      THardwareServerToClientEvents[typeof k]);
+    assert(socket).on(`${k}All`, multiDeviceHandlerInterface as
+      THardwareServerToClientEvents[`${typeof k}All`]);
   });
 
-  socket.on("connect_error", err => logger.error(`connection error due to ${err.message}`));
+  socket.on("connect_error", err =>
+    logger.error(`connection error due to ${err.message}`));
 };

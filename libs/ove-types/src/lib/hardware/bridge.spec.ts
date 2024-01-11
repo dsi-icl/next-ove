@@ -1,38 +1,30 @@
+/* global readFile, LogFn, console, init, Benchmark, formatOutput */
+
 import { writeFileSync } from "fs";
 import { bench } from "@arktype/attest";
-import Utils from "@ove/ove-server-utils";
-import { type TBridgeHardwareService } from "@ove/ove-types";
-
-const formatOutput = () => {
-  const results = (console.log as ReturnType<typeof jest.fn>).mock.calls.map(x => x[0] as string).filter(o => o.includes("Result: ")).map(o => o.match(/Result: ([\d|.]+)/)![1]);
-  return {
-    time: parseFloat(results[0]),
-    instantiations: parseInt(results[1])
-  };
-};
-
-const init = () => {
-  console.log = jest.fn();
-  console.group = jest.fn();
-  console.error = jest.fn();
-};
+import { type TBridgeHardwareService } from "./bridge";
 
 describe("bridge types", () => {
-  let benchmarks: Record<string, { time: number, instantiations: number }> = {};
+  const benchmarks: Record<string, Benchmark> = {};
 
   it("hardware service - getStatus", () => {
     init();
-    bench("hardware service - getStatus", () => ({}) as TBridgeHardwareService["getStatus"]).mean([0, "ns"]).types([0, "instantiations"]);
-    benchmarks["getStatus"] = formatOutput();
+    bench("hardware service - getStatus",
+      () => ({}) as TBridgeHardwareService["getStatus"])
+      .mean([0, "ns"]).types([0, "instantiations"]);
+    benchmarks["getStatus"] = formatOutput(console.log as LogFn);
   });
 
   afterAll(() => {
-    const existing = Utils.readFile<Record<string, any>>("./benchmarks.json", "{}")!;
+    const existing = readFile();
 
     if (!("ove-types" in existing)) existing["ove-types"] = {};
-    if (!("hardware/" in existing["ove-types"])) existing["ove-types"]["hardware/"] = {};
+    if (!("hardware/" in existing["ove-types"]!)) {
+      existing["ove-types"]!["hardware/"] = {};
+    }
 
-    existing["ove-types"]["hardware/"]["bridge"] = benchmarks;
-    writeFileSync("./benchmarks.json", JSON.stringify(existing, undefined, 2));
+    existing["ove-types"]!["hardware/"]!["bridge"] = benchmarks;
+    writeFileSync("./benchmarks.json",
+      JSON.stringify(existing, undefined, 2));
   });
 });

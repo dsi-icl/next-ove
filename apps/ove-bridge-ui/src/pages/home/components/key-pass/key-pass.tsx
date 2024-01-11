@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
-import { Clipboard } from "react-bootstrap-icons";
-import { Snackbar } from "@ove/ui-components";
-import styles from "./key-pass.module.scss";
 import { Json } from "@ove/ove-utils";
+import { Clipboard } from "react-bootstrap-icons";
+import React, { useEffect, useState } from "react";
+// TODO: investigate circular dependency
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+import { Snackbar } from "@ove/ui-components";
+
+import styles from "./key-pass.module.scss";
 
 const KeyPass = () => {
   const [displayPublicKey, setDisplayPublicKey] = useState("");

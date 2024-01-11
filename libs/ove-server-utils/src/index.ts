@@ -1,3 +1,4 @@
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import * as all from "@ove/ove-utils";
 import { safeFetch } from "./lib/ove-fetch";
 import * as fileUtils from "./lib/ove-file-utils";

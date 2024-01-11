@@ -3,7 +3,7 @@ import { z } from "zod";
 import { safe } from "@ove/ove-utils";
 import { logger } from "../../env";
 import controller from "./controller";
-import { OVEExceptionSchema } from "@ove/ove-types";
+import { FileSchema, OVEExceptionSchema } from "@ove/ove-types";
 import {
   PrismaClient,
   type Invite,
@@ -65,23 +65,16 @@ const InviteSchema: z.ZodType<Invite> = z.strictObject({
   recipientId: z.string()
 });
 
-const FileSchema = z.strictObject({
-  name: z.string(),
-  assetId: z.string(),
-  version: z.number(),
-  isGlobal: z.boolean()
-});
-
 export type Controller = {
-  getProjectsForUser: (prisma: PrismaClient, user: string) => Promise<(Project & {
-    layout: Section[]
-  })[]>
-  getProject: (prisma: PrismaClient, user: string, id: string) => Promise<(Project & {
-    layout: Section[]
-  }) | null>
-  getTagsForUser: (prisma: PrismaClient, user: string) => Promise<string[]>
+  getProjectsForUser: (prisma: PrismaClient, user: string) =>
+    Promise<(Project & { layout: Section[] })[]>
+  getProject: (prisma: PrismaClient, user: string, id: string) =>
+    Promise<(Project & { layout: Section[] }) | null>
+  getTagsForUser: (prisma: PrismaClient, user: string) =>
+    Promise<string[]>
   getUsers: (prisma: PrismaClient) => Promise<User[]>
-  getInvitesForProject: (prisma: PrismaClient, projectId: string) => Promise<Invite[]>
+  getInvitesForProject: (prisma: PrismaClient, projectId: string) =>
+    Promise<Invite[]>
   getFiles: (projectId: string) => Promise<z.infer<typeof FileSchema>[]>
 }
 
@@ -92,7 +85,8 @@ export const projectsRouter = router({
     .output(z.union([OVEExceptionSchema, ProjectSchema.array()]))
     .query(async ({ ctx }) => {
       logger.info(`Getting projects for user ${ctx.user}`);
-      return await safe(logger, () => controller.getProjectsForUser(ctx.prisma, ctx.user));
+      return await safe(logger, () =>
+        controller.getProjectsForUser(ctx.prisma, ctx.user));
     }),
   getProject: protectedProcedure
     .meta({ method: "GET", path: "/project/{projectId}", protected: true })
@@ -100,7 +94,8 @@ export const projectsRouter = router({
     .output(z.union([OVEExceptionSchema, ProjectSchema.nullable()]))
     .query(async ({ ctx, input: { projectId } }) => {
       logger.info(`Getting project ${projectId}`);
-      return await safe(logger, () => controller.getProject(ctx.prisma, ctx.user, projectId));
+      return await safe(logger, () =>
+        controller.getProject(ctx.prisma, ctx.user, projectId));
     }),
   getTags: protectedProcedure
     .meta({ method: "GET", path: "/projects/tags", protected: true })
@@ -108,7 +103,8 @@ export const projectsRouter = router({
     .output(z.union([OVEExceptionSchema, z.string().array()]))
     .query(async ({ ctx }) => {
       logger.info("Getting tags for projects");
-      return await safe(logger, () => controller.getTagsForUser(ctx.prisma, ctx.user));
+      return await safe(logger, () =>
+        controller.getTagsForUser(ctx.prisma, ctx.user));
     }),
   getUsers: protectedProcedure
     .meta({ method: "GET", path: "/users", protected: true })
@@ -128,7 +124,8 @@ export const projectsRouter = router({
     .output(z.union([InviteSchema.array(), OVEExceptionSchema]))
     .query(async ({ ctx, input: { projectId } }) => {
       logger.info(`Getting invites for ${projectId}`);
-      return await safe(logger, () => controller.getInvitesForProject(ctx.prisma, projectId));
+      return await safe(logger, () =>
+        controller.getInvitesForProject(ctx.prisma, projectId));
     }),
   getFiles: protectedProcedure
     .meta({
@@ -148,7 +145,12 @@ export const projectsRouter = router({
       path: "/project/{projectId}/file",
       protected: true
     })
-    .input(z.strictObject({projectId: z.string(), name: z.string(), version: z.number(), assetId: z.string()}))
+    .input(z.strictObject({
+      projectId: z.string(),
+      name: z.string(),
+      version: z.number(),
+      assetId: z.string()
+    }))
     .output(z.union([z.string(), OVEExceptionSchema]))
     .query(async ({ input }) => {
       logger.info(`Getting data for ${input.name} v${input.version}`);

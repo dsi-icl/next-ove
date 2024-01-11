@@ -1,3 +1,5 @@
+/* global process */
+
 import { env, logger } from "../../../../env";
 import * as schedule from "node-schedule";
 import { AutoSchedule, CalendarEvent } from "@ove/ove-types";
@@ -13,7 +15,9 @@ export const setManualSchedule = () => {
   schedule.gracefulShutdown().catch(logger.error);
 };
 
-export const setEcoSchedule = async (ecoSchedule: CalendarEvent[]): Promise<void> => {
+export const setEcoSchedule = async (
+  ecoSchedule: CalendarEvent[]
+): Promise<void> => {
   env.POWER_MODE = "eco";
   const groups =
     Object.values(ecoSchedule.reduce((acc, event) => {
@@ -44,20 +48,26 @@ export const setEcoSchedule = async (ecoSchedule: CalendarEvent[]): Promise<void
       if (process.env.NODE_ENV === "development") {
         logger.info(`Triggered for ${start.toISOString()}`);
       } else {
-        multiDeviceHandler("start", {}, response => logger.info(`Started devices with response: ${Json.stringify(response)}`));
+        multiDeviceHandler("start", {}, response =>
+          logger.info(`Started devices with response: 
+          ${Json.stringify(response)}`));
       }
     });
     schedule.scheduleJob(end, () => {
       if (process.env.NODE_ENV === "development") {
         logger.info(`Triggered for ${end.toISOString()}`);
       } else {
-        multiDeviceHandler("shutdown", {}, response => logger.info(`Stopped devices with response: ${Json.stringify(response)}`));
+        multiDeviceHandler("shutdown", {}, response =>
+          logger.info(`Stopped devices with response: 
+          ${Json.stringify(response)}`));
       }
     });
   });
 };
 
-export const setAutoSchedule = async (autoSchedule_: AutoSchedule | undefined): Promise<void> => {
+export const setAutoSchedule = async (
+  autoSchedule_: AutoSchedule | undefined
+): Promise<void> => {
   let autoSchedule: AutoSchedule | undefined = autoSchedule_;
   if (autoSchedule !== undefined) {
     env.AUTO_SCHEDULE = autoSchedule;
@@ -84,7 +94,9 @@ export const setAutoSchedule = async (autoSchedule_: AutoSchedule | undefined): 
         if (process.env.NODE_ENV === "development") {
           logger.info("Waking");
         } else {
-          multiDeviceHandler("shutdown", {}, response => logger.info(`Started devices with response: ${Json.stringify(response)}`));
+          multiDeviceHandler("shutdown", {}, response =>
+            logger.info(`Started devices with response: 
+            ${Json.stringify(response)}`));
         }
       });
     });
@@ -104,7 +116,9 @@ export const setAutoSchedule = async (autoSchedule_: AutoSchedule | undefined): 
         if (process.env.NODE_ENV === "development") {
           logger.info("Sleeping");
         } else {
-          multiDeviceHandler("shutdown", {}, response => logger.info(`Shutdown devices with response: ${Json.stringify(response)}`));
+          multiDeviceHandler("shutdown", {}, response =>
+            logger.info(`Shutdown devices with response: 
+            ${Json.stringify(response)}`));
         }
       });
     });

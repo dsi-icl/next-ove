@@ -1,4 +1,5 @@
-import { LogLevel } from "../../../ove-utils/src/lib/types";
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+import { type LogLevel } from "@ove/ove-utils";
 
 export type ConstantsType = {
   UNKNOWN_APP_ID: string

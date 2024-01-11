@@ -1,3 +1,5 @@
+// TODO: investigate circular dependency
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import {
   Calendar,
   Dialog,
@@ -6,7 +8,7 @@ import {
   useCalendar,
   useDialog
 } from "@ove/ui-components";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import KeyPass from "./components/key-pass/key-pass";
 import Configuration from "./components/configuration/configuration";
 import AutoModeConfiguration
@@ -19,20 +21,27 @@ import {
 
 import styles from "./home.module.scss";
 
-const useFetchCalendar = (controller: typeof window["bridge"]["getCalendar"]) => {
-  const [response, setResponse] = useState<TCalendar | OVEException | undefined>(undefined);
+const useFetchCalendar = (
+  controller: typeof window["bridge"]["getCalendar"]
+) => {
+  const [response, setResponse] =
+    useState<TCalendar | OVEException | undefined>(undefined);
   const x = useCalendar(response);
 
   useEffect(() => {
     controller({}).then(setResponse);
-  }, []);
+  }, [controller]);
 
   return x;
 };
 
 const Home = () => {
   const [mode, setMode] = useState<"manual" | "auto" | "eco" | null>("manual");
-  const { calendar, lastUpdated, refresh: refreshCalendar } = useFetchCalendar(window.bridge.getCalendar);
+  const {
+    calendar,
+    lastUpdated,
+    refresh: refreshCalendar
+  } = useFetchCalendar(window.bridge.getCalendar);
   const { ref, openDialog, closeDialog } = useDialog();
 
   useEffect(() => {
@@ -57,7 +66,8 @@ const Home = () => {
       <div className={styles.power}>
         <LastUpdated lastUpdated={lastUpdated}
                      refreshCalendar={refreshCalendar} />
-        <PowerMode mode={mode} setMode={setMode} calendar={calendar} controller={window.bridge} />
+        <PowerMode mode={mode} setMode={setMode} calendar={calendar}
+                   controller={window.bridge} />
       </div>
       {calendar !== null ? <Calendar calendar={calendar} /> : null}
     </section>

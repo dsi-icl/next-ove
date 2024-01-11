@@ -21,7 +21,11 @@ const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   });
 };
 
-const getProject = async (prisma: PrismaClient, username: string, id: string) => {
+const getProject = async (
+  prisma: PrismaClient,
+  username: string,
+  id: string
+) => {
   const user = await prisma.user.findUnique({ where: { username } });
 
   return prisma.project.findUnique({
@@ -39,7 +43,7 @@ const getProject = async (prisma: PrismaClient, username: string, id: string) =>
 
 const getTagsForUser = async (prisma: PrismaClient, username: string) => {
   const projects = await getProjectsForUser(prisma, username);
-  return projects.flatMap(({tags}) => tags);
+  return projects.flatMap(({ tags }) => tags);
 };
 
 const getUsers = async (prisma: PrismaClient) => prisma.user.findMany();
@@ -52,13 +56,19 @@ const getInvitesForProject = async (prisma: PrismaClient, projectId: string) =>
   });
 
 const getGlobalFiles = async (): ReturnType<Controller["getFiles"]> => {
-  if (env.NODE_ENV === "production") throw new Error("NOT IMPLEMENTED"); // TODO: implement
+  // TODO: implement
+  if (env.NODE_ENV === "production") throw new Error("NOT IMPLEMENTED");
   return [];
 };
 
 const getFiles = async () => {
-  if (env.NODE_ENV === "production") throw new Error("NOT IMPLEMENTED"); // TODO: implement
-  return (await getGlobalFiles()).map(x => ({...x, isGlobal: true})).concat([]);
+  // TODO: implement
+  if (env.NODE_ENV === "production") throw new Error("NOT IMPLEMENTED");
+  return (await getGlobalFiles()).map(x => ({
+    ...x,
+    isGlobal: true,
+    useLatest: false
+  })).concat([]);
 };
 
 const controller: Controller = {

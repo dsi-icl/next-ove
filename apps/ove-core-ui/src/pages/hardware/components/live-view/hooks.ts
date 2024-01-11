@@ -9,7 +9,7 @@ export const useStreams = (bridgeId: string, isOpen: boolean) => {
 
   useEffect(() => () => {
     stopStreams.mutateAsync({ bridgeId }).catch(logger.error);
-  }, []);
+  }, [bridgeId, stopStreams]);
 
   useEffect(() => {
     if (isOpen) {
@@ -17,7 +17,7 @@ export const useStreams = (bridgeId: string, isOpen: boolean) => {
     } else {
       stopStreams.mutateAsync({ bridgeId }).catch(logger.error);
     }
-  }, [isOpen]);
+  }, [isOpen, bridgeId, startStreams, stopStreams]);
 
   return streams;
 };

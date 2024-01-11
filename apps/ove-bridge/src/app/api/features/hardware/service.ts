@@ -27,7 +27,9 @@ export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
 };
 
 export const getDevices = async (tag?: string) => {
-  const devices = env.HARDWARE.filter(({ tags }) => tag === undefined || tags.includes(tag));
+  const devices =
+    env.HARDWARE.filter(({ tags }) =>
+      tag === undefined || tags.includes(tag));
 
   if (devices.length === 0) {
     const tagStatus = tag !== undefined ? ` with tag: ${tag}` : "";
@@ -52,16 +54,17 @@ const filterUndefinedResponse = <T>(obj: {
   response: T | undefined;
 }): obj is { deviceId: string; response: T } => obj.response !== undefined;
 
-const getServiceForProtocol = (protocol: ServiceType): TBridgeHardwareService => {
-  switch (protocol) {
-    case "node":
-      return NodeService;
-    case "pjlink":
-      return PJLinkService;
-    case "mdc":
-      return MDCService;
-  }
-};
+const getServiceForProtocol =
+  (protocol: ServiceType): TBridgeHardwareService => {
+    switch (protocol) {
+      case "node":
+        return NodeService;
+      case "pjlink":
+        return PJLinkService;
+      case "mdc":
+        return MDCService;
+    }
+  };
 
 const applyService = async <Key extends keyof TBridgeHardwareService>(
   service: TBridgeHardwareService,
@@ -69,19 +72,22 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
   args: TBridgeServiceArgs<Key>,
   device: Device
 ): Promise<Optional<z.infer<TBridgeRoutesSchema[Key]["client"]>>> => {
-  if ((Object.keys(service) as Array<keyof TBridgeHardwareService>).includes(k)) {
+  if ((Object.keys(service) as Array<keyof TBridgeHardwareService>)
+    .includes(k)) {
     return await assert(service[k])(device, args);
   } else return undefined;
 };
 
-const without = <T extends object, U extends object>(object: T) => <K extends keyof T>(...parts: Array<K>): U => {
-  return (Object.keys(object) as Array<keyof T>).reduce((acc, key) => {
-    if (!parts.includes(key as any)) {
-      acc[key] = object[key];
-    }
-    return acc;
-  }, {} as T) as unknown as U;
-};
+const without = <T extends object, U extends object>(object: T) =>
+  <K extends keyof T>(...parts: Array<K>): U => {
+    return (Object.keys(object) as Array<keyof T>)
+      .reduce((acc, key) => {
+        if (!parts.includes(key as K)) {
+          acc[key] = object[key];
+        }
+        return acc;
+      }, {} as T) as unknown as U;
+  };
 
 export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   k: Key,
@@ -96,7 +102,8 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
     return;
   }
 
-  const serviceArgs: TBridgeServiceArgs<Key> = without<typeof args, TBridgeServiceArgs<Key>>(args)("deviceId");
+  const serviceArgs: TBridgeServiceArgs<Key> =
+    without<typeof args, TBridgeServiceArgs<Key>>(args)("deviceId");
   let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
   try {
     response = await applyService<typeof k>(
@@ -119,42 +126,43 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   callback(response);
 };
 
-export const multiDeviceHandler = async <Key extends keyof TBridgeHardwareService>(
-  k: Key,
-  args: z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>,
-  cb: (response: z.infer<TBridgeRoutesSchema[`${Key}All`]["bridge"]>) => void
-) => {
-  const callback = wrapCallback(cb);
-  const devices = await getDevices(args.tag);
+export const multiDeviceHandler =
+  async <Key extends keyof TBridgeHardwareService>(
+    k: Key,
+    args: z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>,
+    cb: (response: z.infer<TBridgeRoutesSchema[`${Key}All`]["bridge"]>) => void
+  ) => {
+    const callback = wrapCallback(cb);
+    const devices = await getDevices(args.tag);
 
-  if (is(OVEExceptionSchema, devices)) {
-    callback(devices);
-    return;
-  }
+    if (is(OVEExceptionSchema, devices)) {
+      callback(devices);
+      return;
+    }
 
-  delete args["tag"];
-  const result = await Promise.all(
-    devices.map(device =>
-      applyService<Key>(
-        getServiceForProtocol(device.type),
-        k,
-        args as TBridgeServiceArgs<Key>,
-        device
+    delete args["tag"];
+    const result = await Promise.all(
+      devices.map(device =>
+        applyService<Key>(
+          getServiceForProtocol(device.type),
+          k,
+          args as TBridgeServiceArgs<Key>,
+          device
+        )
       )
-    )
-  );
+    );
 
-  if (isAll(z.undefined(), result)) {
-    callback(raise("Command not available on devices"));
-    return;
-  }
+    if (isAll(z.undefined(), result)) {
+      callback(raise("Command not available on devices"));
+      return;
+    }
 
-  const response = result
-    .map((x, i) => ({
-      deviceId: devices[i].id,
-      response: x
-    }))
-    .filter(filterUndefinedResponse);
+    const response = result
+      .map((x, i) => ({
+        deviceId: devices[i].id,
+        response: x
+      }))
+      .filter(filterUndefinedResponse);
 
-  callback(response);
-};
+    callback(response);
+  };

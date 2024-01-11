@@ -17,14 +17,20 @@ export const coreRouter = router({
     .meta({ openapi: { method: "GET", path: "/bridges", protect: true } })
     .input(z.void())
     .output(z.union([ObservatorySchema.array(), OVEExceptionSchema]))
-    .query(async ({ctx}) => {
+    .query(async ({ ctx }) => {
       return safe(logger, () => controller.getObservatories(ctx));
     }),
   getObservatoryBounds: protectedProcedure
-    .meta({openapi: {method: "GET", path: "/bridges/bounds", protect: true}})
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/bridges/bounds",
+        protect: true
+      }
+    })
     .input(z.void())
     .output(z.union([ObservatoryBoundsSchema, OVEExceptionSchema]))
-    .query(async ({ctx}) => {
+    .query(async ({ ctx }) => {
       logger.info("Getting observatory bounds");
       return safe(logger, () => controller.getObservatoryBounds(ctx));
     })

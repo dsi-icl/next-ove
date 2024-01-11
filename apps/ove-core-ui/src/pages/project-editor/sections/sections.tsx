@@ -1,14 +1,14 @@
+import { dataTypes } from "../utils";
+import { Json } from "@ove/ove-utils";
 import { type Actions } from "../hooks";
 import { Import, X } from "lucide-react";
-import { useRef, useState } from "react";
 import { type Section } from "@prisma/client";
+import React, { useRef, useState } from "react";
 import { PlusCircle } from "react-bootstrap-icons";
 import ResizeContainer from "../canvas/resize-container";
 import { ReorderableItem, ReorderableList } from "@ove/ui-reorderable-list";
 
 import styles from "./sections.module.scss";
-import { dataTypes } from "../utils";
-import { Json } from "@ove/ove-utils";
 
 type SectionsProps = {
   sections: Section[]
@@ -38,12 +38,14 @@ const Sections = ({
 
   const getCharacterLimit = (bounds: { width: number } | undefined) => {
     if (listRef.current === null || bounds === undefined) return;
-    const rem = parseFloat(getComputedStyle(document.body).fontSize.replace("px", ""));
+    const rem = parseFloat(getComputedStyle(document.body)
+      .fontSize.replace("px", ""));
     setCharacterLimit(Math.floor((bounds.width - (4 * rem)) / (rem * 0.5)));
   };
 
   const setSectionsHandler = (curList: Section[], newList: Section[]) => {
-    const newListOldOrder = Json.copy(newList).sort((a, b) => a.ordering - b.ordering);
+    const newListOldOrder = Json.copy(newList)
+      .sort((a, b) => a.ordering - b.ordering);
     let startOrder: number | null = null;
     let endOrder: number | null = null;
     newList.forEach((section, i) => {
@@ -56,10 +58,15 @@ const Sections = ({
       }
     });
 
-    return curList.slice(0, startOrder!).concat([curList[endOrder!]].concat(curList.slice(startOrder!, endOrder!)).map((section, i) => ({
-      ...section,
-      ordering: i
-    }))).concat(curList.slice(endOrder! + 1));
+    return curList
+      .slice(0, startOrder!)
+      .concat([curList[endOrder!]]
+        .concat(curList.slice(startOrder!, endOrder!))
+        .map((section, i) => ({
+          ...section,
+          ordering: i
+        })))
+      .concat(curList.slice(endOrder! + 1));
   };
 
   return <section id={styles["sections"]}>
@@ -72,39 +79,50 @@ const Sections = ({
         update: getCharacterLimit
       }} useContentRect={true}>
         <ReorderableList
-          onListUpdate={newList => setSections(curList => setSectionsHandler(curList, newList))}
+          onListUpdate={newList =>
+            setSections(curList =>
+              setSectionsHandler(curList, newList as Section[]))}
           list={sections} style={{}}>
-          {sections.map(section => (
-            <ReorderableItem key={section.id}>
-              <li key={section.id} style={{
-                backgroundColor: dataTypes.find(({ name }) => name === section.dataType.toLowerCase())!.color,
-                borderWidth: selected === section.id ? "2px" : "1px"
-              }}>
-                <button className={styles.container} style={{ flexGrow: 1 }}
-                        onClick={() => select(section.id)}>
-                  <span style={{
-                    fontWeight: 700,
-                    fontSize: "1.25rem"
-                  }}>{section.ordering}</span>
-                  <span className={styles.asset}
-                        style={{ fontWeight: selected === section.id ? 700 : 400 }}>{section.asset.length <= characterLimit ? section.asset : `${section.asset.slice(0, characterLimit)}...`}</span>
-                </button>
-                <div className={styles["clear-container"]}>
-                  <button onClick={() => removeFromState(section.id, state)}><X
-                    width="1rem" height="1rem"
-                    strokeWidth={selected === section.id ? "4px" : "2px"} />
+          {sections.map(section => {
+            const fontWeight = selected === section.id ? 700 : 400;
+            const asset = section.asset.length <= characterLimit ?
+              section.asset : `${section.asset.slice(0, characterLimit)}...`;
+            const backgroundColor = dataTypes
+              .find(({ name }) => name === section.dataType.toLowerCase())!
+              .color;
+            return (
+              <ReorderableItem key={section.id}>
+                <li key={section.id} style={{
+                  backgroundColor,
+                  borderWidth: selected === section.id ? "2px" : "1px"
+                }}>
+                  <button className={styles.container} style={{ flexGrow: 1 }}
+                          onClick={() => select(section.id)}>
+                    <span style={{
+                      fontWeight: 700,
+                      fontSize: "1.25rem"
+                    }}>{section.ordering}</span>
+                    <span className={styles.asset}
+                          style={{ fontWeight }}>{asset}</span>
                   </button>
-                </div>
-              </li>
-            </ReorderableItem>
-          ))}
+                  <div className={styles["clear-container"]}>
+                    <button onClick={() => removeFromState(section.id, state)}>
+                      <X
+                        width="1rem" height="1rem"
+                        strokeWidth={selected === section.id ? "4px" : "2px"} />
+                    </button>
+                  </div>
+                </li>
+              </ReorderableItem>
+            );
+          })}
         </ReorderableList>
       </ResizeContainer>
     </ul>
     <div className={styles.new}>
       {numStates > 1 ?
         <button title="Import" onClick={() => setAction("import-section")}>
-          <Import strokeWidth="1px" /></button> : <></>}
+          <Import strokeWidth="1px" /></button> : null}
       <button title="Add" onClick={() => generateSection(state)}><PlusCircle />
       </button>
     </div>

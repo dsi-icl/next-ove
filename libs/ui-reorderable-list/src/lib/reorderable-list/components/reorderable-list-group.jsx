@@ -1,11 +1,16 @@
-/* eslint-disable no-unused-expressions */
-import React, { Component } from 'react'
-import { get, set } from '../lib/object'
-import isEmpty from 'is-empty'
-import ReOrderableList from './reorderable-list'
+/* global ReactElement*/
 
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import { get, set } from "../lib/object";
+import isEmpty from "is-empty";
+import ReOrderableList from "./reorderable-list";
+
+// eslint-disable-next-line valid-jsdoc
 /**
  * A wrapper for several interacting ```ReorderableList``` components.
+ *
+ * @typedef {import("react").ReactElement} ReactElement
  *
  * @class ReOrderableListGroup
  * @author Ezequiel Sam Ceracas
@@ -14,63 +19,72 @@ import ReOrderableList from './reorderable-list'
  */
 export default class ReOrderableListGroup extends Component {
   static defaultProps = {
-    name: 'list',
-    listGroup: []
-  }
+    name: "list",
+  };
+
+  static propTypes = {
+    group: PropTypes.any,
+    name: PropTypes.string,
+    onListGroupUpdate: PropTypes.func,
+    children: PropTypes.instanceOf(ReactElement),
+  };
 
   /**
    * List update handler.
    *
+   * @param {unknown[]} newList - new list to update
+   * @param {string} path - path of item to update
    * @memberof ReOrderableListGroup
    */
   _onListUpdate = (newList, path) => {
-    let listCopy = [...this.props.group]
+    let listCopy = [...this.props.group];
     if (path) {
-      set(path, listCopy, newList)
+      set(path, listCopy, newList);
     } else {
-      listCopy = newList
+      listCopy = newList;
     }
-    this.props.onListGroupUpdate?.(listCopy)
-  }
+    this.props.onListGroupUpdate?.(listCopy);
+  };
 
   /**
-   * Initializes the children. Only detects ```ReorderableList``` components and passes special properties to them.
+   * Initializes the children. Only detects
+   * ```ReorderableList``` components and passes special properties to them.
    *
    * @private
-   * @returns {Array<ReactElement>}
+   * @return {Array<ReactElement>}
    * @memberof ReOrderableListGroup
    */
   _initializeChildren() {
-    let index = 0
-    const childrenWithProps = React.Children.map(
+    let index = 0;
+    return React.Children.map(
       this.props.children,
-      (child) => {
-        if (React.isValidElement(child) && child.type === ReOrderableList) {
+      child => {
+        if (React.isValidElement(/** @type {object} */child) &&
+          child.type === ReOrderableList) {
           const props = {
             name: this.props.name,
-            list: isEmpty(child.props.list)
-              ? get(index, this.props.group)
-              : child.props.list,
+            list: isEmpty(child.props.list) ?
+              get(index.toString(), this.props.group) :
+              child.props.list,
             path: isEmpty(child.props.path) ? index : child.props.path,
             onListUpdate: this._onListUpdate,
             group: this.props.group
-          }
-          index++
-          return React.cloneElement(child, props)
+          };
+          index++;
+          return React.cloneElement(child, props);
         }
-        return child
+        return child;
       }
-    )
-    return childrenWithProps
+    );
   }
 
   /**
    * Renders the component.
    *
-   * @returns {import("react").ReactElement}
+   * @return {ReactElement}
    * @memberof ReOrderableListGroup
    */
   render() {
-    return <React.Fragment>{this._initializeChildren()}</React.Fragment>
+    return <React.Fragment>{this._initializeChildren()}</React.Fragment>;
   }
 }

@@ -1,4 +1,8 @@
+/* global Proxy */
+
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import { type OVEException } from "@ove/ove-types";
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import { type TLogger } from "@ove/ove-logging";
 
 export const replaceAll = (s: string, xs: string[]): string => {
@@ -17,32 +21,40 @@ export const assert = <T>(x: T | undefined | null) => {
   return x;
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-export const DeepProxy = <T extends object>(target: T, onChange: () => void) => {
-  let proxyCache = new WeakMap();
-  return new Proxy(target, {
-    get(target, property) {
-      // @ts-ignore
-      const item = target[property];
-      if (item && typeof item === "object") {
-        if (proxyCache.has(item)) return proxyCache.get(item);
+export const DeepProxy =
+  <T extends object>(target: T, onChange: () => void) => {
+    const proxyCache = new WeakMap();
+    return new Proxy(target, {
+      get(target, property) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        const proxy = DeepProxy(item, onChange);
-        proxyCache.set(item, proxy);
-        return proxy;
+        const item = target[property];
+        if (item && typeof item === "object") {
+          if (proxyCache.has(item)) return proxyCache.get(item);
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          const proxy = DeepProxy(item, onChange);
+          proxyCache.set(item, proxy);
+          return proxy;
+        }
+        return item;
+      },
+      set(target, property, newValue) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        target[property] = newValue;
+        onChange();
+        return true;
       }
-      return item as any;
-    },
-    set(target, property, newValue) {
-      // @ts-ignore
-      target[property] = newValue;
-      onChange();
-      return true;
-    }
-  });
-};
+    });
+  };
 
-export const safe = async <T>(logger: TLogger, handler: () => T): Promise<Awaited<T> | OVEException> => {
+export const safe = async <T>(
+  logger: TLogger,
+  handler: () => Promise<T>
+): Promise<Awaited<T> | OVEException> => {
   try {
     return await handler();
   } catch (e) {

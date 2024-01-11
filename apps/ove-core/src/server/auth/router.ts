@@ -17,7 +17,10 @@ export const authRouter = router({
   login: procedure
     .meta({ openapi: { method: "POST", path: "/login" } })
     .input(z.void())
-    .output(z.union([OVEExceptionSchema, z.object({ access: z.string(), refresh: z.string() })]))
+    .output(z.union([OVEExceptionSchema, z.object({
+      access: z.string(),
+      refresh: z.string()
+    })]))
     .mutation(async ({ ctx }) => {
       logger.info("Logging in user");
       return safe(() => controller.login(ctx));
@@ -31,10 +34,10 @@ export const authRouter = router({
       return safe(() => controller.getToken(ctx));
     }),
   getUserID: protectedProcedure
-    .meta({ openapi: {method: "GET", path: "/user"} })
+    .meta({ openapi: { method: "GET", path: "/user" } })
     .input(z.void())
-    .output(z.union([OVEExceptionSchema, z.object({id: z.string()})]))
-    .query(async ({ctx}) => {
+    .output(z.union([OVEExceptionSchema, z.object({ id: z.string() })]))
+    .query(async ({ ctx }) => {
       logger.info("Getting user");
       return safe(() => controller.getUser(ctx.prisma, ctx.user));
     })

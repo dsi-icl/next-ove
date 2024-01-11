@@ -1,13 +1,13 @@
 import { z } from "zod";
+import { toast } from "sonner";
 import { Json } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
 import { type Geometry, type Rect, type Space } from "../types";
 import { type NativeEvent } from "@ove/ove-types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type BaseSyntheticEvent, useEffect, useRef } from "react";
+import React, { type BaseSyntheticEvent, useEffect, useRef } from "react";
 
 import styles from "./space-config.module.scss";
-import { toast } from "sonner";
 
 type SpaceConfigProps = {
   space: Space & { cells: Geometry[], update: (space: Space) => void }
@@ -18,7 +18,9 @@ const getPreset = (presets: { [key: string]: Space }, curSpace: Space) => {
   const reduced = reduce(curSpace);
   const elem = Object.entries(presets).find(([_k, v]) => {
     const presetReduced = reduce(v);
-    return presetReduced.height === reduced.height && presetReduced.width === reduced.width && v.columns === curSpace.columns && v.rows === curSpace.rows;
+    return presetReduced.height === reduced.height &&
+      presetReduced.width === reduced.width &&
+      v.columns === curSpace.columns && v.rows === curSpace.rows;
   });
   return elem?.[0] ?? "-- select an option --";
 };
@@ -47,7 +49,7 @@ const SpaceConfig = ({
     register,
     handleSubmit,
     setValue,
-    formState: {errors}
+    formState: { errors }
   } = useForm<Space & { preset: string | null }>({
     resolver: zodResolver(SpaceConfigSchema),
     defaultValues: {
@@ -66,7 +68,8 @@ const SpaceConfig = ({
     preset: string | null
   }, e: BaseSyntheticEvent<object> | undefined) => {
     const { preset, ...newSpace } = config;
-    if ((e?.nativeEvent as unknown as NativeEvent)?.submitter?.name !== undefined) {
+    if ((e?.nativeEvent as unknown as NativeEvent)
+      ?.submitter?.name !== undefined) {
       if (!Json.equals(newSpace, curSpace)) {
         setValue("preset", getPreset(presets, newSpace));
       }
@@ -96,7 +99,7 @@ const SpaceConfig = ({
               <p>:</p>
               <input {...register("height", { valueAsNumber: true })}
                      type="number" />
-              <button type="submit" style={{display: "none"}}></button>
+              <button type="submit" style={{ display: "none" }}></button>
             </fieldset>
           </label>
           <label htmlFor="presets">Presets:</label>

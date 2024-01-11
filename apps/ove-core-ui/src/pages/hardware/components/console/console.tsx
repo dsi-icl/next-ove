@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useStore } from "../../../../store";
-import { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { ChevronRight, SendHorizontal } from "lucide-react";
 
 import styles from "./console.module.scss";
@@ -28,7 +28,7 @@ const Console = ({ consoleId, isOpen }: {
 
   useEffect(() => {
     reset();
-  }, [isOpen]);
+  }, [reset, isOpen]);
 
   return <div className={styles.console}>
     <h4>Console - {consoleId}</h4>

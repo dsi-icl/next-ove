@@ -11,6 +11,12 @@ export const useAuth = () => {
   const setTokens = useStore(state => state.setTokens);
   const [username, setUsername] = useState<string | null>(null);
 
+  const logout = useCallback(() => {
+    setTokens(null);
+    localStorage.removeItem("tokens");
+    navigate("/", { replace: true });
+  }, [navigate, setTokens]);
+
   const login = useCallback(async (username: string, password: string) => {
     try {
       const res = await createAuthClient(username, password).login.mutate();
@@ -27,13 +33,7 @@ export const useAuth = () => {
       logger.error(e);
       logout();
     }
-  }, []);
-
-  const logout = useCallback(() => {
-    setTokens(null);
-    localStorage.removeItem("tokens");
-    navigate("/", { replace: true });
-  }, []);
+  }, [logout, navigate, setTokens]);
 
   const refresh = useCallback(async () => {
     if (tokens === null) return;
@@ -43,7 +43,7 @@ export const useAuth = () => {
         logout();
         return;
       }
-      const refreshedTokens = {access: res, refresh: tokens.refresh};
+      const refreshedTokens = { access: res, refresh: tokens.refresh };
       localStorage.setItem("tokens", Json.stringify(refreshedTokens));
       setTokens(refreshedTokens);
       return refreshedTokens;
@@ -51,8 +51,7 @@ export const useAuth = () => {
       logout();
       return;
     }
-
-  }, [tokens]);
+  }, [tokens, logout, setTokens]);
 
   return {
     loggedIn: tokens !== null || env.DISABLE_AUTH,

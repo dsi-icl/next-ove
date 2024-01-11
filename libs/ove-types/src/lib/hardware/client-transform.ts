@@ -26,11 +26,12 @@ export type TDeviceResponse<T> = T | OVEException
 
 /**
  * Generate schema for wrapped response
- * @param schema
+ * @param {z.ZodTypeAny} schema
+ * @return {TDeviceResponseSchema}
  */
-export const getDeviceResponseSchema = <
-  T extends z.ZodTypeAny
->(schema: T): TDeviceResponseSchema<T> => z.union([schema, OVEExceptionSchema]);
+export const getDeviceResponseSchema = <T extends z.ZodTypeAny>(
+  schema: T
+): TDeviceResponseSchema<T> => z.union([schema, OVEExceptionSchema]);
 
 /* API Route Types */
 
@@ -43,7 +44,10 @@ export type TClientRouteSchema<
   M extends RouteMethod,
   E extends ExposureLevel
 > = { client: TDeviceResponseSchema<U>; }
-  & { [Key in keyof TServiceRouteSchema<A, U, M, E>]: TServiceRouteSchema<A, U, M, E>[Key] };
+  & {
+  [Key in keyof TServiceRouteSchema<A, U, M, E>]:
+  TServiceRouteSchema<A, U, M, E>[Key]
+};
 
 /* API Type */
 
@@ -52,7 +56,8 @@ export type TClientRouteSchema<
  */
 export type TClientRoutesSchema = {
   [Key in keyof TServiceRoutesSchema]: TClientRouteSchema<
-    ServiceRouteInputSchema<Key>, ServiceRouteOutputSchema<Key>, OpenAPIMethod<Key>, APIExposureLevel<Key>>
+    ServiceRouteInputSchema<Key>, ServiceRouteOutputSchema<Key>,
+    OpenAPIMethod<Key>, APIExposureLevel<Key>>
 };
 
 /* API */
@@ -60,26 +65,29 @@ export type TClientRoutesSchema = {
 /**
  * Instantiation of the schema type above.
  */
-export const ClientAPITransformSchema: TClientRoutesSchema = Object.entries(ServiceAPISchema).reduce((acc, [k, route]) => {
-  acc[k] = {
-    meta: route.meta,
-    returns: route.returns,
-    args: route.args,
-    exposed: route.exposed,
-    client: getDeviceResponseSchema(route.returns)
-  };
-  return acc;
-}, <{ [key: string]: unknown }>{}) as TClientRoutesSchema;
+export const ClientAPITransformSchema: TClientRoutesSchema =
+  Object.entries(ServiceAPISchema)
+    .reduce((acc, [k, route]) => {
+      acc[k] = {
+        meta: route.meta,
+        returns: route.returns,
+        args: route.args,
+        exposed: route.exposed,
+        client: getDeviceResponseSchema(route.returns)
+      };
+      return acc;
+    }, <{ [key: string]: unknown }>{}) as TClientRoutesSchema;
 
 /* API Utility Types */
 
 /**
  * Input schema for a route
  */
-export type TClientRouteInputTransformSchema<Key extends keyof TClientRoutesSchema> =
+export type TClientRouteInputTransformSchema<
+  Key extends keyof TClientRoutesSchema> =
   TClientRoutesSchema[Key]["args"]["shape"];
 /**
  * Output schema for a route
  */
-export type TClientRouteOutputTransformSchema<Key extends keyof TClientRoutesSchema> =
-  TClientRoutesSchema[Key]["returns"];
+export type TClientRouteOutputTransformSchema<
+  Key extends keyof TClientRoutesSchema> = TClientRoutesSchema[Key]["returns"];

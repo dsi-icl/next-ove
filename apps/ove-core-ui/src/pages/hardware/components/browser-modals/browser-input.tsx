@@ -1,3 +1,4 @@
+import React from "react";
 import { useForm } from "react-hook-form";
 import { useStore } from "../../../../store";
 
@@ -10,8 +11,10 @@ type Form = {
 
 const BrowserIdInput = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
-  const setBrowserConfig = useStore(state => state.hardwareConfig.setBrowserConfig);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
+  const setBrowserConfig = useStore(state =>
+    state.hardwareConfig.setBrowserConfig);
   const { handleSubmit, register } = useForm<Form>();
 
   const onSubmit = (config: Form) => {

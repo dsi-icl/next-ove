@@ -11,7 +11,7 @@ import { type Rect, type Space } from "./types";
 import { type ProjectMetadata } from "./metadata/metadata";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { trpc } from "../../utils/api";
-import { isError } from "@ove/ove-types";
+import { isError, type File } from "@ove/ove-types";
 
 export const useContainer = (space: Space) => {
   const [width, setWidth] = useState(100);
@@ -21,12 +21,15 @@ export const useContainer = (space: Space) => {
   const update = useCallback((contentRect?: Rect) => {
     if (ref.current === null) return;
     const contentRect_ = contentRect ?? ref.current.getBoundingClientRect();
-    const multiple = Math.min(contentRect_.width / space.width, contentRect_.height / space.height);
+    const multiple = Math.min(
+      contentRect_.width / space.width,
+      contentRect_.height / space.height
+    );
     setWidth(multiple * space.width);
     setHeight(multiple * space.height);
-  }, [space.width, space.height, ref.current]);
+  }, [space.width, space.height]);
 
-  useEffect(update, [space.width, space.height]);
+  useEffect(update, [space.width, space.height, update]);
 
   return { width, height, ref, update };
 };
@@ -44,23 +47,28 @@ export const useSpace = () => {
     setRows(space.rows || 4);
   };
 
-  const cells = Array.from({ length: rows }, (_x, row) => Array.from({ length: columns }, (_y, col) => ({
-    x: (width / columns) * col,
-    y: (height / rows) * row,
-    width: width / columns,
-    height: height / rows
-  }))).flat();
+  const cells = Array.from(
+    { length: rows },
+    (_x, row) =>
+      Array.from({ length: columns }, (_y, col) => ({
+        x: (width / columns) * col,
+        y: (height / rows) * row,
+        width: width / columns,
+        height: height / rows
+      }))).flat();
 
   return { rows, columns, width, height, update, cells };
 };
 
-const order = (sections: Section[]) => [...sections.sort((a, b) => a.ordering - b.ordering)];
+const order = (sections: Section[]) =>
+  [...sections.sort((a, b) => a.ordering - b.ordering)];
 
 export const useSections = (projectId: string, initialSections: Section[]) => {
   const [sections_, setSections_] = useState(order(initialSections));
   const [selected, setSelected] = useState<string | null>(null);
   const setConfig = useStore(state => state.setConfig);
-  const setSections = (handler: (cur: Section[]) => Section[]) => setSections_(cur => order(handler(cur)));
+  const setSections = (handler: (cur: Section[]) => Section[]) =>
+    setSections_(cur => order(handler(cur)));
 
   useEffect(() => {
     if (selected === null) {
@@ -69,7 +77,7 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
       const config = sections_.find(({ id }) => id === selected)!.config;
       setConfig(config === null ? "{}" : JSON.stringify(config));
     }
-  }, [selected, sections_]);
+  }, [selected, sections_, setConfig]);
 
   // GET IT – NEW ORDER/BLUE MONDAY. I'M SO FUNNY.
   const reorder = (id: string, blueMonday: number, sections: Section[]) => {
@@ -93,7 +101,8 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
         ordering: cur.length,
         id: newSectionId
       }]);
-      return reorder(newSectionId, parseInt(section.ordering.toString()), newSections);
+      return reorder(newSectionId,
+        parseInt(section.ordering.toString()), newSections);
     });
     setSelected(null);
   };
@@ -118,17 +127,21 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
   };
 
   const updateState = (state: string, name: string) => {
-    setSections(cur => cur.map(section => !section.states.includes(state) ? section : {
-      ...section,
-      states: section.states.map(c => c === state ? name : c)
-    }));
+    setSections(cur =>
+      cur.map(section =>
+        !section.states.includes(state) ? section : {
+          ...section,
+          states: section.states.map(c => c === state ? name : c)
+        }));
   };
 
   const addToState = (id: string, state: string) => {
-    setSections(cur => cur.map(section => section.id !== id || section.states.includes(state) ? section : {
-      ...section,
-      states: section.states.concat([state])
-    }));
+    setSections(cur =>
+      cur.map(section =>
+        section.id !== id || section.states.includes(state) ? section : {
+          ...section,
+          states: section.states.concat([state])
+        }));
   };
 
   const removeFromState = (id: string, state: string) => {
@@ -177,8 +190,11 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
 
   return {
     all: sections_,
-    getSections: (state: string) => sections_.filter(({ states }) => states.includes(state)),
-    getSectionsToImport: (from: string, to: string) => sections_.filter(({ states }) => states.includes(from) && !states.includes(to)),
+    getSections: (state: string) => sections_
+      .filter(({ states }) => states.includes(state)),
+    getSectionsToImport: (from: string, to: string) =>
+      sections_.filter(({ states }) =>
+        states.includes(from) && !states.includes(to)),
     setSections,
     dragSection,
     reorder,
@@ -190,7 +206,9 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
     removeFromState,
     generateSection,
     updateSection,
-    states: sections_.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i)
+    states: sections_
+      .flatMap(({ states }) => states)
+      .filter((x, i, arr) => arr.indexOf(x) === i)
   };
 };
 
@@ -214,12 +232,17 @@ export const useActions = () => {
     } else {
       openDialog();
     }
-  }, [action]);
+  }, [action, closeDialog, openDialog]);
 
   return { dialog: ref, setAction, action, isOpen };
 };
 
-export const useCustomStates = (initialStates: string[], selectSection: (selected: string | null) => void, updateStateForSections: (state: string, name: string) => void, removeStateFromSection: (state: string) => void) => {
+export const useCustomStates = (
+  initialStates: string[],
+  selectSection: (selected: string | null) => void,
+  updateStateForSections: (state: string, name: string) => void,
+  removeStateFromSection: (state: string) => void
+) => {
   const [customStates, setCustomStates] = useState(["__default__"]);
   const [selected, setSelected] = useState("__default__");
 
@@ -229,7 +252,11 @@ export const useCustomStates = (initialStates: string[], selectSection: (selecte
   };
 
   return {
-    states: customStates.slice(0, 1).concat(initialStates).concat(customStates.slice(1)).filter((x, i, arr) => arr.indexOf(x) === i),
+    states: customStates
+      .slice(0, 1)
+      .concat(initialStates)
+      .concat(customStates.slice(1))
+      .filter((x, i, arr) => arr.indexOf(x) === i),
     removeState: (state: string) => {
       setCustomStates(cur => cur.filter(c => c !== state));
       removeStateFromSection(state);
@@ -280,19 +307,29 @@ const loadNewProject = (username: string): (Project & {
   isSaved: false
 });
 
-export const useProject = (username: string | null, projectId: string | null) => {
+export const useProject = (
+  username: string | null,
+  projectId: string | null
+) => {
   const tags_ = trpc.projects.getTags.useQuery();
-  const project_ = trpc.projects.getProject.useQuery({ projectId: projectId ?? "__ERROR__" }, { enabled: projectId !== null });
+  const project_ = trpc.projects.getProject.useQuery(
+    { projectId: projectId ?? "__ERROR__" },
+    { enabled: projectId !== null }
+  );
 
   const [project, setProject] = useState<(Project & {
     layout: Section[]
   }) | null>(null);
-  const tags = useMemo(() => (tags_.status === "success" && !isError(tags_.data) ? tags_.data : []).concat(project?.tags ?? []).filter((x, i, arr) => arr.indexOf(x) === i), [tags_.data, tags_.status]);
+  const tags = useMemo(() => (tags_.status === "success" &&
+  !isError(tags_.data) ? tags_.data : []).concat(project?.tags ?? [])
+    .filter((x, i, arr) =>
+      arr.indexOf(x) === i), [tags_.data, tags_.status, project?.tags]);
 
   useEffect(() => {
-    if (project_.status !== "success" || project_.data === null || isError(project_.data)) return;
+    if (project_.status !== "success" || project_.data === null ||
+      isError(project_.data)) return;
     setProject(project_.data);
-  }, [project_.status]);
+  }, [project_.status, project_.data]);
 
   useEffect(() => {
     if (username === null || projectId !== null) return;
@@ -310,24 +347,20 @@ export const useProject = (username: string | null, projectId: string | null) =>
   };
 };
 
-export type File = {
-  name: string,
-  version: number,
-  assetId: string,
-  isGlobal: boolean
-}
-
 export const useFiles = (projectId: string) => {
-  const files_ = trpc.projects.getFiles.useQuery({projectId});
+  const files_ = trpc.projects.getFiles.useQuery({ projectId });
   const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (files_.status !== "success" || isError(files_.data)) return;
     setFiles(files_.data);
-  }, [files_.status]);
+  }, [files_.status, files_.data]);
 
   const addFile = (name: string, data: string, assetId?: string) => {
-    if (files.find(file => file.name === name && file.isGlobal) !== undefined) return null; // TODO: add snackbar failure message
+    if (files.find(file =>
+      file.name === name && file.isGlobal) !== undefined) {
+      return null; // TODO: add snackbar failure message
+    }
     if (assetId === undefined) {
       assetId = nanoid(16);
       setFiles(cur => [...cur, {
@@ -352,11 +385,15 @@ export const useFiles = (projectId: string) => {
     return { assetId, name };
   };
 
-  const generateThumbnail = () => addFile(`thumbnail-gen-${nanoid(2)}`, "thumbnail data"); // TODO: replace with real thumbnail generation
+  const generateThumbnail = () => addFile(
+    `thumbnail-gen-${nanoid(2)}`, "thumbnail data"
+  ); // TODO: replace with real thumbnail generation
 
   const getLatest = useCallback((id: string) => {
-    const latest = Math.max(...files.filter(file => file.assetId === id || file.name === id).map(({ version }) => version));
-    return files.find(file => (file.assetId === id || file.name === id) && file.version === latest)!;
+    const latest = Math.max(...files.filter(file =>
+      file.assetId === id || file.name === id).map(({ version }) => version));
+    return files.find(file =>
+      (file.assetId === id || file.name === id) && file.version === latest)!;
   }, [files]);
 
   const getData = async (file: File) => ""; // TODO: replace with server call
@@ -368,7 +405,8 @@ export const useFiles = (projectId: string) => {
     return files.find(({
       name,
       version
-    }) => name === sections.at(-2)! && version === parseInt(sections.at(-1)!)) ?? null;
+    }) => name === sections.at(-2)! &&
+      version === parseInt(sections.at(-1)!)) ?? null;
   };
 
   return {
@@ -384,26 +422,33 @@ export const useFiles = (projectId: string) => {
 
 export const useCollaboration = (project: Project, username: string) => {
   const users_ = trpc.projects.getUsers.useQuery();
-  const invites_ = trpc.projects.getInvitesForProject.useQuery({ projectId: project.id });
+  const invites_ = trpc.projects.getInvitesForProject
+    .useQuery({ projectId: project.id });
   const [users, setUsers] = useState<User[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
 
   useEffect(() => {
     if (users_.status !== "success" || isError(users_.data)) return;
     setUsers(users_.data);
-  }, [users_.status]);
+  }, [users_.status, users_.data]);
 
   useEffect(() => {
     if (invites_.status !== "success" || isError(invites_.data)) return;
     setInvites(invites_.data);
-  }, [invites_.status]);
+  }, [invites_.status, invites_.data]);
 
-  const uninvited = users.filter(user => project.collaboratorIds.find(id => id === user.id) === undefined && invites.find(({
-    recipientId,
-    status
-  }) => recipientId === user.id && status === "pending") === undefined);
-  const accepted = project.collaboratorIds.map(id => users.find(user => user.id === id)!);
-  const invited = invites.filter(({ status }) => status === "pending").map(({ recipientId }) => users.find(({ id }) => id === recipientId)!);
+  const uninvited = users
+    .filter(user => project.collaboratorIds
+      .find(id => id === user.id) === undefined && invites.find(({
+      recipientId,
+      status
+    }) => recipientId === user.id && status === "pending") === undefined);
+  const accepted = project.collaboratorIds
+    .map(id => users.find(user => user.id === id)!);
+  const invited = invites
+    .filter(({ status }) => status === "pending")
+    .map(({ recipientId }) => users.find(({ id }) =>
+      id === recipientId)!);
 
   const inviteCollaborator = (id: string) => {
     setInvites(cur => [...cur, {
@@ -419,8 +464,10 @@ export const useCollaboration = (project: Project, username: string) => {
   const removeCollaborator = (id: string) => {
     if (id === project.creatorId) return;
     const user = users.find(user => user.id === id)!;
-    if (user.id === users.find(({ id }) => id === project.creatorId)!.username) return;
-    setInvites(cur => cur.filter(x => x.recipientId !== id && x.status !== "declined"));
+    if (user.id === users.find(({ id }) =>
+      id === project.creatorId)!.username) return;
+    setInvites(cur => cur.filter(x =>
+      x.recipientId !== id && x.status !== "declined"));
   };
 
   return {
@@ -443,9 +490,10 @@ export const useObservatories = () => {
   }>>({});
 
   useEffect(() => {
-    if (observatories_.status !== "success" || isError(observatories_.data)) return;
+    if (observatories_.status !== "success" ||
+      isError(observatories_.data)) return;
     setObservatories(observatories_.data);
-  }, [observatories_.status]);
+  }, [observatories_.status, observatories_.data]);
 
   return { observatories };
 };

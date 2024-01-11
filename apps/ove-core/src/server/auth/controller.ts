@@ -1,3 +1,5 @@
+/* global Buffer */
+
 import { env } from "../../env";
 import { TRPCError } from "@trpc/server";
 import * as bcrypt from "bcrypt";
@@ -17,10 +19,12 @@ const generateToken = (
 );
 
 const login = async (ctx: Context): Promise<Tokens> => {
-  if (ctx.user === null) throw new TRPCError({
-    code: "UNAUTHORIZED",
-    message: "No credentials provided"
-  });
+  if (ctx.user === null) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "No credentials provided"
+    });
+  }
   const [username, password] = decodeURIComponent(
     Buffer.from(ctx.user, "base64url").toString()).split(":");
   const user = await ctx.prisma.user.findUnique({
@@ -29,10 +33,12 @@ const login = async (ctx: Context): Promise<Tokens> => {
     }
   });
 
-  if (user === null) throw new TRPCError({
-    code: "UNAUTHORIZED",
-    message: `No user found with username: ${username}`
-  });
+  if (user === null) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: `No user found with username: ${username}`
+    });
+  }
 
   let authorised = false;
 
@@ -45,10 +51,12 @@ const login = async (ctx: Context): Promise<Tokens> => {
     });
   }
 
-  if (!authorised) throw new TRPCError({
-    code: "UNAUTHORIZED",
-    message: "Incorrect password"
-  });
+  if (!authorised) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Incorrect password"
+    });
+  }
 
   const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "24h");
   const refreshToken = generateToken(username, env.REFRESH_TOKEN_SECRET);
@@ -70,10 +78,12 @@ const login = async (ctx: Context): Promise<Tokens> => {
 };
 
 const getToken = async (ctx: Context) => {
-  if (ctx.user === null) throw new TRPCError({
-    code: "UNAUTHORIZED",
-    message: "No credentials provided"
-  });
+  if (ctx.user === null) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "No credentials provided"
+    });
+  }
   const tokenRecord = await ctx.prisma.refreshToken.findUnique({
     where: {
       token: ctx.user
@@ -100,7 +110,8 @@ const getToken = async (ctx: Context) => {
   return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "24h");
 };
 
-const getUser = (prisma: PrismaClient, username: string) => prisma.user.findUniqueOrThrow({ where: { username } });
+const getUser = (prisma: PrismaClient, username: string) =>
+  prisma.user.findUniqueOrThrow({ where: { username } });
 
 const controller = { login, getToken, getUser };
 

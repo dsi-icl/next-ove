@@ -21,7 +21,9 @@ import {
 /* Utility Types */
 
 export type InboundAPI = {
-  [Key in keyof TAPIRoutes]: (args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">) => Promise<Awaited<z.infer<TAPIRoutes[Key]["output"]>["response"]>>
+  [Key in keyof TAPIRoutes]: (
+    args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">
+  ) => Promise<Awaited<z.infer<TAPIRoutes[Key]["output"]>["response"]>>
 }
 
 export type APIController = Omit<TAPIRoutes, "getPublicKey">
@@ -29,25 +31,39 @@ export type APIController = Omit<TAPIRoutes, "getPublicKey">
 export const excludeKeys: readonly (keyof TAPIRoutes)[] = ["getPublicKey"];
 
 export type TBridgeService = {
-  [Key in keyof TAPIRoutes]: (args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">) => z.infer<TAPIRoutes[Key]["output"]>["response"]
+  [Key in keyof TAPIRoutes]: (
+    args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">
+  ) => z.infer<TAPIRoutes[Key]["output"]>["response"]
 }
 
-export type TParameters<Key extends keyof TBridgeService> = Parameters<TBridgeService[Key]>[0]
-export type TCallback<Key extends keyof TBridgeService> = (response: TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>) => void
+export type TParameters<Key extends keyof TBridgeService> =
+  Parameters<TBridgeService[Key]>[0]
+export type TCallback<Key extends keyof TBridgeService> = (
+  response: TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>
+) => void
 
 export type TBridgeController = {
-  [Key in keyof APIController]: (args: TParameters<Key>) => Promise<TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>>
+  [Key in keyof APIController]: (args: TParameters<Key>) =>
+    Promise<TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>>
 }
 
 export type TSocketOutEvents = {
-  [Key in keyof APIController]: (args: TParameters<Key>, callback: TCallback<Key>) => void
+  [Key in keyof APIController]: (
+    args: TParameters<Key>,
+    callback: TCallback<Key>
+  ) => void
 }
 
-export type TSocketInEvents = {}
+export type TSocketInEvents = Record<string, never>
 type TGet = "GET"
-export type TIsGet<Key extends keyof TBridgeService, T, U> = TAPIRoutes[Key]["meta"]["openapi"]["method"] extends TGet ? T : U
+export type TIsGet<Key extends keyof TBridgeService, T, U> =
+  TAPIRoutes[Key]["meta"]["openapi"]["method"] extends TGet ? T : U
 
-const EnvSchema = z.strictObject({ bridgeName: z.string().optional(), coreURL: z.string().optional(), calendarURL: z.string().optional() });
+const EnvSchema = z.strictObject({
+  bridgeName: z.string().optional(),
+  coreURL: z.string().optional(),
+  calendarURL: z.string().optional()
+});
 
 export const APIRoutes = {
   getDevice: {
@@ -70,7 +86,8 @@ export const APIRoutes = {
       }
     },
     input: z.strictObject({ tag: z.string().optional(), bridgeId: z.string() }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))
+    output: getBridgeResponseSchema(
+      getDeviceResponseSchema(z.array(DeviceSchema)))
   },
   addDevice: {
     meta: {
@@ -125,7 +142,8 @@ export const APIRoutes = {
       }
     },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.array(z.string()).optional()))
+    output: getBridgeResponseSchema(
+      getDeviceResponseSchema(z.array(z.string()).optional()))
   },
   getCalendar: {
     meta: {
@@ -136,7 +154,8 @@ export const APIRoutes = {
       }
     },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(CalendarSchema.optional()))
+    output: getBridgeResponseSchema(
+      getDeviceResponseSchema(CalendarSchema.optional()))
   },
   getSocketStatus: {
     meta: {
@@ -179,7 +198,10 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({ bridgeId: z.string(), ecoSchedule: z.array(CalendarEventSchema) }),
+    input: z.strictObject({
+      bridgeId: z.string(),
+      ecoSchedule: z.array(CalendarEventSchema)
+    }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
   },
   setAutoSchedule: {
@@ -190,7 +212,10 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({ bridgeId: z.string(), autoSchedule: AutoScheduleSchema.optional() }),
+    input: z.strictObject({
+      bridgeId: z.string(),
+      autoSchedule: AutoScheduleSchema.optional()
+    }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
   },
   getEnv: {
@@ -212,7 +237,7 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string()}).merge(EnvSchema),
+    input: z.strictObject({ bridgeId: z.string() }).merge(EnvSchema),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
   },
   registerAuth: {
@@ -223,7 +248,11 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string(), id: z.string(), pin: z.string()}),
+    input: z.strictObject({
+      bridgeId: z.string(),
+      id: z.string(),
+      pin: z.string()
+    }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.void().promise()))
   },
   getDevicesToAuth: {
@@ -234,8 +263,9 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string()}),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.array(DeviceSchema)))
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(
+      getDeviceResponseSchema(z.array(DeviceSchema)))
   },
   getAppVersion: {
     meta: {
@@ -245,7 +275,7 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string()}),
+    input: z.strictObject({ bridgeId: z.string() }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.string()))
   },
   getPublicKey: {
@@ -256,7 +286,7 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string()}),
+    input: z.strictObject({ bridgeId: z.string() }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.string()))
   },
   getAutoSchedule: {
@@ -267,8 +297,9 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string()}),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(AutoScheduleSchema.optional()))
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(
+      getDeviceResponseSchema(AutoScheduleSchema.optional()))
   },
   getGeometry: {
     meta: {
@@ -278,8 +309,9 @@ export const APIRoutes = {
         protect: true
       }
     },
-    input: z.strictObject({bridgeId: z.string()}),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(BoundsSchema.optional()))
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(
+      getDeviceResponseSchema(BoundsSchema.optional()))
   }
 };
 

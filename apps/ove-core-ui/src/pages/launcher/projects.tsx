@@ -1,10 +1,11 @@
+import React from "react";
 import { trpc } from "../../utils/api";
 import { isError } from "@ove/ove-types";
 import ProjectCard from "./project-card";
 import styles from "./launcher.module.scss";
 import { Dialog, useDialog } from "@ove/ui-components";
 import Controller from "../../components/controller/controller";
-import {Plus} from "react-bootstrap-icons";
+import { Plus } from "react-bootstrap-icons";
 
 const Projects = () => {
   const { ref, closeDialog, isOpen, openDialog } = useDialog();
@@ -26,9 +27,9 @@ const Projects = () => {
       }} hiddenStyle={{ padding: 0 }}>
         <Controller />
       </Dialog>
-      {isOpen ? <div id={styles["mask"]}></div> : <></>}
+      {isOpen ? <div id={styles["mask"]}></div> : null}
       <a href="/project-editor" id={styles["new"]}><Plus size={"2rem"} /></a>
-    </section> : <></>;
+    </section> : null;
 };
 
 export default Projects;

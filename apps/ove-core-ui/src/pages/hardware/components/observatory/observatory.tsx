@@ -1,3 +1,4 @@
+import React from "react";
 import Header from "../header/header";
 import Actions from "../actions/actions";
 import Toolbar from "../toolbar/toolbar";
@@ -37,7 +38,8 @@ const Observatory = ({ name, isOnline, showNotification }: {
   } = useHardware(isOnline, name);
   const [filter, setFilter] = useState("");
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
 
   useSingleController(name, showNotification, updateStatus);
   useMultiController(name, filter, showNotification, updateStatusAll);
@@ -50,7 +52,7 @@ const Observatory = ({ name, isOnline, showNotification }: {
       deviceId: filter === "" ? null : filter,
       pending: false
     });
-  }, [filter]);
+  }, [filter, filterType, name, setDeviceAction]);
 
   return <section className={styles.observatory}>
     <Header name={name} isOnline={isOnline} />

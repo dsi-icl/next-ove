@@ -1,7 +1,11 @@
 import { type Namespace } from "socket.io";
 import { prisma } from "./db";
+import { logger } from "../env";
 
-export const setupNamespace = <T extends Namespace>(io: T, clients: Map<string, string>) => {
+export const setupNamespace = <T extends Namespace>(
+  io: T,
+  clients: Map<string, string>
+) => {
   io.use((socket, next) => {
     const { username, password } = socket.handshake.auth;
     prisma.user.findUnique({
@@ -18,12 +22,14 @@ export const setupNamespace = <T extends Namespace>(io: T, clients: Map<string, 
   });
 
   io.on("connection", socket => {
-    console.log(`Socket ID: ${socket.handshake.auth.username} connected via ${io.name}`);
+    logger.info(`Socket ID: ${socket.handshake.auth.username}
+     connected via ${io.name}`);
     clients.set(socket.handshake.auth.username, socket.id);
 
     socket.on("disconnect", reason => {
-      console.log(`${socket.handshake.auth.username} disconnected with reason: ${reason}`);
+      logger.info(`${socket.handshake.auth.username}
+       disconnected with reason: ${reason}`);
       clients.delete(socket.handshake.auth.username);
     });
   });
-}
+};

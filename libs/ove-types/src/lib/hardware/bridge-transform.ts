@@ -26,7 +26,8 @@ export const BridgeMetadataSchema =
   z.object({ bridge: z.string() });
 /**
  * Generates multi-device response schema for wrapping with errors
- * @param schema
+ * @param {z.ZodTypeAny} schema
+ * @return {TMultiDeviceResponseSchema}
  */
 export const getMultiDeviceResponseSchema =
   <T extends z.ZodTypeAny>(schema: T): TMultiDeviceResponseSchema<T> =>
@@ -37,13 +38,15 @@ export const getMultiDeviceResponseSchema =
 
 /**
  * Generates response schema wrapped with metadata
- * @param schema
+ * @param {z.ZodTypeAny} schema
+ * @return {TBridgeResponseSchema}
  */
 export const getBridgeResponseSchema =
-  <T extends z.ZodTypeAny>(schema: T): TBridgeResponseSchema<T> => z.object({
-    meta: BridgeMetadataSchema,
-    response: schema
-  });
+  <T extends z.ZodTypeAny>(schema: T): TBridgeResponseSchema<T> =>
+    z.object({
+      meta: BridgeMetadataSchema,
+      response: schema
+    });
 
 /* Utility Types */
 
@@ -83,7 +86,10 @@ export type TBridgeRouteSchema<
   {
     bridge: TBridgeResponseSchema<TClientRouteSchema<A, U, M, E>["client"]>
   }
-  & { [Key in keyof TClientRouteSchema<A, U, M, E>]: TClientRouteSchema<A, U, M, E>[Key] };
+  & {
+  [Key in keyof TClientRouteSchema<A, U, M, E>]:
+  TClientRouteSchema<A, U, M, E>[Key]
+};
 
 /**
  * Schema for each multi-device route as a type for mapping
@@ -97,7 +103,10 @@ export type TBridgeMultiRouteSchema<
     bridge: TBridgeResponseSchema<
       TMultiDeviceResponseSchema<TClientRouteSchema<A, U, M, E>["returns"]>>
   }
-  & { [Key in keyof TClientRouteSchema<A, U, M, E>]: TClientRouteSchema<A, U, M, E>[Key] };
+  & {
+  [Key in keyof TClientRouteSchema<A, U, M, E>]:
+  TClientRouteSchema<A, U, M, E>[Key]
+};
 
 /* API Types */
 
@@ -107,7 +116,8 @@ export type TBridgeMultiRouteSchema<
 export type TBridgeSingleRoutesSchema = {
   [Key in keyof TClientRoutesSchema]: TBridgeRouteSchema<z.extendShape<
     TClientRouteInputTransformSchema<Key>, { deviceId: z.ZodString }
-  >, TClientRouteOutputTransformSchema<Key>, OpenAPIMethod<Key>, APIExposureLevel<Key>>
+  >, TClientRouteOutputTransformSchema<Key>,
+    OpenAPIMethod<Key>, APIExposureLevel<Key>>
 }
 
 /**
@@ -118,7 +128,8 @@ export type TBridgeMultiRoutesSchema = {
     z.extendShape<
       TClientRouteInputTransformSchema<Key>,
       { tag: z.ZodOptional<z.ZodString> }
-    >, TClientRouteOutputTransformSchema<Key>, OpenAPIMethod<Key>, APIExposureLevel<Key>>
+    >, TClientRouteOutputTransformSchema<Key>,
+    OpenAPIMethod<Key>, APIExposureLevel<Key>>
 }
 
 /**
@@ -133,38 +144,41 @@ export type TBridgeRoutesSchema =
 /**
  * Instantiation of the schema above.
  */
-export const BridgeAPITransformSchema: TBridgeRoutesSchema = Object.entries(ClientAPITransformSchema).reduce((acc, [k, route]) => {
-  acc[k] = {
-    meta: route.meta,
-    returns: route.returns,
-    args: route.args.extend({
-      deviceId: DeviceIDSchema
-    }),
-    client: route.client,
-    bridge: getBridgeResponseSchema(route.client)
-  };
-  acc[`${k}All`] = {
-    meta: route.meta,
-    returns: route.returns,
-    args: route.args.extend({
-      tag: z.string().optional()
-    }),
-    client: route.client,
-    bridge: getBridgeResponseSchema(
-      getMultiDeviceResponseSchema(route.returns))
-  };
-  return acc;
-}, <{ [key: string]: unknown }>{}) as TBridgeRoutesSchema;
+export const BridgeAPITransformSchema: TBridgeRoutesSchema =
+  Object.entries(ClientAPITransformSchema)
+    .reduce((acc, [k, route]) => {
+      acc[k] = {
+        meta: route.meta,
+        returns: route.returns,
+        args: route.args.extend({
+          deviceId: DeviceIDSchema
+        }),
+        client: route.client,
+        bridge: getBridgeResponseSchema(route.client)
+      };
+      acc[`${k}All`] = {
+        meta: route.meta,
+        returns: route.returns,
+        args: route.args.extend({
+          tag: z.string().optional()
+        }),
+        client: route.client,
+        bridge: getBridgeResponseSchema(
+          getMultiDeviceResponseSchema(route.returns))
+      };
+      return acc;
+    }, <{ [key: string]: unknown }>{}) as TBridgeRoutesSchema;
 
 /* API Utility Types */
 
 /**
  * Input schema for a route
  */
-export type BridgeRouteInputTransformSchema<Key extends keyof TBridgeRoutesSchema> =
+export type BridgeRouteInputTransformSchema<
+  Key extends keyof TBridgeRoutesSchema> =
   TBridgeRoutesSchema[Key]["args"]["shape"];
 /**
  * Output schema for a route
  */
-export type BridgeRouteOutputTransformSchema<Key extends keyof TBridgeRoutesSchema> =
-  TBridgeRoutesSchema[Key]["returns"];
+export type BridgeRouteOutputTransformSchema<
+  Key extends keyof TBridgeRoutesSchema> = TBridgeRoutesSchema[Key]["returns"];

@@ -12,7 +12,6 @@ const baseRouter = router({
   projects: projectsRouter
 });
 
-// @ts-ignore
 export const appRouter = mergeRouters(baseRouter, authRouter);
 
 export type AppRouter = typeof appRouter;

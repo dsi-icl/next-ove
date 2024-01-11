@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-expressions */
-import {set} from '../lib/object';
-import List from '../models/list';
+import { set } from "../lib/object";
+import List from "../models/list";
 
 const arrayMove = (arr, from, to) => {
   const without = arr.filter((_x, i) => i !== from);
@@ -26,7 +26,7 @@ export default class ListController {
    * @memberof ListController
    */
   constructor(props) {
-    this._model = new List(props)
+    this._model = new List(props);
   }
 
   /**
@@ -36,7 +36,7 @@ export default class ListController {
    * @memberof ListController
    */
   get model() {
-    return this._model
+    return this._model;
   }
 
   /**
@@ -45,18 +45,19 @@ export default class ListController {
    * @param {*} sourceItem
    * @param {*} targetIndex
    * @memberof ListController
+   * @return {any}
    */
   moveItem(sourceItem, targetIndex) {
-    let targetList = [...this.model.listData]
-    const itemIndex = sourceItem.index
-    targetList = arrayMove(targetList, itemIndex, targetIndex)
-    let params = [targetList, this.model.path]
+    let targetList = [...this.model.listData];
+    const itemIndex = sourceItem.index;
+    targetList = arrayMove(targetList, itemIndex, targetIndex);
+    let params = [targetList, this.model.path];
     if (this.model.group) {
-      const groupCopy = [...this.model.group]
-      set(this.model.path, groupCopy, targetList)
-      params = [groupCopy]
+      const groupCopy = [...this.model.group];
+      set(this.model.path, groupCopy, targetList);
+      params = [groupCopy];
     }
-    return params
+    return params;
   }
 
   /**
@@ -66,44 +67,47 @@ export default class ListController {
    * @param {*} [sourceList]
    * @param {*} targetIndex
    * @memberof ListController
+   * @return {any}
    */
   transferItem(sourceItem, sourceList, targetIndex) {
-    let targetList = [...this.model.listData]
-    const itemData = sourceItem.data
-    const itemIndex = sourceItem.index
+    let targetList = [...this.model.listData];
+    const itemData = sourceItem.data;
+    const itemIndex = sourceItem.index;
 
-    const sourceListPath = sourceList.path
+    const sourceListPath = sourceList.path;
     // make a copy of the group
-    const groupCopy = [...this.model.group]
+    const groupCopy = [...this.model.group];
     // remove the source item from its list
     const sourceListData = sourceList.listData.filter(
       (item, index) => index !== itemIndex
-    )
+    );
     // add the item to the new list
-    targetList.push(itemData)
+    targetList.push(itemData);
     // move the newly added item to the target index
-    targetList = arrayMove(targetList, targetList.length - 1, targetIndex)
+    targetList = arrayMove(targetList, targetList.length - 1, targetIndex);
     // set the new source and target list
-    set(sourceListPath, groupCopy, sourceListData)
-    set(this.model.path, groupCopy, targetList)
+    set(sourceListPath, groupCopy, sourceListData);
+    set(this.model.path, groupCopy, targetList);
 
     // return the group
-    return [groupCopy]
+    return [groupCopy];
   }
 
   /**
-   * Transfers an item from one list to another or reorders the items if the ```sourceList``` is null.
+   * Transfers an item from one list to another or
+   * reorders the items if the ```sourceList``` is null.
    *
    * @param {ListItem} sourceItem
-   * @param {Number} targetIndex
    * @param {List} sourceList
+   * @param {Number} targetIndex
    * @memberof ListController
+   * @return {any}
    */
   updateList(sourceItem, sourceList, targetIndex) {
-    sourceList = !sourceList ? this.model : sourceList
+    sourceList = !sourceList ? this.model : sourceList;
     if (this.model.instanceID === sourceList.instanceID) {
-      return this.moveItem(sourceItem, targetIndex)
+      return this.moveItem(sourceItem, targetIndex);
     }
-    return this.transferItem(sourceItem, sourceList, targetIndex)
+    return this.transferItem(sourceItem, sourceList, targetIndex);
   }
 }

@@ -1,3 +1,6 @@
+/* global JSX */
+
+import React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { type ServiceType } from "@ove/ove-types";
@@ -50,7 +53,8 @@ export const columns: ColumnDef<HardwareRow>[] = [
       ID
       <ArrowUpDown className="ml-2 h-4 w-4" />
     </button>,
-    filterFn: (row, columnId, filterValue) => (row.getValue(columnId) as string).startsWith(filterValue)
+    filterFn: (row, columnId, filterValue) =>
+      (row.getValue(columnId) as string).startsWith(filterValue)
   },
   {
     accessorKey: "hostname",
@@ -82,7 +86,8 @@ export const columns: ColumnDef<HardwareRow>[] = [
       <ArrowUpDown className="ml-2 h-4 w-4" />
     </button>,
     filterFn: (row, columnId, filterValue) => {
-      return (row.getValue(columnId) as string[]).find(tag => tag.startsWith(filterValue)) !== undefined
+      return (row.getValue(columnId) as string[]).find(tag =>
+        tag.startsWith(filterValue)) !== undefined;
     }
   },
   {

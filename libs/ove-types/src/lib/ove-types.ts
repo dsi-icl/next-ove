@@ -15,7 +15,8 @@ export const is = <T extends z.ZodTypeAny>(
 
 export const isError = (
   obj: unknown
-): obj is OVEException => obj !== undefined && obj !== null && typeof obj === "object" && "oveError" in obj;
+): obj is OVEException => obj !== undefined &&
+  obj !== null && typeof obj === "object" && "oveError" in obj;
 
 export const isAll = <T extends z.ZodTypeAny>(
   schema: T,
@@ -27,7 +28,11 @@ export type Tokens = {
   refresh: string
 }
 
-export const PowerModeSchema = z.union([z.literal("manual"), z.literal("auto"), z.literal("eco")]);
+export const PowerModeSchema = z.union([
+  z.literal("manual"),
+  z.literal("auto"),
+  z.literal("eco")
+]);
 export type PowerMode = z.infer<typeof PowerModeSchema>
 
 export const CalendarEventSchema = z.strictObject({
@@ -39,7 +44,11 @@ export const CalendarEventSchema = z.strictObject({
 export type CalendarEvent = z.infer<typeof CalendarEventSchema>
 
 export const CalendarSchema = z.strictObject({
-  value: z.array(z.strictObject({ title: z.string(), start: z.string(), end: z.string() })),
+  value: z.array(z.strictObject({
+    title: z.string(),
+    start: z.string(),
+    end: z.string()
+  })),
   lastUpdated: z.string().nullable()
 });
 

@@ -1,7 +1,7 @@
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import styles from "./auto-mode-configuration.module.scss";
-import { useEffect } from "react";
 
 export type AutoModeConfigurationProps = {
   closeDialog: () => void
@@ -25,7 +25,7 @@ const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
       setValue("end" as const, autoSchedule?.sleep ?? undefined);
       setValue("days" as const, autoSchedule?.schedule ?? defaultDaySelection);
     });
-  }, []);
+  }, [setValue]);
 
   const onSubmit = ({ start, end, days }: Form) => {
     window.bridge.setAutoSchedule({

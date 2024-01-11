@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useStore } from "../../../../store";
 import { type ScreenshotMethod } from "@ove/ove-types";
@@ -13,8 +13,10 @@ type Form = {
 const ScreenshotInput = () => {
   const [screens, setScreens] = useState<string[]>([]);
   const { register, handleSubmit, setValue } = useForm<Form>();
-  const setScreenshotConfig = useStore(state => state.hardwareConfig.setScreenshotConfig);
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setScreenshotConfig = useStore(state =>
+    state.hardwareConfig.setScreenshotConfig);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
 
   const onSubmit = ({ method, screen }: Form) => {
@@ -22,8 +24,11 @@ const ScreenshotInput = () => {
       setScreens(cur => cur.includes(screen) ? cur : [...cur, screen]);
       setValue("screen", "");
     } else {
-      setScreenshotConfig({method, screens: screens.map(screen => parseInt(screen))});
-      setDeviceAction({...deviceAction, pending: false});
+      setScreenshotConfig({
+        method,
+        screens: screens.map(screen => parseInt(screen))
+      });
+      setDeviceAction({ ...deviceAction, pending: false });
     }
   };
 

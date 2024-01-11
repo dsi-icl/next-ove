@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { type Device, type ServiceType } from "@ove/ove-types";
 import {
   Display,
@@ -8,11 +8,13 @@ import {
 } from "react-bootstrap-icons";
 import EditDevice from "../edit-device/edit-device";
 import Auth from "../auth/auth";
-import { Mode } from "../../utils";
+import { type Mode } from "../../utils";
+import { assert } from "@ove/ove-utils";
+// TODO: investigate circular dependency
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+import { useDialog } from "@ove/ui-components";
 
 import styles from "./devices.module.scss";
-import { assert } from "@ove/ove-utils";
-import { useDialog } from "@ove/ui-components";
 
 type DeviceCardProps = {
   device: Device
@@ -53,8 +55,16 @@ const Devices = () => {
   const [devices, setDevices] = useState<Device[]>([]);
   const [mode, setMode] = useState<Mode>("overview");
   const [id, setId] = useState<string | null>(null);
-  const { ref: authRef, closeDialog: closeAuthDialog, openDialog: openAuthDialog } = useDialog();
-  const { ref: editRef, closeDialog: closeEditDialog, openDialog: openEditDialog } = useDialog();
+  const {
+    ref: authRef,
+    closeDialog: closeAuthDialog,
+    openDialog: openAuthDialog
+  } = useDialog();
+  const {
+    ref: editRef,
+    closeDialog: closeEditDialog,
+    openDialog: openEditDialog
+  } = useDialog();
 
   const close = useCallback(() => setMode("overview"), []);
 
@@ -78,18 +88,20 @@ const Devices = () => {
         openAuthDialog();
         break;
     }
-  }, [mode, close]);
+  }, [mode, close, closeAuthDialog,
+    closeEditDialog, openAuthDialog, openEditDialog]);
 
   return <section className={styles.body}>
     <div className={styles.main}>
       <h1 className={styles.header}>Devices</h1>
       <EditDevice
-          ref={editRef}
-          setMode={mode => setMode(mode)}
-          device={id === null ? null : (devices.find(({ id: deviceId }) =>
-            deviceId === id) ?? null)} />
+        ref={editRef}
+        setMode={mode => setMode(mode)}
+        device={id === null ? null : (devices.find(({ id: deviceId }) =>
+          deviceId === id) ?? null)} />
       <Auth ref={authRef}
-            device={id === null ? null : assert(devices.find(({ id: deviceId }) => deviceId === id))}
+            device={id === null ? null :
+              assert(devices.find(({ id: deviceId }) => deviceId === id))}
             setMode={mode => setMode(mode)} />
       <div className={styles["devices-container"]}>
         {devices.map(device => <DeviceCard

@@ -4,10 +4,13 @@ import {
 } from "@trpc/server/dist/adapters/node-http";
 import { prisma } from "./db";
 
-export const createContext = async ({
-  req
-}: NodeHTTPCreateContextFnOptions<any, any>) => {
-  const user: string | null = req.headers.authorization ? (req.headers.authorization as string).split(" ").at(-1) ?? null : null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ContextOptions = NodeHTTPCreateContextFnOptions<any, any>
+
+export const createContext = async ({ req }: ContextOptions) => {
+  const user: string | null = req.headers.authorization ?
+    (req.headers.authorization as string).split(" ").at(-1) ?? null :
+    null;
   return {
     user,
     prisma

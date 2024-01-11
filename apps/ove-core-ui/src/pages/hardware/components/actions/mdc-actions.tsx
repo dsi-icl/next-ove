@@ -1,3 +1,4 @@
+import React from "react";
 import { type ActionController } from "../../types";
 import {
   ArrowClockwise,
@@ -6,12 +7,13 @@ import {
   PlayCircle,
   StopCircle, VolumeDown, VolumeMute, VolumeUp
 } from "react-bootstrap-icons";
-
-import styles from "./actions.module.scss";
 import { useStore } from "../../../../store";
 
+import styles from "./actions.module.scss";
+
 const MDCActions = ({ device, bridgeId }: ActionController) => {
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
   return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
       <button onClick={() => setDeviceAction({

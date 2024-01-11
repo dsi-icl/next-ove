@@ -1,3 +1,5 @@
+/* global JSX */
+import React from "react";
 import { assert } from "@ove/ove-utils";
 import { useStore } from "../../../../store";
 
@@ -25,7 +27,9 @@ const PaginatedDialog = <TData, >({
                 onClick={() => setIdx(idx === 0 ? 0 : idx - 1)}>Previous
         </button>
         <button
-          onClick={() => setIdx(idx === assert(maxLen) - 1 ? assert(maxLen) - 1 : idx + 1)}>Next
+          onClick={() =>
+            setIdx(idx === assert(maxLen) - 1 ? assert(maxLen) - 1 : idx + 1)}>
+          Next
         </button>
       </div>
     </div> : null}

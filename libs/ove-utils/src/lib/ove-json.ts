@@ -21,7 +21,13 @@ export const Json = {
     return JSON.stringify(x) === JSON.stringify(y);
   },
   parse: <T>(obj: string) => JSON.parse(obj) as T,
-  stringify: <T>(obj: T, replacer?: (this:any, key: string, value: any) => any, space?: string | number) => JSON.stringify(obj, replacer, space ?? 2),
+  stringify: <T>(
+    obj: T,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    replacer?: (this: any, key: string, value: any) => any,
+    space?: string | number
+  ) => JSON.stringify(obj, replacer, space ?? 2),
   getDescendent: getDescendent,
-  copy: <T>(obj: T): T => obj === undefined ? obj : JSON.parse(JSON.stringify(obj)) as T
+  copy: <T>(obj: T): T => obj === undefined ?
+    obj : JSON.parse(JSON.stringify(obj)) as T
 };

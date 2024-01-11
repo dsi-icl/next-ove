@@ -1,3 +1,4 @@
+import React from "react";
 import styles from "./video-streams.module.scss";
 
 const VideoStreams = ({ streams }: { streams: string[] | undefined }) =>

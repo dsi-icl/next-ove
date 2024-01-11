@@ -1,4 +1,7 @@
+import React from "react";
 import Logo from "../assets/icon.svg";
+// TODO: investigate circular dependency
+// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
 import { Nav as Navigation } from "@ove/ui-components";
 import { NavigationMenuLink } from "@ove/ui-base-components";
 

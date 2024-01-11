@@ -1,3 +1,4 @@
+import React from "react";
 import { assert } from "@ove/ove-utils";
 import { useStore } from "../../../../store";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
@@ -8,7 +9,8 @@ const ScreenshotDisplay = () => {
   const paginationIdx = useStore(state => state.hardwareConfig.paginationIdx);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const curScreenshots = useStore(state => state.hardwareConfig.screenshots);
-  const screenshotConfig = useStore(state => state.hardwareConfig.screenshotConfig);
+  const screenshotConfig = useStore(state =>
+    state.hardwareConfig.screenshotConfig);
 
   let deviceId: string | null = null;
   let screenshots: string[] | null = null;
@@ -30,17 +32,18 @@ const ScreenshotDisplay = () => {
     }
   }
 
-  return state !== "no_data" ? <PaginatedDialog data={screenshots}
-                                                maxLen={state === "single" ? null : assert(screenshots).length}>
-    <div className={styles.display}>
-      <h4>Info - {deviceId}</h4>
-      <ul>
-        {assert(screenshots).map((screenshot, i) => <li
-          key={screenshot}>{screenshotConfig?.method === "response" ? <img
-          src={screenshot} alt={`Screenshot - ${i}`} /> : screenshot}</li>)}
-      </ul>
-    </div>
-  </PaginatedDialog> : null;
+  return state !== "no_data" ?
+    <PaginatedDialog data={screenshots} maxLen={state === "single" ?
+      null : assert(screenshots).length}>
+      <div className={styles.display}>
+        <h4>Info - {deviceId}</h4>
+        <ul>
+          {assert(screenshots).map((screenshot, i) => <li
+            key={screenshot}>{screenshotConfig?.method === "response" ? <img
+            src={screenshot} alt={`Screenshot - ${i}`} /> : screenshot}</li>)}
+        </ul>
+      </div>
+    </PaginatedDialog> : null;
 };
 
 export default ScreenshotDisplay;

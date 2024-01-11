@@ -7,6 +7,7 @@
     "@nrwl/nx"
   ],
   "extends": [
+    "plugin:react/recommended",
     "eslint:recommended",
     "google"
   ],
@@ -19,6 +20,20 @@
         "*.jsx"
       ],
       "rules": {
+        "react/jsx-indent-props": [
+          "error",
+          "first"
+        ],
+        "indent": [
+          "error",
+          2,
+          {
+            "SwitchCase": 1,
+            "ignoredNodes": [
+              "JSXAttribute"
+            ]
+          }
+        ],
         "@nrwl/nx/enforce-module-boundaries": [
           "error",
           {
@@ -42,6 +57,7 @@
         "*.tsx"
       ],
       "extends": [
+        "plugin:react/recommended",
         "plugin:@nrwl/nx/typescript",
         "eslint:recommended",
         "google"
@@ -79,6 +95,7 @@
         "*.jsx"
       ],
       "extends": [
+        "plugin:react/recommended",
         "plugin:@nrwl/nx/javascript",
         "eslint:recommended",
         "google"

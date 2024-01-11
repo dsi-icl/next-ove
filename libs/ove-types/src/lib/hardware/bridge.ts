@@ -1,20 +1,24 @@
 import { z } from "zod";
 import { type Device, type Optional } from "../hardware";
+import { type TBridgeRoutesSchema } from "./bridge-transform";
 import {
-  type TBridgeRoutesSchema,
-} from "./bridge-transform";
-import { ClientAPITransformSchema, type TClientRoutesSchema } from "./client-transform";
+  ClientAPITransformSchema,
+  type TClientRoutesSchema
+} from "./client-transform";
 
 /* API Keys */
 
 /**
  * Keys of all routes
  */
-export const BridgeServiceKeys: readonly (keyof TClientRoutesSchema)[] = Object.keys(ClientAPITransformSchema) as Array<keyof TClientRoutesSchema>;
+export const BridgeServiceKeys: readonly (keyof TClientRoutesSchema)[] =
+  Object.keys(ClientAPITransformSchema) as Array<keyof TClientRoutesSchema>;
 
 /* API Types */
 
-export { type TBridgeRoutesSchema, type TBridgeResponseSchema } from "./bridge-transform";
+export {
+  type TBridgeRoutesSchema, type TBridgeResponseSchema
+} from "./bridge-transform";
 
 /**
  * Bridge service type

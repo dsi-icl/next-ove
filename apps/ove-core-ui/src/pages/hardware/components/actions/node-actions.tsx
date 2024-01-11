@@ -1,3 +1,4 @@
+import React from "react";
 import {
   ArrowClockwise,
   ArrowRepeat,
@@ -11,13 +12,14 @@ import {
   WindowPlus,
   WindowX
 } from "react-bootstrap-icons";
+import { useStore } from "../../../../store";
+import { type ActionController } from "../../types";
 
 import styles from "./actions.module.scss";
-import { type ActionController } from "../../types";
-import { useStore } from "../../../../store";
 
 const NodeActions = ({ device, bridgeId }: ActionController) => {
-  const setDeviceAction = useStore(state => state.hardwareConfig.setDeviceAction);
+  const setDeviceAction = useStore(state =>
+    state.hardwareConfig.setDeviceAction);
 
   return <div
     className={styles.actions}>

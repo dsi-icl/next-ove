@@ -1,5 +1,7 @@
+/* global setTimeout */
+
 import { io } from "socket.io-client";
-import { MDCSources, OVEException } from "@ove/ove-types";
+import { type MDCSources, type OVEException } from "@ove/ove-types";
 import { raise } from "@ove/ove-utils";
 
 const TIMEOUT = 5_000;
@@ -57,22 +59,76 @@ const sendCommand = (
   });
 };
 
-export const getStatus = (id: number, ip: string, port: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x00));
+export const getStatus = (
+  id: number,
+  ip: string,
+  port: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x00));
 
-export const setPower = (id: number, ip: string, port: number, state: "on" | "off"): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x11, state === "off" ? 0 : 1));
+export const setPower = (
+  id: number,
+  ip: string,
+  port: number,
+  state: "on" | "off"
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x11, state === "off" ? 0 : 1));
 
-export const getPower = (id: number, ip: string, port: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x11));
+export const getPower = (
+  id: number,
+  ip: string,
+  port: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x11));
 
-export const setVolume = (id: number, ip: string, port: number, volume: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x12, volume));
+export const setVolume = (
+  id: number,
+  ip: string,
+  port: number,
+  volume: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x12, volume));
 
-export const getVolume = (id: number, ip: string, port: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x12));
+export const getVolume = (
+  id: number,
+  ip: string,
+  port: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x12));
 
-export const setIsMute = (id: number, ip: string, port: number, state: boolean): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x13, +state));
+export const setIsMute = (
+  id: number,
+  ip: string,
+  port: number,
+  state: boolean
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x13, +state));
 
-export const getIsMute = (id: number, ip: string, port: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x13));
+export const getIsMute = (
+  id: number,
+  ip: string,
+  port: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x13));
 
-export const setSource = (id: number, ip: string, port: number, source: MDCSource) => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x14, source));
+export const setSource = (
+  id: number,
+  ip: string,
+  port: number,
+  source: MDCSource
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x14, source));
 
-export const getSource = (id: number, ip: string, port: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x14));
+export const getSource = (
+  id: number,
+  ip: string,
+  port: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x14));
 
-export const getModel = (id: number, ip: string, port: number): Promise<string | OVEException> => new Promise(resolve => sendCommand(resolve, id, ip, port, 0x10));
+export const getModel = (
+  id: number,
+  ip: string,
+  port: number
+): Promise<string | OVEException> => new Promise(resolve =>
+  sendCommand(resolve, id, ip, port, 0x10));

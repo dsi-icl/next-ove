@@ -1,7 +1,7 @@
 import ace from "ace-builds";
 import AceEditor from "react-ace";
-import { type File } from "../hooks";
-import { useEffect, useRef, useState } from "react";
+import { type File } from "@ove/ove-types";
+import React, { useEffect, useRef, useState } from "react";
 import url from "ace-builds/src-noconflict/mode-json";
 
 import "ace-builds/src-noconflict/theme-dracula";
@@ -34,7 +34,7 @@ const EnvEditor = ({ env, update, getData }: EnvEditorProps) => {
       if (dataRef.current === initial) return;
       update(dataRef.current);
     };
-  }, []);
+  }, [env, getData, initial, update]);
 
   return <AceEditor
     placeholder="Environment Config"

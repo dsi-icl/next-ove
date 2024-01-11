@@ -7,13 +7,13 @@ import {
   Upload
 } from "react-bootstrap-icons";
 import { toast } from "sonner";
-import { type ReactNode } from "react";
-import { type Actions } from "../hooks";
+import React, { type ReactNode } from "react";
+import { type Actions as TActions } from "../hooks";
 
 import styles from "./actions.module.scss";
 
 type ActionsProps = {
-  setAction: (action: Actions | null) => void
+  setAction: (action: TActions | null) => void
   save: () => void
 }
 
@@ -21,7 +21,7 @@ type Icon = {
   icon: ReactNode,
   color: `#${string}`,
   title: string,
-  action: Actions | null
+  action: TActions | null
 }
 
 const Actions = ({ setAction, save }: ActionsProps) => {
@@ -58,7 +58,7 @@ const Actions = ({ setAction, save }: ActionsProps) => {
     action: null
   }];
 
-  const handler = (action: Actions | null) => {
+  const handler = (action: TActions | null) => {
     if (action === null) {
       save();
       toast("Project saved successfully!");
