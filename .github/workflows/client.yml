@@ -38,9 +38,9 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
       run: npm install --legacy-peer-deps --silent
     - name: Lint Electron
-      run: nx run ove-client:lint
+      run: npx nx run ove-client:lint
     - name: Lint Electron UI
-      run: nx run ove-client-ui:lint
+      run: npx nx run ove-client-ui:lint
     - name: Build client
       run: npx nx run ove-client:build
     - name: Make client
