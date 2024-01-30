@@ -28,5 +28,20 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: scp ${{ secrets.LOCAL_FILE }} ${{ secrets.REMOTE }}
-    - run: npm install --legacy-peer-deps --silent
-    - run: npx nx run ove-client:build
+    - name: Cache dependencies
+      id: cache
+      uses: actions/cache@v3
+      with:
+        path: ./node_modules
+        key: modules-${{ hashFiles("package-lock.json") }}
+    - name: Install dependencies
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: npm install --legacy-peer-deps --silent
+    - name: Lint Electron
+      run: nx run ove-client:lint
+    - name: Lint Electron UI
+      run: nx run ove-client-ui:lint
+    - name: Build client
+      run: npx nx run ove-client:build
+    - name: Make client
+      run: npx nx run ove-client:make
