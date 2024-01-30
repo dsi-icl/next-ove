@@ -44,4 +44,4 @@ jobs:
     - name: Build client
       run: npx nx run ove-client:build
     - name: Make client
-      run: npx nx run ove-client:make
+      run: npx nx run ove-client:package
