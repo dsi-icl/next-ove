@@ -47,9 +47,9 @@ export default class ReOrderableItem extends Component {
   };
 
   static propTypes = {
-    children: PropTypes.instanceOf(ReactElement),
-    component: PropTypes.instanceOf(ReactElement),
-    list: PropTypes.array,
+    children: PropTypes.instanceOf(React.ReactElement),
+    component: PropTypes.instanceOf(React.ReactElement),
+    list: PropTypes.object,
     onItemDrag: PropTypes.func,
     onItemDragEnd: PropTypes.func,
     onItemDragStart: PropTypes.func,
