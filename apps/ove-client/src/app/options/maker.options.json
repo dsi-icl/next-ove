@@ -9,38 +9,6 @@
     "!**/build",
     "!**/config"
   ],
-  "mac": {
-    "target": [
-      "dmg",
-      "pkg",
-      "zip"
-    ],
-    "category": "public.app-category.developer-tools",
-    "icon": "apps/ove-client/build/icon.png",
-    "type": "distribution"
-  },
-  "dmg": {
-    "background": "apps/ove-client/build/icon.png",
-    "iconSize": 160,
-    "iconTextSize": 12,
-    "window": {
-      "width": 660,
-      "height": 400
-    },
-    "contents": [
-      {
-        "x": 180,
-        "y": 170,
-        "type": "file"
-      },
-      {
-        "x": 480,
-        "y": 170,
-        "type": "link",
-        "path": "/Applications"
-      }
-    ]
-  },
   "win": {
     "target": [
       "nsis",

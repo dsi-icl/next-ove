@@ -42,17 +42,17 @@
       "options": {
         "name": "ove-client",
         "platform": [
-          "mac",
           "windows",
           "linux"
         ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/packages",
-        "prepackageOnly": true
+        "prepackageOnly": true,
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.options.json"
       }
     },
-    "make": {
-      "executor": "nx-electron:make",
+    "package:arm": {
+      "executor": "nx-electron:package",
       "options": {
         "name": "ove-client",
         "platform": [
@@ -61,7 +61,22 @@
           "linux"
         ],
         "frontendProject": "ove-client-ui",
-        "outputPath": "dist/executables"
+        "outputPath": "dist/packages",
+        "prepackageOnly": true,
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.arm.options.json"
+      }
+    },
+    "make": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-client",
+        "platform": [
+          "windows",
+          "linux"
+        ],
+        "frontendProject": "ove-client-ui",
+        "outputPath": "dist/executables",
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.options.json"
       }
     },
     "make:arm": {
