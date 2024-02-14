@@ -619,11 +619,15 @@
                   },
                   "key": {
                     "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
                   }
                 },
                 "required": [
                   "pin",
-                  "key"
+                  "key",
+                  "url"
                 ],
                 "additionalProperties": false
               }

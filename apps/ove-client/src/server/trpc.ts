@@ -12,7 +12,7 @@ export const mergeRouters = trpc.mergeRouters;
 export const procedure = trpc.procedure;
 
 const isAuthed = trpc.middleware(({ ctx: { user }, next }) => {
-  if (user === null || !env.AUTHORISED_CREDENTIALS.includes(user)) {
+  if (user !== env.AUTHORISED_CREDENTIALS) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 

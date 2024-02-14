@@ -115,7 +115,8 @@ export const service: TBridgeService = {
     try {
       await createClient(env.HARDWARE[idx]).register.mutate({
         pin,
-        key: env.PUBLIC_KEY
+        key: env.PUBLIC_KEY,
+        url: env.URL
       });
     } catch (e) {
       logger.error(e);

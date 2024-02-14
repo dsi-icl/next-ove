@@ -1,27 +1,18 @@
-import { z } from "zod";
-import { procedure, router } from "../trpc";
 import {
-  type OVEException,
   OVEExceptionSchema,
   StatusSchema
 } from "@ove/ove-types";
-import controller from "./controller";
+import { z } from "zod";
 import { logger } from "../../env";
-
-const safe = async <T>(handler: () => T): Promise<T | OVEException> => {
-  try {
-    return handler();
-  } catch (e) {
-    logger.error(e);
-    return { oveError: (e as Error).message };
-  }
-};
+import controller from "./controller";
+import { safe } from "@ove/ove-utils";
+import { procedure, router } from "../trpc";
 
 export const authRouter = router({
   register: procedure
     .meta({ openapi: { method: "POST", path: "/register" } })
-    .input(z.object({ pin: z.string(), key: z.string() }))
+    .input(z.object({ pin: z.string(), key: z.string(), url: z.string() }))
     .output(z.union([OVEExceptionSchema, StatusSchema]))
-    .mutation(({ input: { pin, key } }) =>
-      safe(() => controller.register(pin, key)))
+    .mutation(({ input: { pin, key, url } }) =>
+      safe(logger, async () => controller.register(pin, key, url)))
 });

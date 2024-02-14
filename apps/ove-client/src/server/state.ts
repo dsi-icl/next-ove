@@ -1,5 +1,6 @@
 /* global NodeJS */
 
+import { env } from "../env";
 import { type Browser } from "@ove/ove-types";
 
 type State = {
@@ -7,24 +8,26 @@ type State = {
   pin: string
   pinUpdateCallback: ((event: string) => void) | null
   pinUpdateHandler: NodeJS.Timer | null
+  authErrors: number
 };
 
-const generatePin = () => Array(4)
+const generatePin = () => env.AUTHORISED_CREDENTIALS === undefined ? Array(4)
   .fill(0)
   .map(() => Math.floor(Math.random() * 10))
-  .join("");
+  .join("") : "";
 
 export const state: State = {
   browsers: new Map<number, Browser>(),
   pin: "initialising",
   pinUpdateCallback: null,
-  pinUpdateHandler: null
+  pinUpdateHandler: null,
+  authErrors: 0
 };
 
-export const updatePin = () => {
+export const updatePin = env.AUTHORISED_CREDENTIALS === undefined ? () => {
   state.pin = generatePin();
   if (state.pinUpdateCallback === null) {
     throw new Error("Missing pin update callback");
   }
   state.pinUpdateCallback(state.pin);
-};
+} : () => {};

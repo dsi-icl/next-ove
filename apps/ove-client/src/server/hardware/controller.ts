@@ -14,9 +14,13 @@ export const init = (
   closeWindow: (windowId: string) => boolean | null,
   triggerIPC: OutboundAPI
 ) => {
+  // TODO: if authorised, load rendering page
   service.init(createWindow, takeScreenshots, closeWindow);
-  state.pinUpdateCallback = triggerIPC["updatePin"];
-  state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
+
+  if (env.AUTHORISED_CREDENTIALS === undefined) {
+    state.pinUpdateCallback = triggerIPC["updatePin"];
+    state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
+  }
 };
 
 const controller: TClientService = {

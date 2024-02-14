@@ -33,7 +33,8 @@ const schema = z.strictObject({
   VIDEO_STREAMS: z.array(z.string()).optional(),
   START_VIDEO_SCRIPT: z.string().optional(),
   STOP_VIDEO_SCRIPT: z.string().optional(),
-  GEOMETRY: BoundsSchema.optional()
+  GEOMETRY: BoundsSchema.optional(),
+  URL: z.string()
 });
 
 const staticConfig = {
@@ -68,7 +69,8 @@ const defaultConfig: z.infer<typeof schema> = {
     PROTOCOL: "http",
     HOSTNAME: "localhost",
     PORT: 4200
-  }
+  },
+  URL: "http://localhost:3334"
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");

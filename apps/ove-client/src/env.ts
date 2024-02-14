@@ -14,8 +14,10 @@ const schema = z.strictObject({
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
   }),
+  BRIDGE_URL: z.string().optional(),
   LOG_LEVEL: z.number().optional(),
-  AUTHORISED_CREDENTIALS: z.array(z.string())
+  AUTHORISED_CREDENTIALS: z.string().optional(),
+  AUTH_ERROR_LIMIT: z.number()
 });
 
 const staticConfig = {
@@ -25,11 +27,10 @@ const staticConfig = {
   PIN_UPDATE_DELAY: 30_000,
   TITLE: "next-ove client",
   DESCRIPTION: "Control interface for observatory rendering nodes.",
-  CHECKSITE: "www.google.com"
+  CHECKSITE: "www.google.com",
 } as const;
 
 const defaultConfig: z.infer<typeof schema> = {
-  AUTHORISED_CREDENTIALS: [],
   PORT: 3334,
   HOSTNAME: "localhost",
   PROTOCOL: "http",
@@ -37,7 +38,8 @@ const defaultConfig: z.infer<typeof schema> = {
     PORT: 4201,
     HOSTNAME: "localhost",
     PROTOCOL: "http"
-  }
+  },
+  AUTH_ERROR_LIMIT: 3
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-client-config.json");

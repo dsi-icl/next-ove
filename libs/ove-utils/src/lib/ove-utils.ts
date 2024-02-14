@@ -59,6 +59,10 @@ export const safe = async <T>(
     return await handler();
   } catch (e) {
     logger.error(e);
-    return { oveError: (e as Error).message };
+    if (typeof e === "string") return { oveError: e };
+    else if (typeof e === "object" && e !== null && "message" in e) {
+      return { oveError: JSON.stringify(e.message) };
+    }
+    return { oveError: `UNKNOWN: ${JSON.stringify(e)}` };
   }
 };
