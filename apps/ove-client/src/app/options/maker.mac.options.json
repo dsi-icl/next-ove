@@ -41,6 +41,19 @@
       }
     ]
   },
+  "win": {
+    "target": [
+      "nsis",
+      "portable",
+      "zip"
+    ],
+    "icon": "apps/ove-client/build/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "license": "./LICENSE"
+  },
   "linux": {
     "target": [
       "AppImage",
