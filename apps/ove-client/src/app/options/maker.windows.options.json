@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../../../node_modules/nx-electron/src/validation/maker.schema.json",
+  "appId": "org.next-ove.client",
+  "productName": "Next-OVE Client",
+  "copyright": "Copyright © 2023 Data Science Institute",
+  "files": [
+    "!**/.env*",
+    "!**/.vscode",
+    "!**/build",
+    "!**/config"
+  ],
+  "win": {
+    "target": [
+      "nsis",
+      "portable",
+      "zip"
+    ],
+    "icon": "apps/ove-client/build/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "license": "./LICENSE"
+  }
+}
