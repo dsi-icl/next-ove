@@ -6,12 +6,16 @@
   "targets": {
     "build": {
       "executor": "nx-electron:build",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/apps/ove-bridge",
         "main": "apps/ove-bridge/src/main.ts",
         "tsConfig": "apps/ove-bridge/tsconfig.app.json",
-        "assets": ["apps/ove-bridge/src/assets"]
+        "assets": [
+          "apps/ove-bridge/src/assets"
+        ]
       },
       "configurations": {
         "production": {
@@ -33,33 +37,79 @@
         "buildTarget": "ove-bridge:build"
       }
     },
-    "package": {
+    "package:mac": {
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-bridge",
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
-        "prepackageOnly": true
+        "prepackageOnly": true,
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.mac.options.json"
       }
     },
-    "make": {
+    "package:linux": {
+      "executor": "nx-electron:package",
+      "options": {
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/packages",
+        "prepackageOnly": true,
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.linux.options.json"
+      }
+    },
+    "package:windows": {
+      "executor": "nx-electron:package",
+      "options": {
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/packages",
+        "prepackageOnly": true,
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.windows.options.json"
+      }
+    },
+    "make:mac": {
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-bridge",
         "frontendProject": "ove-bridge-ui",
-        "outputPath": "dist/executables"
+        "outputPath": "dist/executables",
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.mac.options.json"
+      }
+    },
+    "make:linux": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/executables",
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.linux.options.json"
+      }
+    },
+    "make:windows": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-bridge",
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/executables",
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.windows.options.json"
       }
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+      "outputs": [
+        "{options.outputFile}"
+      ],
       "options": {
-        "lintFilePatterns": ["apps/ove-bridge/**/*.ts"]
+        "lintFilePatterns": [
+          "apps/ove-bridge/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/apps/ove-bridge"],
+      "outputs": [
+        "coverage/apps/ove-bridge"
+      ],
       "options": {
         "jestConfig": "apps/ove-bridge/jest.config.js",
         "passWithNoTests": true
