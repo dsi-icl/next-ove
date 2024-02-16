@@ -41,6 +41,6 @@ jobs:
     - name: Build client
       run: npx nx run ove-client:build
     - name: Make client
-      run: npm exec nx run ove-client:make
+      run: npm exec nx run ove-client:make:windows
     - name: Cache executables
       run: cp "dist/executables/Next-OVE Client $((Get-Content package.json) -join "`n" | ConvertFrom-Json | Select -ExpandProperty "version").exe" ${{ secrets.EXE_DIR }}

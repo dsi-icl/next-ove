@@ -41,6 +41,6 @@ jobs:
       - name: Build client
         run: npx nx run ove-bridge:build
       - name: Make client
-        run: npm exec nx run ove-bridge:make
+        run: npm exec nx run ove-bridge:make:windows
       - name: Cache executables
         run: cp "dist/executables/Next-OVE Bridge $((Get-Content package.json) -join "`n" | ConvertFrom-Json | Select -ExpandProperty "version").exe" ${{ secrets.EXE_DIR }}
