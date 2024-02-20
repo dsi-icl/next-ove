@@ -14,6 +14,7 @@
     "analyze-bundle:core": "cd apps/ove-core-ui && npx vite-bundle-visualizer --open=false --output=../../bundle-analysis/ove-core.html && npx rimraf dist && cd ../..",
     "build": "nx build",
     "css-usage": "node doiuse.js",
+    "analyze-deprecation": "./aqua-nautilus/analyze.sh",
     "jsdoc": "jsdoc . -c jsdoc.json",
     "lhci:audit": "concurrently \"npm run lhci:server\" \"node .lighthouseci/audit.js\"",
     "lhci:wizard": "lhci wizard",

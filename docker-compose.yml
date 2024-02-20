@@ -1,0 +1,16 @@
+version: "3"
+services:
+  ove-core:
+    build:
+      context: .
+      dockerfile: ./apps/ove-core/Dockerfile
+    ports:
+      - "8080:3333"
+    restart: "on-failure"
+  ove-core-ui:
+    build:
+      context: .
+      dockerfile: ./apps/ove-core-ui/Dockerfile
+    ports:
+      - "8081:8080"
+    restart: "on-failure"

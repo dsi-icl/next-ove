@@ -325,6 +325,10 @@ benchmarks.json
 # doiuse
 browser-usage.json
 
-# custom build scripts
-./build.sh
+# deployment config
+/dev/deployment
+
+# package deprecation analysis
+/aqua-nautilus/analysis.txt
+/aqua-nautilus/package.json
 
