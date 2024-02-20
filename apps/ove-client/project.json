@@ -110,7 +110,8 @@
         "name": "ove-client",
         "platform": [
           "mac",
-          "linux"
+          "linux",
+          "windows"
         ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables",

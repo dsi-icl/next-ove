@@ -41,6 +41,11 @@
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-bridge",
+        "platform": [
+          "mac",
+          "linux",
+          "windows"
+        ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true,
@@ -51,6 +56,10 @@
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-bridge",
+        "platform": [
+          "linux",
+          "windows"
+        ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true,
@@ -61,6 +70,9 @@
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-bridge",
+        "platform": [
+          "windows"
+        ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true,
@@ -71,6 +83,11 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-bridge",
+        "platform": [
+          "mac",
+          "linux",
+          "windows"
+        ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.mac.options.json"
@@ -80,6 +97,10 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-bridge",
+        "platform": [
+          "windows",
+          "linux"
+        ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.linux.options.json"
@@ -89,6 +110,9 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-bridge",
+        "platform": [
+          "windows"
+        ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.windows.options.json"

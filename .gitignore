@@ -325,3 +325,6 @@ benchmarks.json
 # doiuse
 browser-usage.json
 
+# custom build scripts
+./build.sh
+
