@@ -1,21 +1,21 @@
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { type LogLevel } from "@ove/ove-utils";
 
 export type ConstantsType = {
-  UNKNOWN_APP_ID: string
-  APP_LOG_ID_WIDTH: number
+  UNKNOWN_APP_ID: string;
+  APP_LOG_ID_WIDTH: number;
   LogLevels: {
-    [index:string]: LogLevel
-  }
+    [index: string]: LogLevel;
+  };
   RegExp: {
     Annotation: {
-      [index:string]: RegExp
-    }
-  }
-  DEFAULT_LOG_LEVEL: number
-}
+      [index: string]: RegExp;
+    };
+  };
+  DEFAULT_LOG_LEVEL: number;
+};
 
-const Constants: ConstantsType = ({
+const Constants: ConstantsType = {
   UNKNOWN_APP_ID: "__UNKNOWN__",
   APP_LOG_ID_WIDTH: 16,
   RegExp: {
@@ -66,6 +66,6 @@ const Constants: ConstantsType = ({
     }
   },
   DEFAULT_LOG_LEVEL: -1
-});
+};
 
 export default Constants;

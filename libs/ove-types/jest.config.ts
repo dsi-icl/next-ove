@@ -1,8 +1,12 @@
 /* eslint-disable */
+
+declare const __BENCHMARKS__: string
 export default {
   displayName: 'ove-types',
   preset: '../../jest.preset.js',
-  globals: {},
+  globals: {
+    "__BENCHMARKS__": "tools/type-benchmarks/benchmarks.json"
+  },
   setupFiles: ["./helpers.js"],
   transform: {
     '^.+\\.[tj]sx?$': [

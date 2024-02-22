@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { objectUtil, z } from "zod";
 import {
   type TDeviceResponseSchema,
   type TClientRouteSchema,
@@ -114,7 +114,7 @@ export type TBridgeMultiRouteSchema<
  * All possible single-device routes as schema types.
  */
 export type TBridgeSingleRoutesSchema = {
-  [Key in keyof TClientRoutesSchema]: TBridgeRouteSchema<z.extendShape<
+  [Key in keyof TClientRoutesSchema]: TBridgeRouteSchema<objectUtil.MergeShapes<
     TClientRouteInputTransformSchema<Key>, { deviceId: z.ZodString }
   >, TClientRouteOutputTransformSchema<Key>,
     OpenAPIMethod<Key>, APIExposureLevel<Key>>
@@ -125,7 +125,7 @@ export type TBridgeSingleRoutesSchema = {
  */
 export type TBridgeMultiRoutesSchema = {
   [Key in keyof TClientRoutesSchema as `${Key}All`]: TBridgeMultiRouteSchema<
-    z.extendShape<
+    objectUtil.MergeShapes<
       TClientRouteInputTransformSchema<Key>,
       { tag: z.ZodOptional<z.ZodString> }
     >, TClientRouteOutputTransformSchema<Key>,

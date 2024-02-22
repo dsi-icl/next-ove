@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { Json } from "@ove/ove-utils";
 import { readFileSync, writeFileSync } from "atomically";
 

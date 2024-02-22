@@ -18,7 +18,7 @@
       }
     },
     "ts-check": {
-      "executor": "@nrwl/workspace:run-commands",
+      "executor": "@nx/workspace:run-commands",
       "options": {
         "commands": [
           {

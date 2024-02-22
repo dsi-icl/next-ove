@@ -1,4 +1,5 @@
-/* global readFile, LogFn, console, init, Benchmark, formatOutput */
+/* global readFile, LogFn, console, init,
+Benchmark, formatOutput, __BENCHMARKS__ */
 
 import { writeFileSync } from "fs";
 import { type TCoreAPI } from "./core";
@@ -44,7 +45,7 @@ describe("core types", () => {
     }
 
     existing["ove-types"]!["hardware/"]!["core"] = benchmarks;
-    writeFileSync("./benchmarks.json",
+    writeFileSync(__BENCHMARKS__,
       JSON.stringify(existing, undefined, 2));
   });
 });

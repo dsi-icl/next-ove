@@ -1,5 +1,7 @@
 /* global jest */
 
+declare const __BENCHMARKS__: string;
+
 declare type Benchmark = {
   instantiations: number
   time: number

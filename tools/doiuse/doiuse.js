@@ -24,4 +24,4 @@ Promise.all(files.map(file => new Promise((resolve, reject) => {
     })
     .on('end', () => resolve())
     .on('error', () => reject());
-}))).then(() => fs.writeFileSync('browser-usage.json', JSON.stringify(usageInfos, undefined, 2))).catch(console.error);
+}))).then(() => fs.writeFileSync(process.argv[2], JSON.stringify(usageInfos, undefined, 2))).catch(console.error);

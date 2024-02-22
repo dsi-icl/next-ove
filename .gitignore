@@ -287,31 +287,37 @@ Temporary Items
 **/playwright-report
 
 # Sandworm
-sandworm
+tools/sandworm
 
 # Custom rules
+
+# Development configuration
 /dev/database
 /dev/data
 /dev/mongo.keyfile
 /dev/public/*
 /dev/credentials.json
 
+# Core environment config
 /apps/ove-core/src/config/config.json
+/apps/ove-core/.env.production
 
+# Test environment config
 /tests/**/private.*
 
-benchmarks.json
+# type benchmarks
+tools/type-benchmarks/benchmarks.json
 
 # typescript-coverage-report
-/coverage-ts
+/tools/coverage-ts
 
 # Lighthouse CLI
-/.lighthouseci
-!.lighthouseci/audit.js
-!.lighthouseci/config.example.json
+/tools/.lighthouseci
+!/tools/.lighthouseci/audit.js
+!/tools/.lighthouseci/config.example.json
 
 # vite-bundle-visualizer
-/bundle-analysis
+/tools/bundle-analysis
 
 # better-docs & jsdoc
 /docs/code
@@ -323,12 +329,18 @@ benchmarks.json
 .attest
 
 # doiuse
-browser-usage.json
+tools/doiuse/browser-usage.json
 
 # deployment config
 /dev/deployment
 
 # package deprecation analysis
-/aqua-nautilus/analysis.txt
-/aqua-nautilus/package.json
+/tools/aqua-nautilus/analysis.txt
+/tools/aqua-nautilus/package.json
+
+# package auditing
+/tools/package-audit/analysis.txt
+
+# nx
+/.nx/
 

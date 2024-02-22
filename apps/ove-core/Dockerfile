@@ -3,11 +3,14 @@ LABEL authors="bc2918"
 
 WORKDIR /usr/src/app
 
+ENV NODE_ENV production
 COPY ../../package.json ./
+COPY ../../apps/ove-core/prisma/ ./
 
 RUN npm install --legacy-peer-deps --omit=dev
+RUN npx prisma generate
 
-COPY dist/apps/ove-core/ ./
+COPY ../../dist/apps/ove-core/ ./
 
 EXPOSE 3333
 

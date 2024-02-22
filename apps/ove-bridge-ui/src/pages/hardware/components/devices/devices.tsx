@@ -11,15 +11,15 @@ import Auth from "../auth/auth";
 import { type Mode } from "../../utils";
 import { assert } from "@ove/ove-utils";
 // TODO: investigate circular dependency
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { useDialog } from "@ove/ui-components";
 
 import styles from "./devices.module.scss";
 
 type DeviceCardProps = {
-  device: Device
-  setMode: (mode: Mode) => void
-}
+  device: Device;
+  setMode: (mode: Mode) => void;
+};
 
 const DeviceCard = ({ device, setMode }: DeviceCardProps) => {
   const getProtocolIcon = (protocol: ServiceType) => {
@@ -33,22 +33,33 @@ const DeviceCard = ({ device, setMode }: DeviceCardProps) => {
     }
   };
   const needsAuth = device.auth === false;
-  return <article className={styles["device-card"]} key={device.id}>
-    {getProtocolIcon(device.type)}
-    <h4>{device.id}</h4>
-    <div className={styles["action-container"]}>
-      <button
-        onClick={e => {
-          e.preventDefault();
-          setMode("edit");
-        }}>Edit
-      </button>
-      {needsAuth ? <button onClick={e => {
-        e.preventDefault();
-        setMode("auth");
-      }} id={styles["authorise"]}>Authorise</button> : null}
-    </div>
-  </article>;
+  return (
+    <article className={styles["device-card"]} key={device.id}>
+      {getProtocolIcon(device.type)}
+      <h4>{device.id}</h4>
+      <div className={styles["action-container"]}>
+        <button
+          onClick={e => {
+            e.preventDefault();
+            setMode("edit");
+          }}
+        >
+          Edit
+        </button>
+        {needsAuth ? (
+          <button
+            onClick={e => {
+              e.preventDefault();
+              setMode("auth");
+            }}
+            id={styles["authorise"]}
+          >
+            Authorise
+          </button>
+        ) : null}
+      </div>
+    </article>
+  );
 };
 
 const Devices = () => {
@@ -88,35 +99,59 @@ const Devices = () => {
         openAuthDialog();
         break;
     }
-  }, [mode, close, closeAuthDialog,
-    closeEditDialog, openAuthDialog, openEditDialog]);
+  }, [
+    mode,
+    close,
+    closeAuthDialog,
+    closeEditDialog,
+    openAuthDialog,
+    openEditDialog
+  ]);
 
-  return <section className={styles.body}>
-    <div className={styles.main}>
-      <h1 className={styles.header}>Devices</h1>
-      <EditDevice
-        ref={editRef}
-        setMode={mode => setMode(mode)}
-        device={id === null ? null : (devices.find(({ id: deviceId }) =>
-          deviceId === id) ?? null)} />
-      <Auth ref={authRef}
-            device={id === null ? null :
-              assert(devices.find(({ id: deviceId }) => deviceId === id))}
-            setMode={mode => setMode(mode)} />
-      <div className={styles["devices-container"]}>
-        {devices.map(device => <DeviceCard
-          key={device.id} device={device}
-          setMode={mode => {
-            setId(device.id);
-            setMode(mode);
-          }} />)}
+  return (
+    <section className={styles.body}>
+      <div className={styles.main}>
+        <h1 className={styles.header}>Devices</h1>
+        <EditDevice
+          ref={editRef}
+          setMode={mode => setMode(mode)}
+          device={
+            id === null ? null :
+              devices.find(({ id: deviceId }) => deviceId === id) ?? null
+          }
+        />
+        <Auth
+          ref={authRef}
+          device={
+            id === null ? null :
+              assert(devices.find(({ id: deviceId }) => deviceId === id))
+          }
+          setMode={mode => setMode(mode)}
+        />
+        <div className={styles["devices-container"]}>
+          {devices.map(device => (
+            <DeviceCard
+              key={device.id}
+              device={device}
+              setMode={mode => {
+                setId(device.id);
+                setMode(mode);
+              }}
+            />
+          ))}
+        </div>
       </div>
-    </div>
-    <button className={styles.fab} onClick={e => {
-      e.preventDefault();
-      setMode("edit");
-    }}><PlusCircleFill color="#002147" /></button>
-  </section>;
+      <button
+        className={styles.fab}
+        onClick={e => {
+          e.preventDefault();
+          setMode("edit");
+        }}
+      >
+        <PlusCircleFill color="#002147" />
+      </button>
+    </section>
+  );
 };
 
 export default Devices;

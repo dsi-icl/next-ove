@@ -1,4 +1,5 @@
-/* global readFile, LogFn, console, init, Benchmark, formatOutput */
+/* global readFile, LogFn, console, init,
+Benchmark, formatOutput, __BENCHMARKS__ */
 
 import { writeFileSync } from "fs";
 import { bench } from "@arktype/attest";
@@ -23,7 +24,7 @@ describe("service types", () => {
     }
 
     existing["ove-types"]!["bridge/"]!["service"] = benchmarks;
-    writeFileSync("./benchmarks.json",
+    writeFileSync(__BENCHMARKS__,
       JSON.stringify(existing, undefined, 2));
   });
 });

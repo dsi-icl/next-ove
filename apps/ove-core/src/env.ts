@@ -70,7 +70,7 @@ const refreshTokenSecret = Buffer
   .toString("base64");
 
 const defaultConfig: z.infer<typeof schema> = {
-  NODE_ENV: process.env.NODE_ENV,
+  NODE_ENV: process.env.NODE_ENV as "production" | "development" | "test",
   PORT: 3333,
   HOSTNAME: "127.0.0.1",
   PROTOCOL: "http",

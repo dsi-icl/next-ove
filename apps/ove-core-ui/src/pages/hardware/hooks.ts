@@ -17,7 +17,7 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
       device,
       status: null
     })));
-  }, [getHardware.status, getHardware.data.response, isOnline]);
+  }, [getHardware.status, getHardware.data?.response, isOnline]);
 
   const updateStatus = (deviceId: string, status: "off" | "running" | null) => {
     setHardware(cur => {

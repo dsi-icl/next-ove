@@ -2,7 +2,7 @@
 
 import { wake } from "../../utils/wol";
 // IGNORE PATH - as importing only type, will not trigger full import on build
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { type AppRouter } from "../../../../../../ove-client/src/server/router";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import fetch from "node-fetch";
@@ -25,8 +25,10 @@ globalAny.fetch = fetch;
 globalAny.WebSocket = ws;
 
 const fixedEncodeURIComponent = (str: string) =>
-  encodeURIComponent(str).replace(/[!'()*]/g, c =>
-    "%" + c.charCodeAt(0).toString(16));
+  encodeURIComponent(str).replace(
+    /[!'()*]/g,
+    c => "%" + c.charCodeAt(0).toString(16)
+  );
 
 export const createClient = (
   device: Device
@@ -51,8 +53,9 @@ const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">) => {
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).reboot
-    .mutate(parsedOpts.data as z.infer<TClientAPI["reboot"]["args"]>);
+  return await createClient(device).reboot.mutate(
+    parsedOpts.data as z.infer<TClientAPI["reboot"]["args"]>
+  );
 };
 
 const shutdown = async (
@@ -64,8 +67,9 @@ const shutdown = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await createClient(device).shutdown
-    .mutate(parsedOpts.data as z.infer<TClientAPI["shutdown"]["args"]>);
+  await createClient(device).shutdown.mutate(
+    parsedOpts.data as z.infer<TClientAPI["shutdown"]["args"]>
+  );
   return true;
 };
 
@@ -84,8 +88,9 @@ const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">) => {
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getInfo
-    .query(parsedOpts.data as z.infer<TClientAPI["getInfo"]["args"]>);
+  return await createClient(device).getInfo.query(
+    parsedOpts.data as z.infer<TClientAPI["getInfo"]["args"]>
+  );
 };
 
 const getStatus = async (
@@ -97,8 +102,9 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getStatus
-    .query(parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>);
+  return await createClient(device).getStatus.query(
+    parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>
+  );
 };
 
 const execute = async (device: Device, args: TBridgeServiceArgs<"execute">) => {
@@ -107,8 +113,9 @@ const execute = async (device: Device, args: TBridgeServiceArgs<"execute">) => {
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).execute
-    .mutate(parsedOpts.data as z.infer<TClientAPI["execute"]["args"]>);
+  return await createClient(device).execute.mutate(
+    parsedOpts.data as z.infer<TClientAPI["execute"]["args"]>
+  );
 };
 
 const screenshot = async (
@@ -125,22 +132,25 @@ const screenshot = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).screenshot
-    .mutate(parsedOpts.data as z.infer<TClientAPI["screenshot"]["args"]>);
+  return await createClient(device).screenshot.mutate(
+    parsedOpts.data as z.infer<TClientAPI["screenshot"]["args"]>
+  );
 };
 
 const openBrowser = async (
   device: Device,
   args: TBridgeServiceArgs<"openBrowser">
 ) => {
-  const openBrowserOptsSchema =
-    z.object({ displayId: z.number(), url: z.string() }).strict();
+  const openBrowserOptsSchema = z
+    .object({ displayId: z.number(), url: z.string() })
+    .strict();
   const parsedOpts = openBrowserOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).openBrowser
-    .mutate(parsedOpts.data as z.infer<TClientAPI["openBrowser"]["args"]>);
+  return await createClient(device).openBrowser.mutate(
+    parsedOpts.data as z.infer<TClientAPI["openBrowser"]["args"]>
+  );
 };
 
 const getBrowser = async (
@@ -154,8 +164,9 @@ const getBrowser = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getBrowser
-    .query(parsedOpts.data as z.infer<TClientAPI["getBrowser"]["args"]>);
+  return await createClient(device).getBrowser.query(
+    parsedOpts.data as z.infer<TClientAPI["getBrowser"]["args"]>
+  );
 };
 
 const closeBrowser = async (
@@ -167,8 +178,9 @@ const closeBrowser = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).closeBrowser
-    .mutate(parsedOpts.data as z.infer<TClientAPI["closeBrowser"]["args"]>);
+  return await createClient(device).closeBrowser.mutate(
+    parsedOpts.data as z.infer<TClientAPI["closeBrowser"]["args"]>
+  );
 };
 
 const closeBrowsers = async (
@@ -180,8 +192,9 @@ const closeBrowsers = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).closeBrowsers
-    .mutate(parsedOpts.data as z.infer<TClientAPI["closeBrowsers"]["args"]>);
+  return await createClient(device).closeBrowsers.mutate(
+    parsedOpts.data as z.infer<TClientAPI["closeBrowsers"]["args"]>
+  );
 };
 
 const getBrowsers = async (
@@ -193,8 +206,9 @@ const getBrowsers = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getBrowsers
-    .query(parsedOpts.data as z.infer<TClientAPI["getBrowsers"]["args"]>);
+  return await createClient(device).getBrowsers.query(
+    parsedOpts.data as z.infer<TClientAPI["getBrowsers"]["args"]>
+  );
 };
 
 const NodeService: TBridgeHardwareService = {

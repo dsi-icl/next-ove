@@ -1,4 +1,5 @@
-/* global readFile, LogFn, console, init, Benchmark, formatOutput */
+/* global readFile, LogFn, console, init,
+Benchmark, formatOutput, __BENCHMARKS__ */
 
 import { writeFileSync } from "fs";
 import { bench } from "@arktype/attest";
@@ -20,7 +21,7 @@ describe("hardware types", () => {
     if (!("ove-types" in existing)) existing["ove-types"] = {};
 
     existing["ove-types"]!["hardware"] = benchmarks;
-    writeFileSync("./benchmarks.json",
+    writeFileSync(__BENCHMARKS__,
       JSON.stringify(existing, undefined, 2));
   });
 });

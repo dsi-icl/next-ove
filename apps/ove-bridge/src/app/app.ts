@@ -65,7 +65,7 @@ const initMainWindow = () => {
 const loadErrorPage = () => {
   const formattedUrl = pathToFileURL(
     join(__dirname, "assets", "error.html")).toString();
-  mainWindow!.loadURL(formattedUrl)
+  mainWindow?.loadURL(formattedUrl)
     .then(() => logger.info(`Loaded url: ${formattedUrl}`))
     .catch(reason => {
       logger.fatal(reason);

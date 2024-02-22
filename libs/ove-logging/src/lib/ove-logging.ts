@@ -48,8 +48,7 @@ export const Logger = (
       fetch(loggingServerURL, {
         method: "POST",
         body: message.join(" ")
-      }).catch(() => {
-      });
+      }).catch();
     }
 
     switch (level.consoleLogger) {

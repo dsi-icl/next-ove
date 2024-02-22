@@ -1,6 +1,6 @@
 import React from "react";
 // IGNORE PATH - dependency removed at runtime
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import {
   type InboundAPI,
   type OutboundAPI,
@@ -17,9 +17,10 @@ declare global {
     client: InboundAPI & {
       receive: <Key extends keyof OutboundAPI>(
         event: OutboundAPIChannels[Key],
-        listener: (args: Parameters<OutboundAPI[Key]>[0]) =>
-          ReturnType<OutboundAPI[Key]>
-      ) => void
+        listener: (
+          args: Parameters<OutboundAPI[Key]>[0]
+        ) => ReturnType<OutboundAPI[Key]>
+      ) => void;
     };
   }
 }
@@ -31,9 +32,11 @@ declare global {
 export function App() {
   const pin = usePin();
 
-  return <main className={styles.main}>
-    <h1 className={styles.pin}>{pin}</h1>
-  </main>;
+  return (
+    <main className={styles.main}>
+      <h1 className={styles.pin}>{pin}</h1>
+    </main>
+  );
 }
 
 export default App;

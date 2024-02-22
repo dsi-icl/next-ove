@@ -2,7 +2,7 @@ import Nav from "./nav";
 import React from "react";
 import Router from "./router";
 // IGNORE PATH - dependency removed at runtime
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import {
   type OutboundAPI,
   type OutboundAPIChannels
@@ -15,9 +15,10 @@ declare global {
     bridge: InboundAPI & {
       receive: <Key extends keyof OutboundAPI>(
         event: OutboundAPIChannels[Key],
-        listener: (args: Parameters<OutboundAPI[Key]>[0]) =>
-          ReturnType<OutboundAPI[Key]>
-      ) => void
+        listener: (
+          args: Parameters<OutboundAPI[Key]>[0]
+        ) => ReturnType<OutboundAPI[Key]>
+      ) => void;
     };
   }
 }
@@ -27,10 +28,12 @@ declare global {
  * @constructor
  */
 const App = () => {
-  return <>
-    <Nav />
-    <Router />
-  </>;
+  return (
+    <>
+      <Nav />
+      <Router />
+    </>
+  );
 };
 
 export default App;

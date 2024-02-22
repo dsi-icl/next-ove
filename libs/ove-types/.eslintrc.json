@@ -1,6 +1,6 @@
 {
   "extends": ["../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*"],
+  "ignorePatterns": ["!**/*", "*.spec.ts", "*.spec.js"], // TODO: remove spec pattern
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

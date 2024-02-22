@@ -41,6 +41,17 @@ export default class List {
   }
 
   /**
+   * Sets the list group that this list is part of.
+   *
+   * @public
+   * @memberof List
+   * @param {null|Array} value
+   */
+  set group(value) {
+    this._group = value;
+  }
+
+  /**
    * Returns the group id for this list.
    *
    * @public
@@ -77,6 +88,25 @@ export default class List {
   }
 
   /**
+   * Sets the new value of the list
+   *
+   * @public
+   * @readonly
+   * @param {Array} value
+   * @memberof List
+   */
+  set listData(value) {
+    this._group ? set(this._path, this._group, value) : (this._list = value);
+    this._listItems = this.listData.map(
+      (data, index) =>
+        new ListItem({
+          itemData: data,
+          itemIndex: index
+        })
+    );
+  }
+
+  /**
    * Returns an array of ```ListItem``` contained within the list.
    *
    * @readonly
@@ -107,36 +137,6 @@ export default class List {
    */
   get path() {
     return this._path;
-  }
-
-  /**
-   * Sets the list group that this list is part of.
-   *
-   * @public
-   * @memberof List
-   * @param {null|Array} value
-   */
-  set group(value) {
-    this._group = value;
-  }
-
-  /**
-   * Sets the new value of the list
-   *
-   * @public
-   * @readonly
-   * @param {Array} value
-   * @memberof List
-   */
-  set listData(value) {
-    this._group ? set(this._path, this._group, value) : (this._list = value);
-    this._listItems = this.listData.map(
-      (data, index) =>
-        new ListItem({
-          itemData: data,
-          itemIndex: index
-        })
-    );
   }
 
   /**

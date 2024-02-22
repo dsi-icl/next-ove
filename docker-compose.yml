@@ -5,8 +5,11 @@ services:
       context: .
       dockerfile: ./apps/ove-core/Dockerfile
     ports:
-      - "8080:3333"
+      - "3333:3333"
     restart: "on-failure"
+    volumes:
+      - ./dist/apps/ove-core/config/config.json:/usr/src/app/config/config.json:ro
+      - ./apps/ove-core/.temp.env.production:/usr/src/app/.env:ro
   ove-core-ui:
     build:
       context: .

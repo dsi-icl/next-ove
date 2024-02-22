@@ -3,10 +3,10 @@ import superjson from "superjson";
 import { type Tokens } from "@ove/ove-types";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // IGNORE PATH - dependency removed at runtime
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import { type AppRouter } from "../../ove-core/src/server/router";
 
-export type InfoTypes = "general" | "system" | "cpu" | "memory"
+export type InfoTypes = "general" | "system" | "cpu" | "memory";
 
 const fixedEncodeURI = (str: string) =>
   encodeURI(str).replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16));

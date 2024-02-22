@@ -5,41 +5,23 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": [
-    "**/*"
-  ],
-  "plugins": [
-    "@nrwl/nx"
-  ],
-  "extends": [
-    "plugin:react/recommended",
-    "eslint:recommended",
-    "google"
-  ],
+  "ignorePatterns": ["**/*"],
+  "plugins": ["@nx"],
+  "extends": ["plugin:react/recommended", "eslint:recommended", "google"],
   "overrides": [
     {
-      "files": [
-        "*.ts",
-        "*.tsx",
-        "*.js",
-        "*.jsx"
-      ],
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        "react/jsx-indent-props": [
-          "error",
-          "first"
-        ],
+        "react/jsx-indent-props": ["error", "first"],
         "indent": [
           "error",
           2,
           {
             "SwitchCase": 1,
-            "ignoredNodes": [
-              "JSXAttribute"
-            ]
+            "ignoredNodes": ["JSXAttribute"]
           }
         ],
-        "@nrwl/nx/enforce-module-boundaries": [
+        "@nx/enforce-module-boundaries": [
           "error",
           {
             "enforceBuildableLibDependency": true,
@@ -47,9 +29,7 @@
             "depConstraints": [
               {
                 "sourceTag": "*",
-                "onlyDependOnLibsWithTags": [
-                  "*"
-                ]
+                "onlyDependOnLibsWithTags": ["*"]
               }
             ]
           }
@@ -57,23 +37,17 @@
       }
     },
     {
-      "files": [
-        "*.ts",
-        "*.tsx"
-      ],
+      "files": ["*.ts", "*.tsx"],
       "extends": [
         "plugin:react/recommended",
-        "plugin:@nrwl/nx/typescript",
+        "plugin:@nx/typescript",
         "eslint:recommended",
         "google"
       ],
       "rules": {
         "comma-dangle": "off",
         "new-cap": "off",
-        "object-curly-spacing": [
-          "error",
-          "always"
-        ],
+        "object-curly-spacing": ["error", "always"],
         "quotes": [
           "error",
           "double",
@@ -88,29 +62,20 @@
             "SwitchCase": 1
           }
         ],
-        "arrow-parens": [
-          "error",
-          "as-needed"
-        ]
+        "arrow-parens": ["error", "as-needed"]
       }
     },
     {
-      "files": [
-        "*.js",
-        "*.jsx"
-      ],
+      "files": ["*.js", "*.jsx"],
       "extends": [
         "plugin:react/recommended",
-        "plugin:@nrwl/nx/javascript",
+        "plugin:@nx/javascript",
         "eslint:recommended",
         "google"
       ],
       "rules": {
         "comma-dangle": "off",
-        "object-curly-spacing": [
-          "error",
-          "always"
-        ],
+        "object-curly-spacing": ["error", "always"],
         "quotes": [
           "error",
           "double",
@@ -125,19 +90,11 @@
             "SwitchCase": 1
           }
         ],
-        "arrow-parens": [
-          "error",
-          "as-needed"
-        ]
+        "arrow-parens": ["error", "as-needed"]
       }
     },
     {
-      "files": [
-        "*.spec.ts",
-        "*.spec.tsx",
-        "*.spec.js",
-        "*.spec.jsx"
-      ],
+      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
       "env": {
         "jest": true
       },

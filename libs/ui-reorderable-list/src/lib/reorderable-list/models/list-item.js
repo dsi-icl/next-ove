@@ -47,6 +47,16 @@ export default class ListItem {
   }
 
   /**
+   * Sets the data for this item.
+   *
+   * @param {Object} value
+   * @memberof ListItem
+   */
+  set data(value) {
+    this._itemData = value;
+  }
+
+  /**
    * Returns a flag which indicates if an item is enabled/disabled.
    *
    * @return {boolean}
@@ -54,6 +64,16 @@ export default class ListItem {
    */
   get enabled() {
     return this._isEnabled;
+  }
+
+  /**
+   * Enables/disables the item.
+   *
+   * @param {boolean} value
+   * @memberof ListItem
+   */
+  set enabled(value) {
+    this._isEnabled = value;
   }
 
   /**
@@ -68,16 +88,6 @@ export default class ListItem {
   }
 
   /**
-   * Sets the data for this item.
-   *
-   * @param {Object} value
-   * @memberof ListItem
-   */
-  set data(value) {
-    this._itemData = value;
-  }
-
-  /**
    * Sets the index for this item on the list.
    *
    * @param {Number} value
@@ -85,15 +95,5 @@ export default class ListItem {
    */
   set index(value) {
     this._itemIndex = value;
-  }
-
-  /**
-   * Enables/disables the item.
-   *
-   * @param {boolean} value
-   * @memberof ListItem
-   */
-  set enabled(value) {
-    this._isEnabled = value;
   }
 }

@@ -7,7 +7,7 @@ type State = {
   browsers: Map<number, Browser>
   pin: string
   pinUpdateCallback: ((event: string) => void) | null
-  pinUpdateHandler: NodeJS.Timer | null
+  pinUpdateHandler: NodeJS.Timeout | null
   authErrors: number
 };
 
@@ -30,4 +30,5 @@ export const updatePin = env.AUTHORISED_CREDENTIALS === undefined ? () => {
     throw new Error("Missing pin update callback");
   }
   state.pinUpdateCallback(state.pin);
-} : () => {};
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+} : null;

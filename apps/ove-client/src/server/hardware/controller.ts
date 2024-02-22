@@ -17,7 +17,7 @@ export const init = (
   // TODO: if authorised, load rendering page
   service.init(createWindow, takeScreenshots, closeWindow);
 
-  if (env.AUTHORISED_CREDENTIALS === undefined) {
+  if (env.AUTHORISED_CREDENTIALS === undefined && updatePin !== null) {
     state.pinUpdateCallback = triggerIPC["updatePin"];
     state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
   }
@@ -89,7 +89,8 @@ const controller: TClientService = {
       throw new Error(`No browser with ID: ${browserId}`);
     }
 
-    if (state.browsers.size === 1 && state.pinUpdateHandler === null) {
+    if (state.browsers.size === 1 &&
+      state.pinUpdateHandler === null && updatePin !== null) {
       state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
     }
     service.closeBrowser(browser.windowId);
@@ -101,7 +102,7 @@ const controller: TClientService = {
   },
   closeBrowsers: async () => {
     logger.info("DELETE /browsers - closing all browsers");
-    if (state.pinUpdateHandler === null) {
+    if (state.pinUpdateHandler === null && updatePin !== null) {
       state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
     }
     service.closeBrowsers(state.browsers.values());

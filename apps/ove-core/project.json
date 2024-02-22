@@ -5,7 +5,7 @@
   "projectType": "application",
   "targets": {
     "build": {
-      "executor": "@nrwl/webpack:webpack",
+      "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
       "options": {
         "target": "node",
@@ -13,7 +13,8 @@
         "outputPath": "dist/apps/ove-core",
         "main": "apps/ove-core/src/main.ts",
         "tsConfig": "apps/ove-core/tsconfig.app.json",
-        "assets": ["apps/ove-core/src/assets", "apps/ove-core/src/config"]
+        "assets": ["apps/ove-core/src/assets", "apps/ove-core/src/config"],
+        "webpackConfig": "apps/ove-core/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -30,7 +31,7 @@
       }
     },
     "serve": {
-      "executor": "@nrwl/js:node",
+      "executor": "@nx/js:node",
       "options": {
         "buildTarget": "ove-core:build"
       },

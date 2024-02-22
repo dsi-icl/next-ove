@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { objectUtil, z } from "zod";
 import {
   type TBridgeRouteSchema,
   type TBridgeMultiRouteSchema,
@@ -57,13 +57,13 @@ type TCoreMultiRouteSchema<
  */
 export type TCoreRoutesSchema = {
   [Key in keyof TBridgeSingleRoutesSchema]: TCoreRouteSchema<
-    z.extendShape<BridgeRouteInputTransformSchema<Key>, {
+    objectUtil.MergeShapes<BridgeRouteInputTransformSchema<Key>, {
       bridgeId: z.ZodString
     }>, BridgeRouteOutputTransformSchema<Key>,
     OpenAPIMethod<Key>, APIExposureLevel<Key>>
 } & {
   [Key in keyof TBridgeMultiRoutesSchema]: TCoreMultiRouteSchema<
-    z.extendShape<BridgeRouteInputTransformSchema<Key>, {
+    objectUtil.MergeShapes<BridgeRouteInputTransformSchema<Key>, {
       bridgeId: z.ZodString
     }>,
     BridgeRouteOutputTransformSchema<Key>,

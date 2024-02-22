@@ -1,5 +1,5 @@
 // TODO: investigate circular dependency
-// eslint-disable-next-line @nrwl/nx/enforce-module-boundaries
+// eslint-disable-next-line @nx/enforce-module-boundaries
 import {
   Calendar,
   Dialog,
@@ -24,8 +24,9 @@ import styles from "./home.module.scss";
 const useFetchCalendar = (
   controller: typeof window["bridge"]["getCalendar"]
 ) => {
-  const [response, setResponse] =
-    useState<TCalendar | OVEException | undefined>(undefined);
+  const [response, setResponse] = useState<
+    TCalendar | OVEException | undefined
+  >(undefined);
   const x = useCalendar(response);
 
   useEffect(() => {
@@ -55,26 +56,35 @@ const Home = () => {
     console.log(JSON.stringify(calendar));
   }, [calendar]);
 
-  return <main className={styles.main}>
-    <div>
-      <Configuration
-        refreshCalendar={refreshCalendar}
-        openDialog={openDialog} />
-      <KeyPass />
-    </div>
-    <section className={styles.section}>
-      <div className={styles.power}>
-        <LastUpdated lastUpdated={lastUpdated}
-                     refreshCalendar={refreshCalendar} />
-        <PowerMode mode={mode} setMode={setMode} calendar={calendar}
-                   controller={window.bridge} />
+  return (
+    <main className={styles.main}>
+      <div>
+        <Configuration
+          refreshCalendar={refreshCalendar}
+          openDialog={openDialog}
+        />
+        <KeyPass />
       </div>
-      {calendar !== null ? <Calendar calendar={calendar} /> : null}
-    </section>
-    <Dialog ref={ref} closeDialog={closeDialog} title="Configure Auto Mode">
-      <AutoModeConfiguration closeDialog={closeDialog} />
-    </Dialog>
-  </main>;
+      <section className={styles.section}>
+        <div className={styles.power}>
+          <LastUpdated
+            lastUpdated={lastUpdated}
+            refreshCalendar={refreshCalendar}
+          />
+          <PowerMode
+            mode={mode}
+            setMode={setMode}
+            calendar={calendar}
+            controller={window.bridge}
+          />
+        </div>
+        {calendar !== null ? <Calendar calendar={calendar} /> : null}
+      </section>
+      <Dialog ref={ref} closeDialog={closeDialog} title="Configure Auto Mode">
+        <AutoModeConfiguration closeDialog={closeDialog} />
+      </Dialog>
+    </main>
+  );
 };
 
 export default Home;

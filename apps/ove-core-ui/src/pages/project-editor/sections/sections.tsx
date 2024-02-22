@@ -58,6 +58,10 @@ const Sections = ({
       }
     });
 
+    if (startOrder === null || endOrder === null) {
+      throw new Error("Illegal null");
+    }
+
     return curList
       .slice(0, startOrder!)
       .concat([curList[endOrder!]]

@@ -1,4 +1,5 @@
-/* global readFile, LogFn, console, init, Benchmark, formatOutput */
+/* global readFile, LogFn, console, init,
+Benchmark, formatOutput, __BENCHMARKS__ */
 
 import { writeFileSync } from "fs";
 import * as Types from "./ove-types";
@@ -27,7 +28,7 @@ describe("oveTypes", () => {
     if (!("ove-types" in existing)) existing["ove-types"] = {};
 
     existing["ove-types"]!["ove-types"] = benchmarks;
-    writeFileSync("./benchmarks.json",
+    writeFileSync(__BENCHMARKS__,
       JSON.stringify(existing, undefined, 2));
   });
 });
