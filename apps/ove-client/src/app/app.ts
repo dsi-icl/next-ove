@@ -159,7 +159,7 @@ const init = (
   initialised = true;
 };
 
-export default {
+const app = {
   openWindow: (loadWindow: (idx: string) => void, displayId?: number) => {
     if (defaultIdx !== null) {
       windows[defaultIdx].close();
@@ -193,3 +193,5 @@ export default {
   isInitialised: () => initialised,
   init
 };
+
+export default app;

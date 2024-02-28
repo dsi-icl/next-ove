@@ -4,10 +4,11 @@ LABEL authors="bc2918"
 WORKDIR /usr/src/app
 
 ENV NODE_ENV production
-COPY ../../package.json ./
+COPY ../../dist/apps/ove-core/package.json ./
+COPY ../../dist/apps/ove-core/package-lock.json ./
 COPY ../../apps/ove-core/prisma/ ./
 
-RUN npm install --legacy-peer-deps --omit=dev
+RUN npm install --omit=dev
 RUN npx prisma generate
 
 COPY ../../dist/apps/ove-core/ ./
