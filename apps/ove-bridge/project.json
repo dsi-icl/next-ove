@@ -49,6 +49,7 @@
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true,
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.mac.options.json"
       }
     },
@@ -63,6 +64,7 @@
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true,
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.linux.options.json"
       }
     },
@@ -76,6 +78,7 @@
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/packages",
         "prepackageOnly": true,
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.windows.options.json"
       }
     },
@@ -90,6 +93,7 @@
         ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables",
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.mac.options.json"
       }
     },
@@ -103,6 +107,7 @@
         ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables",
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.linux.options.json"
       }
     },
@@ -115,7 +120,50 @@
         ],
         "frontendProject": "ove-bridge-ui",
         "outputPath": "dist/executables",
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.windows.options.json"
+      }
+    },
+    "release:linux": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-bridge",
+        "platform": [
+          "linux",
+          "windows"
+        ],
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/executables",
+        "publishPolicy": "always",
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.linux.options.json"
+      }
+    },
+    "release:windows": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-bridge",
+        "platform": [
+          "windows"
+        ],
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/executables",
+        "publishPolicy": "always",
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.windows.options.json"
+      }
+    },
+    "release:mac": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-bridge",
+        "platform": [
+          "windows",
+          "linux",
+          "mac"
+        ],
+        "frontendProject": "ove-bridge-ui",
+        "outputPath": "dist/executables",
+        "publishPolicy": "always",
+        "makerOptionsPath": "apps/ove-bridge/src/app/options/maker.mac.options.json"
       }
     },
     "lint": {

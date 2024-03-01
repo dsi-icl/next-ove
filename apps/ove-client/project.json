@@ -89,6 +89,7 @@
         ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables",
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
       }
     },
@@ -101,6 +102,7 @@
         ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables",
+        "publishPolicy": "never",
         "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
       }
     },
@@ -115,6 +117,49 @@
         ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables",
+        "publishPolicy": "never",
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+      }
+    },
+    "release:linux": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-client",
+        "platform": [
+          "windows",
+          "linux"
+        ],
+        "frontendProject": "ove-client-ui",
+        "outputPath": "dist/executables",
+        "publishPolicy": "always",
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
+      }
+    },
+    "release:windows": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-client",
+        "platform": [
+          "windows"
+        ],
+        "frontendProject": "ove-client-ui",
+        "outputPath": "dist/executables",
+        "publishPolicy": "always",
+        "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
+      }
+    },
+    "release:mac": {
+      "executor": "nx-electron:make",
+      "options": {
+        "name": "ove-client",
+        "platform": [
+          "mac",
+          "windows",
+          "linux"
+        ],
+        "frontendProject": "ove-client-ui",
+        "outputPath": "dist/executables",
+        "publishPolicy": "always",
         "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
       }
     },

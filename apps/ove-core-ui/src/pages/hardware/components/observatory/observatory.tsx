@@ -16,15 +16,19 @@ import styles from "./observatory.module.scss";
 const getData = (bridgeId: string, hardware: HardwareInfo[]) => hardware.map(({
   device,
   status
-}) => ({
-  protocol: device.type,
-  id: device.id,
-  hostname: device.ip,
-  mac: device.mac,
-  tags: device.tags,
-  status: status,
-  actions: <Actions device={device} bridgeId={bridgeId} />
-}));
+}) => {
+  const deviceProtocol = device.protocol === undefined ? "" : `${device.protocol}://`;
+  const devicePort = device.port === undefined ? "" : `:${device.port}`;
+  return ({
+    protocol: device.type,
+    id: device.id,
+    hostname: `${deviceProtocol}${device.ip}${devicePort}`,
+    mac: device.mac,
+    tags: device.tags,
+    status: status,
+    actions: <Actions device={device} bridgeId={bridgeId} />
+  });
+});
 
 const Observatory = ({ name, isOnline, showNotification }: {
   name: string

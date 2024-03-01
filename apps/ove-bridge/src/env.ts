@@ -18,7 +18,7 @@ const schema = z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
-  }),
+  }).optional(),
   LOG_LEVEL: z.number().optional(),
   CORE_URL: z.string().optional(),
   BRIDGE_NAME: z.string().optional(),
@@ -65,11 +65,6 @@ const defaultConfig: z.infer<typeof schema> = {
   PUBLIC_KEY: publicKey,
   PRIVATE_KEY: privateKey,
   PASSPHRASE: passPhrase,
-  RENDER_CONFIG: {
-    PROTOCOL: "http",
-    HOSTNAME: "localhost",
-    PORT: 4200
-  },
   URL: "http://localhost:3334"
 };
 

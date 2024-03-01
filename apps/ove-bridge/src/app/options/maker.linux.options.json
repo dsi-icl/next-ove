@@ -25,8 +25,16 @@
   "linux": {
     "target": [
       "AppImage",
-      "deb"
+      "deb",
+      "rpm"
     ],
     "category": "Development"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "dsi-icl",
+    "releaseType": "release",
+    "publishAutoUpdate": false,
+    "private": true
   }
 }

@@ -8,8 +8,8 @@ import { z } from "zod";
 
 type PJLinkState = {
   settings: {
-    host: string,
-    port: number,
+    ip: string
+    port: number
     password: string | null,
     timeout: number
   }
@@ -59,9 +59,9 @@ const init = (
 ): PJLinkState => {
   return {
     settings: {
-      host: device?.ip || "192.168.1.1",
-      port: device?.port || 4352,
-      password: password || null,
+      ip: device?.ip ?? "192.168.1.1",
+      port: device?.port ?? 4352,
+      password: password ?? null,
       timeout: 0
     },
     class: 1,
@@ -126,7 +126,7 @@ const onData = (state: PJLinkState) => (buffer: Buffer) => {
   }
 
   if (REGEX.AUTH_REGEX.test(response)) {
-    const sessionToken = response.match(REGEX.AUTH_REGEX)?.pop();
+    const sessionToken = REGEX.AUTH_REGEX.exec(response)?.pop();
 
     if (sessionToken === undefined) {
       throw new Error("Session token cannot be undefined");
@@ -139,7 +139,7 @@ const onData = (state: PJLinkState) => (buffer: Buffer) => {
   } else if (REGEX.SUCCESS_REGEX.test(response)) {
     state._callback?.(response);
   } else if (REGEX.GET_REGEX.test(response)) {
-    const res = response.match(REGEX.GET_REGEX)?.pop();
+    const res = REGEX.GET_REGEX.exec(response)?.pop();
     if (res === undefined) throw new Error("Result cannot be undefined");
     state._callback?.(res);
   } else if (REGEX.AUTH_ERROR_REGEX.test(response)) {
@@ -159,8 +159,8 @@ const onData = (state: PJLinkState) => (buffer: Buffer) => {
 
 const connect = (state: PJLinkState) => {
   state._connection = net.connect({
-    port: state.settings.port,
-    host: state.settings.host
+    host: state.settings.ip,
+    port: state.settings.port
   }, () => console.log("Connected"));
 
   state._connection.on("data", onData(state));
@@ -193,8 +193,8 @@ export const COMMAND = {
   GET_CLASS: "%1CLSS ?\r"
 };
 
-const runCommand = (command: string, device: Device, ...args: string[]) => {
-  return new Promise<PJLinkResponse>(resolve => {
+const runCommand = (command: string, device: Device, ...args: string[]) =>
+  new Promise<PJLinkResponse>(resolve => {
     if (args.length > 0) {
       command = replaceAll(command, args);
     }
@@ -206,81 +206,61 @@ const runCommand = (command: string, device: Device, ...args: string[]) => {
     );
     connect(state);
   });
-};
 
-export const setPower = (device: Device, power: number) => {
-  return runCommand(COMMAND.SET_POWER, device, power.toString());
-};
+export const setPower = (device: Device, power: number) =>
+  runCommand(COMMAND.SET_POWER, device, power.toString());
 
-export const getPower = (device: Device) => {
-  return runCommand(COMMAND.GET_POWER, device);
-};
+export const getPower = (device: Device) =>
+  runCommand(COMMAND.GET_POWER, device);
 
-export const setInput = (device: Device, input: number, channel?: number) => {
-  return runCommand(COMMAND.SET_INPUT, device, input.toString(),
-    (channel === undefined ? 1 : channel).toString());
-};
+export const setInput = (device: Device, input: number, channel?: number) =>
+  runCommand(COMMAND.SET_INPUT, device, input.toString(),
+    (channel ?? 1).toString());
 
-export const getInput = (device: Device) => {
-  return runCommand(COMMAND.GET_INPUT, device);
-};
+export const getInput = (device: Device) =>
+  runCommand(COMMAND.GET_INPUT, device);
 
-export const muteVideo = (device: Device) => {
-  return runCommand(COMMAND.MUTE_VIDEO, device);
-};
+export const muteVideo = (device: Device) =>
+  runCommand(COMMAND.MUTE_VIDEO, device);
 
-export const unmuteVideo = (device: Device) => {
-  return runCommand(COMMAND.UNMUTE_VIDEO, device);
-};
+export const unmuteVideo = (device: Device) =>
+  runCommand(COMMAND.UNMUTE_VIDEO, device);
 
-export const muteAudio = (device: Device) => {
-  return runCommand(COMMAND.MUTE_AUDIO, device);
-};
+export const muteAudio = (device: Device) =>
+  runCommand(COMMAND.MUTE_AUDIO, device);
 
-export const unmuteAudio = (device: Device) => {
-  return runCommand(COMMAND.UNMUTE_AUDIO, device);
-};
+export const unmuteAudio = (device: Device) =>
+  runCommand(COMMAND.UNMUTE_AUDIO, device);
 
-export const mute = (device: Device) => {
-  return runCommand(COMMAND.MUTE, device);
-};
+export const mute = (device: Device) =>
+  runCommand(COMMAND.MUTE, device);
 
-export const unmute = (device: Device) => {
-  return runCommand(COMMAND.UNMUTE, device);
-};
+export const unmute = (device: Device) =>
+  runCommand(COMMAND.UNMUTE, device);
 
-export const getIsMuted = (device: Device) => {
-  return runCommand(COMMAND.GET_IS_MUTED, device);
-};
+export const getIsMuted = (device: Device) =>
+  runCommand(COMMAND.GET_IS_MUTED, device);
 
-export const getErrors = (device: Device) => {
-  return runCommand(COMMAND.GET_ERRORS, device);
-};
+export const getErrors = (device: Device) =>
+  runCommand(COMMAND.GET_ERRORS, device);
 
-export const getLamp = (device: Device) => {
-  return runCommand(COMMAND.GET_LAMP, device);
-};
+export const getLamp = (device: Device) =>
+  runCommand(COMMAND.GET_LAMP, device);
 
-export const getInputs = (device: Device) => {
-  return runCommand(COMMAND.GET_INPUTS, device);
-};
+export const getInputs = (device: Device) =>
+  runCommand(COMMAND.GET_INPUTS, device);
 
-export const getName = (device: Device) => {
-  return runCommand(COMMAND.GET_NAME, device);
-};
+export const getName = (device: Device) =>
+  runCommand(COMMAND.GET_NAME, device);
 
-export const getManufacturer = (device: Device) => {
-  return runCommand(COMMAND.GET_MANUFACTURER, device);
-};
+export const getManufacturer = (device: Device) =>
+  runCommand(COMMAND.GET_MANUFACTURER, device);
 
-export const getProduct = (device: Device) => {
-  return runCommand(COMMAND.GET_PRODUCT, device);
-};
+export const getProduct = (device: Device) =>
+  runCommand(COMMAND.GET_PRODUCT, device);
 
-export const getInfo = (device: Device) => {
-  return runCommand(COMMAND.GET_INFO, device);
-};
+export const getInfo = (device: Device) =>
+  runCommand(COMMAND.GET_INFO, device);
 
-export const getClass = (device: Device) => {
-  return runCommand(COMMAND.GET_CLASS, device);
-};
+export const getClass = (device: Device) =>
+  runCommand(COMMAND.GET_CLASS, device);

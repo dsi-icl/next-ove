@@ -21,5 +21,12 @@
     "oneClick": false,
     "allowElevation": true,
     "license": "./LICENSE"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "dsi-icl",
+    "releaseType": "release",
+    "publishAutoUpdate": false,
+    "private": true
   }
 }

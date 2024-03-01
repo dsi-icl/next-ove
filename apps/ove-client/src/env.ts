@@ -13,7 +13,7 @@ const schema = z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
-  }),
+  }).optional(),
   BRIDGE_URL: z.string().optional(),
   LOG_LEVEL: z.number().optional(),
   AUTHORISED_CREDENTIALS: z.string().optional(),
@@ -34,11 +34,6 @@ const defaultConfig: z.infer<typeof schema> = {
   PORT: 3334,
   HOSTNAME: "localhost",
   PROTOCOL: "http",
-  RENDER_CONFIG: {
-    PORT: 4201,
-    HOSTNAME: "localhost",
-    PROTOCOL: "http"
-  },
   AUTH_ERROR_LIMIT: 3
 };
 
