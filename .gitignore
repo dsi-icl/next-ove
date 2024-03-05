@@ -187,6 +187,7 @@ web_modules/
 # dotenv environment variables file
 .env
 .env.test
+.env.production
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -300,7 +301,6 @@ tools/sandworm
 
 # Core environment config
 /apps/ove-core/src/config/config.json
-/apps/ove-core/.env.production
 
 # Test environment config
 /tests/**/private.*
@@ -340,6 +340,10 @@ tools/doiuse/browser-usage.json
 
 # package auditing
 /tools/package-audit/analysis.txt
+
+# packages
+/tools/packages/packages.txt
+/tools/packages/packages.json
 
 # nx
 /.nx/

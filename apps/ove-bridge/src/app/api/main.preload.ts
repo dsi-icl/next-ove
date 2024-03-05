@@ -17,7 +17,7 @@ const ExposedAPI: InboundAPI =
       };
     }, {} as InboundAPI);
 
-contextBridge.exposeInMainWorld("electron", {
+contextBridge.exposeInMainWorld("bridge", {
   receive: <Key extends keyof OutboundAPI>(
     channel: OutboundAPIChannels[Key],
     listener: (...args: Parameters<OutboundAPI[Key]>) =>

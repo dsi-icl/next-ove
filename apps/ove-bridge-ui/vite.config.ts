@@ -5,6 +5,7 @@ import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
 export default defineConfig({
   root: __dirname,
+  base: "./",
   build: {
     outDir: "../../dist/apps/ove-bridge-ui",
     reportCompressedSize: true,

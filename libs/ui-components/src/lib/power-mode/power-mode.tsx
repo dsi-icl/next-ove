@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   type CalendarEvent,
   type PowerMode as TPowerMode
@@ -20,17 +20,20 @@ const PowerMode = ({ calendar, controller, mode, setMode }: PowerModeProps) => {
     setAuto,
     setEco
   } = useMode(calendar, mode, setMode, controller);
-  const style =
-    { backgroundColor: mode === "manual" ? "lightgreen" : "lightgrey" };
+  const getStyle = useCallback((selection: string) => {
+    return { backgroundColor: selection === mode ? "lightgreen" : "lightgrey" };
+  }, [mode]);
   return <div className={styles["mode-container"]}
               style={{ marginTop: "auto" }}>
-    <button className={styles.button} style={style} onClick={setManual}>
+    <button className={styles.button} style={getStyle("manual")}
+            onClick={setManual}>
       Manual
     </button>
-    <button className={styles.button} style={style} onClick={setAuto}>
+    <button className={styles.button} style={getStyle("auto")}
+            onClick={setAuto}>
       Auto
     </button>
-    <button className={styles.button} style={style} onClick={setEco}>
+    <button className={styles.button} style={getStyle("eco")} onClick={setEco}>
       Eco
     </button>
   </div>;

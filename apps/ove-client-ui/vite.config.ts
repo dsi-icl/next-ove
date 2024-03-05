@@ -5,6 +5,7 @@ import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
 export default defineConfig({
   root: __dirname,
+  base: "./",
   build: {
     outDir: "../../dist/apps/ove-client-ui",
     reportCompressedSize: true,
@@ -26,7 +27,7 @@ export default defineConfig({
     reporters: ["default"],
     coverage: {
       reportsDirectory: "../../coverage/apps/ove-client-ui",
-      provider: "c8"
+      provider: "v8"
     },
     globals: true,
     cache: {

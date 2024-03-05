@@ -15,7 +15,7 @@ const ExposedAPI: InboundAPI =
         ipcRenderer.invoke(inboundChannels[k], ...args)
     }), {} as InboundAPI);
 
-contextBridge.exposeInMainWorld("electron", {
+contextBridge.exposeInMainWorld("client", {
   receive: <Key extends keyof OutboundAPI>(
     channel: OutboundAPIChannels[Key],
     listener: (...args: Parameters<OutboundAPI[Key]>)

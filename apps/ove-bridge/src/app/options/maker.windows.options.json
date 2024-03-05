@@ -6,7 +6,6 @@
   "files": [
     "!**/.env*",
     "!**/.vscode",
-    "!**/build",
     "!**/config"
   ],
   "win": {
