@@ -14,28 +14,6 @@ const isSkip = (
   deviceAction.deviceId === null || deviceAction.action !== type ||
   deviceAction.pending;
 
-const useStatus = (
-  bridgeId: string,
-  setStatus: (deviceId: string, status: "running" | "off" | null) => void
-) => {
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const status = trpc.hardware.getStatus.useQuery({
-    bridgeId,
-    deviceId: deviceAction.deviceId ?? ""
-  }, { enabled: false });
-
-  useEffect(() => {
-    if (status.status !== "success") return;
-    setStatus(assert(deviceAction.deviceId), status.data.response &&
-    !isError(status.data.response) ? "running" : "off");
-  }, [status, deviceAction, setStatus]);
-
-  useEffect(() => {
-    if (isSkip("status", bridgeId, deviceAction)) return;
-    status.refetch().catch(logger.error);
-  }, [bridgeId, status, deviceAction]);
-};
-
 const useInfo = (bridgeId: string) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const setInfo = useStore(state => state.hardwareConfig.setInfo);
@@ -578,10 +556,8 @@ const useUnmuteVideo = (
 
 export const useSingleController = (
   bridgeId: string,
-  showNotification: (text: string) => void,
-  setStatus: (deviceId: string, status: "running" | "off" | null) => void
+  showNotification: (text: string) => void
 ) => {
-  useStatus(bridgeId, setStatus);
   useInfo(bridgeId);
   useStartDevice(bridgeId, showNotification);
   useShutdownDevice(bridgeId, showNotification);

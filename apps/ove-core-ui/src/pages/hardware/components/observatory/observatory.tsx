@@ -36,17 +36,15 @@ const Observatory = ({ name, isOnline, showNotification }: {
   showNotification: (text: string) => void
 }) => {
   const {
-    hardware,
-    updateStatus,
-    updateStatusAll
+    hardware
   } = useHardware(isOnline, name);
   const [filter, setFilter] = useState("");
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
 
-  useSingleController(name, showNotification, updateStatus);
-  useMultiController(name, filter, showNotification, updateStatusAll);
+  useSingleController(name, showNotification);
+  useMultiController(name, filter, showNotification);
 
   useEffect(() => {
     if (filterType !== "id") return;

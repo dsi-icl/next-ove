@@ -1,55 +1,55 @@
 import { trpc } from "../../utils/api";
-import { Json } from "@ove/ove-utils";
-import { useEffect, useState } from "react";
-import { is, OVEExceptionSchema } from "@ove/ove-types";
-import { type DeviceStatus, type HardwareInfo } from "./types";
+import { assert } from "@ove/ove-utils";
+import { useMemo } from "react";
+import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
+import { useStore } from "../../store";
+import { skipMulti, skipSingle } from "./utils";
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
-  const [hardware, setHardware] = useState<HardwareInfo[]>([]);
+  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const getHardware = trpc.bridge.getDevices
     .useQuery({ bridgeId }, { enabled: isOnline });
+  const getStatus = trpc.hardware.getStatus.useQuery({
+    bridgeId,
+    deviceId: deviceAction.deviceId ?? ""
+  }, { enabled: !skipSingle("status", bridgeId, deviceAction) });
+  const getStatusAll = trpc.hardware.getStatusAll.useQuery({
+    bridgeId
+  }, { enabled: !skipMulti("status", bridgeId, deviceAction) });
 
-  useEffect(() => {
-    if (!isOnline) return;
-    if (getHardware.status !== "success") return;
-    if (is(OVEExceptionSchema, getHardware.data.response)) return;
-    setHardware(getHardware.data.response.map(device => ({
-      device,
-      status: null
-    })));
-  }, [getHardware.status, getHardware.data?.response, isOnline]);
-
-  const updateStatus = (deviceId: string, status: "off" | "running" | null) => {
-    setHardware(cur => {
-      const idx = cur.findIndex(({ device: { id } }) => id === deviceId);
-      const copy = Json.copy(cur);
-      copy[idx] = { ...copy[idx], status };
-      return copy;
-    });
+  const formatStatus = (status: boolean | null): "running" | "off" | null => {
+    if (status === null) return null;
+    return status ? "running" : "off";
   };
 
-  const updateStatusAll = (tag: string, status: DeviceStatus | {
-    deviceId: string,
-    status: DeviceStatus
-  }[]) => {
-    setHardware(cur => {
-      if (status !== null && typeof status === "object") {
-        const copy = Json.copy(cur);
-
-        status.forEach(({ deviceId, status }) => {
-          const idx = cur.findIndex(({ device: { id } }) => id === deviceId);
-
-          if (tag === "" || copy[idx].device.tags.includes(tag)) {
-            copy[idx] = { ...copy[idx], status };
-          }
-        });
-
-        return copy;
-      } else {
-        return cur.map(({ device }) => ({ device, status }));
-      }
-    });
+  const getSingleStatus = (deviceId: string) => {
+    if (deviceAction.deviceId !== deviceId) return null;
+    return getStatus.status === "success" && !isError(getStatus.data.response) ?
+      getStatus.data.response : null;
   };
 
-  return { hardware, updateStatus, updateStatusAll };
+  const getMultiStatus = (deviceId: string) => {
+    if (getStatusAll.status !== "success" ||
+      "oveError" in getStatusAll.data.response) return null;
+    const response = assert(getStatusAll.data.response
+      .find(({ deviceId: id }) => id === deviceId)).response;
+    return !isError(response) ? response : null;
+  };
+
+  const hardware = useMemo(() => {
+    if (!isOnline || getHardware.status !== "success" ||
+      is(OVEExceptionSchema, getHardware.data.response)) return [];
+    return getHardware.data.response.map(device => {
+      const status = skipMulti("status", bridgeId, deviceAction) ?
+        getSingleStatus(device.id) : getMultiStatus(device.id);
+      return ({
+        device,
+        status: formatStatus(status)
+      });
+    });
+  }, [isOnline, getHardware.status, getHardware.data?.response,
+    getStatus.status, getStatus.data?.response, getStatusAll.status,
+    getStatusAll.data?.response]);
+
+  return { hardware };
 };

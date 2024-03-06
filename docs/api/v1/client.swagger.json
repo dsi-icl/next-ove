@@ -3,7 +3,7 @@
   "info": {
     "title": "next-ove client",
     "description": "Control interface for observatory rendering nodes.",
-    "version": "24.8.2"
+    "version": "29.1.0"
   },
   "servers": [
     {
@@ -13,7 +13,7 @@
   "paths": {
     "/status": {
       "get": {
-        "operationId": "query.getStatus",
+        "operationId": "getStatus",
         "parameters": [],
         "responses": {
           "200": {
@@ -50,7 +50,7 @@
     },
     "/info": {
       "get": {
-        "operationId": "query.getInfo",
+        "operationId": "getInfo",
         "parameters": [
           {
             "name": "type",
@@ -94,7 +94,7 @@
     },
     "/browser/{browserId}": {
       "get": {
-        "operationId": "query.getBrowser",
+        "operationId": "getBrowser",
         "parameters": [
           {
             "name": "browserId",
@@ -154,7 +154,7 @@
         }
       },
       "delete": {
-        "operationId": "mutation.closeBrowser",
+        "operationId": "closeBrowser",
         "parameters": [
           {
             "name": "browserId",
@@ -200,7 +200,7 @@
     },
     "/browsers": {
       "get": {
-        "operationId": "query.getBrowsers",
+        "operationId": "getBrowsers",
         "parameters": [],
         "responses": {
           "200": {
@@ -265,7 +265,7 @@
         }
       },
       "delete": {
-        "operationId": "mutation.closeBrowsers",
+        "operationId": "closeBrowsers",
         "parameters": [],
         "responses": {
           "200": {
@@ -302,7 +302,7 @@
     },
     "/reboot": {
       "post": {
-        "operationId": "mutation.reboot",
+        "operationId": "reboot",
         "requestBody": {
           "required": true,
           "content": {
@@ -351,7 +351,7 @@
     },
     "/shutdown": {
       "post": {
-        "operationId": "mutation.shutdown",
+        "operationId": "shutdown",
         "requestBody": {
           "required": true,
           "content": {
@@ -400,7 +400,7 @@
     },
     "/execute": {
       "post": {
-        "operationId": "mutation.execute",
+        "operationId": "execute",
         "requestBody": {
           "required": true,
           "content": {
@@ -465,7 +465,7 @@
     },
     "/screenshot": {
       "post": {
-        "operationId": "mutation.screenshot",
+        "operationId": "screenshot",
         "requestBody": {
           "required": true,
           "content": {
@@ -550,7 +550,7 @@
     },
     "/browser": {
       "post": {
-        "operationId": "mutation.openBrowser",
+        "operationId": "openBrowser",
         "requestBody": {
           "required": true,
           "content": {
@@ -606,7 +606,7 @@
     },
     "/register": {
       "post": {
-        "operationId": "mutation.register",
+        "operationId": "register",
         "requestBody": {
           "required": true,
           "content": {

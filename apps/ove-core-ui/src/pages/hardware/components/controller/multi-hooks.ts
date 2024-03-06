@@ -3,8 +3,8 @@ import { assert } from "@ove/ove-utils";
 import { logger } from "../../../../env";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import { type Browser, isError } from "@ove/ove-types";
-import { type Action, type DeviceAction, type DeviceStatus } from "../../types";
+import { type Browser } from "@ove/ove-types";
+import { type Action, type DeviceAction } from "../../types";
 
 const isSkip = (
   type: Action,
@@ -13,41 +13,6 @@ const isSkip = (
 ): boolean => deviceAction.bridgeId !== bridgeId ||
   deviceAction.deviceId !== null || deviceAction.action !== type ||
   deviceAction.pending;
-
-const useStatus = (
-  bridgeId: string,
-  tag: string,
-  setAllStatus: (tag: string, status: DeviceStatus | {
-    deviceId: string,
-    status: DeviceStatus
-  }[]) => void
-) => {
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const status = trpc.hardware.getStatusAll.useQuery({
-    bridgeId,
-    tag: tag === "" ? undefined : tag
-  }, { enabled: false });
-
-  useEffect(() => {
-    if (status.status === "error") {
-      setAllStatus(tag, null);
-    } else if (status.status === "success") {
-      if ("oveError" in status.data.response) {
-        setAllStatus(tag, null);
-        return;
-      }
-      setAllStatus(tag, status.data.response.map(({ deviceId, response }) => ({
-        deviceId,
-        status: isError(response) ? "off" : "running"
-      })));
-    }
-  }, [status, setAllStatus, tag]);
-
-  useEffect(() => {
-    if (isSkip("status", bridgeId, deviceAction)) return;
-    status.refetch().catch(logger.error);
-  }, [bridgeId, status, deviceAction]);
-};
 
 const useInfo = (bridgeId: string, tag: string) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -788,12 +753,7 @@ export const useMultiController = (
   bridgeId: string,
   tag: string,
   showNotification: (text: string) => void
-  , setStatus: (tag: string, status: DeviceStatus | {
-    deviceId: string,
-    status: DeviceStatus
-  }[]) => void
 ) => {
-  useStatus(bridgeId, tag, setStatus);
   useInfo(bridgeId, tag);
   useStartDevice(bridgeId, tag, showNotification);
   useShutdownDevice(bridgeId, tag, showNotification);
