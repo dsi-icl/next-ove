@@ -3,7 +3,7 @@ import { assert } from "@ove/ove-utils";
 import { useMemo } from "react";
 import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
 import { useStore } from "../../store";
-import { skipMulti, skipSingle } from "./utils";
+import { skipSingle } from "./utils";
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -12,10 +12,10 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const getStatus = trpc.hardware.getStatus.useQuery({
     bridgeId,
     deviceId: deviceAction.deviceId ?? ""
-  }, { enabled: !skipSingle("status", bridgeId, deviceAction) });
+  }, { enabled: false });
   const getStatusAll = trpc.hardware.getStatusAll.useQuery({
     bridgeId
-  }, { enabled: !skipMulti("status", bridgeId, deviceAction) });
+  }, { enabled: true });
 
   const formatStatus = (status: boolean | null): "running" | "off" | null => {
     if (status === null) return null;
@@ -40,7 +40,7 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
     if (!isOnline || getHardware.status !== "success" ||
       is(OVEExceptionSchema, getHardware.data.response)) return [];
     return getHardware.data.response.map(device => {
-      const status = skipMulti("status", bridgeId, deviceAction) ?
+      const status = !skipSingle("status", bridgeId, deviceAction) ?
         getSingleStatus(device.id) : getMultiStatus(device.id);
       return ({
         device,
@@ -51,5 +51,8 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
     getStatus.status, getStatus.data?.response, getStatusAll.status,
     getStatusAll.data?.response]);
 
-  return { hardware };
+  return {
+    hardware,
+    refetch: { single: getStatus.refetch, multi: getStatusAll.refetch }
+  };
 };

@@ -141,16 +141,24 @@ export const multiDeviceHandler =
     }
 
     delete args["tag"];
-    const result = await Promise.all(
-      devices.map(device =>
-        applyService<Key>(
-          getServiceForProtocol(device.type),
-          k,
-          args as TBridgeServiceArgs<Key>,
-          device
+    let result: Awaited<TBridgeRoutesSchema[Key]["client"]["_output"] | undefined>[];
+
+    try {
+      result = await Promise.all(
+        devices.map(device =>
+          applyService<Key>(
+            getServiceForProtocol(device.type),
+            k,
+            args as TBridgeServiceArgs<Key>,
+            device
+          )
         )
-      )
-    );
+      );
+    } catch (e) {
+      logger.error(e);
+      callback(raise(Json.stringify(e)));
+      return;
+    }
 
     if (isAll(z.undefined(), result)) {
       callback(raise("Command not available on devices"));

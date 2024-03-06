@@ -11,17 +11,20 @@ import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
 
-const MDCActions = ({ device, bridgeId }: ActionController) => {
+const MDCActions = ({ device, bridgeId, refetch }: ActionController) => {
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "status",
-        deviceId: device.id,
-        pending: false
-      })} title="status">
+      <button onClick={() => {
+        setDeviceAction({
+          bridgeId,
+          action: "status",
+          deviceId: device.id,
+          pending: false
+        });
+        refetch.single();
+      }} title="status">
         <ArrowRepeat />
       </button>
       <button onClick={() => setDeviceAction({

@@ -2,12 +2,16 @@ import { type Device } from "@ove/ove-types";
 
 export type HardwareInfo = {
   device: Device
-  status: "running" | "off" | null
+  status: DeviceStatus
 }
 
 export type ActionController = {
   device: Device
   bridgeId: string
+  refetch: {
+    single: () => void
+    multi: () => void
+  }
 }
 
 export type Action =

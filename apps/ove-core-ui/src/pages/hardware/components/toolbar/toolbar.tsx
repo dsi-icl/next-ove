@@ -11,7 +11,11 @@ type ToolbarProps = {
   setFilter: (filter: string) => void
   filterType: "id" | "tags"
   filter: string
-  name: string
+  name: string,
+  refetch: {
+    single: () => void
+    multi: () => void
+  }
 }
 
 const Toolbar = ({
@@ -20,7 +24,8 @@ const Toolbar = ({
   setFilter,
   filterType,
   filter,
-  name
+  name,
+  refetch
 }: ToolbarProps) => {
   return <div className={styles.toolbar}>
     <p>Filter by</p>
@@ -40,7 +45,7 @@ const Toolbar = ({
                     }
                   }) => filterType === "id" ? [id] : tags)} />
     <div className={styles["multi-actions"]}>
-      <MultiActions bridgeId={name} />
+      <MultiActions bridgeId={name} refetch={refetch} />
     </div>
   </div>;
 };

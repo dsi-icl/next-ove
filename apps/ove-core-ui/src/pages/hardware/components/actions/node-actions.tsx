@@ -13,23 +13,26 @@ import {
   WindowX
 } from "react-bootstrap-icons";
 import { useStore } from "../../../../store";
-import { type ActionController } from "../../types";
+import { type Action, type ActionController } from "../../types";
 
 import styles from "./actions.module.scss";
 
-const NodeActions = ({ device, bridgeId }: ActionController) => {
+const NodeActions = ({ device, bridgeId, refetch }: ActionController) => {
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
 
   return <div
     className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "status",
-        deviceId: device.id,
-        pending: false
-      })} title="status">
+      <button onClick={() => {
+        setDeviceAction({
+          bridgeId,
+          action: "status",
+          deviceId: device.id,
+          pending: false
+        });
+        refetch.single();
+      }} title="status">
         <ArrowRepeat />
       </button>
       <button

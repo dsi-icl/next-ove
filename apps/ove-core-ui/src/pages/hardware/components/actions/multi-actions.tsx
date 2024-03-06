@@ -21,18 +21,25 @@ import {
 import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
+import { ActionController } from "../../types";
 
-const MultiActions = ({ bridgeId }: { bridgeId: string }) => {
+const MultiActions = ({
+  bridgeId,
+  refetch
+}: Omit<ActionController, "deviceId">) => {
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "status",
-        deviceId: null,
-        pending: false
-      })} title="status">
+      <button onClick={() => {
+        setDeviceAction({
+          bridgeId,
+          action: "status",
+          deviceId: null,
+          pending: false
+        });
+        refetch.multi();
+      }} title="status">
         <ArrowRepeat />
       </button>
       <button onClick={() => setDeviceAction({
