@@ -13,9 +13,6 @@ export type ActionController = {
 export type Action =
   "status"
   | "info"
-  | "start"
-  | "shutdown"
-  | "reboot"
   | "execute"
   | "screenshot"
   | "input_change"
@@ -24,12 +21,6 @@ export type Action =
   | "browser_close"
   | "browsers_close"
   | "volume"
-  | "mute"
-  | "unmute"
-  | "audio_mute"
-  | "audio_unmute"
-  | "video_mute"
-  | "video_unmute"
   | "monitoring"
   | "calendar"
   | "power_mode";
@@ -41,4 +32,4 @@ export type DeviceAction = {
   pending: boolean
 };
 
-export type DeviceStatus = "running" | "off" | null;
+export type DeviceStatus = "running" | "off" | "offline";

@@ -5,12 +5,13 @@ import MDCActions from "./mdc-actions";
 import ProjectorActions from "./projector-actions";
 
 const Actions = ({ device, bridgeId }: ActionController) => {
-  if (device.type === "node") {
-    return <NodeActions device={device} bridgeId={bridgeId} />;
-  } else if (device.type === "mdc") {
-    return <MDCActions device={device} bridgeId={bridgeId} />;
-  } else {
-    return <ProjectorActions device={device} bridgeId={bridgeId} />;
+  switch (device.type) {
+    case "node":
+      return <NodeActions device={device} bridgeId={bridgeId} />;
+    case "mdc":
+      return <MDCActions device={device} bridgeId={bridgeId} />;
+    case "pjlink":
+      return <ProjectorActions device={device} bridgeId={bridgeId} />;
   }
 };
 

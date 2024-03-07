@@ -1,135 +1,40 @@
 import React from "react";
+import Status from "./action/status";
+import Info from "./action/info";
+import Start from "./action/start";
+import Shutdown from "./action/shutdown";
+import Reboot from "./action/reboot";
+import Volume from "./action/volume";
+import Mute from "./action/mute";
+import Unmute from "./action/unmute";
+import MuteAudio from "./action/mute-audio";
+import UnmuteAudio from "./action/unmute-audio";
+import MuteVideo from "./action/mute-video";
+import UnmuteVideo from "./action/unmute-video";
 import { type ActionController } from "../../types";
-import {
-  ArrowClockwise,
-  ArrowRepeat, CameraVideo,
-  InfoCircle, Mic,
-  PlayCircle,
-  StopCircle, VolumeDown, VolumeMute, VolumeUp
-} from "react-bootstrap-icons";
-import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
-import { trpc } from "../../../../utils/api";
 
-const ProjectorActions = ({ device, bridgeId }: ActionController) => {
-  const getStatus = trpc.hardware.getStatus.useQuery({
-    bridgeId,
-    deviceId: device.id
-  }, { enabled: false });
-  const setDeviceAction = useStore(state =>
-    state.hardwareConfig.setDeviceAction);
-  return <div className={styles.actions}>
+const ProjectorActions = ({ device, bridgeId }: ActionController) =>
+  <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <button onClick={() => {
-        setDeviceAction({
-          bridgeId,
-          action: "status",
-          deviceId: device.id,
-          pending: false
-        });
-        getStatus.refetch();
-      }} title="status">
-        <ArrowRepeat />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "info",
-        deviceId: device.id,
-        pending: false
-      })} title="info">
-        <InfoCircle />
-      </button>
+      <Status bridgeId={bridgeId} deviceId={device.id} />
+      <Info bridgeId={bridgeId} deviceId={device.id} />
     </div>
     <div id={styles["power"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "start",
-        deviceId: device.id,
-        pending: false
-      })} title="start">
-        <PlayCircle />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "shutdown",
-        deviceId: device.id,
-        pending: false
-      })} title="shutdown">
-        <StopCircle />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "reboot",
-        deviceId: device.id,
-        pending: false
-      })} title="reboot">
-        <ArrowClockwise />
-      </button>
+      <Start bridgeId={bridgeId} deviceId={device.id} />
+      <Shutdown bridgeId={bridgeId} deviceId={device.id} />
+      <Reboot bridgeId={bridgeId} deviceId={device.id} />
     </div>
     <div id={styles["volume"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "volume",
-        deviceId: device.id,
-        pending: true
-      })} title="set volume">
-        <VolumeDown />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "mute",
-        deviceId: device.id,
-        pending: false
-      })} title="mute">
-        <VolumeMute />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "unmute",
-        deviceId: device.id,
-        pending: false
-      })} title="unmute">
-        <VolumeUp />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "audio_mute",
-        deviceId: device.id,
-        pending: false
-      })} title="mute audio" className={styles.composite}>
-        <Mic className={styles.primary} />
-        <VolumeMute size="40%" className={styles.secondary} />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "audio_unmute",
-        deviceId: device.id,
-        pending: false
-      })} title="unmute audio" className={styles.composite}>
-        <Mic className={styles.primary} />
-        <VolumeUp size="40%" className={styles.secondary} />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "video_mute",
-        deviceId: device.id,
-        pending: false
-      })} title="mute video" className={styles.composite}>
-        <CameraVideo className={styles.primary} />
-        <VolumeMute size="40%" className={styles.secondary} />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "video_unmute",
-        deviceId: device.id,
-        pending: false
-      })} title="unmute video" className={styles.composite}>
-        <CameraVideo className={styles.primary} />
-        <VolumeUp size="40%" className={styles.secondary} />
-      </button>
+      <Volume bridgeId={bridgeId} deviceId={device.id} />
+      <Mute bridgeId={bridgeId} deviceId={device.id} />
+      <Unmute bridgeId={bridgeId} deviceId={device.id} />
+      <MuteAudio bridgeId={bridgeId} deviceId={device.id} />
+      <UnmuteAudio bridgeId={bridgeId} deviceId={device.id} />
+      <MuteVideo bridgeId={bridgeId} deviceId={device.id} />
+      <UnmuteVideo bridgeId={bridgeId} deviceId={device.id} />
     </div>
   </div>;
-};
 
 export default ProjectorActions;

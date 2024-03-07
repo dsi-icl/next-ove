@@ -55,8 +55,34 @@
       position: absolute;
       top: 0;
       right: 0;
-      border: 1px solid black;
-      border-radius: 100%;
     }
+  }
+}
+
+.get-browsers {
+  position: relative;
+
+  #container {
+    position: relative;
+    width: 1.5rem;
+    top: 0.75rem;
+  }
+
+  #back {
+    left: 0.625rem;
+    bottom: 0.625rem;
+    position: absolute;
+  }
+
+  #middle {
+    left: 0.3125rem;
+    bottom: 0.3125rem;
+    position: absolute;
+  }
+
+  #front {
+    left: 0;
+    bottom: 0;
+    position: absolute;
   }
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { assert } from "@ove/ove-utils";
 import { useStore } from "../../../../store";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
@@ -6,7 +6,7 @@ import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 import styles from "./screenshot.module.scss";
 
 const ScreenshotDisplay = () => {
-  const paginationIdx = useStore(state => state.hardwareConfig.paginationIdx);
+  const [idx, setIdx] = useState(0);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const curScreenshots = useStore(state => state.hardwareConfig.screenshots);
   const screenshotConfig = useStore(state =>
@@ -25,7 +25,7 @@ const ScreenshotDisplay = () => {
       const entry = assert((curScreenshots as {
         deviceId: string,
         response: string[]
-      }[])[paginationIdx]);
+      }[])[idx]);
       screenshots = entry.response;
       deviceId = entry.deviceId;
       state = "multi";
@@ -33,8 +33,8 @@ const ScreenshotDisplay = () => {
   }
 
   return state !== "no_data" ?
-    <PaginatedDialog data={screenshots} maxLen={state === "single" ?
-      null : assert(screenshots).length}>
+    <PaginatedDialog idx={idx} setIdx={setIdx} maxLen={state === "single" ?
+      0 : assert(screenshots).length}>
       <div className={styles.display}>
         <h4>Info - {deviceId}</h4>
         <ul>

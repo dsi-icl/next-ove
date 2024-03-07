@@ -1,10 +1,11 @@
 import { trpc } from "../../utils/api";
-import { assert } from "@ove/ove-utils";
-import { useMemo, useState } from "react";
-import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
 import { useStore } from "../../store";
-import { skipMulti, skipSingle } from "./utils";
+import { assert } from "@ove/ove-utils";
 import { InfoTypes } from "../../utils";
+import { useMemo, useState } from "react";
+import { skipMulti, skipSingle } from "./utils";
+import { type DeviceStatus } from "./types";
+import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -18,28 +19,28 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
     bridgeId
   }, { enabled: true });
 
-  const formatStatus = (status: boolean | null): "running" | "off" | null => {
-    if (status === null) return null;
-    return status ? "running" : "off";
-  };
-
-  const getSingleStatus = (deviceId: string) => {
-    if (deviceAction.deviceId !== deviceId) return null;
-    return getStatus.status === "success" && !isError(getStatus.data.response) ?
-      getStatus.data.response : null;
-  };
-
-  const getMultiStatus = (deviceId: string) => {
-    if (getStatusAll.status !== "success" ||
-      "oveError" in getStatusAll.data.response) return null;
-    const response = assert(getStatusAll.data.response
-      .find(({ deviceId: id }) => id === deviceId)).response;
-    return !isError(response) ? response : null;
-  };
-
   const hardware = useMemo(() => {
     if (!isOnline || getHardware.status !== "success" ||
       is(OVEExceptionSchema, getHardware.data.response)) return [];
+    const formatStatus = (status: boolean | null): DeviceStatus => {
+      if (status === null) return "offline";
+      return status ? "running" : "off";
+    };
+
+    const getSingleStatus = (deviceId: string) => {
+      if (deviceAction.deviceId !== deviceId) return null;
+      return getStatus.status === "success" &&
+      !isError(getStatus.data.response) ? getStatus.data.response : null;
+    };
+
+    const getMultiStatus = (deviceId: string) => {
+      if (getStatusAll.status !== "success" ||
+        "oveError" in getStatusAll.data.response) return null;
+      const response = assert(getStatusAll.data.response
+        .find(({ deviceId: id }) => id === deviceId)).response;
+      return !isError(response) ? response : null;
+    };
+
     return getHardware.data.response.map(device => {
       const status = !skipSingle("status", bridgeId, deviceAction) ?
         getSingleStatus(device.id) : getMultiStatus(device.id);
@@ -48,7 +49,8 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
         status: formatStatus(status)
       });
     });
-  }, [isOnline, bridgeId, deviceAction, getSingleStatus, getMultiStatus]);
+  }, [isOnline, bridgeId, deviceAction, getHardware,
+    getStatus, getStatusAll]);
 
   return { hardware };
 };

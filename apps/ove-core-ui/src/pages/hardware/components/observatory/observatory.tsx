@@ -8,8 +8,6 @@ import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
 import { type HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
-import { useMultiController } from "../controller/multi-hooks";
-import { useSingleController } from "../controller/single-hooks";
 
 import styles from "./observatory.module.scss";
 
@@ -30,19 +28,15 @@ const getData = (bridgeId: string, hardware: HardwareInfo[]) => hardware.map(({
   });
 });
 
-const Observatory = ({ name, isOnline, showNotification }: {
+const Observatory = ({ name, isOnline }: {
   name: string
   isOnline: boolean
-  showNotification: (text: string) => void
 }) => {
   const { hardware } = useHardware(isOnline, name);
   const [filter, setFilter] = useState("");
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
-
-  useSingleController(name, showNotification);
-  useMultiController(name, filter, showNotification);
 
   useEffect(() => {
     if (filterType !== "id") return;

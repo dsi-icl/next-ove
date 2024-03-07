@@ -71,7 +71,8 @@ const getInfo = async (
   const volume = await mdc.getVolume(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
   const source = await mdc
     .getSource(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-  const isMuted = await mdc.getIsMute(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
+  const isMuted = await mdc
+    .getIsMute(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
   const model = await mdc.getModel(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
 
   if (isError(power) || isError(volume) || isError(source) ||

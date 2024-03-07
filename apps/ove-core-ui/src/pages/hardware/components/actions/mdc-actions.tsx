@@ -1,109 +1,36 @@
 import React from "react";
+import Status from "./action/status";
+import Info from "./action/info";
+import Start from "./action/start";
+import Shutdown from "./action/shutdown";
+import Reboot from "./action/reboot";
+import Input from "./action/input";
+import Volume from "./action/volume";
+import Mute from "./action/mute";
+import Unmute from "./action/unmute";
 import { type ActionController } from "../../types";
-import {
-  ArrowClockwise,
-  ArrowRepeat, GpuCard,
-  InfoCircle,
-  PlayCircle,
-  StopCircle, VolumeDown, VolumeMute, VolumeUp
-} from "react-bootstrap-icons";
-import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
-import { trpc } from "../../../../utils/api";
 
-const MDCActions = ({ device, bridgeId }: ActionController) => {
-  const getStatus = trpc.hardware.getStatus.useQuery({
-    bridgeId,
-    deviceId: device.id
-  }, { enabled: false });
-  const setDeviceAction = useStore(state =>
-    state.hardwareConfig.setDeviceAction);
-  return <div className={styles.actions}>
+const MDCActions = ({ device, bridgeId }: ActionController) =>
+  <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <button onClick={() => {
-        setDeviceAction({
-          bridgeId,
-          action: "status",
-          deviceId: device.id,
-          pending: false
-        });
-        getStatus.refetch();
-      }} title="status">
-        <ArrowRepeat />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "info",
-        deviceId: device.id,
-        pending: false
-      })} title="info">
-        <InfoCircle />
-      </button>
+      <Status bridgeId={bridgeId} deviceId={device.id} />
+      <Info bridgeId={bridgeId} deviceId={device.id} />
     </div>
     <div className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "start",
-        deviceId: device.id,
-        pending: false
-      })} title="start">
-        <PlayCircle />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "shutdown",
-        deviceId: device.id,
-        pending: false
-      })} title="shutdown">
-        <StopCircle />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "reboot",
-        deviceId: device.id,
-        pending: false
-      })} title="reboot">
-        <ArrowClockwise />
-      </button>
+      <Start bridgeId={bridgeId} deviceId={device.id} />
+      <Shutdown bridgeId={bridgeId} deviceId={device.id} />
+      <Reboot bridgeId={bridgeId} deviceId={device.id} />
     </div>
     <div id={styles["input"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "input_change",
-        deviceId: device.id,
-        pending: true
-      })} title="input source">
-        <GpuCard />
-      </button>
+      <Input bridgeId={bridgeId} deviceId={device.id} />
     </div>
     <div id={styles["volume"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "volume",
-        deviceId: device.id,
-        pending: true
-      })} title="set volume">
-        <VolumeDown />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "mute",
-        deviceId: device.id,
-        pending: false
-      })} title="mute">
-        <VolumeMute />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "unmute",
-        deviceId: device.id,
-        pending: false
-      })} title="unmute">
-        <VolumeUp />
-      </button>
+      <Volume bridgeId={bridgeId} deviceId={device.id} />
+      <Mute bridgeId={bridgeId} deviceId={device.id} />
+      <Unmute bridgeId={bridgeId} deviceId={device.id} />
     </div>
   </div>;
-};
 
 export default MDCActions;

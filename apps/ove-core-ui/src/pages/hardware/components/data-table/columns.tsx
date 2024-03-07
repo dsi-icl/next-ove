@@ -1,9 +1,8 @@
-/* global JSX */
-
-import React from "react";
-import { type ColumnDef } from "@tanstack/react-table";
+import React, { ReactNode } from "react";
 import { ArrowUpDown } from "lucide-react";
+import { type DeviceStatus } from "../../types";
 import { type ServiceType } from "@ove/ove-types";
+import { type ColumnDef } from "@tanstack/react-table";
 import { Display, HddNetwork, Projector } from "react-bootstrap-icons";
 
 import styles from "../observatory/observatory.module.scss";
@@ -14,8 +13,8 @@ export type HardwareRow = {
   hostname: string
   mac: string
   tags: string[]
-  status: "running" | "off" | null
-  actions: JSX.Element
+  status: DeviceStatus
+  actions: ReactNode
 }
 
 const ProtocolIcon = ({ protocol }: { protocol: ServiceType }) => {

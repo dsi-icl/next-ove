@@ -1,33 +1,94 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useStore } from "../../../../store";
-import { type ScreenshotMethod } from "@ove/ove-types";
+import { isError, type ScreenshotMethod } from "@ove/ove-types";
 
 import styles from "./screenshot.module.scss";
+import { trpc } from "../../../../utils/api";
+import { toast } from "sonner";
+import { assert } from "@ove/ove-utils";
 
 type Form = {
   method: ScreenshotMethod,
   screen: string
 }
 
+const useScreenshot = (bridgeId: string, deviceId: string | null) => {
+  const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
+  const setScreenshotConfig = useStore(state =>
+    state.hardwareConfig.setScreenshotConfig);
+  const screenshot = trpc.hardware.screenshot.useMutation({
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error(`Unable to take screenshot on ${deviceId}`);
+        return;
+      }
+
+      if (response.length === 0) {
+        toast.info(`Screenshot(s) taken successfully on ${deviceId}`);
+        return;
+      }
+
+      setScreenshots(response);
+    },
+    onError: () => toast.error(`Unable to take screenshot on ${deviceId}`)
+  });
+  const screenshotAll = trpc.hardware.screenshotAll.useMutation({
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error("Unable to take screenshots");
+        return;
+      }
+
+      response.filter(({ response }) =>
+        "oveError" in response).forEach(({ response }) =>
+        toast.error((response as { oveError: string }).oveError));
+
+      setScreenshots(response.filter(({ response }) =>
+        !("oveError" in response)) as
+        { response: string[], deviceId: string }[]);
+    },
+    onError: () => toast.error("Unable to take screenshots")
+  });
+
+  if (deviceId === null) {
+    return {
+      screenshot: (
+        method: "upload" | "local" | "response",
+        screens: number[]
+      ) => {
+        setScreenshotConfig({ method, screens });
+        screenshotAll.mutateAsync({ bridgeId, method, screens });
+      }
+    };
+  }
+
+  return {
+    screenshot: (
+      method: "upload" | "local" | "response",
+      screens: number[]
+    ) => {
+      setScreenshotConfig({ method, screens });
+      screenshot.mutateAsync({ bridgeId, deviceId, method, screens });
+    }
+  };
+};
+
 const ScreenshotInput = () => {
   const [screens, setScreens] = useState<string[]>([]);
   const { register, handleSubmit, setValue } = useForm<Form>();
-  const setScreenshotConfig = useStore(state =>
-    state.hardwareConfig.setScreenshotConfig);
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
+  const { screenshot } =
+    useScreenshot(assert(deviceAction.bridgeId), deviceAction.deviceId);
 
   const onSubmit = ({ method, screen }: Form) => {
     if (screen !== "") {
       setScreens(cur => cur.includes(screen) ? cur : [...cur, screen]);
       setValue("screen", "");
     } else {
-      setScreenshotConfig({
-        method,
-        screens: screens.map(screen => parseInt(screen))
-      });
+      screenshot(method, screens.map(parseInt));
       setDeviceAction({ ...deviceAction, pending: false });
     }
   };

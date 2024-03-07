@@ -46,11 +46,6 @@ type Store = {
       response: Map<number, Browser>,
       deviceId: string
     }[]) => void
-    browserConfig: { url?: string, displayId?: number } | null
-    setBrowserConfig: (config: { url?: string, displayId?: number }) => void
-    volume: number | null
-    setVolume: (volume: number) => void
-    clearVolume: () => void
     calendar: CalendarEvent[] | null
     setCalendar: (calendar: CalendarEvent[] | null) => void
     mode: PowerMode | null
@@ -181,26 +176,6 @@ export const useStore = create<Store>(set => ({
       hardwareConfig: {
         ...state.hardwareConfig,
         browsers
-      }
-    })),
-    browserConfig: null,
-    setBrowserConfig: browserConfig => set(state => ({
-      hardwareConfig: {
-        ...state.hardwareConfig,
-        browserConfig
-      }
-    })),
-    volume: null,
-    setVolume: volume => set(state => ({
-      hardwareConfig: {
-        ...state.hardwareConfig,
-        volume
-      }
-    })),
-    clearVolume: () => set(state => ({
-      hardwareConfig: {
-        ...state.hardwareConfig,
-        volume: null
       }
     })),
     mode: null,

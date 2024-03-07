@@ -1,5 +1,4 @@
 import React from "react";
-import { assert } from "@ove/ove-utils";
 import Login from "../pages/login/page";
 import Sockets from "../pages/sockets/page";
 import Launcher from "../pages/launcher/page";
@@ -36,7 +35,7 @@ const Router = ({ loggedIn, login, username }: RouterProps) => {
     <Route
       path="/project-editor"
       element={<ProtectedRoute condition={loggedIn} redirectTo="/login">
-        <ProjectEditorLoader username={assert(username)} /></ProtectedRoute>} />
+        <ProjectEditorLoader username={username ?? ""} /></ProtectedRoute>} />
   </Routes>;
 };
 

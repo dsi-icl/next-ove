@@ -1,204 +1,59 @@
 import React from "react";
-import {
-  ArrowClockwise,
-  ArrowRepeat,
-  Camera,
-  CameraVideo,
-  FileEarmarkCode,
-  GpuCard,
-  InfoCircle,
-  Mic,
-  PlayCircle,
-  StopCircle,
-  VolumeDown,
-  VolumeMute,
-  VolumeUp,
-  Window,
-  WindowDash,
-  WindowPlus,
-  WindowX
-} from "react-bootstrap-icons";
-import { useStore } from "../../../../store";
+import Info from "./action/info";
+import Status from "./action/status";
+import Start from "./action/start";
+import Shutdown from "./action/shutdown";
+import Reboot from "./action/reboot";
+import Execute from "./action/execute";
+import Screenshot from "./action/screenshot";
+import Input from "./action/input";
+import GetBrowser from "./action/get-browser";
+import GetBrowsers from "./action/get-browsers";
+import OpenBrowser from "./action/open-browser";
+import CloseBrowser from "./action/close-browser";
+import CloseBrowsers from "./action/close-browsers";
+import Volume from "./action/volume";
+import Mute from "./action/mute";
+import Unmute from "./action/unmute";
+import MuteAudio from "./action/mute-audio";
+import UnmuteAudio from "./action/unmute-audio";
+import MuteVideo from "./action/mute-video";
+import UnmuteVideo from "./action/unmute-video";
 
 import styles from "./actions.module.scss";
-import { trpc } from "../../../../utils/api";
 
-const MultiActions = ({ bridgeId }: { bridgeId: string }) => {
-  const setDeviceAction = useStore(state =>
-    state.hardwareConfig.setDeviceAction);
-  const getStatusAll = trpc.hardware.getStatusAll.useQuery(
-    { bridgeId }, { enabled: false });
-  return <div className={styles.actions}>
+const MultiActions = ({ bridgeId }: { bridgeId: string }) =>
+  <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <button onClick={() => {
-        setDeviceAction({
-          bridgeId,
-          action: "status",
-          deviceId: null,
-          pending: false
-        });
-        getStatusAll.refetch();
-      }} title="status">
-        <ArrowRepeat />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "info",
-        deviceId: null,
-        pending: false
-      })} title="info">
-        <InfoCircle />
-      </button>
+      <Status bridgeId={bridgeId} deviceId={null} />
+      <Info bridgeId={bridgeId} deviceId={null} />
     </div>
     <div className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "start",
-        deviceId: null,
-        pending: false
-      })} title="start">
-        <PlayCircle />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "shutdown",
-        deviceId: null,
-        pending: false
-      })} title="stop">
-        <StopCircle />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "reboot",
-        deviceId: null,
-        pending: false
-      })} title="restart">
-        <ArrowClockwise />
-      </button>
+      <Start bridgeId={bridgeId} deviceId={null} />
+      <Shutdown bridgeId={bridgeId} deviceId={null} />
+      <Reboot bridgeId={bridgeId} deviceId={null} />
     </div>
     <div className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "execute",
-        deviceId: null,
-        pending: false
-      })} title="execute">
-        <FileEarmarkCode />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "screenshot",
-        deviceId: null,
-        pending: true
-      })} title="screenshot">
-        <Camera />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "input_change",
-        deviceId: null,
-        pending: true
-      })} title="video input">
-        <GpuCard />
-      </button>
+      <Execute bridgeId={bridgeId} deviceId={null} />
+      <Screenshot bridgeId={bridgeId} deviceId={null} />
+      <Input bridgeId={bridgeId} deviceId={null} />
     </div>
     <div className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "browser",
-        deviceId: null,
-        pending: true
-      })} title="window status">
-        <Window />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "browser_open",
-        deviceId: null,
-        pending: true
-      })} title="open window">
-        <WindowPlus />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "browser_close",
-        deviceId: null,
-        pending: true
-      })} title="close window">
-        <WindowDash />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "browsers_close",
-        deviceId: null,
-        pending: false
-      })} title="close windows">
-        <WindowX />
-      </button>
+      <GetBrowser bridgeId={bridgeId} deviceId={null} />
+      <GetBrowsers bridgeId={bridgeId} deviceId={null} />
+      <OpenBrowser bridgeId={bridgeId} deviceId={null} />
+      <CloseBrowser bridgeId={bridgeId} deviceId={null} />
+      <CloseBrowsers bridgeId={bridgeId} deviceId={null} />
     </div>
     <div id={styles["volume"]} className={styles.container}>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "volume",
-        deviceId: null,
-        pending: true
-      })} title="set volume">
-        <VolumeDown />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "mute",
-        deviceId: null,
-        pending: false
-      })} title="mute">
-        <VolumeMute />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "unmute",
-        deviceId: null,
-        pending: false
-      })} title="unmute">
-        <VolumeUp />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "audio_mute",
-        deviceId: null,
-        pending: false
-      })} title="mute audio" className={styles.composite}>
-        <Mic className={styles.primary} />
-        <VolumeMute size="40%" className={styles.secondary} />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "audio_unmute",
-        deviceId: null,
-        pending: false
-      })} title="unmute audio" className={styles.composite}>
-        <Mic className={styles.primary} />
-        <VolumeUp size="40%" className={styles.secondary} />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "video_mute",
-        deviceId: null,
-        pending: false
-      })} title="mute video" className={styles.composite}>
-        <CameraVideo className={styles.primary} />
-        <VolumeMute size="40%" className={styles.secondary} />
-      </button>
-      <button onClick={() => setDeviceAction({
-        bridgeId,
-        action: "video_unmute",
-        deviceId: null,
-        pending: false
-      })} title="unmute video" className={styles.composite}>
-        <CameraVideo className={styles.primary} />
-        <VolumeUp size="40%" className={styles.secondary} />
-      </button>
+      <Volume bridgeId={bridgeId} deviceId={null} />
+      <Mute bridgeId={bridgeId} deviceId={null} />
+      <Unmute bridgeId={bridgeId} deviceId={null} />
+      <MuteAudio bridgeId={bridgeId} deviceId={null} />
+      <UnmuteAudio bridgeId={bridgeId} deviceId={null} />
+      <MuteVideo bridgeId={bridgeId} deviceId={null} />
+      <UnmuteVideo bridgeId={bridgeId} deviceId={null} />
     </div>
   </div>;
-};
 
 export default MultiActions;

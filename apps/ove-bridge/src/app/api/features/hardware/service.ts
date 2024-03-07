@@ -114,7 +114,7 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
     );
   } catch (e) {
     logger.error(e);
-    callback(raise(Json.stringify(e)));
+    callback(raise(`Failed to handle ${k}`));
     return;
   }
 
