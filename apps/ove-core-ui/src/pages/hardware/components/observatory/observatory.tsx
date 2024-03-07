@@ -13,10 +13,7 @@ import { useSingleController } from "../controller/single-hooks";
 
 import styles from "./observatory.module.scss";
 
-const getData = (bridgeId: string, hardware: HardwareInfo[], refetch: {
-  single: () => void,
-  multi: () => void
-}) => hardware.map(({
+const getData = (bridgeId: string, hardware: HardwareInfo[]) => hardware.map(({
   device,
   status
 }) => {
@@ -29,7 +26,7 @@ const getData = (bridgeId: string, hardware: HardwareInfo[], refetch: {
     mac: device.mac,
     tags: device.tags,
     status: status,
-    actions: <Actions device={device} bridgeId={bridgeId} refetch={refetch} />
+    actions: <Actions device={device} bridgeId={bridgeId} />
   });
 });
 
@@ -38,10 +35,7 @@ const Observatory = ({ name, isOnline, showNotification }: {
   isOnline: boolean
   showNotification: (text: string) => void
 }) => {
-  const {
-    hardware,
-    refetch
-  } = useHardware(isOnline, name);
+  const { hardware } = useHardware(isOnline, name);
   const [filter, setFilter] = useState("");
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
   const setDeviceAction = useStore(state =>
@@ -65,11 +59,10 @@ const Observatory = ({ name, isOnline, showNotification }: {
     {isOnline ? <>
       <Toolbar filterType={filterType} hardware={hardware} filter={filter}
                setFilterType={setFilterType} setFilter={setFilter}
-               refetch={refetch}
                name={name} />
       <div className={styles["table-container"]}>
         <DataTable columns={columns} filterType={filterType} filter={filter}
-                   data={getData(name, hardware, refetch)} />
+                   data={getData(name, hardware)} />
       </div>
     </> : null}
   </section>;

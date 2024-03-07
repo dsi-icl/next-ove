@@ -1,3 +1,4 @@
+import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { type Actions } from "../hooks";
 import { actionColors } from "../utils";
@@ -79,7 +80,7 @@ const Metadata = ({
   });
 
   const generateThumbnail = () => {
-    const file = generator()!;
+    const file = assert(generator());
     setTimeout(() => {
       setValue("fileName", file.name);
       setValue("fileVersion", "1");
@@ -114,7 +115,7 @@ const Metadata = ({
     const added = collaborators_
       .filter(({ status }) => status === "added")
       .map(({ username }) =>
-        uninvited.find(x => x.username === username)!);
+        assert(uninvited.find(x => x.username === username)));
     const all = invited.concat(accepted);
     const removed = collaborators_
       .filter(({ status }) => status === "removed")

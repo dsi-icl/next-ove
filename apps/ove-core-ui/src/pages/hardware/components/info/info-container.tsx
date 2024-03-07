@@ -1,50 +1,24 @@
-import React from "react";
 import Info from "./info";
-import { useStore } from "../../../../store";
+import { useInfo } from "../../hooks";
+import { assert } from "@ove/ove-utils";
+import React, { useState } from "react";
 import { type InfoTypes } from "../../../../utils";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 
 import styles from "./info.module.scss";
 
 const InfoContainer = () => {
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const infoIdx = useStore(state => state.hardwareConfig.paginationIdx);
-  const curInfo = useStore(state => state.hardwareConfig.info);
-  const setInfo = useStore(state => state.hardwareConfig.setInfo);
+  const [idx, setIdx] = useState(0);
+  const { info, type, setType } = useInfo();
 
-  let info: object | null = null;
-  let deviceId: string | null = null;
-
-  if (curInfo !== null) {
-    if ("length" in curInfo.data) {
-      if (!("oveError" in curInfo.data[infoIdx])) {
-        info = (curInfo.data[infoIdx] as { response: object }).response;
-        deviceId = (curInfo.data[infoIdx] as { deviceId: string }).deviceId;
-      }
-    } else {
-      info = curInfo.data;
-      deviceId = deviceAction.deviceId;
-    }
-  }
-
-  const getMaxLen = (obj: { data: object } | { data: object[] } | null) => {
-    if (obj === null) return null;
-    if ("length" in obj.data) return obj.data.length;
-    return null;
-  };
-
-  return <PaginatedDialog data={curInfo?.data ?? null}
-                          maxLen={getMaxLen(curInfo)}>
-    {curInfo !== null ?
+  return <PaginatedDialog maxLen={info.size} idx={idx} setIdx={setIdx}>
+    {info.size > 0 ?
       <div className={styles.container}>
         <div className={styles.header}>
-          <h4>Info - {deviceId}</h4>
+          <h4>Info - {assert(info.get(idx)).deviceId}</h4>
           <label htmlFor="type">INFO TYPE:</label>
-          <select id="type" name="type" defaultValue="general"
-                  onChange={e => setInfo({
-                    ...curInfo,
-                    type: e.currentTarget.value as InfoTypes
-                  })}>
+          <select id="type" name="type" defaultValue={type ?? "general"}
+                  onChange={e => setType(e.currentTarget.value as InfoTypes)}>
             <option value="general">General</option>
             <option value="system">System</option>
             <option value="cpu">CPU</option>
@@ -64,7 +38,9 @@ const InfoContainer = () => {
             <option value="vbox">Vbox</option>
           </select>
         </div>
-        {info === null ? <div>ERROR</div> : <Info info={info} />}
+        {assert(info.get(idx)).response !== null ?
+          <Info info={assert(info.get(idx)?.response)}
+                size={info.size} /> : null}
       </div> : null}</PaginatedDialog>;
 };
 

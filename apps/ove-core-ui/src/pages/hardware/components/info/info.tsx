@@ -3,7 +3,8 @@ import { Json } from "@ove/ove-utils";
 
 import styles from "./info.module.scss";
 
-const Info = ({ info }: { info: object }) => <div className={styles.info}>
+const Info = ({ info, size }: { info: object, size: number }) => <div
+  className={styles.info} style={{ maxHeight: size > 1 ? "80%" : "90%" }}>
   <table className={styles.dataframe}>
     <tbody>
       <tr>

@@ -21,14 +21,13 @@ import {
 import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
-import { ActionController } from "../../types";
+import { trpc } from "../../../../utils/api";
 
-const MultiActions = ({
-  bridgeId,
-  refetch
-}: Omit<ActionController, "deviceId">) => {
+const MultiActions = ({ bridgeId }: { bridgeId: string }) => {
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
+  const getStatusAll = trpc.hardware.getStatusAll.useQuery(
+    { bridgeId }, { enabled: false });
   return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
       <button onClick={() => {
@@ -38,7 +37,7 @@ const MultiActions = ({
           deviceId: null,
           pending: false
         });
-        refetch.multi();
+        getStatusAll.refetch();
       }} title="status">
         <ArrowRepeat />
       </button>

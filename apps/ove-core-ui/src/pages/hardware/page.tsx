@@ -15,8 +15,6 @@ const Hardware = () => {
   const { ref, closeDialog, openDialog, isOpen } = useDialog();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const reset = useStore(state => state.hardwareConfig.reset);
-  const setPaginationIdx = useStore(state =>
-    state.hardwareConfig.setPaginationIdx);
 
   const isSpecial = (action: DeviceAction["action"]) =>
     action === "info" || action === "execute" || action === "screenshot" ||
@@ -39,19 +37,12 @@ const Hardware = () => {
     }, []);
 
   useEffect(() => {
-    if (isOpen) return;
-    reset();
-  }, [isOpen, reset]);
-
-  useEffect(() => {
-    setPaginationIdx(0);
-    if (!isSpecial(deviceAction.action) && !deviceAction.pending) return;
     if (deviceAction.action === null) {
       closeDialog();
-    } else {
+    } else if (isSpecial(deviceAction.action)) {
       openDialog();
     }
-  }, [deviceAction, closeDialog, openDialog, setPaginationIdx]);
+  }, [deviceAction, closeDialog, openDialog]);
 
   return <HelmetProvider>
     <main className={styles.main}>
@@ -64,7 +55,7 @@ const Hardware = () => {
         getObservatories.data?.map(({ name, isOnline }) =>
           <Observatory name={name} isOnline={isOnline} key={name}
                        showNotification={showNotification} />) : null}
-      <Dialog closeDialog={closeDialog} ref={ref} style={getStyle(deviceAction)}
+      <Dialog closeDialog={reset} ref={ref} style={getStyle(deviceAction)}
               title={deviceAction.deviceId ?? deviceAction.bridgeId ?? ""}>
         <Popups isOpen={isOpen} />
       </Dialog>

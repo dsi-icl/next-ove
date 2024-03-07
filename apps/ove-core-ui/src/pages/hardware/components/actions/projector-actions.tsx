@@ -10,8 +10,13 @@ import {
 import { useStore } from "../../../../store";
 
 import styles from "./actions.module.scss";
+import { trpc } from "../../../../utils/api";
 
-const ProjectorActions = ({ device, bridgeId, refetch }: ActionController) => {
+const ProjectorActions = ({ device, bridgeId }: ActionController) => {
+  const getStatus = trpc.hardware.getStatus.useQuery({
+    bridgeId,
+    deviceId: device.id
+  }, { enabled: false });
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   return <div className={styles.actions}>
@@ -23,7 +28,7 @@ const ProjectorActions = ({ device, bridgeId, refetch }: ActionController) => {
           deviceId: device.id,
           pending: false
         });
-        refetch.single();
+        getStatus.refetch();
       }} title="status">
         <ArrowRepeat />
       </button>

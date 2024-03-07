@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { assert } from "@ove/ove-utils";
 import { dataTypes } from "../utils";
 import { type Actions } from "../hooks";
 import { type File } from "@ove/ove-types";
@@ -143,7 +144,8 @@ const SectionConfig = ({
       return;
     }
 
-    const section = sections.find(section => section.id === selected)!;
+    const section = assert(sections
+      .find(section => section.id === selected));
     const rowFrom = getRow(section.y, space);
     const colFrom = getColumn(section.x, space);
     const rowTo = getRow(section.y + section.height, space);
@@ -167,14 +169,15 @@ const SectionConfig = ({
 
   const onSubmit = (section: z.infer<typeof SectionConfigSchema>) => {
     updateSection({
-      x: mode === "custom" ? fromPercentage(section.x!) :
-        section.columnFrom! / space.columns,
-      y: mode === "custom" ? fromPercentage(section.y!) :
-        section.rowFrom! / space.rows,
-      width: mode === "custom" ? fromPercentage(section.width!) :
-        (section.columnTo! - section.columnFrom!) * (1 / space.columns),
-      height: mode === "custom" ? fromPercentage(section.height!) :
-        (section.rowTo! - section.rowFrom!) * (1 / space.rows),
+      x: mode === "custom" ? fromPercentage(assert(section.x)) :
+        assert(section.columnFrom) / space.columns,
+      y: mode === "custom" ? fromPercentage(assert(section.y)) :
+        assert(section.rowFrom) / space.rows,
+      width: mode === "custom" ? fromPercentage(assert(section.width)) :
+        (assert(section.columnTo) - assert(
+          section.columnFrom)) * (1 / space.columns),
+      height: mode === "custom" ? fromPercentage(assert(section.height)) :
+        (assert(section.rowTo) - assert(section.rowFrom)) * (1 / space.rows),
       config: JSON.parse(config),
       assetId: files.find(({
         name,
@@ -205,10 +208,10 @@ const SectionConfig = ({
       fileName !== "-- select an option --" && fileVersion !== null &&
       fileVersion !== undefined && fileVersion !== "-- select an option --") {
       setValue("asset", toURL(fileName, parseInt(fileVersion)));
-      const file = files.find(({
+      const file = assert(files.find(({
         name,
         version
-      }) => name === fileName && version === parseInt(fileVersion))!;
+      }) => name === fileName && version === parseInt(fileVersion)));
       setValue("dataType", getDataTypeFromFile(file) ??
         "-- select an option --");
     }

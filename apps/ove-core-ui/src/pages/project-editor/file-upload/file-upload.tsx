@@ -1,4 +1,5 @@
 import Upload from "./upload";
+import { assert } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
 import { type File as FileT } from "@ove/ove-types";
 import Editor, { type CustomFile } from "./editor";
@@ -41,7 +42,7 @@ const FileUpload = ({
     let assetId: string | undefined = undefined;
 
     if (names.includes(name)) {
-      assetId = files.find(file => file.name === name)!.assetId;
+      assetId = assert(files.find(file => file.name === name)).assetId;
     }
 
     addFile(name, "", assetId);

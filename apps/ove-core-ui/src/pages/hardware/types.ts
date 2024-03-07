@@ -8,10 +8,6 @@ export type HardwareInfo = {
 export type ActionController = {
   device: Device
   bridgeId: string
-  refetch: {
-    single: () => void
-    multi: () => void
-  }
 }
 
 export type Action =

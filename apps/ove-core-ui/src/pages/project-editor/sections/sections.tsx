@@ -1,7 +1,7 @@
 import { dataTypes } from "../utils";
-import { Json } from "@ove/ove-utils";
 import { type Actions } from "../hooks";
 import { Import, X } from "lucide-react";
+import { Json, assert } from "@ove/ove-utils";
 import { type Section } from "@prisma/client";
 import React, { useRef, useState } from "react";
 import { PlusCircle } from "react-bootstrap-icons";
@@ -63,14 +63,14 @@ const Sections = ({
     }
 
     return curList
-      .slice(0, startOrder!)
-      .concat([curList[endOrder!]]
-        .concat(curList.slice(startOrder!, endOrder!))
+      .slice(0, assert(startOrder))
+      .concat([curList[assert(endOrder)]]
+        .concat(curList.slice(assert(startOrder), assert(endOrder)))
         .map((section, i) => ({
           ...section,
           ordering: i
         })))
-      .concat(curList.slice(endOrder! + 1));
+      .concat(curList.slice(assert(endOrder) + 1));
   };
 
   return <section id={styles["sections"]}>
@@ -91,8 +91,8 @@ const Sections = ({
             const fontWeight = selected === section.id ? 700 : 400;
             const asset = section.asset.length <= characterLimit ?
               section.asset : `${section.asset.slice(0, characterLimit)}...`;
-            const backgroundColor = dataTypes
-              .find(({ name }) => name === section.dataType.toLowerCase())!
+            const backgroundColor = assert(dataTypes
+              .find(({ name }) => name === section.dataType.toLowerCase()))
               .color;
             return (
               <ReorderableItem key={section.id}>

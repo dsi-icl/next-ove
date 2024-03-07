@@ -1,10 +1,11 @@
 import * as d3 from "d3";
+import { dataTypes } from "../utils";
+import { assert } from "@ove/ove-utils";
 import { type Geometry } from "../types";
 import { type Section } from "@prisma/client";
 import React, { type MutableRefObject, useRef } from "react";
 
 import styles from "./canvas.module.scss";
-import { dataTypes } from "../utils";
 
 type PreviewProps = {
   sections: Section[]
@@ -72,8 +73,8 @@ function drawSpaces({
     .attr("height", d => y(d.height))
     .attr("id", d => `section-${d.id}`)
     .style("fill", d =>
-      dataTypes.find(({ name }) => name ===
-        d.dataType.toLowerCase())!.color)
+      assert(dataTypes.find(({ name }) => name ===
+        d.dataType.toLowerCase())).color)
     .classed(styles.section, true)
     .append("title")
     .text(d =>
@@ -151,10 +152,10 @@ function drawSpaces({
     );
   }
 
-  const minSectionHeight = d3.min(sections.map(d =>
-    x(d.height)))!;
-  const minSectionWidth = d3.min(sections.map(d =>
-    x(d.width)))!;
+  const minSectionHeight = assert(d3.min(sections.map(d =>
+    x(d.height))));
+  const minSectionWidth = assert(d3.min(sections.map(d =>
+    x(d.width))));
   const sectionTextSize = Math.min(minSectionHeight, minSectionWidth) / 4;
   svg.selectAll(".section-label")
     .data(() => sections)

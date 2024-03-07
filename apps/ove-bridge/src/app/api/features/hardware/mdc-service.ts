@@ -9,6 +9,7 @@ import {
 import { z } from "zod";
 import * as mdc from "@ove/mdc-control";
 import { raise } from "@ove/ove-utils";
+import { env } from "../../../../env";
 
 const reboot = async (
   { ip, port, protocol }: Device,
@@ -26,7 +27,7 @@ const reboot = async (
     setTimeout(() => {
       mdc.setPower("on", 0x01, ip, port, protocol)
         .then(res => resolve(isError(res) ? res : true));
-    }, 1000)
+    }, env.MDC_RESTART_TIMEOUT)
   );
 };
 
@@ -60,16 +61,18 @@ const getInfo = async (
   { ip, port, protocol }: Device,
   args: TBridgeServiceArgs<"getInfo">
 ) => {
-  const infoOptsSchema = z.object({}).strict();
+  const infoOptsSchema = z
+    .object({ type: z.literal("general").optional() }).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const power = await mdc.getPower(0x01, ip, port, protocol);
-  const volume = await mdc.getVolume(0x01, ip, port, protocol);
-  const source = await mdc.getSource(0x01, ip, port, protocol);
-  const isMuted = await mdc.getIsMute(0x01, ip, port, protocol);
-  const model = await mdc.getModel(0x01, ip, port, protocol);
+  const power = await mdc.getPower(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
+  const volume = await mdc.getVolume(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
+  const source = await mdc
+    .getSource(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
+  const isMuted = await mdc.getIsMute(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
+  const model = await mdc.getModel(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
 
   if (isError(power) || isError(volume) || isError(source) ||
     isError(isMuted) || isError(model)) {
@@ -94,7 +97,7 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.getStatus(0x01, ip, port, protocol);
+  const res = await mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
   return isError(res) ? res : true;
 };
 

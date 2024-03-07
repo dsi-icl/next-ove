@@ -54,6 +54,7 @@ const calcDigest = (rand: string, password: string | null): unknown => {
 const init = (
   command: string,
   callback: PJLinkCallback,
+  timeout: number,
   device?: Device,
   password?: string
 ): PJLinkState => {
@@ -62,7 +63,7 @@ const init = (
       ip: device?.ip ?? "192.168.1.1",
       port: device?.port ?? 4352,
       password: password ?? null,
-      timeout: 0
+      timeout: timeout
     },
     class: 1,
     _connection: null,
@@ -193,7 +194,12 @@ export const COMMAND = {
   GET_CLASS: "%1CLSS ?\r"
 };
 
-const runCommand = (command: string, device: Device, ...args: string[]) =>
+const runCommand = (
+  timeout: number,
+  command: string,
+  device: Device,
+  ...args: string[]
+) =>
   new Promise<PJLinkResponse>(resolve => {
     if (args.length > 0) {
       command = replaceAll(command, args);
@@ -202,65 +208,71 @@ const runCommand = (command: string, device: Device, ...args: string[]) =>
     const state = init(
       command,
       (response: PJLinkResponse) => resolve(response),
+      timeout,
       device
     );
     connect(state);
   });
 
-export const setPower = (device: Device, power: number) =>
-  runCommand(COMMAND.SET_POWER, device, power.toString());
+export const setPower = (timeout: number, device: Device, power: number) =>
+  runCommand(timeout, COMMAND.SET_POWER, device, power.toString());
 
-export const getPower = (device: Device) =>
-  runCommand(COMMAND.GET_POWER, device);
+export const getPower = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_POWER, device);
 
-export const setInput = (device: Device, input: number, channel?: number) =>
-  runCommand(COMMAND.SET_INPUT, device, input.toString(),
+export const setInput = (
+  timeout: number,
+  device: Device,
+  input: number,
+  channel?: number
+) =>
+  runCommand(timeout, COMMAND.SET_INPUT, device, input.toString(),
     (channel ?? 1).toString());
 
-export const getInput = (device: Device) =>
-  runCommand(COMMAND.GET_INPUT, device);
+export const getInput = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_INPUT, device);
 
-export const muteVideo = (device: Device) =>
-  runCommand(COMMAND.MUTE_VIDEO, device);
+export const muteVideo = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.MUTE_VIDEO, device);
 
-export const unmuteVideo = (device: Device) =>
-  runCommand(COMMAND.UNMUTE_VIDEO, device);
+export const unmuteVideo = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.UNMUTE_VIDEO, device);
 
-export const muteAudio = (device: Device) =>
-  runCommand(COMMAND.MUTE_AUDIO, device);
+export const muteAudio = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.MUTE_AUDIO, device);
 
-export const unmuteAudio = (device: Device) =>
-  runCommand(COMMAND.UNMUTE_AUDIO, device);
+export const unmuteAudio = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.UNMUTE_AUDIO, device);
 
-export const mute = (device: Device) =>
-  runCommand(COMMAND.MUTE, device);
+export const mute = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.MUTE, device);
 
-export const unmute = (device: Device) =>
-  runCommand(COMMAND.UNMUTE, device);
+export const unmute = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.UNMUTE, device);
 
-export const getIsMuted = (device: Device) =>
-  runCommand(COMMAND.GET_IS_MUTED, device);
+export const getIsMuted = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_IS_MUTED, device);
 
-export const getErrors = (device: Device) =>
-  runCommand(COMMAND.GET_ERRORS, device);
+export const getErrors = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_ERRORS, device);
 
-export const getLamp = (device: Device) =>
-  runCommand(COMMAND.GET_LAMP, device);
+export const getLamp = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_LAMP, device);
 
-export const getInputs = (device: Device) =>
-  runCommand(COMMAND.GET_INPUTS, device);
+export const getInputs = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_INPUTS, device);
 
-export const getName = (device: Device) =>
-  runCommand(COMMAND.GET_NAME, device);
+export const getName = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_NAME, device);
 
-export const getManufacturer = (device: Device) =>
-  runCommand(COMMAND.GET_MANUFACTURER, device);
+export const getManufacturer = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_MANUFACTURER, device);
 
-export const getProduct = (device: Device) =>
-  runCommand(COMMAND.GET_PRODUCT, device);
+export const getProduct = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_PRODUCT, device);
 
-export const getInfo = (device: Device) =>
-  runCommand(COMMAND.GET_INFO, device);
+export const getInfo = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_INFO, device);
 
-export const getClass = (device: Device) =>
-  runCommand(COMMAND.GET_CLASS, device);
+export const getClass = (timeout: number, device: Device) =>
+  runCommand(timeout, COMMAND.GET_CLASS, device);

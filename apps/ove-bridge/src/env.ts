@@ -34,7 +34,10 @@ const schema = z.strictObject({
   START_VIDEO_SCRIPT: z.string().optional(),
   STOP_VIDEO_SCRIPT: z.string().optional(),
   GEOMETRY: BoundsSchema.optional(),
-  URL: z.string()
+  URL: z.string(),
+  MDC_TIMEOUT: z.number(),
+  PJLINK_TIMEOUT: z.number(),
+  MDC_RESTART_TIMEOUT: z.number()
 });
 
 const staticConfig = {
@@ -65,7 +68,10 @@ const defaultConfig: z.infer<typeof schema> = {
   PUBLIC_KEY: publicKey,
   PRIVATE_KEY: privateKey,
   PASSPHRASE: passPhrase,
-  URL: "http://localhost:3334"
+  URL: "http://localhost:3334",
+  MDC_TIMEOUT: 5_000,
+  MDC_RESTART_TIMEOUT: 1_000,
+  PJLINK_TIMEOUT: 5_000
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");

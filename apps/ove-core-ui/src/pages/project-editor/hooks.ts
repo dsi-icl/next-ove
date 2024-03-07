@@ -5,12 +5,13 @@ import {
   type User
 } from "@prisma/client";
 import { nanoid } from "nanoid";
+import { trpc } from "../../utils/api";
 import { useStore } from "../../store";
+import { assert } from "@ove/ove-utils";
 import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { type ProjectMetadata } from "./metadata/metadata";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { trpc } from "../../utils/api";
 import { isError, type File } from "@ove/ove-types";
 
 export const useContainer = (space: Space) => {
@@ -74,14 +75,14 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
     if (selected === null) {
       setConfig("{}");
     } else {
-      const config = sections_.find(({ id }) => id === selected)!.config;
+      const config = assert(sections_.find(({ id }) => id === selected)).config;
       setConfig(config === null ? "{}" : JSON.stringify(config));
     }
   }, [selected, sections_, setConfig]);
 
   // GET IT – NEW ORDER/BLUE MONDAY. I'M SO FUNNY.
   const reorder = (id: string, blueMonday: number, sections: Section[]) => {
-    const section = sections.find(section => section.id === id)!;
+    const section = assert(sections.find(section => section.id === id));
     const removed = sections.filter(section => section.id !== id);
     return [
       ...removed.slice(0, blueMonday).map((x, i) => ({ ...x, ordering: i })),
@@ -366,14 +367,14 @@ export const useFiles = (projectId: string) => {
       setFiles(cur => [...cur, {
         name: name,
         version: 1,
-        assetId: assetId!,
+        assetId: assert(assetId),
         isGlobal: false
       }]);
       // setData(cur => ({ ...cur, [`${name}/1`]: data }));
     } else {
       let latest: File | null = null;
       setFiles(cur => {
-        latest = getLatest(assetId!);
+        latest = getLatest(assert(assetId));
         // setData(cur => ({
         //   ...cur,
         //   [`${name}/${latest!.version + 1}`]: data
@@ -392,8 +393,8 @@ export const useFiles = (projectId: string) => {
   const getLatest = useCallback((id: string) => {
     const latest = Math.max(...files.filter(file =>
       file.assetId === id || file.name === id).map(({ version }) => version));
-    return files.find(file =>
-      (file.assetId === id || file.name === id) && file.version === latest)!;
+    return assert(files.find(file =>
+      (file.assetId === id || file.name === id) && file.version === latest));
   }, [files]);
 
   const getData = async (file: File) => ""; // TODO: replace with server call
@@ -405,8 +406,8 @@ export const useFiles = (projectId: string) => {
     return files.find(({
       name,
       version
-    }) => name === sections.at(-2)! &&
-      version === parseInt(sections.at(-1)!)) ?? null;
+    }) => name === assert(sections.at(-2)) &&
+      version === parseInt(assert(sections.at(-1)))) ?? null;
   };
 
   return {
@@ -444,11 +445,11 @@ export const useCollaboration = (project: Project, username: string) => {
       status
     }) => recipientId === user.id && status === "pending") === undefined);
   const accepted = project.collaboratorIds
-    .map(id => users.find(user => user.id === id)!);
+    .map(id => assert(users.find(user => user.id === id)));
   const invited = invites
     .filter(({ status }) => status === "pending")
-    .map(({ recipientId }) => users.find(({ id }) =>
-      id === recipientId)!);
+    .map(({ recipientId }) => assert(users.find(({ id }) =>
+      id === recipientId)));
 
   const inviteCollaborator = (id: string) => {
     setInvites(cur => [...cur, {
@@ -463,9 +464,9 @@ export const useCollaboration = (project: Project, username: string) => {
 
   const removeCollaborator = (id: string) => {
     if (id === project.creatorId) return;
-    const user = users.find(user => user.id === id)!;
-    if (user.id === users.find(({ id }) =>
-      id === project.creatorId)!.username) return;
+    const user = assert(users.find(user => user.id === id));
+    if (user.id === assert(users.find(({ id }) =>
+      id === project.creatorId)).username) return;
     setInvites(cur => cur.filter(x =>
       x.recipientId !== id && x.status !== "declined"));
   };

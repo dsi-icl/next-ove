@@ -1,10 +1,11 @@
 import React from "react";
-import Launcher from "../pages/launcher/page";
+import { assert } from "@ove/ove-utils";
 import Login from "../pages/login/page";
+import Sockets from "../pages/sockets/page";
+import Launcher from "../pages/launcher/page";
 import Hardware from "../pages/hardware/page";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/protected-route";
-import Sockets from "../pages/sockets/page";
 import ProjectEditorLoader from "../pages/project-editor/loader";
 
 type RouterProps = {
@@ -35,7 +36,7 @@ const Router = ({ loggedIn, login, username }: RouterProps) => {
     <Route
       path="/project-editor"
       element={<ProtectedRoute condition={loggedIn} redirectTo="/login">
-        <ProjectEditorLoader username={username!} /></ProtectedRoute>} />
+        <ProjectEditorLoader username={assert(username)} /></ProtectedRoute>} />
   </Routes>;
 };
 

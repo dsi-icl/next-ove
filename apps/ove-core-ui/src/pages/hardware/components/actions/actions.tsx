@@ -4,15 +4,13 @@ import { type ActionController } from "../../types";
 import MDCActions from "./mdc-actions";
 import ProjectorActions from "./projector-actions";
 
-const Actions = ({ device, bridgeId, refetch }: ActionController) => {
+const Actions = ({ device, bridgeId }: ActionController) => {
   if (device.type === "node") {
-    return <NodeActions device={device} bridgeId={bridgeId}
-                        refetch={refetch} />;
+    return <NodeActions device={device} bridgeId={bridgeId} />;
   } else if (device.type === "mdc") {
-    return <MDCActions device={device} bridgeId={bridgeId} refetch={refetch} />;
+    return <MDCActions device={device} bridgeId={bridgeId} />;
   } else {
-    return <ProjectorActions device={device} bridgeId={bridgeId}
-                             refetch={refetch} />;
+    return <ProjectorActions device={device} bridgeId={bridgeId} />;
   }
 };
 

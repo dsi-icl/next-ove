@@ -3,10 +3,10 @@ import { type Actions } from "../hooks";
 import { actionColors } from "../utils";
 import { type DataType } from "../types";
 import { X } from "react-bootstrap-icons";
+import { Json, assert } from "@ove/ove-utils";
 import { type Section } from "@prisma/client";
 
 import styles from "./section-importer.module.scss";
-import { Json } from "@ove/ove-utils";
 
 type SectionImporterProps = {
   states: string[]
@@ -62,8 +62,8 @@ const SectionImporter = ({
         <h4>Select Section</h4>
         <ul>
           {sections.map(section => {
-            const backgroundColor = colors.find(({ name }) =>
-              name === section.dataType.toLowerCase())!.color;
+            const backgroundColor = assert(colors.find(({ name }) =>
+              name === section.dataType.toLowerCase())).color;
             const asset = section.asset.length < 25 ?
               section.asset : `${section.asset.slice(0, 24)}...`;
             return <li

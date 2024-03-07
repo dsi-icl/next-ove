@@ -1,7 +1,7 @@
 .info {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  overflow-y: scroll;
 
   & h4 {
     color: black;
@@ -63,6 +63,9 @@
 }
 
 .container {
+  height: 100%;
+  width: 100%;
+
   .header {
     display: flex;
 

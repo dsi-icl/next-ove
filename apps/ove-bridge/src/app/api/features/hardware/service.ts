@@ -141,7 +141,8 @@ export const multiDeviceHandler =
     }
 
     delete args["tag"];
-    let result: Awaited<TBridgeRoutesSchema[Key]["client"]["_output"] | undefined>[];
+    let result:
+      Awaited<TBridgeRoutesSchema[Key]["client"]["_output"] | undefined>[];
 
     try {
       result = await Promise.all(

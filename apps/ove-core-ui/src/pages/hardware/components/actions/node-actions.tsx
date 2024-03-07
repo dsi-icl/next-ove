@@ -13,11 +13,16 @@ import {
   WindowX
 } from "react-bootstrap-icons";
 import { useStore } from "../../../../store";
-import { type Action, type ActionController } from "../../types";
+import { type ActionController } from "../../types";
 
 import styles from "./actions.module.scss";
+import { trpc } from "../../../../utils/api";
 
-const NodeActions = ({ device, bridgeId, refetch }: ActionController) => {
+const NodeActions = ({ device, bridgeId }: ActionController) => {
+  const getStatus = trpc.hardware.getStatus.useQuery({
+    bridgeId,
+    deviceId: device.id
+  }, { enabled: false });
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
 
@@ -31,7 +36,7 @@ const NodeActions = ({ device, bridgeId, refetch }: ActionController) => {
           deviceId: device.id,
           pending: false
         });
-        refetch.single();
+        getStatus.refetch();
       }} title="status">
         <ArrowRepeat />
       </button>

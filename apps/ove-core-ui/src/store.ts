@@ -7,7 +7,6 @@ import {
 } from "@ove/ove-types";
 import { create } from "zustand";
 import { Json } from "@ove/ove-utils";
-import { type InfoTypes } from "./utils";
 import { type DeviceAction } from "./pages/hardware/types";
 
 type Store = {
@@ -18,22 +17,12 @@ type Store = {
   hardwareConfig: {
     deviceAction: DeviceAction
     setDeviceAction: (deviceAction: DeviceAction) => void
-    info: { data: object, type: InfoTypes } | {
-      data: object[],
-      type: InfoTypes
-    } | null
-    setInfo: (info: { data: object, type: InfoTypes } | {
-      data: object[],
-      type: InfoTypes
-    } | null) => void
     command: string | null
     setCommand: (command: string | null) => void
     clearCommand: () => void
     commandHistory: string[]
     addCommandHistory: (line: string) => void
     clearCommandHistory: () => void
-    paginationIdx: number
-    setPaginationIdx: (paginationIdx: number) => void
     screenshotConfig: { method: ScreenshotMethod, screens: number[] } | null
     setScreenshotConfig: (screenshotConfig: {
       method: ScreenshotMethod,
@@ -83,20 +72,6 @@ export const useStore = create<Store>(set => ({
   config: "{}",
   setConfig: (config: string) => set({ config }),
   hardwareConfig: {
-    info: null,
-    setInfo: info => set(state => ({
-      hardwareConfig: {
-        ...state.hardwareConfig,
-        info
-      }
-    })),
-    paginationIdx: 0,
-    setPaginationIdx: paginationIdx => set(state => ({
-      hardwareConfig: {
-        ...state.hardwareConfig,
-        paginationIdx
-      }
-    })),
     command: null,
     setCommand: command => set(state => ({
       hardwareConfig: {
@@ -126,7 +101,10 @@ export const useStore = create<Store>(set => ({
           pending: false,
           action: null
         },
-        info: null,
+        info: {
+          data: new Map<number, {deviceId: string, response: object | null}>(),
+          type: "general"
+        },
         paginationIdx: 0,
         command: null,
         commandHistory: [],

@@ -14,37 +14,6 @@ const isSkip = (
   deviceAction.deviceId !== null || deviceAction.action !== type ||
   deviceAction.pending;
 
-const useInfo = (bridgeId: string, tag: string) => {
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const setInfo = useStore(state => state.hardwareConfig.setInfo);
-  const curInfo = useStore(state => state.hardwareConfig.info);
-  const info = trpc.hardware.getInfoAll.useQuery({
-    bridgeId,
-    tag: tag === "" ? undefined : tag,
-    type: curInfo?.type ?? "general"
-  }, { enabled: false });
-
-  useEffect(() => {
-    if (info.status !== "success") return;
-    if ("oveError" in info.data.response) {
-      setInfo(null);
-      return;
-    }
-
-    setInfo({
-      data: info.data.response.filter(({ response }) =>
-        response !== null && typeof response === "object" &&
-        !("oveError" in response)),
-      type: curInfo?.type ?? "general"
-    });
-  }, [info, setInfo, curInfo?.type]);
-
-  useEffect(() => {
-    if (isSkip("info", bridgeId, deviceAction)) return;
-    info.refetch().catch(logger.error);
-  }, [bridgeId, info, deviceAction, curInfo?.type]);
-};
-
 const useStartDevice = (
   bridgeId: string,
   tag: string,
@@ -754,7 +723,6 @@ export const useMultiController = (
   tag: string,
   showNotification: (text: string) => void
 ) => {
-  useInfo(bridgeId, tag);
   useStartDevice(bridgeId, tag, showNotification);
   useShutdownDevice(bridgeId, tag, showNotification);
   useRebootDevice(bridgeId, tag, showNotification);
