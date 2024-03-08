@@ -4,9 +4,14 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { VolumeMute } from "react-bootstrap-icons";
 
-const useMute = (bridgeId: string, deviceId: string | null) => {
+const useMute = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const mute = trpc.hardware.mute.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -38,7 +43,7 @@ const useMute = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       mute: () =>
-        void muteAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void muteAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -49,11 +54,8 @@ const useMute = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const Mute = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { mute } = useMute(bridgeId, deviceId);
+const Mute = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { mute } = useMute(bridgeId, deviceId, tag);
   return <button onClick={mute} title="mute">
     <VolumeMute />
   </button>;

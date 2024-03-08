@@ -4,9 +4,14 @@ import { isError } from "@ove/ove-types";
 import { checkErrors } from "../../../utils";
 import { logger } from "../../../../../env";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { StopCircle } from "react-bootstrap-icons";
 
-const useShutdown = (bridgeId: string, deviceId: string | null) => {
+const useShutdown = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const shutdown = trpc.hardware.shutdown.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -39,7 +44,7 @@ const useShutdown = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       shutdown: () =>
-        void shutdownAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void shutdownAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -50,11 +55,8 @@ const useShutdown = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const Shutdown = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { shutdown } = useShutdown(bridgeId, deviceId);
+const Shutdown = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { shutdown } = useShutdown(bridgeId, deviceId, tag);
   return <button onClick={shutdown} title="shutdown">
     <StopCircle />
   </button>;

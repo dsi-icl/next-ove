@@ -8,7 +8,11 @@ import { checkErrors } from "../../utils";
 import { logger } from "../../../../env";
 import { assert } from "@ove/ove-utils";
 
-const useVolume = (bridgeId: string, deviceId: string | null) => {
+const useVolume = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const setVolume = trpc.hardware.setVolume.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
@@ -43,7 +47,8 @@ const useVolume = (bridgeId: string, deviceId: string | null) => {
     return {
       setVolume: (volume: number) => void setVolumeAll.mutateAsync({
         bridgeId,
-        volume
+        volume,
+        tag
       }).catch(logger.error)
     };
   }
@@ -60,8 +65,8 @@ const Volume = () => {
   const reset = useStore(state => state.hardwareConfig.reset);
   const deviceAction = useStore(state =>
     state.hardwareConfig.deviceAction);
-  const { setVolume } =
-    useVolume(assert(deviceAction.bridgeId), deviceAction.deviceId);
+  const { setVolume } = useVolume(
+    assert(deviceAction.bridgeId), deviceAction.deviceId, deviceAction.tag);
 
   const onSubmit = ({ volume }: { volume: string }) => {
     setVolume(parseInt(volume));

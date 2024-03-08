@@ -4,11 +4,16 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { CameraVideo, VolumeMute } from "react-bootstrap-icons";
 
 import styles from "../actions.module.scss";
 
-const useMuteVideo = (bridgeId: string, deviceId: string | null) => {
+const useMuteVideo = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const muteVideo = trpc.hardware.muteVideo.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -41,7 +46,7 @@ const useMuteVideo = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       muteVideo: () =>
-        void muteVideoAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void muteVideoAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -52,11 +57,8 @@ const useMuteVideo = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const MuteVideo = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { muteVideo } = useMuteVideo(bridgeId, deviceId);
+const MuteVideo = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { muteVideo } = useMuteVideo(bridgeId, deviceId, tag);
   return <button onClick={muteVideo} title="mute video"
                  className={styles.composite}>
     <CameraVideo className={styles.primary} />

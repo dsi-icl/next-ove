@@ -4,11 +4,16 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { CameraVideo, VolumeUp } from "react-bootstrap-icons";
 
 import styles from "../actions.module.scss";
 
-const useUnmuteVideo = (bridgeId: string, deviceId: string | null) => {
+const useUnmuteVideo = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const unmuteVideo = trpc.hardware.unmuteVideo.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -41,7 +46,7 @@ const useUnmuteVideo = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       unmuteVideo: () =>
-        void unmuteVideoAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void unmuteVideoAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -52,11 +57,8 @@ const useUnmuteVideo = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const UnmuteVideo = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { unmuteVideo } = useUnmuteVideo(bridgeId, deviceId);
+const UnmuteVideo = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { unmuteVideo } = useUnmuteVideo(bridgeId, deviceId, tag);
   return <button onClick={unmuteVideo} title="unmute video"
                  className={styles.composite}>
     <CameraVideo className={styles.primary} />

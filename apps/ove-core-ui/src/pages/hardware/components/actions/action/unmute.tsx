@@ -5,8 +5,13 @@ import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
 import { VolumeUp } from "react-bootstrap-icons";
+import { type ActionProps } from "../../../types";
 
-const useUnmute = (bridgeId: string, deviceId: string | null) => {
+const useUnmute = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const unmute = trpc.hardware.unmute.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -38,7 +43,7 @@ const useUnmute = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       unmute: () =>
-        void unmuteAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void unmuteAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -49,11 +54,8 @@ const useUnmute = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const Unmute = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { unmute } = useUnmute(bridgeId, deviceId);
+const Unmute = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { unmute } = useUnmute(bridgeId, deviceId, tag);
   return <button onClick={unmute} title="unmute">
     <VolumeUp />
   </button>;

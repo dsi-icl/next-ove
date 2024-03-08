@@ -1,17 +1,16 @@
-import { InfoCircle } from "react-bootstrap-icons";
 import React from "react";
 import { useStore } from "../../../../../store";
+import { type ActionProps } from "../../../types";
+import { InfoCircle } from "react-bootstrap-icons";
 
-const Info = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
+const Info = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =
     useStore(state => state.hardwareConfig.setDeviceAction);
   return <button onClick={() => setDeviceAction({
     bridgeId,
     action: "info",
-    deviceId: deviceId,
+    deviceId,
+    tag,
     pending: false
   })} title="info">
     <InfoCircle />

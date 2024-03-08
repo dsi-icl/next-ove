@@ -1,15 +1,66 @@
-import React from "react";
 import Header from "../header/header";
+import { assert } from "@ove/ove-utils";
 import Actions from "../actions/actions";
+import { skipSingle } from "../../utils";
 import Toolbar from "../toolbar/toolbar";
-import { useHardware } from "../../hooks";
-import { useEffect, useState } from "react";
+import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
-import { type HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
+import React, { useMemo, useState } from "react";
+import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
+import { type DeviceStatus, type HardwareInfo } from "../../types";
 
 import styles from "./observatory.module.scss";
+
+export const useHardware = (isOnline: boolean, bridgeId: string) => {
+  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
+  const getHardware = trpc.bridge.getDevices
+    .useQuery({ bridgeId }, { enabled: isOnline });
+  const getStatus = trpc.hardware.getStatus.useQuery({
+    bridgeId,
+    deviceId: deviceAction.deviceId ?? ""
+  }, { enabled: false });
+  const getStatusAll = trpc.hardware.getStatusAll.useQuery({
+    bridgeId
+  }, { enabled: true });
+
+  const hardware = useMemo(() => {
+    if (!isOnline || getHardware.status !== "success" ||
+      is(OVEExceptionSchema, getHardware.data.response)) return [];
+    const formatStatus = (status: boolean | null): DeviceStatus => {
+      if (status === null) return "offline";
+      return status ? "running" : "off";
+    };
+
+    const getSingleStatus = (deviceId: string) => {
+      if (deviceAction.deviceId !== deviceId) return null;
+      return getStatus.status === "success" &&
+      !isError(getStatus.data.response) ? getStatus.data.response : null;
+    };
+
+    const getMultiStatus = (deviceId: string) => {
+      if (getStatusAll.status !== "success" ||
+        "oveError" in getStatusAll.data.response) return null;
+      const response = assert(getStatusAll.data.response
+        .find(({ deviceId: id }) => id === deviceId)).response;
+      return !isError(response) ? response : null;
+    };
+
+    return getHardware.data.response.map(device => {
+      const status = !skipSingle("status", bridgeId, deviceAction) ?
+        getSingleStatus(device.id) : getMultiStatus(device.id);
+      return ({
+        device,
+        status: formatStatus(status)
+      });
+    });
+  }, [isOnline, bridgeId, deviceAction, getHardware.status,
+    getHardware.data?.response, getStatus.status, getStatus.data?.response,
+    getStatusAll.status, getStatusAll.data?.response]);
+
+  return { hardware };
+};
 
 const getData = (bridgeId: string, hardware: HardwareInfo[]) => hardware.map(({
   device,
@@ -33,20 +84,8 @@ const Observatory = ({ name, isOnline }: {
   isOnline: boolean
 }) => {
   const { hardware } = useHardware(isOnline, name);
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
-  const setDeviceAction = useStore(state =>
-    state.hardwareConfig.setDeviceAction);
-
-  useEffect(() => {
-    if (filterType !== "id") return;
-    setDeviceAction({
-      bridgeId: name,
-      action: null,
-      deviceId: filter === "" ? null : filter,
-      pending: false
-    });
-  }, [filter, filterType, name, setDeviceAction]);
 
   return <section className={styles.observatory}>
     <Header name={name} isOnline={isOnline} />

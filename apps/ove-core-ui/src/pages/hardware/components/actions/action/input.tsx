@@ -1,17 +1,16 @@
 import { GpuCard } from "react-bootstrap-icons";
 import React from "react";
 import { useStore } from "../../../../../store";
+import { ActionProps } from "../../../types";
 
-const Input = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
+const Input = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =
     useStore(state => state.hardwareConfig.setDeviceAction);
   return <button onClick={() => setDeviceAction({
     bridgeId,
     action: "input_change",
-    deviceId: deviceId,
+    deviceId,
+    tag,
     pending: true
   })} title="video input">
     <GpuCard />

@@ -1,13 +1,17 @@
-import { trpc } from "../../../../../utils/api";
-import { isError } from "@ove/ove-types";
-import { toast } from "sonner";
-import { checkErrors } from "../../../utils";
-import { logger } from "../../../../../env";
-import { useStore } from "../../../../../store";
-import { WindowX } from "react-bootstrap-icons";
 import React from "react";
+import { toast } from "sonner";
+import { isError } from "@ove/ove-types";
+import { logger } from "../../../../../env";
+import { checkErrors } from "../../../utils";
+import { trpc } from "../../../../../utils/api";
+import { WindowX } from "react-bootstrap-icons";
+import { type ActionProps } from "../../../types";
 
-const useBrowsers = (bridgeId: string, deviceId: string | null) => {
+const useBrowsers = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const closeBrowsers = trpc.hardware.closeBrowsers.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
@@ -41,7 +45,7 @@ const useBrowsers = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       closeBrowsers: () =>
-        void closeBrowsersAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void closeBrowsersAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -52,22 +56,9 @@ const useBrowsers = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const CloseBrowsers = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const setDeviceAction =
-    useStore(state => state.hardwareConfig.setDeviceAction);
-  const { closeBrowsers } = useBrowsers(bridgeId, deviceId);
-  return <button onClick={() => {
-    closeBrowsers();
-    setDeviceAction({
-      bridgeId,
-      action: "browsers_close",
-      deviceId: deviceId,
-      pending: false
-    });
-  }} title="close windows">
+const CloseBrowsers = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { closeBrowsers } = useBrowsers(bridgeId, deviceId, tag);
+  return <button onClick={closeBrowsers} title="close windows">
     <WindowX />
   </button>;
 };

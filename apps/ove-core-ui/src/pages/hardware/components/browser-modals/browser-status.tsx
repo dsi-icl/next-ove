@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
+import React, { useState } from "react";
+import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
+import { type DeviceAction } from "../../types";
+import { skipMulti, skipSingle } from "../../utils";
+import { type Browser, isError } from "@ove/ove-types";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 
 import styles from "./browsers.module.scss";
-import { trpc } from "../../../../utils/api";
-import { type Browser, isError } from "@ove/ove-types";
-import { toast } from "sonner";
-import { skipMulti, skipSingle } from "../../utils";
-import { DeviceAction } from "../../types";
 
 const useBrowser = (
   bridgeId: string,
   deviceId: string | null,
+  tag: string | undefined,
   action: DeviceAction,
   setBrowsers: (browsers: Map<number, Browser> | {
     response: Map<number, Browser>,
@@ -41,6 +42,7 @@ const useBrowser = (
   });
   trpc.hardware.getBrowserAll.useQuery({
     bridgeId,
+    tag,
     browserId: browserId ?? -1
   }, {
     enabled: browserId !== null && !skipMulti("browser", bridgeId, action),
@@ -76,7 +78,7 @@ const useBrowser = (
     },
     onError: () => toast.error("Unable to get browsers")
   });
-  trpc.hardware.getBrowsersAll.useQuery({ bridgeId }, {
+  trpc.hardware.getBrowsersAll.useQuery({ bridgeId, tag }, {
     enabled: browserId === null && !skipMulti("browser", bridgeId, action),
     onSuccess: ({ response }) => {
       if (isError(response)) {
@@ -103,19 +105,22 @@ const BrowserStatus = () => {
     deviceId: string
   }[] | null>(null);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const browserId = useStore(state => state.hardwareConfig.browserId);
   const [idx, setIdx] = useState(0);
   useBrowser(
     assert(deviceAction.bridgeId),
     deviceAction.deviceId,
+    deviceAction.tag,
     deviceAction,
     setBrowsers
   );
 
-  if (browsers === null || browserId === null) return <div></div>;
+  if (browsers === null) return <div></div>;
 
-  const getMaxLen = (browsers_: typeof browsers) =>
-    Array.isArray(browsers_) ? browsers_.length : 0;
+  const getMaxLen = (browsers_: typeof browsers) => {
+    if (Array.isArray(browsers_)) return browsers_.length;
+    if (browsers_ === null) return 0;
+    return browsers_.size;
+  };
   const deviceId = Array.isArray(browsers) ?
     browsers[idx].deviceId :
     assert(deviceAction.deviceId);

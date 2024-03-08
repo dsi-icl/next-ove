@@ -16,6 +16,7 @@ const PaginatedDialog = ({
   idx,
   setIdx
 }: PaginatedDialogProps) => {
+  console.log(maxLen);
   return <div style={{ position: "relative", width: "100%", height: "100%" }}>
     {children}
     {maxLen > 1 ? <div className={styles.container}>

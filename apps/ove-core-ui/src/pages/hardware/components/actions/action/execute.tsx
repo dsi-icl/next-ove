@@ -1,17 +1,16 @@
-import { FileEarmarkCode } from "react-bootstrap-icons";
 import React from "react";
 import { useStore } from "../../../../../store";
+import { type ActionProps } from "../../../types";
+import { FileEarmarkCode } from "react-bootstrap-icons";
 
-const Execute = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
+const Execute = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =
     useStore(state => state.hardwareConfig.setDeviceAction);
   return <button onClick={() => setDeviceAction({
     bridgeId,
     action: "execute",
-    deviceId: deviceId,
+    deviceId,
+    tag,
     pending: false
   })} title="execute">
     <FileEarmarkCode />

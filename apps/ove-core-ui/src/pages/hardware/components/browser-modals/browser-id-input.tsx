@@ -8,7 +8,11 @@ import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import ValueModal from "../value-modal/value-modal";
 
-const useBrowser = (bridgeId: string, deviceId: string | null) => {
+const useBrowser = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const closeBrowser = trpc.hardware.closeBrowser.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
@@ -43,7 +47,8 @@ const useBrowser = (bridgeId: string, deviceId: string | null) => {
     return {
       closeBrowser: (browserId: number) => void closeBrowserAll.mutateAsync({
         bridgeId,
-        browserId
+        browserId,
+        tag
       }).catch(logger.error)
     };
   }
@@ -61,8 +66,11 @@ const BrowserIdInput = () => {
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   const setBrowserId = useStore(state => state.hardwareConfig.setBrowserId);
-  const { closeBrowser } =
-    useBrowser(assert(deviceAction.bridgeId), deviceAction.deviceId);
+  const { closeBrowser } = useBrowser(
+    assert(deviceAction.bridgeId),
+    deviceAction.deviceId,
+    deviceAction.tag
+  );
 
   const onSubmit = ({ browserId }: { browserId: string }) => {
     if (deviceAction.action === "browser_close") {

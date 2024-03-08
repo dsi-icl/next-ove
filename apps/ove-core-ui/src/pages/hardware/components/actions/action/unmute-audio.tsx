@@ -4,11 +4,16 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { Mic, VolumeUp } from "react-bootstrap-icons";
 
 import styles from "../actions.module.scss";
 
-const useUnmuteAudio = (bridgeId: string, deviceId: string | null) => {
+const useUnmuteAudio = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const unmuteAudio = trpc.hardware.unmuteAudio.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -41,7 +46,7 @@ const useUnmuteAudio = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       unmuteAudio: () =>
-        void unmuteAudioAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void unmuteAudioAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -52,11 +57,8 @@ const useUnmuteAudio = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const UnmuteAudio = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { unmuteAudio } = useUnmuteAudio(bridgeId, deviceId);
+const UnmuteAudio = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { unmuteAudio } = useUnmuteAudio(bridgeId, deviceId, tag);
   return <button onClick={unmuteAudio} title="unmute audio"
                  className={styles.composite}>
     <Mic className={styles.primary} />

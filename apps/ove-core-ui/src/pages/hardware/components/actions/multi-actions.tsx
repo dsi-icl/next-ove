@@ -18,42 +18,50 @@ import Unmute from "./action/unmute";
 import MuteAudio from "./action/mute-audio";
 import UnmuteAudio from "./action/unmute-audio";
 import MuteVideo from "./action/mute-video";
+import { type FilterType } from "../../types";
 import UnmuteVideo from "./action/unmute-video";
 
 import styles from "./actions.module.scss";
 
-const MultiActions = ({ bridgeId }: { bridgeId: string }) =>
-  <div className={styles.actions}>
+const MultiActions = ({ bridgeId, type, value }: {
+  bridgeId: string,
+  value: string | null
+  type: FilterType
+}) => {
+  const tag = type === "tags" ? (value ?? undefined) : undefined;
+  const deviceId = type === "id" ? value : null;
+  return <div className={styles.actions}>
     <div id={styles["info"]} className={styles.container}>
-      <Status bridgeId={bridgeId} deviceId={null} />
-      <Info bridgeId={bridgeId} deviceId={null} />
+      <Status bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Info bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
     <div className={styles.container}>
-      <Start bridgeId={bridgeId} deviceId={null} />
-      <Shutdown bridgeId={bridgeId} deviceId={null} />
-      <Reboot bridgeId={bridgeId} deviceId={null} />
+      <Start bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Shutdown bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Reboot bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
     <div className={styles.container}>
-      <Execute bridgeId={bridgeId} deviceId={null} />
-      <Screenshot bridgeId={bridgeId} deviceId={null} />
-      <Input bridgeId={bridgeId} deviceId={null} />
+      <Execute bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Screenshot bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Input bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
     <div className={styles.container}>
-      <GetBrowser bridgeId={bridgeId} deviceId={null} />
-      <GetBrowsers bridgeId={bridgeId} deviceId={null} />
-      <OpenBrowser bridgeId={bridgeId} deviceId={null} />
-      <CloseBrowser bridgeId={bridgeId} deviceId={null} />
-      <CloseBrowsers bridgeId={bridgeId} deviceId={null} />
+      <GetBrowser bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <GetBrowsers bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <OpenBrowser bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <CloseBrowser bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <CloseBrowsers bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
     <div id={styles["volume"]} className={styles.container}>
-      <Volume bridgeId={bridgeId} deviceId={null} />
-      <Mute bridgeId={bridgeId} deviceId={null} />
-      <Unmute bridgeId={bridgeId} deviceId={null} />
-      <MuteAudio bridgeId={bridgeId} deviceId={null} />
-      <UnmuteAudio bridgeId={bridgeId} deviceId={null} />
-      <MuteVideo bridgeId={bridgeId} deviceId={null} />
-      <UnmuteVideo bridgeId={bridgeId} deviceId={null} />
+      <Volume bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Mute bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <Unmute bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <MuteAudio bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <UnmuteAudio bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <MuteVideo bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <UnmuteVideo bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
   </div>;
+};
 
 export default MultiActions;

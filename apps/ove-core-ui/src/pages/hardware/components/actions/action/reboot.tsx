@@ -4,9 +4,14 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { ArrowClockwise } from "react-bootstrap-icons";
 
-const useReboot = (bridgeId: string, deviceId: string | null) => {
+const useReboot = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const reboot = trpc.hardware.reboot.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -38,7 +43,7 @@ const useReboot = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       reboot: () =>
-        void rebootAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void rebootAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -49,11 +54,8 @@ const useReboot = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const Reboot = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { reboot } = useReboot(bridgeId, deviceId);
+const Reboot = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { reboot } = useReboot(bridgeId, deviceId, tag);
   return <button onClick={reboot} title="reboot">
     <ArrowClockwise />
   </button>;

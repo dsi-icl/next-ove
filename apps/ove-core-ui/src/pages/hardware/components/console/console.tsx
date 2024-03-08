@@ -8,8 +8,13 @@ import { useStore } from "../../../../store";
 import { ChevronRight, SendHorizontal } from "lucide-react";
 
 import styles from "./console.module.scss";
+import { assert } from "@ove/ove-utils";
 
-const useConsole = (bridgeId: string, deviceId: string | null) => {
+const useConsole = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const addCommand = useStore(state => state.hardwareConfig.addCommandHistory);
   const execute = trpc.hardware.execute.useMutation({
     onSuccess: ({ response }) => {
@@ -44,7 +49,11 @@ const useConsole = (bridgeId: string, deviceId: string | null) => {
     return {
       execute: ({ command, reset }: { command: string, reset: () => void }) => {
         addCommand(`${deviceId ?? bridgeId} ~ ${command}`);
-        executeAll.mutateAsync({ bridgeId, command }).catch(logger.error);
+        executeAll.mutateAsync({
+          bridgeId,
+          command,
+          tag
+        }).catch(logger.error);
         reset();
       }
     };
@@ -70,23 +79,23 @@ const Line = ({ text, consoleId }: { text: string, consoleId: string }) => {
   </li>;
 };
 
-const Console = ({ bridgeId, deviceId }: {
-  bridgeId: string
-  deviceId: string | null,
-}) => {
+const Console = () => {
+  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
+  const consoleId = deviceAction.deviceId ?? assert(deviceAction.bridgeId);
   const commandHistory = useStore(state => state.hardwareConfig.commandHistory);
   const { register, reset, handleSubmit } = useForm<{ command: string }>();
-  const { execute } = useConsole(bridgeId, deviceId);
+  const { execute } = useConsole(
+    assert(deviceAction.bridgeId), deviceAction.deviceId, deviceAction.tag);
 
   return <div className={styles.console}>
-    <h4>Console - {deviceId ?? bridgeId}</h4>
+    <h4>Console - {consoleId}</h4>
     <ul>
       {commandHistory.map((line, i) => <Line key={`${line}-${i}`}
-                                             consoleId={deviceId ?? bridgeId}
+                                             consoleId={consoleId}
                                              text={line} />)}
     </ul>
     <form onSubmit={handleSubmit(({ command }) => execute({ reset, command }))}>
-      <p><span>$</span>{deviceId ?? bridgeId} ~ </p>
+      <p><span>$</span>{consoleId} ~ </p>
       <input {...register("command", { required: true })} autoComplete="off"
              type="text" />
       <button type="submit"><SendHorizontal /></button>

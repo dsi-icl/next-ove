@@ -3,17 +3,16 @@ import { Window } from "react-bootstrap-icons";
 import { useStore } from "../../../../../store";
 
 import styles from "../actions.module.scss";
+import { ActionProps } from "../../../types";
 
-const GetBrowsers = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
+const GetBrowsers = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =
     useStore(state => state.hardwareConfig.setDeviceAction);
   return <button onClick={() => setDeviceAction({
     bridgeId,
     action: "browser",
-    deviceId: deviceId,
+    deviceId,
+    tag,
     pending: false
   })} title="window status - all" className={styles["get-browsers"]}>
     <div id={styles["container"]}>

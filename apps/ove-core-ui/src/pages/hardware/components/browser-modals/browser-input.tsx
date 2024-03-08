@@ -1,21 +1,25 @@
 import React from "react";
+import { toast } from "sonner";
+import { assert } from "@ove/ove-utils";
+import { isError } from "@ove/ove-types";
+import { logger } from "../../../../env";
+import { checkErrors } from "../../utils";
 import { useForm } from "react-hook-form";
+import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 
 import styles from "./browsers.module.scss";
-import { trpc } from "../../../../utils/api";
-import { isError } from "@ove/ove-types";
-import { toast } from "sonner";
-import { checkErrors } from "../../utils";
-import { logger } from "../../../../env";
-import { assert } from "@ove/ove-utils";
 
 type Form = {
   url: string
   displayId: string
 }
 
-const useBrowser = (bridgeId: string, deviceId: string | null) => {
+const useBrowser = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const openBrowser = trpc.hardware.openBrowser.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
@@ -52,7 +56,8 @@ const useBrowser = (bridgeId: string, deviceId: string | null) => {
         void openBrowserAll.mutateAsync({
           bridgeId,
           url,
-          displayId
+          displayId,
+          tag
         }).catch(logger.error)
     };
   }
@@ -71,8 +76,11 @@ const BrowserIdInput = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
-  const { openBrowser } =
-    useBrowser(assert(deviceAction.bridgeId), deviceAction.deviceId);
+  const { openBrowser } = useBrowser(
+    assert(deviceAction.bridgeId),
+    deviceAction.deviceId,
+    deviceAction.tag
+  );
   const { handleSubmit, register } = useForm<Form>();
 
   const onSubmit = (config: Form) => {

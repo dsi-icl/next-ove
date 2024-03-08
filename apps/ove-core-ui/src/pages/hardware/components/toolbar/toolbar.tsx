@@ -8,9 +8,9 @@ import styles from "./toolbar.module.scss";
 type ToolbarProps = {
   hardware: HardwareInfo[]
   setFilterType: (type: "id" | "tags") => void
-  setFilter: (filter: string) => void
+  setFilter: (filter: string | null) => void
   filterType: "id" | "tags"
-  filter: string
+  filter: string | null
   name: string
 }
 
@@ -40,7 +40,7 @@ const Toolbar = ({
                     }
                   }) => filterType === "id" ? [id] : tags)} />
     <div className={styles["multi-actions"]}>
-      <MultiActions bridgeId={name} />
+      <MultiActions bridgeId={name} type={filterType} value={filter} />
     </div>
   </div>;
 };

@@ -9,31 +9,38 @@ import Observatory from "./components/observatory/observatory";
 
 import styles from "./page.module.scss";
 
+const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
+  switch (deviceAction.action) {
+    case "monitoring":
+      return { width: "90vw", height: "90vh" };
+    case "browser": {
+      if (deviceAction.pending) {
+        return { width: "25vw", height: "30vh" };
+      }
+      return { width: "35vw", height: "40vh" };
+    }
+    case "volume":
+    case "browser_open":
+    case "browser_close":
+      return { width: "25vw", height: "30vh" };
+    case "calendar":
+      return { width: "65vw", height: "80svh" };
+    default:
+      return undefined;
+  }
+};
+
+const isSpecial = (action: DeviceAction["action"]) =>
+  action === "info" || action === "execute" || action === "screenshot" ||
+  action === "monitoring" || action === "calendar" ||
+  action === "power_mode" || action === "volume" || action === "browser" ||
+  action === "browser_close" || action === "browser_open";
+
 const Hardware = () => {
   const getObservatories = trpc.core.getObservatories.useQuery();
   const { ref, closeDialog, openDialog, isOpen } = useDialog();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const reset = useStore(state => state.hardwareConfig.reset);
-
-  const isSpecial = (action: DeviceAction["action"]) =>
-    action === "info" || action === "execute" || action === "screenshot" ||
-    action === "monitoring" || action === "calendar" ||
-    action === "power_mode" || action === "volume";
-  const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
-    switch (deviceAction.action) {
-      case "monitoring":
-        return { width: "90vw", height: "90vh" };
-      case "volume":
-      case "browser_open":
-      case "browser":
-      case "browser_close":
-        return { width: "25vw", height: "30vh" };
-      case "calendar":
-        return { width: "65vw", height: "80svh" };
-      default:
-        return undefined;
-    }
-  };
 
   useEffect(() => {
     if (deviceAction.action === null) {

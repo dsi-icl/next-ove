@@ -27,8 +27,7 @@ const Popups = ({ isOpen }: { isOpen: boolean }) => {
     case "info":
       return <InfoContainer />;
     case "execute":
-      return <Console bridgeId={deviceAction.bridgeId}
-                      deviceId={deviceAction.deviceId} />;
+      return <Console />;
     case "screenshot":
       return deviceAction.pending ?
         <ScreenshotInput /> : <ScreenshotDisplay />;

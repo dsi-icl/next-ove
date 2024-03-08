@@ -4,9 +4,14 @@ import { isError } from "@ove/ove-types";
 import { checkErrors } from "../../../utils";
 import { logger } from "../../../../../env";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { PlayCircle } from "react-bootstrap-icons";
 
-const useStart = (bridgeId: string, deviceId: string | null) => {
+const useStart = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const start = trpc.hardware.start.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -38,7 +43,7 @@ const useStart = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       start: () =>
-        void startAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void startAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -49,11 +54,8 @@ const useStart = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const Start = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { start } = useStart(bridgeId, deviceId);
+const Start = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { start } = useStart(bridgeId, deviceId, tag);
   return <button onClick={start} title="start">
     <PlayCircle />
   </button>;

@@ -1,16 +1,15 @@
-import { useStore } from "../../../../../store";
-import { WindowDash } from "react-bootstrap-icons";
 import React from "react";
+import { useStore } from "../../../../../store";
+import { type ActionProps } from "../../../types";
+import { WindowDash } from "react-bootstrap-icons";
 
-const CloseBrowser = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
+const CloseBrowser = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =
     useStore(state => state.hardwareConfig.setDeviceAction);
   return <button onClick={() => setDeviceAction({
     bridgeId,
-    deviceId: deviceId,
+    deviceId,
+    tag,
     action: "browser_close",
     pending: true
   })} title="close window">

@@ -5,8 +5,8 @@ import styles from "./search-select.module.scss";
 
 type SearchSelectProps = {
   values: string[]
-  setFilter: (filter: string) => void
-  filter: string
+  setFilter: (filter: string | null) => void
+  filter: string | null
 }
 
 const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
@@ -16,7 +16,7 @@ const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
   }>();
 
   const onSubmit = useCallback(({ filter }: { filter: string }) => {
-    setFilter(filter);
+    setFilter(filter === "" ? null : filter);
   }, [setFilter]);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
     <button type="submit" className={styles.hidden} />
     <div className={styles.dropdown}>
       <ul>
-        {values.filter(v => v.startsWith(filter)).map(v => <li key={v}>
+        {values.filter(v => v.startsWith(filter ?? "")).map(v => <li key={v}>
           <button onClick={() => setValue("filter", v)}
                   type="submit">{v}</button>
         </li>)}

@@ -16,7 +16,7 @@ import styles from "./data-table.module.scss";
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  filter: string
+  filter: string | null
   filterType: "id" | "tags"
 }
 
@@ -66,7 +66,7 @@ const DataTable = <TData, TValue>({
   });
 
   useEffect(() => {
-    table.getColumn(filterType)?.setFilterValue(filter);
+    table.getColumn(filterType)?.setFilterValue(filter ?? "");
   }, [filter, filterType, table]);
 
   return <div>

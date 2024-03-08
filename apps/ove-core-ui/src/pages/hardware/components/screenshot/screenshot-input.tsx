@@ -1,19 +1,23 @@
+import { toast } from "sonner";
+import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { isError, type ScreenshotMethod } from "@ove/ove-types";
 
 import styles from "./screenshot.module.scss";
-import { trpc } from "../../../../utils/api";
-import { toast } from "sonner";
-import { assert } from "@ove/ove-utils";
 
 type Form = {
   method: ScreenshotMethod,
   screen: string
 }
 
-const useScreenshot = (bridgeId: string, deviceId: string | null) => {
+const useScreenshot = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag?: string
+) => {
   const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
   const setScreenshotConfig = useStore(state =>
     state.hardwareConfig.setScreenshotConfig);
@@ -58,7 +62,7 @@ const useScreenshot = (bridgeId: string, deviceId: string | null) => {
         screens: number[]
       ) => {
         setScreenshotConfig({ method, screens });
-        screenshotAll.mutateAsync({ bridgeId, method, screens });
+        screenshotAll.mutateAsync({ bridgeId, tag, method, screens });
       }
     };
   }
@@ -80,8 +84,11 @@ const ScreenshotInput = () => {
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const { screenshot } =
-    useScreenshot(assert(deviceAction.bridgeId), deviceAction.deviceId);
+  const { screenshot } = useScreenshot(
+    assert(deviceAction.bridgeId),
+    deviceAction.deviceId,
+    deviceAction.tag
+  );
 
   const onSubmit = ({ method, screen }: Form) => {
     if (screen !== "") {

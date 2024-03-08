@@ -1,11 +1,80 @@
 import Info from "./info";
-import { useInfo } from "../../hooks";
+import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
+import { isError } from "@ove/ove-types";
+import { trpc } from "../../../../utils/api";
+import { useStore } from "../../../../store";
 import { type InfoTypes } from "../../../../utils";
+import { skipMulti, skipSingle } from "../../utils";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 
 import styles from "./info.module.scss";
+
+export const useInfo = () => {
+  const [type, setType] = useState<InfoTypes | undefined>();
+  const [info, setInfo] = useState<Map<number, {
+    deviceId: string,
+    response: object | null
+  }>>(new Map());
+  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
+  trpc.hardware.getInfo.useQuery({
+    bridgeId: assert(deviceAction.bridgeId),
+    deviceId: deviceAction.deviceId ?? "",
+    type: type
+  }, {
+    enabled: !skipSingle(
+      "info", deviceAction.bridgeId ?? "", deviceAction),
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error(`Cannot get information for ${deviceAction.deviceId}`);
+      }
+
+      const map: typeof info = new Map();
+
+      map.set(0, {
+        deviceId: deviceAction.deviceId ?? "",
+        response: isError(response) ? null : response as object
+      });
+
+      setInfo(map);
+    },
+    onError: () => toast.error(
+      `Cannot get information for ${deviceAction.deviceId}`)
+  });
+  trpc.hardware.getInfoAll.useQuery({
+    bridgeId: assert(deviceAction.bridgeId),
+    type,
+    tag: deviceAction.tag
+  }, {
+    enabled: !skipMulti(
+      "info", deviceAction.bridgeId ?? "", deviceAction),
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error("Cannot get information for devices");
+        return;
+      }
+
+      const map: typeof info = new Map();
+
+      response.forEach(({ deviceId, response }, i) => {
+        map.set(i, {
+          deviceId,
+          response: isError(response) ? null : response as object
+        });
+      });
+
+      setInfo(map);
+    },
+    onError: () => toast.error("Cannot get information for devices")
+  });
+
+  return {
+    info,
+    type,
+    setType
+  };
+};
 
 const InfoContainer = () => {
   const [idx, setIdx] = useState(0);

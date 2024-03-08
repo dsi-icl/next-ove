@@ -4,11 +4,16 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
+import { type ActionProps } from "../../../types";
 import { Mic, VolumeMute } from "react-bootstrap-icons";
 
 import styles from "../actions.module.scss";
 
-const useMuteAudio = (bridgeId: string, deviceId: string | null) => {
+const useMuteAudio = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
   const muteAudio = trpc.hardware.muteAudio.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
@@ -41,7 +46,7 @@ const useMuteAudio = (bridgeId: string, deviceId: string | null) => {
   if (deviceId === null) {
     return {
       muteAudio: () =>
-        void muteAudioAll.mutateAsync({ bridgeId }).catch(logger.error)
+        void muteAudioAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
     };
   }
   return {
@@ -52,11 +57,8 @@ const useMuteAudio = (bridgeId: string, deviceId: string | null) => {
   };
 };
 
-const MuteAudio = ({ bridgeId, deviceId }: {
-  bridgeId: string,
-  deviceId: string | null
-}) => {
-  const { muteAudio } = useMuteAudio(bridgeId, deviceId);
+const MuteAudio = ({ bridgeId, deviceId, tag }: ActionProps) => {
+  const { muteAudio } = useMuteAudio(bridgeId, deviceId, tag);
   return <button onClick={muteAudio} title="mute audio"
                  className={styles.composite}>
     <Mic className={styles.primary} />
