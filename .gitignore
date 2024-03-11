@@ -187,7 +187,7 @@ web_modules/
 # dotenv environment variables file
 .env
 .env.test
-.env.production
+apps/ove-core-ui/.env.docker
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -287,10 +287,10 @@ Temporary Items
 **/test-results
 **/playwright-report
 
+# Custom rules
+
 # Sandworm
 tools/sandworm
-
-# Custom rules
 
 # Development configuration
 /dev/database
@@ -301,6 +301,8 @@ tools/sandworm
 
 # Core environment config
 /apps/ove-core/src/config/config.json
+/tools/prisma/.env.production
+/apps/ove-core/config.production.json
 
 # Test environment config
 /tests/**/private.*

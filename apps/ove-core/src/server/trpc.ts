@@ -1,6 +1,6 @@
 import { env } from "../env";
 import superjson from "superjson";
-import * as jwt from "jsonwebtoken";
+import { isAuthed } from "./auth/utils";
 import { type Context } from "./context";
 import { type OpenApiMeta } from "trpc-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -17,32 +17,25 @@ export const mergeRouters = trpc.mergeRouters;
 
 export const middleware = trpc.middleware;
 
-const isAuthed = middleware(opts => {
+const isAuthedWrapper = middleware(opts => {
   const { ctx } = opts;
+  const username = isAuthed(ctx.user);
 
-  if (env.DISABLE_AUTH) {
-    return opts.next({
-      ctx: { user: env.TEST_USER ?? "" }
-    });
+  switch (username) {
+    case null:
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    case "unauthorised":
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    case "disabled":
+      return opts.next({
+        ctx: { user: env.TEST_USER ?? "" }
+      });
+    default:
+      return opts.next({
+        ctx: { user: username }
+      });
   }
-
-  if (ctx.user === null || env.ACCESS_TOKEN_SECRET === undefined) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  let user: { username: string };
-
-  try {
-    user = (jwt.verify(ctx.user, env.ACCESS_TOKEN_SECRET) as
-      unknown as { username: string });
-  } catch (e) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  return opts.next({
-    ctx: { user: user.username }
-  });
 });
 
 // you can reuse this for any procedure
-export const protectedProcedure = procedure.use(isAuthed);
+export const protectedProcedure = procedure.use(isAuthedWrapper);

@@ -686,7 +686,9 @@ Temporary Items
 # Custom rules
 !dist/apps/ove-core/
 !dist/apps/ove-core-ui/
-!apps/ove-core/.env.production
+/tools/prisma/*
+!/tools/prisma/schema.prisma
 /dist/apps/ove-core/config/config.json
 /dist/apps/ove-core/config/config.example.json
 
+Dockerfile

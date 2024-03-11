@@ -1,10 +1,20 @@
 {
+  "NODE_ENV": "production",
+  "PORT": 8080,
+  "HOSTNAME": "127.0.0.1",
+  "PROTOCOL": "http",
   "SOCKET_ADMIN": {
     "USERNAME": "example",
-    "PASSWORD": "SALTED+HASHED"
+    "PASSWORD": "salted+hashed"
   },
-  "ASSET_STORE_CREDENTIALS": {
-    "ACCESS_KEY": "example",
-    "SECRET_KEY": "example"
-  }
+  "ASSET_STORE_CONFIG": {
+    "ACCESS_KEY": "",
+    "SECRET_KEY": "",
+    "END_POINT": "",
+    "PORT": 9000,
+    "USE_SSL": false,
+    "GLOBAL_BUCKETS": []
+  },
+  "DISABLE_AUTH": false,
+  "SOCKET_DIST": ""
 }

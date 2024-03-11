@@ -24,11 +24,15 @@
     "lint": "npx nx run-many --target=lint",
     "list": "npm ls --all --json --silent > tools/packages/packages.json && npm ls --all --silent > tools/packages/packages.txt",
     "package-audit": "npx sandworm-audit -o tools/sandworm",
+    "prisma": "cd tools/prisma && npx prisma generate",
+    "prisma:pull": "cd tools/prisma && npx prisma db pull",
+    "prisma:push": "cd tools/prisma && npx prisma db push",
     "start": "npx nx run-many --target=serve",
     "test:integration": "npx jest --config jest.integration.config.ts",
     "test": "npx nx run-many --target=test",
     "ts-coverage": "npx typescript-coverage-report -o tools/coverage-ts",
-    "typedoc": "npx typedoc --options tools/typedoc/typedoc.json --tsconfig tsconfig.json"
+    "typedoc": "npx typedoc --options tools/typedoc/typedoc.json --tsconfig tsconfig.json",
+    "user:add": "node tools/prisma/add-user.js"
   },
   "private": true,
   "devDependencies": {
@@ -117,6 +121,7 @@
     "postcss": "8.4.35",
     "prettier": "^2.6.2",
     "prisma": "^5.10.2",
+    "prompt": "^1.3.0",
     "puppeteer": "^21.7.0",
     "rimraf": "^5.0.5",
     "sass": "1.55.0",
@@ -140,7 +145,7 @@
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@hookform/resolvers": "^3.3.3",
-    "@prisma/client": "5.2.0",
+    "@prisma/client": "5.10.2",
     "@radix-ui/react-navigation-menu": "^1.1.3",
     "@radix-ui/react-select": "^1.2.2",
     "@socket.io/admin-ui": "^0.5.1",

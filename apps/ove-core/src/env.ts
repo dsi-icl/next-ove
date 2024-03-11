@@ -42,7 +42,8 @@ const baseSchema = z.strictObject({
     GLOBAL_BUCKETS: z.string().array()
   }).optional(),
   DISABLE_AUTH: z.boolean(),
-  TEST_USER: z.string().optional()
+  TEST_USER: z.string().optional(),
+  SOCKET_DIST: z.string()
 });
 
 const schema = baseSchema.refine(config =>
@@ -78,7 +79,9 @@ const defaultConfig: z.infer<typeof schema> = {
   ACCESS_TOKEN_SECRET: accessTokenSecret,
   REFRESH_TOKEN_SECRET: refreshTokenSecret,
   REFRESH_TOKEN_PASSPHRASE: refreshTokenPassphrase,
-  DISABLE_AUTH: false
+  DISABLE_AUTH: false,
+  SOCKET_DIST: path.join(__dirname, "..", "..", "..",
+    "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
 };
 
 const configPath = path.join(__dirname, "config", "config.json");

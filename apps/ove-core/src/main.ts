@@ -17,6 +17,8 @@ import { createOpenApiExpressMiddleware } from "trpc-openapi";
 // noinspection DuplicatedCode
 app.use(cors({ origin: "*" }));
 
+app.use("/admin", express.static(env.SOCKET_DIST));
+
 app.use(`/api/v${env.API_VERSION}/trpc`, trpcExpress.createExpressMiddleware({
   router: appRouter,
   createContext
