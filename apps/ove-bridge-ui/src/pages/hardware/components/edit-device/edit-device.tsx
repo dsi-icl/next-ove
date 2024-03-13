@@ -25,7 +25,6 @@ type EditDeviceProps = {
 
 type Form = {
   id?: string;
-  authUsername?: string;
   authPassword?: string;
   description: string;
   type: ServiceType;
@@ -58,11 +57,8 @@ const saveDevice_ = (
 
   if (type === "node") {
     auth = false;
-  } else if (
-    data.authUsername !== undefined &&
-    data.authPassword !== undefined
-  ) {
-    auth = { username: data.authUsername, password: data.authPassword };
+  } else if (data.authPassword !== undefined) {
+    auth = { password: data.authPassword };
   }
 
   const updatedDevice: Device = {
@@ -149,8 +145,6 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(
           {type !== "node" ? (
             <>
               <h4>Authentication</h4>
-              <label htmlFor="authUsername">Username</label>
-              <input {...register("authUsername")} type="text" />
               <label htmlFor="authPassword">Password</label>
               <input {...register("authPassword")} type="password" />
             </>

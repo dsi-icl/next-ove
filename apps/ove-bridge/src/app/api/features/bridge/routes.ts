@@ -18,7 +18,7 @@ import { initHardware } from "../hardware/hardware-controller";
 
 export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  setSocket(io(`ws://${env.CORE_URL}/bridge`, { autoConnect: false, parser: Parser }));
+  setSocket(io(`${env.CORE_URL}/bridge`, { autoConnect: false, parser: Parser }));
   if (socket === null) throw new Error("ILLEGAL");
   socket.auth = {
     username: env.BRIDGE_NAME,

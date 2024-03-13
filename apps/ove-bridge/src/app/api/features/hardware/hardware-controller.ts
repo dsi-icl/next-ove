@@ -24,7 +24,7 @@ export const closeHardwareSocket = () => {
 
 export const initHardware = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  socket = io(`ws://${env.CORE_URL}/hardware`, {
+  socket = io(`${env.CORE_URL}/hardware`, {
     autoConnect: false,
     parser: Parser
   });

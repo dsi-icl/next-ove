@@ -1,8 +1,8 @@
 /* global setTimeout */
 
 import { io } from "socket.io-client";
+import { Json, raise } from "@ove/ove-utils";
 import { type MDCSources, type OVEException } from "@ove/ove-types";
-import { raise } from "@ove/ove-utils";
 
 export const sources: MDCSources = {
   UNKNOWN: 0x00,
@@ -53,7 +53,7 @@ const sendCommand = (
       if (typeof message === "string") {
         resolve(message);
       } else {
-        resolve(JSON.stringify(message));
+        resolve(Json.stringify(message));
       }
       socket.disconnect();
     });

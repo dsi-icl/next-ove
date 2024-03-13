@@ -1,6 +1,3 @@
-/* global JSX */
-
-import * as React from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -8,6 +5,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger
 } from "@ove/ui-base-components";
+import React, { type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export type NavProps = {
@@ -17,8 +15,8 @@ export type NavProps = {
   }
   content: {
     title: string
-    card: JSX.Element | null
-    item: JSX.Element | null
+    card: ReactNode | null
+    item: ReactNode | null
     location: string | null
   }[]
 }
@@ -28,9 +26,9 @@ const Nav = ({ icon: { asset, alt }, content }: NavProps) => {
   const isLogin = location.pathname === "/login";
 
   const getNavigationMenuItem = (
-    card: JSX.Element | null,
+    card: ReactNode | null,
     title: string,
-    item: JSX.Element | null
+    item: ReactNode | null
   ) => {
     return <NavigationMenuItem key={title}>
       {card !== null ? <>

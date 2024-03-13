@@ -70,7 +70,6 @@ export const DeviceSchema = z.object({
   mac: z.string(),
   tags: z.array(z.string()),
   auth: z.union([z.object({
-    username: z.string(),
     password: z.string()
   }), z.boolean()]).nullable()
 });
