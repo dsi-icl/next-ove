@@ -29,6 +29,7 @@ const baseSchema = z.strictObject({
   REFRESH_TOKEN_SECRET: z.string(),
   ACCESS_TOKEN_PASSPHRASE: z.string(),
   REFRESH_TOKEN_PASSPHRASE: z.string(),
+  SOCKET_PATH: z.string().optional(),
   SOCKET_ADMIN: z.strictObject({
     USERNAME: z.string(),
     PASSWORD: z.string()

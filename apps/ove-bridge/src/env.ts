@@ -19,6 +19,7 @@ const schema = z.strictObject({
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
   }).optional(),
+  SOCKET_PATH: z.string().optional(),
   LOG_LEVEL: z.number().optional(),
   CORE_URL: z.string().optional(),
   BRIDGE_NAME: z.string().optional(),

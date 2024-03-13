@@ -40,3 +40,7 @@ Examples include the monitoring camera service and calendar integrations.
 
 These assets are stored in the ```public``` directory and loaded in when
 the ```static``` image is built.
+
+### Notes
+
+- if behind reverse proxy bridge must have socket path = /{REVERSE_PROXY_PATH}/{CORE_SOCKET_PATH ?? socket.io}

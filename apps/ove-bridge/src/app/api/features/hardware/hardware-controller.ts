@@ -26,7 +26,8 @@ export const initHardware = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
   socket = io(`${env.CORE_URL}/hardware`, {
     autoConnect: false,
-    parser: Parser
+    parser: Parser,
+    path: env.SOCKET_PATH
   });
   socket.auth = {
     username: env.BRIDGE_NAME,

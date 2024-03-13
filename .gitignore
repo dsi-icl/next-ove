@@ -298,6 +298,7 @@ tools/sandworm
 /dev/mongo.keyfile
 /dev/public/*
 /dev/credentials.json
+/dev/dev.conf
 
 # Core environment config
 /apps/ove-core/src/config/config.json

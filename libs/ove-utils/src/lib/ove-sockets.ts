@@ -78,7 +78,7 @@ class Decoder extends Emitter {
    * Clean up internal buffers
    */
   destroy() {
-    console.log("Destroying Decoder");
+    return undefined;
   }
 }
 

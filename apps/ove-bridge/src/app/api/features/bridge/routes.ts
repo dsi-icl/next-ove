@@ -1,7 +1,7 @@
 import {
   type TSocketOutEvents,
   type TParameters,
-  type TCallback,
+  type TCallback
 } from "@ove/ove-types";
 import { io } from "socket.io-client";
 import { assert, Parser } from "@ove/ove-utils";
@@ -18,7 +18,11 @@ import { initHardware } from "../hardware/hardware-controller";
 
 export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  setSocket(io(`${env.CORE_URL}/bridge`, { autoConnect: false, parser: Parser }));
+  setSocket(io(`${env.CORE_URL}/bridge`, {
+    autoConnect: false,
+    parser: Parser,
+    path: env.SOCKET_PATH
+  }));
   if (socket === null) throw new Error("ILLEGAL");
   socket.auth = {
     username: env.BRIDGE_NAME,
