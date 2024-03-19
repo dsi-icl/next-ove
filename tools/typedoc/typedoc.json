@@ -1,6 +1,6 @@
 {
-  "entryPoints": ["libs/*/src/index.ts"],
+  "entryPoints": ["../../libs/*/src/index.ts"],
   "name": "Packages Example",
   "includeVersion": false,
-  "out": "docs/types"
+  "out": "../../docs/types"
 }

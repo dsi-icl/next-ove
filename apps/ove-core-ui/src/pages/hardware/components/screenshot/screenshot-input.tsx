@@ -97,7 +97,7 @@ const ScreenshotInput = () => {
   );
 
   const onSubmit = ({ method, screen }: ScreenshotInputForm) => {
-    if (screen !== "") {
+    if (screen !== null && screen !== undefined) {
       setScreens(cur => cur.includes(screen) ? cur : [...cur, screen]);
       resetField("screen");
     } else {

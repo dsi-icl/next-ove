@@ -7,6 +7,8 @@ import * as mdcControl from "./mdc-control";
 import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
+const TIMEOUT = 5_000;
+
 describe("mdcControl", () => {
   let io: Server;
   let port: number;
@@ -29,7 +31,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a getStatus message", done => {
-    mdcControl.getStatus(0xFF, "localhost", port).then(status => {
+    mdcControl.getStatus(TIMEOUT, 0xFF, "localhost", port).then(status => {
       expect(status).toEqual("running");
       done();
     });
@@ -45,7 +47,7 @@ describe("mdcControl", () => {
 
   // noinspection DuplicatedCode
   it("should send a setPower 'off' message", done => {
-    mdcControl.setPower(0xFF, "localhost", port, "on")
+    mdcControl.setPower("on", 0xFF, "localhost", port)
       .then(response => {
         expect(response).toEqual("true");
         done();
@@ -62,7 +64,7 @@ describe("mdcControl", () => {
 
   // noinspection DuplicatedCode
   it("should send a setPower 'on' message", done => {
-    mdcControl.setPower(0xFF, "localhost", port, "on")
+    mdcControl.setPower("on", 0xFF, "localhost", port)
       .then(response => {
         expect(response).toEqual("true");
         done();
@@ -78,7 +80,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a getPower message", done => {
-    mdcControl.getPower(0xFF, "localhost", port).then(power => {
+    mdcControl.getPower(TIMEOUT, 0xFF, "localhost", port).then(power => {
       expect(power).toEqual("on");
       done();
     });
@@ -93,7 +95,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a setVolume message", done => {
-    mdcControl.setVolume(0xFF, "localhost", port, 70)
+    mdcControl.setVolume(70, 0xFF, "localhost", port)
       .then(response => {
         expect(response).toEqual("true");
         done();
@@ -109,7 +111,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a getVolume message", done => {
-    mdcControl.getVolume(0xFF, "localhost", port).then(volume => {
+    mdcControl.getVolume(TIMEOUT, 0xFF, "localhost", port).then(volume => {
       expect(volume).toEqual("70");
       done();
     });
@@ -124,7 +126,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a setIsMute message", done => {
-    mdcControl.setIsMute(0xFF, "localhost", port, true)
+    mdcControl.setIsMute(true, 0xFF, "localhost", port)
       .then(response => {
         expect(response).toEqual("true");
         done();
@@ -140,7 +142,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a getIsMute message", done => {
-    mdcControl.getIsMute(0xFF, "localhost", port).then(isMute => {
+    mdcControl.getIsMute(TIMEOUT, 0xFF, "localhost", port).then(isMute => {
       expect(isMute).toEqual("true");
       done();
     });
@@ -155,7 +157,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a setSource message", done => {
-    mdcControl.setSource(0xFF, "localhost", port, mdcControl.sources.DP)
+    mdcControl.setSource(mdcControl.sources.DP, 0xFF, "localhost", port)
       .then(response => {
         expect(response).toEqual("true");
         done();
@@ -172,7 +174,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a getSource message", done => {
-    mdcControl.getSource(0xFF, "localhost", port).then(source => {
+    mdcControl.getSource(TIMEOUT, 0xFF, "localhost", port).then(source => {
       expect(source).toEqual("DP");
       done();
     });
@@ -187,7 +189,7 @@ describe("mdcControl", () => {
   });
 
   it("should send a getModel message", done => {
-    mdcControl.getModel(0xFF, "localhost", port).then(model => {
+    mdcControl.getModel(TIMEOUT, 0xFF, "localhost", port).then(model => {
       expect(model).toEqual("Samsung");
       done();
     });
