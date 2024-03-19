@@ -1,3 +1,4 @@
+import { z } from "zod";
 import React from "react";
 import { type Actions } from "../hooks";
 import { toProject } from "../utils";
@@ -5,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { type Project, type Section } from "@prisma/client";
 
 import styles from "./launch-config.module.scss";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type LaunchConfigProps = {
   observatories: string[]
@@ -13,10 +15,12 @@ type LaunchConfigProps = {
   sections: Section[]
 }
 
-type LaunchConfigForm = {
-  observatory: string
-  confirmation: boolean
-}
+const LaunchConfigFormSchema = z.strictObject({
+  observatory: z.string(),
+  confirmation: z.boolean()
+});
+
+type LaunchConfigForm = z.infer<typeof LaunchConfigFormSchema>
 
 const LaunchConfig = ({
   observatories,
@@ -24,7 +28,9 @@ const LaunchConfig = ({
   project,
   sections
 }: LaunchConfigProps) => {
-  const { register, handleSubmit } = useForm<LaunchConfigForm>();
+  const { register, handleSubmit } = useForm<LaunchConfigForm>({
+    resolver: zodResolver(LaunchConfigFormSchema)
+  });
 
   const onSubmit = ({ observatory, confirmation }: LaunchConfigForm) => {
     if (!confirmation) return;
@@ -37,14 +43,15 @@ const LaunchConfig = ({
     <h2>Launch Config</h2>
     <form onSubmit={handleSubmit(onSubmit)}>
       <label htmlFor="presets">Presets:</label>
-      <select {...register("observatory")}>
+      <select {...register("observatory", { required: true })}>
         {observatories.map(k => <option key={k} value={k}>{k}</option>)}
       </select>
       <div className={styles.confirmation}>
         <div>
           <label htmlFor="confirmation">This observatory may be in use, please
             confirm:</label>
-          <input {...register("confirmation")} type="checkbox" />
+          <input {...register("confirmation", { required: true })}
+                 type="checkbox" />
         </div>
         <button>LAUNCH</button>
       </div>

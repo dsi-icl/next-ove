@@ -1,3 +1,4 @@
+import { z } from "zod";
 import React from "react";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
@@ -61,6 +62,12 @@ const useBrowser = (
   };
 };
 
+const BrowserIdFormSchema = z.strictObject({
+  browserId: z.string()
+});
+
+type BrowserIdForm = z.infer<typeof BrowserIdFormSchema>
+
 const BrowserIdInput = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const setDeviceAction = useStore(state =>
@@ -72,7 +79,7 @@ const BrowserIdInput = () => {
     deviceAction.tag
   );
 
-  const onSubmit = ({ browserId }: { browserId: string }) => {
+  const onSubmit = ({ browserId }: BrowserIdForm) => {
     if (deviceAction.action === "browser_close") {
       closeBrowser(parseInt(browserId));
     } else {
@@ -82,6 +89,7 @@ const BrowserIdInput = () => {
   };
 
   return <ValueModal k="browserId" label="Browser ID"
+                     schema={BrowserIdFormSchema}
                      header="Get Browser Status For:" onSubmit={onSubmit} />;
 };
 

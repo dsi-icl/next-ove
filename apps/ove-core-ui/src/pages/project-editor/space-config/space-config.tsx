@@ -32,13 +32,15 @@ const reduce = (rect: Rect): Rect => {
 
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
 
-const SpaceConfigSchema = z.strictObject({
+const SpaceConfigFormSchema = z.strictObject({
   width: z.number(),
   height: z.number(),
   rows: z.number(),
   columns: z.number(),
   preset: z.string().nullable()
 });
+
+type SpaceConfigForm = z.infer<typeof SpaceConfigFormSchema>
 
 const SpaceConfig = ({
   space: { update, cells, ...curSpace },
@@ -50,8 +52,8 @@ const SpaceConfig = ({
     handleSubmit,
     setValue,
     formState: { errors }
-  } = useForm<Space & { preset: string | null }>({
-    resolver: zodResolver(SpaceConfigSchema),
+  } = useForm<SpaceConfigForm>({
+    resolver: zodResolver(SpaceConfigFormSchema),
     defaultValues: {
       ...reduce(curSpace),
       preset: getPreset(presets, curSpace)

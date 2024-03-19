@@ -4,11 +4,12 @@ import React, {
   useCallback,
   useState
 } from "react";
+import { z } from "zod";
 import { type Mode } from "../../utils";
 import {
   type Device,
   type NativeEvent,
-  type ServiceType
+  type ServiceType, ServiceTypeSchema
 } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
@@ -17,28 +18,31 @@ import { useForm } from "react-hook-form";
 import { Dialog } from "@ove/ui-components";
 
 import styles from "./edit-device.module.scss";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type EditDeviceProps = {
   setMode: (mode: Mode) => void;
   device: Device | null;
 };
 
-type Form = {
-  id?: string;
-  authPassword?: string;
-  description: string;
-  type: ServiceType;
-  protocol: string;
-  ip: string;
-  port: string;
-  mac: string;
-};
+const DeviceFormSchema = z.strictObject({
+  id: z.string().optional(),
+  authPassword: z.string().optional(),
+  description: z.string(),
+  type: ServiceTypeSchema,
+  protocol: z.string(),
+  ip: z.string(),
+  port: z.number(),
+  mac: z.string()
+})
+
+type DeviceForm = z.infer<typeof DeviceFormSchema>
 
 const saveDevice_ = (
   device: Device | null,
   setMode: (mode: Mode) => void,
   type: ServiceType,
-  data: Form,
+  data: DeviceForm,
   e: BaseSyntheticEvent<object> | undefined
 ) => {
   const id = device?.id ?? assert(data.id);
@@ -67,7 +71,7 @@ const saveDevice_ = (
     type: data.type,
     protocol: data.protocol,
     ip: data.ip,
-    port: parseInt(data.port),
+    port: data.port,
     mac: data.mac,
     tags: [],
     auth
@@ -85,9 +89,11 @@ const saveDevice_ = (
 const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(
   ({ device, setMode }, ref) => {
     const [type, setType] = useState<ServiceType>(device?.type ?? "node");
-    const { register, handleSubmit } = useForm<Form>();
+    const { register, handleSubmit } = useForm<DeviceForm>({
+      resolver: zodResolver(DeviceFormSchema)
+    });
     const saveDevice = useCallback(
-      (data: Form, e: BaseSyntheticEvent<object> | undefined) =>
+      (data: DeviceForm, e: BaseSyntheticEvent<object> | undefined) =>
         saveDevice_(device, setMode, type, data, e),
       [device, setMode, type]
     );
@@ -136,7 +142,7 @@ const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(
           <input {...register("ip")} type="text" defaultValue={device?.ip} />
           <label htmlFor="port">Port</label>
           <input
-            {...register("port")}
+            {...register("port", { valueAsNumber: true })}
             type="number"
             defaultValue={device?.port}
           />

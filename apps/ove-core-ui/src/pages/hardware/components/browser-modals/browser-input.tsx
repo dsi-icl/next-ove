@@ -1,3 +1,4 @@
+import { z } from "zod";
 import React from "react";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
@@ -7,13 +8,16 @@ import { checkErrors } from "../../utils";
 import { useForm } from "react-hook-form";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import styles from "./browsers.module.scss";
 
-type Form = {
-  url: string
-  displayId: string
-}
+const BrowserInputFormSchema = z.strictObject({
+  url: z.string(),
+  displayId: z.string()
+});
+
+type BrowserInputForm = z.infer<typeof BrowserInputFormSchema>
 
 const useBrowser = (
   bridgeId: string,
@@ -81,9 +85,11 @@ const BrowserIdInput = () => {
     deviceAction.deviceId,
     deviceAction.tag
   );
-  const { handleSubmit, register } = useForm<Form>();
+  const { handleSubmit, register } = useForm<BrowserInputForm>({
+    resolver: zodResolver(BrowserInputFormSchema)
+  });
 
-  const onSubmit = (config: Form) => {
+  const onSubmit = (config: BrowserInputForm) => {
     openBrowser(config.url, parseInt(config.displayId));
     setDeviceAction({ ...deviceAction, pending: false });
   };
@@ -92,11 +98,11 @@ const BrowserIdInput = () => {
     <h4>Browser Config:</h4>
     <form onSubmit={handleSubmit(onSubmit)}>
       <fieldset>
-        <label>URL</label>
+        <label htmlFor="url">URL</label>
         <input {...register("url")} type="text" />
       </fieldset>
       <fieldset>
-        <label>Display ID</label>
+        <label htmlFor="displayId">Display ID</label>
         <input {...register("displayId")} type="number" />
       </fieldset>
       <button type="submit">SUBMIT</button>

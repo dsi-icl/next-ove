@@ -1,18 +1,18 @@
-import styles from "./file-upload.module.scss";
-import { Brush, Upload as UploadButton, X } from "react-bootstrap-icons";
-import { type File as FileT } from "@ove/ove-types";
-import { type FieldValues } from "react-hook-form";
-import React, { FormEventHandler, useRef } from "react";
 import { actionColors, dataTypes } from "../utils";
+import { type File as FileT } from "@ove/ove-types";
+import { type FileUploadForm } from "./file-upload";
+import { type UseFormRegister } from "react-hook-form";
+import React, { FormEventHandler, useRef } from "react";
+import { Brush, Upload as UploadButton, X } from "react-bootstrap-icons";
+
+import styles from "./file-upload.module.scss";
 
 type UploadProps = {
   names: string[]
   files: FileT[]
-  handleSubmit: (onSubmit: (form: {
-    file: File[]
-  }) => void) => FormEventHandler<HTMLFormElement>
-  onSubmit: (form: { file: File[] }) => void
-  register: (key: "file") => FieldValues
+  handleSubmit: (onSubmit: (form: FileUploadForm) => void) => FormEventHandler<HTMLFormElement>
+  onSubmit: (form: FileUploadForm) => void
+  register: UseFormRegister<FileUploadForm>
   setMode: (key: "editor") => void
   getLatest: (id: string) => FileT
   file: File[]
@@ -32,7 +32,7 @@ const Upload = ({
   file,
   closeDialog
 }: UploadProps) => {
-  const { ref, ...rest } = register("file");
+  const { ref, ...rest } = register("file", { required: true });
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   return <section

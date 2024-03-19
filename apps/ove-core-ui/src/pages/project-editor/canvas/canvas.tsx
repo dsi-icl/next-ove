@@ -22,8 +22,8 @@ type PreviewProps = {
   selected: string | null
 }
 
-const THRESHOLDX = 0.01;
-const THRESHOLDY = 0.02;
+const THRESHOLD_X = 0.01;
+const THRESHOLD_Y = 0.02;
 
 function drawSpaces({
   container,
@@ -89,9 +89,9 @@ function drawSpaces({
   const clampX = (x: number, w: number) => {
     for (const cell of space.cells) {
       if (Math.abs(cell.x - x) < ((space.width / space.columns) *
-        THRESHOLDX)) return cell.x;
+        THRESHOLD_X)) return cell.x;
       if (Math.abs((cell.x + cell.width) - (x + w)) <
-        ((space.width / space.columns) * THRESHOLDX)) {
+        ((space.width / space.columns) * THRESHOLD_X)) {
         return (cell.x + cell.width) - w;
       }
     }
@@ -102,9 +102,9 @@ function drawSpaces({
   const clampY = (y: number, h: number) => {
     for (const cell of space.cells) {
       if (Math.abs(cell.y - y) < ((space.height / space.rows) *
-        THRESHOLDY)) return cell.y;
+        THRESHOLD_Y)) return cell.y;
       if (Math.abs((cell.y + cell.height) - (y + h)) <
-        ((space.height / space.rows) * THRESHOLDY)) {
+        ((space.height / space.rows) * THRESHOLD_Y)) {
         return (cell.y + cell.height) - h;
       }
     }

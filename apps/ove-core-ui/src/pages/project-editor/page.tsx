@@ -197,8 +197,7 @@ const ProjectEditor = ({
                            states={states.states} formatState={states.format}
                            addState={states.addState}
                            updateState={states.updateState}
-                           setState={states.select}
-                           currentState={states.selected} />
+                           setState={states.select} />
                 <ResizeContainer container={container} useContentRect={false}>
                   <Canvas sections={sections.getSections(states.selected)}
                           space={space}

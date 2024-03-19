@@ -1,19 +1,31 @@
+import { z } from "zod";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { type Actions } from "../hooks";
 import { actionColors } from "../utils";
 import { useForm } from "react-hook-form";
 import { type File } from "@ove/ove-types";
+import { type User } from "@prisma/client";
 import { Brush, X } from "react-bootstrap-icons";
 import { Button } from "@ove/ui-base-components";
-import { type Project, type User } from "@prisma/client";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./metadata.module.scss";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export type ProjectMetadata = Pick<Project, "title" | "description" |
-  "thumbnail" | "creatorId" | "tags" | "publications" | "collaboratorIds" |
-  "presenterNotes" | "notes">
+const ProjectMetadataSchema = z.strictObject({
+  title: z.string(),
+  description: z.string(),
+  thumbnail: z.string().nullable(),
+  creatorId: z.string(),
+  tags: z.string().array(),
+  publications: z.string().array(),
+  collaboratorIds: z.string().array(),
+  presenterNotes: z.string(),
+  notes: z.string()
+});
+
+export type ProjectMetadata = z.infer<typeof ProjectMetadataSchema>
 
 type MetadataProps = {
   project: ProjectMetadata
@@ -33,13 +45,18 @@ type MetadataProps = {
   closeDialog: () => void
 }
 
-type MetadataForm = ProjectMetadata & {
-  fileName: string | null
-  fileVersion: string | null
-  tag: string
-  publication: string
-  collaborator: string
-}
+const MetadataFormSchema = z.objectUtil.mergeShapes(
+  ProjectMetadataSchema,
+  z.strictObject({
+    fileName: z.string().nullable(),
+    fileVersion: z.string().nullable(),
+    tag: z.string(),
+    publication: z.string(),
+    collaborator: z.string()
+  })
+);
+
+type MetadataForm = z.infer<typeof MetadataFormSchema>
 
 const Metadata = ({
   files,
@@ -76,7 +93,8 @@ const Metadata = ({
         "-- select an option --",
       fileVersion: fromURL(project.thumbnail ?? "")?.version.toString() ??
         "-- select an option --"
-    }
+    },
+    resolver: zodResolver(MetadataFormSchema)
   });
 
   const generateThumbnail = () => {

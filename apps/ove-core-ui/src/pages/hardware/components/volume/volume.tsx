@@ -1,3 +1,4 @@
+import { z } from "zod";
 import React from "react";
 import ValueModal from "../value-modal/value-modal";
 import { useStore } from "../../../../store";
@@ -61,6 +62,12 @@ const useVolume = (
   };
 };
 
+const VolumeFormSchema = z.strictObject({
+  volume: z.number()
+});
+
+type VolumeForm = z.infer<typeof VolumeFormSchema>
+
 const Volume = () => {
   const reset = useStore(state => state.hardwareConfig.reset);
   const deviceAction = useStore(state =>
@@ -68,13 +75,13 @@ const Volume = () => {
   const { setVolume } = useVolume(
     assert(deviceAction.bridgeId), deviceAction.deviceId, deviceAction.tag);
 
-  const onSubmit = ({ volume }: { volume: string }) => {
-    setVolume(parseInt(volume));
+  const onSubmit = ({ volume }: VolumeForm) => {
+    setVolume(volume);
     reset();
   };
 
   return <ValueModal k="volume" label="Volume" header="Enter Volume:"
-                     onSubmit={onSubmit} />;
+                     onSubmit={onSubmit} schema={VolumeFormSchema} />;
 };
 
 export default Volume;

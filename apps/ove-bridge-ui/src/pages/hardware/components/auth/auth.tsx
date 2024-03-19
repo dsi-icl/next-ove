@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { type Mode } from "../../utils";
 import { useForm } from "react-hook-form";
 import { type Device } from "@ove/ove-types";
@@ -7,17 +8,26 @@ import React, { forwardRef, useEffect, useState } from "react";
 import { Dialog, Snackbar, useSnackbar } from "@ove/ui-components";
 
 import styles from "./auth.module.scss";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type AuthProps = {
   device: Device | null;
   setMode: (mode: Mode) => void;
 };
 
+const AuthFormSchema = z.strictObject({
+  pin: z.string()
+});
+
+type AuthForm = z.infer<typeof AuthFormSchema>
+
 const Auth = forwardRef<HTMLDialogElement, AuthProps>(
   ({ device, setMode }, ref) => {
     const [status, setStatus] = useState<boolean | null>(null);
     const { notification, isVisible } = useSnackbar();
-    const { register, handleSubmit } = useForm<{ pin: string }>();
+    const { register, handleSubmit } = useForm<AuthForm>({
+      resolver: zodResolver(AuthFormSchema)
+    });
 
     const handleAuth = async ({ pin }: { pin: string }) => {
       if (device === null) throw new Error("Cannot ID null device");

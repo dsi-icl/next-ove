@@ -1,14 +1,16 @@
+import { z } from "zod";
 import React from "react";
 import { toast } from "sonner";
+import { assert } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../env";
 import { useForm } from "react-hook-form";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronRight, SendHorizontal } from "lucide-react";
 
 import styles from "./console.module.scss";
-import { assert } from "@ove/ove-utils";
 
 const useConsole = (
   bridgeId: string,
@@ -79,11 +81,19 @@ const Line = ({ text, consoleId }: { text: string, consoleId: string }) => {
   </li>;
 };
 
+const ConsoleFormSchema = z.strictObject({
+  command: z.string()
+});
+
+type ConsoleForm = z.infer<typeof ConsoleFormSchema>
+
 const Console = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const consoleId = deviceAction.deviceId ?? assert(deviceAction.bridgeId);
   const commandHistory = useStore(state => state.hardwareConfig.commandHistory);
-  const { register, reset, handleSubmit } = useForm<{ command: string }>();
+  const { register, reset, handleSubmit } = useForm<ConsoleForm>({
+    resolver: zodResolver(ConsoleFormSchema)
+  });
   const { execute } = useConsole(
     assert(deviceAction.bridgeId), deviceAction.deviceId, deviceAction.tag);
 

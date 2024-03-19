@@ -21,28 +21,26 @@ const Toolbar = ({
   filterType,
   filter,
   name
-}: ToolbarProps) => {
-  return <div className={styles.toolbar}>
-    <p>Filter by</p>
-    <div className={styles["filter-type-container"]}>
-      <button className={filterType === "id" ? styles.active : undefined}
-              onClick={() => setFilterType("id")}>ID
-      </button>
-      <button className={filterType === "tags" ? styles.active : undefined}
-              onClick={() => setFilterType("tags")}>Tags
-      </button>
-    </div>
-    <SearchSelect setFilter={setFilter} filter={filter}
-                  values={hardware.flatMap(({
-                    device: {
-                      id,
-                      tags
-                    }
-                  }) => filterType === "id" ? [id] : tags)} />
-    <div className={styles["multi-actions"]}>
-      <MultiActions bridgeId={name} type={filterType} value={filter} />
-    </div>
-  </div>;
-};
+}: ToolbarProps) => <div className={styles.toolbar}>
+  <p>Filter by</p>
+  <div className={styles["filter-type-container"]}>
+    <button className={filterType === "id" ? styles.active : undefined}
+            onClick={() => setFilterType("id")}>ID
+    </button>
+    <button className={filterType === "tags" ? styles.active : undefined}
+            onClick={() => setFilterType("tags")}>Tags
+    </button>
+  </div>
+  <SearchSelect setFilter={setFilter} filter={filter}
+                values={hardware.flatMap(({
+                  device: {
+                    id,
+                    tags
+                  }
+                }) => filterType === "id" ? [id] : tags)} />
+  <div className={styles["multi-actions"]}>
+    <MultiActions bridgeId={name} type={filterType} value={filter} />
+  </div>
+</div>;
 
 export default Toolbar;

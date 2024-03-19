@@ -10,11 +10,11 @@ import { X } from "react-bootstrap-icons";
 import { useForm } from "react-hook-form";
 
 import styles from "./state-tabs.module.scss";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type StateTabsProps = {
   selected: string
   states: string[]
-  currentState: string
   setState: (state: string) => void
   removeState: (state: string) => void
   formatState: (state: string) => string
@@ -24,7 +24,9 @@ type StateTabsProps = {
 
 const DEFAULT_STATE = "__default__";
 
-const TitleSchema = z.strictObject({ name: z.string() });
+const TitleFormSchema = z.strictObject({ name: z.string() });
+
+type TitleForm = z.infer<typeof TitleFormSchema>
 
 const StateTabs = ({
   selected,
@@ -37,7 +39,7 @@ const StateTabs = ({
 }: StateTabsProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
-  const onSubmit = ({ name }: z.infer<typeof TitleSchema>) => {
+  const onSubmit = ({ name }: TitleForm) => {
     if (states.includes(name) || name === "") return;
     setIsEditing(false);
     updateState(selected, name);
@@ -72,7 +74,7 @@ type TabProps = {
   editTab: () => void
   stopEditingTab: () => void
   isEditing: boolean
-  onSubmit: (title: z.infer<typeof TitleSchema>) => void
+  onSubmit: (title: TitleForm) => void
   removeState: () => void
 }
 
@@ -140,7 +142,7 @@ const TabContent = ({
 };
 
 type EditTabProps = {
-  onSubmit: (title: z.infer<typeof TitleSchema>) => void
+  onSubmit: (title: TitleForm) => void
 }
 
 const EditTab = ({ onSubmit }: EditTabProps) => {
@@ -148,12 +150,14 @@ const EditTab = ({ onSubmit }: EditTabProps) => {
     register,
     resetField,
     handleSubmit
-  } = useForm<z.infer<typeof TitleSchema>>();
+  } = useForm<TitleForm>({
+    resolver: zodResolver(TitleFormSchema)
+  });
 
   useEffect(() => () => resetField("name"), [resetField]);
 
   return <form onSubmit={handleSubmit(onSubmit)}>
-    <input {...register("name")} />
+    <input {...register("name", { required: true })} />
     <input type="submit" className={styles.hidden} />
   </form>;
 };

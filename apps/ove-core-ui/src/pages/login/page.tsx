@@ -1,20 +1,27 @@
+import { z } from "zod";
 import React from "react";
 import { useForm } from "react-hook-form";
 
 import styles from "./page.module.scss";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-type Form = {
-  username: string
-  password: string
-}
+const LoginFormSchema = z.strictObject({
+  username: z.string(),
+  password: z.string()
+});
+
+type LoginForm = z.infer<typeof LoginFormSchema>
 
 const Login = ({ login }: {
   login: (username: string, password: string) => Promise<void>
 }) => {
-  const { register, handleSubmit } = useForm<Form>();
-  const onSubmit = handleSubmit(async ({ username, password }) => {
-    await login(username, password);
+  const { register, handleSubmit } = useForm<LoginForm>({
+    resolver: zodResolver(LoginFormSchema)
   });
+  const onSubmit = handleSubmit(({
+    username,
+    password
+  }) => login(username, password));
 
   return <main className={styles.main}>
     <form method="post" spellCheck="false" onSubmit={onSubmit}>

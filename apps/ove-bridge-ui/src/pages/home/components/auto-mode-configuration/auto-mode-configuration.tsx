@@ -1,5 +1,7 @@
+import { z } from "zod";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import styles from "./auto-mode-configuration.module.scss";
 
@@ -7,16 +9,20 @@ export type AutoModeConfigurationProps = {
   closeDialog: () => void
 }
 
-type Form = {
-  start: string | undefined
-  end: string | undefined
-  days: boolean[]
-}
+const AutoModeFormSchema = z.strictObject({
+  start: z.string().optional(),
+  end: z.string().optional(),
+  days: z.boolean().array()
+});
+
+type AutoModeForm = z.infer<typeof AutoModeFormSchema>
 
 const defaultDaySelection = [false, false, false, false, false, false, false];
 
 const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
-  const { register, setValue, handleSubmit } = useForm<Form>();
+  const { register, setValue, handleSubmit } = useForm<AutoModeForm>({
+    resolver: zodResolver(AutoModeFormSchema)
+  });
 
   useEffect(() => {
     window.bridge.getAutoSchedule({}).then(autoSchedule => {
@@ -27,7 +33,7 @@ const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
     });
   }, [setValue]);
 
-  const onSubmit = ({ start, end, days }: Form) => {
+  const onSubmit = ({ start, end, days }: AutoModeForm) => {
     window.bridge.setAutoSchedule({
       autoSchedule: {
         wake: start ?? null,

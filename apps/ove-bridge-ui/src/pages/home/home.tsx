@@ -52,10 +52,6 @@ const Home = () => {
     });
   }, []);
 
-  useEffect(() => {
-    console.log(JSON.stringify(calendar));
-  }, [calendar]);
-
   return (
     <main className={styles.main}>
       <div>

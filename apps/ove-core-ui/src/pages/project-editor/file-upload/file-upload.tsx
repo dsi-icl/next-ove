@@ -1,9 +1,11 @@
+import { z } from "zod";
 import Upload from "./upload";
 import { assert } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
 import { type File as FileT } from "@ove/ove-types";
 import Editor, { type CustomFile } from "./editor";
 import React, { type CSSProperties, useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 type FileUploadProps = {
   files: FileT[]
@@ -12,6 +14,12 @@ type FileUploadProps = {
   setDialogStyle: (style: CSSProperties | undefined) => void
   closeDialog: () => void
 }
+
+export const FileUploadFormSchema = z.strictObject({
+  file: z.custom<File>().array()
+});
+
+export type FileUploadForm = z.infer<typeof FileUploadFormSchema>
 
 const FileUpload = ({
   addFile,
@@ -24,9 +32,9 @@ const FileUpload = ({
   const names = files.map(({ name }) => name)
     .filter((name, i, arr) => arr.indexOf(name) === i);
   const [customFile, setCustomFile] = useState<CustomFile | null>(null);
-  const { register, handleSubmit, resetField, watch } = useForm<{
-    file: File[]
-  }>();
+  const { register, handleSubmit, resetField, watch } = useForm<FileUploadForm>({
+    resolver: zodResolver(FileUploadFormSchema)
+  });
   const file = watch("file");
 
   useEffect(() => {
@@ -37,7 +45,7 @@ const FileUpload = ({
     setCustomFile(null);
   }, [file]);
 
-  const onSubmit = ({ file }: { file: File[] }) => {
+  const onSubmit = ({ file }: FileUploadForm) => {
     const name = convertCustomFile(customFile)?.[0]?.name ?? file[0].name;
     let assetId: string | undefined = undefined;
 

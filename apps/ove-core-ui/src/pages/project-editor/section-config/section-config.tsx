@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { assert } from "@ove/ove-utils";
 import { dataTypes } from "../utils";
 import { type Actions } from "../hooks";
 import { type File } from "@ove/ove-types";
+import { assert, Json } from "@ove/ove-utils";
 import {
   type DataType,
   type Geometry as TGeometry,
@@ -82,7 +82,7 @@ const formatConfig = (config: string) => {
   return stripped.length < 20 ? stripped : `${stripped.slice(0, 20)}...`;
 };
 
-const SectionConfigSchema = z.strictObject({
+const SectionConfigFormSchema = z.strictObject({
   width: z.number().nullable(),
   height: z.number().nullable(),
   x: z.number().nullable(),
@@ -97,6 +97,8 @@ const SectionConfigSchema = z.strictObject({
   dataType: z.string(),
   asset: z.string()
 });
+
+type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>
 
 const SectionConfig = ({
   sections,
@@ -117,8 +119,8 @@ const SectionConfig = ({
     setValue,
     resetField,
     watch
-  } = useForm<z.infer<typeof SectionConfigSchema>>(
-    { resolver: zodResolver(SectionConfigSchema) });
+  } = useForm<SectionConfigForm>(
+    { resolver: zodResolver(SectionConfigFormSchema) });
   const [mode, setMode] = useState<"custom" | "grid">("custom");
   const config = useStore(state => state.config);
   const [fileName, fileVersion] = watch(["fileName", "fileVersion"]);
@@ -167,7 +169,7 @@ const SectionConfig = ({
     }
   }, [selected, sections, fromURL, resetField, setValue, space]);
 
-  const onSubmit = (section: z.infer<typeof SectionConfigSchema>) => {
+  const onSubmit = (section: SectionConfigForm) => {
     updateSection({
       x: mode === "custom" ? fromPercentage(assert(section.x)) :
         assert(section.columnFrom) / space.columns,
@@ -178,7 +180,7 @@ const SectionConfig = ({
           section.columnFrom)) * (1 / space.columns),
       height: mode === "custom" ? fromPercentage(assert(section.height)) :
         (assert(section.rowTo) - assert(section.rowFrom)) * (1 / space.rows),
-      config: JSON.parse(config),
+      config: Json.parse(config),
       assetId: files.find(({
         name,
         version
@@ -257,9 +259,9 @@ const SectionConfig = ({
 
 const Geometry = ({ mode, register, setMode, setValue, space }: {
   mode: "custom" | "grid",
-  register: UseFormRegister<z.infer<typeof SectionConfigSchema>>,
+  register: UseFormRegister<SectionConfigForm>,
   setMode: (mode: "custom" | "grid") => void,
-  setValue: UseFormSetValue<z.infer<typeof SectionConfigSchema>>,
+  setValue: UseFormSetValue<SectionConfigForm>,
   space: Space
 }) => {
   const fullscreen = () => {
@@ -294,28 +296,28 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
       <div className={styles.column}>
         <label htmlFor="x">x:</label>
         <div className={styles["percentage-container"]}>
-          <input {...register("x")} />
+          <input {...register("x", { valueAsNumber: true })} />
           <span className={styles.percentage}>%</span>
         </div>
       </div>
       <div className={styles.column}>
         <label htmlFor="y">y:</label>
         <div className={styles["percentage-container"]}>
-          <input {...register("y")} />
+          <input {...register("y", { valueAsNumber: true })} />
           <span className={styles.percentage}>%</span>
         </div>
       </div>
       <div className={styles.column}>
         <label htmlFor="width">Width:</label>
         <div className={styles["percentage-container"]}>
-          <input {...register("width")} />
+          <input {...register("width", { valueAsNumber: true })} />
           <span className={styles.percentage}>%</span>
         </div>
       </div>
       <div className={styles.column}>
         <label htmlFor="height">Height:</label>
         <div className={styles["percentage-container"]}>
-          <input {...register("height")} />
+          <input {...register("height", { valueAsNumber: true })} />
           <span className={styles.percentage}>%</span>
         </div>
       </div>
@@ -323,19 +325,23 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
     <fieldset style={mode === "grid" ? undefined : { display: "none" }}>
       <div className={styles.column}>
         <label htmlFor="rowFrom">Row:</label>
-        <input {...register("rowFrom")} placeholder="From:" />
+        <input {...register("rowFrom", { valueAsNumber: true })}
+               placeholder="From:" />
       </div>
       <div className={styles.column}>
-        <input className={styles.to} {...register("rowTo")}
-               placeholder="To:" />
+        <input
+          className={styles.to} {...register("rowTo", { valueAsNumber: true })}
+          placeholder="To:" />
       </div>
       <div className={styles.column}>
         <label htmlFor="columnFrom">Column:</label>
-        <input {...register("columnFrom")} placeholder="From:" />
+        <input {...register("columnFrom", { valueAsNumber: true })}
+               placeholder="From:" />
       </div>
       <div className={styles.column}>
-        <input className={styles.to} {...register("columnTo")}
-               placeholder="To:" />
+        <input
+          className={styles.to} {...register("columnTo", { valueAsNumber: true })}
+          placeholder="To:" />
       </div>
     </fieldset>
   </div>;

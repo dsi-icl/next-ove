@@ -1,6 +1,8 @@
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useEnv, useSocket } from "./hooks";
 import { type NativeEvent } from "@ove/ove-types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import React, { type BaseSyntheticEvent } from "react";
 
 import styles from "./configuration.module.scss";
@@ -10,14 +12,18 @@ export type ConfigurationProps = {
   openDialog: () => void
 }
 
-type Form = {
-  coreURL: string | undefined
-  bridgeName: string | undefined
-  calendarURL: string | undefined
-}
+const ConfigurationFormSchema = z.strictObject({
+  coreURL: z.string().optional(),
+  bridgeName: z.string().optional(),
+  calendarURL: z.string().optional()
+});
+
+type ConfigurationForm = z.infer<typeof ConfigurationFormSchema>
 
 const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
-  const { register, setValue, handleSubmit } = useForm<Form>();
+  const { register, setValue, handleSubmit } = useForm<ConfigurationForm>({
+    resolver: zodResolver(ConfigurationFormSchema)
+  });
   const updateEnv = useEnv(setValue);
   const connected = useSocket();
 
@@ -25,7 +31,7 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
     calendarURL,
     bridgeName,
     coreURL
-  }: Form, e: BaseSyntheticEvent<object> | undefined) => {
+  }: ConfigurationForm, e: BaseSyntheticEvent<object> | undefined) => {
     if ((e?.nativeEvent as unknown as NativeEvent)
       .submitter.name === "auto-mode") {
       openDialog();

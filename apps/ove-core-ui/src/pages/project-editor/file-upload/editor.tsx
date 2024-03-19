@@ -1,6 +1,7 @@
 import ace from "ace-builds";
-import React, { useEffect, useState } from "react";
 import AceEditor from "react-ace";
+import React, { useEffect, useState } from "react";
+import { Button } from "@ove/ui-base-components";
 import json from "ace-builds/src-noconflict/mode-json";
 import markdown from "ace-builds/src-noconflict/mode-markdown";
 import tex from "ace-builds/src-noconflict/mode-tex";
@@ -13,7 +14,6 @@ import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
 
 import styles from "./file-upload.module.scss";
-import { Button } from "@ove/ui-base-components";
 
 ace.config.setModuleUrl("ace/mode/json", json);
 ace.config.setModuleUrl("ace/mode/markdown", markdown);
@@ -37,6 +37,12 @@ type EditorProps = {
   close: () => void
 }
 
+const getExtensionForLanguage = (language: string) => {
+  if (language === "latex") return ".tex";
+  if (language === "markdown") return ".md";
+  return `.${language}`;
+};
+
 const Editor = ({ close, file, save }: EditorProps) => {
   const [data, setData] = useState(file?.data ?? "");
   const [name, setName] = useState(file?.name ?? "");
@@ -52,8 +58,7 @@ const Editor = ({ close, file, save }: EditorProps) => {
   }, [language, data, file?.data, file?.language]);
 
   const addFileExtension = (name: string) => {
-    const extension = language === "latex" ? ".tex" :
-      (language === "markdown" ? ".md" : `.${language}`);
+    const extension = getExtensionForLanguage(language);
     return `${name}${extension}`;
   };
 

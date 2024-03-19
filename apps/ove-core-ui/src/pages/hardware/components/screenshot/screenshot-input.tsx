@@ -1,17 +1,21 @@
+import { z } from "zod";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import { isError, type ScreenshotMethod } from "@ove/ove-types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isError, ScreenshotMethodSchema } from "@ove/ove-types";
 
 import styles from "./screenshot.module.scss";
 
-type Form = {
-  method: ScreenshotMethod,
-  screen: string
-}
+const ScreenshotInputFormSchema = z.strictObject({
+  method: ScreenshotMethodSchema,
+  screen: z.number()
+});
+
+type ScreenshotInputForm = z.infer<typeof ScreenshotInputFormSchema>
 
 const useScreenshot = (
   bridgeId: string,
@@ -79,8 +83,10 @@ const useScreenshot = (
 };
 
 const ScreenshotInput = () => {
-  const [screens, setScreens] = useState<string[]>([]);
-  const { register, handleSubmit, setValue } = useForm<Form>();
+  const [screens, setScreens] = useState<number[]>([]);
+  const { register, handleSubmit, resetField } = useForm<ScreenshotInputForm>({
+    resolver: zodResolver(ScreenshotInputFormSchema)
+  });
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -90,12 +96,12 @@ const ScreenshotInput = () => {
     deviceAction.tag
   );
 
-  const onSubmit = ({ method, screen }: Form) => {
+  const onSubmit = ({ method, screen }: ScreenshotInputForm) => {
     if (screen !== "") {
       setScreens(cur => cur.includes(screen) ? cur : [...cur, screen]);
-      setValue("screen", "");
+      resetField("screen");
     } else {
-      screenshot(method, screens.map(parseInt));
+      screenshot(method, screens);
       setDeviceAction({ ...deviceAction, pending: false });
     }
   };
@@ -105,6 +111,7 @@ const ScreenshotInput = () => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <fieldset>
         <label htmlFor="method">Save Method</label>
+        {/* TODO: should this input be required? */}
         <select {...register("method")}>
           <option value="response">Response</option>
           <option value="upload">Upload</option>
@@ -112,11 +119,13 @@ const ScreenshotInput = () => {
         </select>
       </fieldset>
       <fieldset>
-        <label>Screens</label>
+        <label htmlFor="screen">Screens</label>
         <ul className={styles.tags}>
           {screens.map(screen => <li key={screen}
                                      className={styles.saved}>{screen}</li>)}
-          <li key="input"><input {...register("screen")} /></li>
+          {/* TODO: should this input be required? */}
+          <li key="input">
+            <input {...register("screen", { valueAsNumber: true })} /></li>
         </ul>
       </fieldset>
       <button name="submit" type="submit">SUBMIT</button>
