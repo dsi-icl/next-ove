@@ -26,12 +26,7 @@ let defaultIdx: string | null = null;
 
 const onWindowAllClosed = () => {
   if (defaultIdx === null) {
-    defaultIdx = initWindow();
-    loadMainWindow(defaultIdx);
-    const browserId = Array.from(state.browsers.keys())
-      .reduce((acc, x) => x > acc ? x : acc, 0);
-    state.browsers.set(
-      browserId, { displayId: -1, url: "", windowId: defaultIdx });
+    loadMainWindow();
   } else {
     state.browsers.clear();
     application?.quit();
@@ -111,20 +106,51 @@ const loadUIWindow = (idx: string, url?: `/${string}`) => {
   }
 };
 
-const loadMainWindow = (idx: string) => {
-  if (windows[idx] === null) {
-    throw new Error("Main window should not be null");
+const loadMainWindow = () => {
+  if (env.AUTHORISED_CREDENTIALS === undefined) {
+    console.log("Loading UI Window");
+    const defaultIdx = initWindow();
+    loadUIWindow(defaultIdx);
+    const browserId = Array.from(state.browsers.keys())
+      .reduce((acc, x) => x > acc ? x : acc, 0);
+    state.browsers.set(
+      browserId, { displayId: -1, url: "", windowId: defaultIdx });
+  } else {
+    console.log("Loading Window Config");
+    try {
+      loadWindowConfig();
+    } catch (e) {
+      logger.error(e);
+    }
   }
-  loadUIWindow(idx);
 };
 
-const onReady = () => {
-  defaultIdx = initWindow();
-  loadMainWindow(defaultIdx);
-  const browserId = Array.from(state.browsers.keys())
-    .reduce((acc, x) => x > acc ? x : acc, 0);
-  state.browsers.set(
-    browserId, { displayId: -1, url: "", windowId: defaultIdx });
+const onReady = loadMainWindow;
+
+const loadWindowConfig = () => {
+  Object.entries(env.WINDOW_CONFIG).forEach(([k, v]) => {
+    const browser = Array.from(state.browsers.entries()).find(([_k, v_]) => v_.displayId === parseInt(k));
+    let idx: string;
+    if (browser === undefined) {
+      idx = initWindow(parseInt(k));
+    } else {
+      idx = browser[1].windowId;
+    }
+
+    windows[idx].loadURL(v)
+      .then(() => logger.info(`Loaded url: ${v}`))
+      .catch(reason => {
+        logger.error(reason);
+        loadErrorPage(idx);
+      });
+
+    if (browser === undefined) {
+      const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
+      state.browsers.set(browserId, { displayId: parseInt(k), url: v, windowId: idx });
+    } else {
+      state.browsers.set(browser[0], { url: v, ...browser[1] });
+    }
+  });
 };
 
 const onActivate = () => {
@@ -189,6 +215,7 @@ const app = {
         loadErrorPage(idx);
       });
   },
+  loadWindowConfig,
   triggerIPC,
   isInitialised: () => initialised,
   init
