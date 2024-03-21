@@ -43,6 +43,7 @@
     "@lhci/cli": "^0.13.0",
     "@lhci/server": "^0.13.0",
     "@mands/nx-playwright": "^0.1.31",
+    "@million/lint": "^0.0.73",
     "@ngneat/falso": "^7.1.1",
     "@nrwl/cli": "15.9.2",
     "@nrwl/jest": "17.3.2",

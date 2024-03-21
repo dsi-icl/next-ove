@@ -1,8 +1,9 @@
 // eslint-disable-next-line spaced-comment
 /// <reference types="vitest" />
+import MillionLint from '@million/lint';
 import react from "@vitejs/plugin-react";
-import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
+import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
 export default defineConfig(({ command: _command }) => {
   return {
@@ -26,7 +27,7 @@ export default defineConfig(({ command: _command }) => {
       port: 4203,
       host: "0.0.0.0"
     },
-    plugins: [react(), nxViteTsPaths()],
+    plugins: [react(), nxViteTsPaths(), MillionLint.vite()],
     test: {
       reporters: ["default"],
       coverage: {

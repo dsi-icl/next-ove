@@ -1,0 +1,9 @@
+{
+  "limit": "200mb",
+  "port": 52921,
+  "host": "localhost",
+  "cors": {
+    "origin": "*"
+  },
+  "version": 0
+}

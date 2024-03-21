@@ -348,6 +348,10 @@ tools/doiuse/browser-usage.json
 /tools/packages/packages.txt
 /tools/packages/packages.json
 
+# million-lint
+/tools/million-lint/config.json
+/tools/million-lint/data/*.json
+
 # nx
 /.nx/
 
