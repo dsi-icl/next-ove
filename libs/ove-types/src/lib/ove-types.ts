@@ -24,8 +24,9 @@ export const isAll = <T extends z.ZodTypeAny>(
 ): obj is z.infer<T>[] => z.array(schema).safeParse(obj).success;
 
 export type Tokens = {
-  access: string,
+  access: string
   refresh: string
+  expiry: Date
 }
 
 export const PowerModeSchema = z.union([

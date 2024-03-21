@@ -16,5 +16,6 @@
     "GLOBAL_BUCKETS": []
   },
   "DISABLE_AUTH": false,
-  "SOCKET_DIST": ""
+  "SOCKET_DIST": "",
+  "TOKEN_EXPIRY": "24h"
 }

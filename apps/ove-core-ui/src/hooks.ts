@@ -1,9 +1,10 @@
 import { useStore } from "./store";
 import { env, logger } from "./env";
 import { Json } from "@ove/ove-utils";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createAuthClient, createClient } from "./utils";
 import { useLocation, useNavigate } from "react-router-dom";
+import { isError } from "@ove/ove-types";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -39,11 +40,16 @@ export const useAuth = () => {
     if (tokens === null) return;
     try {
       const res = await createClient(tokens).token.mutate();
-      if (typeof res !== "string") {
+      if (isError(res)) {
         logout();
         return;
       }
-      const refreshedTokens = { access: res, refresh: tokens.refresh };
+      const refreshedTokens = {
+        access: res.token,
+        expiry: res.expiry,
+        refresh: tokens.refresh
+      };
+      console.log(refreshedTokens);
       localStorage.setItem("tokens", Json.stringify(refreshedTokens));
       setTokens(refreshedTokens);
       return refreshedTokens;
@@ -52,6 +58,11 @@ export const useAuth = () => {
       return;
     }
   }, [tokens, logout, setTokens]);
+
+  useEffect(() => {
+    if (tokens === null || tokens.expiry > new Date()) return;
+    refresh().catch(logger.error);
+  }, []);
 
   return {
     loggedIn: tokens !== null || env.DISABLE_AUTH,

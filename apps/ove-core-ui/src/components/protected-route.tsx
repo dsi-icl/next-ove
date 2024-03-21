@@ -1,5 +1,3 @@
-/* global JSX */
-
 import React, { type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
@@ -12,7 +10,7 @@ const ProtectedRoute = ({
   condition,
   redirectTo,
   children
-}: ConditionalRouteProps): JSX.Element => condition ? <div>{children}</div> :
+}: ConditionalRouteProps): ReactNode => condition ? <div>{children}</div> :
   <Navigate to={redirectTo} replace />;
 
 export type ConditionalRouteProps = {

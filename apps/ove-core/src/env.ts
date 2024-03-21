@@ -44,7 +44,8 @@ const baseSchema = z.strictObject({
   }).optional(),
   DISABLE_AUTH: z.boolean(),
   TEST_USER: z.string().optional(),
-  SOCKET_DIST: z.string()
+  SOCKET_DIST: z.string(),
+  TOKEN_EXPIRY: z.string()
 });
 
 const schema = baseSchema.refine(config =>
@@ -83,6 +84,7 @@ const defaultConfig: z.infer<typeof schema> = {
   DISABLE_AUTH: false,
   SOCKET_DIST: path.join(__dirname, "..", "..", "..",
     "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
+  TOKEN_EXPIRY: "24h"
 };
 
 const configPath = path.join(__dirname, "config", "config.json");

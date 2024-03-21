@@ -1,5 +1,6 @@
 /* global Buffer */
 
+import ms from "ms";
 import { env } from "../../env";
 import { TRPCError } from "@trpc/server";
 import * as bcrypt from "bcrypt";
@@ -58,7 +59,8 @@ const login = async (ctx: Context): Promise<Tokens> => {
     });
   }
 
-  const accessToken = generateToken(username, env.ACCESS_TOKEN_SECRET, "24h");
+  const accessToken = generateToken(
+    username, env.ACCESS_TOKEN_SECRET, env.TOKEN_EXPIRY);
   const refreshToken = generateToken(username, env.REFRESH_TOKEN_SECRET);
 
   await ctx.prisma.refreshToken.upsert({
@@ -74,7 +76,11 @@ const login = async (ctx: Context): Promise<Tokens> => {
     }
   });
 
-  return { access: accessToken, refresh: refreshToken };
+  return {
+    access: accessToken,
+    refresh: refreshToken,
+    expiry: new Date(Date.now() + ms(env.TOKEN_EXPIRY))
+  };
 };
 
 const getToken = async (ctx: Context) => {
@@ -107,7 +113,11 @@ const getToken = async (ctx: Context) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid token" });
   }
 
-  return generateToken(user.username, env.ACCESS_TOKEN_SECRET, "24h");
+  return {
+    token: generateToken(
+      user.username, env.ACCESS_TOKEN_SECRET, env.TOKEN_EXPIRY),
+    expiry: new Date(Date.now() + ms(env.TOKEN_EXPIRY))
+  };
 };
 
 const getUser = (prisma: PrismaClient, username: string) =>
