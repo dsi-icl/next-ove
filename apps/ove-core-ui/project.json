@@ -18,6 +18,9 @@
         },
         "production": {
           "mode": "production"
+        },
+        "linting": {
+          "mode": "linting"
         }
       }
     },
@@ -35,6 +38,10 @@
         "production": {
           "buildTarget": "ove-core-ui:build:production",
           "hmr": false
+        },
+        "linting": {
+          "buildTarget": "ove-core-ui:build:linting",
+          "hmr": true
         }
       }
     },
@@ -50,6 +57,9 @@
         },
         "production": {
           "buildTarget": "ove-core-ui:build:production"
+        },
+        "linting": {
+          "buildTarget": "ove-core-ui:build:linting"
         }
       }
     },

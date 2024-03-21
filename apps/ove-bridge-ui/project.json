@@ -18,6 +18,9 @@
         "production": {
           "mode": "production",
           "baseHref": "./"
+        },
+        "linting": {
+          "mode": "linting"
         }
       }
     },
@@ -35,6 +38,10 @@
         "production": {
           "buildTarget": "ove-bridge-ui:build:production",
           "hmr": false
+        },
+        "linting": {
+          "buildTarget": "ove-bridge-ui:build:linting",
+          "hmr": true
         }
       }
     },
@@ -50,6 +57,9 @@
         },
         "production": {
           "buildTarget": "ove-bridge-ui:build:production"
+        },
+        "linting": {
+          "buildTarget": "ove-bridge-ui:build:linting"
         }
       }
     },
