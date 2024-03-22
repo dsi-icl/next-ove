@@ -86,8 +86,8 @@ model Project {
   layout          Section[]
   // project tags for grouping
   tags            String[]  @default([])
-  // whether the project has been saved - will be deleted after 30 days if not saved
-  isSaved         Boolean   @default(false)
+  // whether the project is publically available
+  isPublic        Boolean   @default(false)
   // invites to users for collaboration
   invites         Invite[]
 }

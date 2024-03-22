@@ -23,7 +23,7 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
   }, { enabled: false });
   const getStatusAll = trpc.hardware.getStatusAll.useQuery({
     bridgeId
-  }, { enabled: true });
+  }, { enabled: isOnline });
 
   const hardware = useMemo(() => {
     if (!isOnline || getHardware.status !== "success" ||

@@ -42,7 +42,7 @@ const getDetails = () => {
       role: {
         message: 'role:',
         required: true,
-        pattern: /^(?:admin|owner|bridge|creator)$/
+        pattern: /^(?:admin|bridge|creator|client)$/
       }
     }
   });

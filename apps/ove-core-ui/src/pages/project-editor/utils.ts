@@ -1,12 +1,4 @@
-import { type Project, type Section } from "@prisma/client";
 import { DataType } from "./types";
-
-export const toProject = (project: Project, sections: Section[]) => {
-  console.log(JSON.stringify({
-    ...project,
-    layout: sections
-  }, undefined, 2));
-};
 
 export const dataTypes: DataType[] = [
   {

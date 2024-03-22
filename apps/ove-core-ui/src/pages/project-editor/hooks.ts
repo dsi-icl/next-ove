@@ -4,6 +4,7 @@ import {
   type Section,
   type User
 } from "@prisma/client";
+import "@total-typescript/ts-reset";
 import { nanoid } from "nanoid";
 import { trpc } from "../../utils/api";
 import { useStore } from "../../store";
@@ -13,6 +14,8 @@ import { type Rect, type Space } from "./types";
 import { type ProjectMetadata } from "./metadata/metadata";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isError, type File } from "@ove/ove-types";
+import { logger } from "../../env";
+import { toast } from "sonner";
 
 export const useContainer = (space: Space) => {
   const [width, setWidth] = useState(100);
@@ -305,8 +308,26 @@ const loadNewProject = (username: string): (Project & {
   layout: [],
   created: new Date(),
   updated: new Date(),
-  isSaved: false
+  isPublic: false
 });
+
+export const useSave = () => {
+  const saveProject = trpc.projects.saveProject.useMutation({
+    retry: false
+  });
+
+  return {
+    saveProject: (project: Project, layout: Section[]) => {
+      saveProject.mutateAsync({
+        ...project,
+        layout
+      }).then(() => toast.info("Successfully saved project!")).catch(e => {
+        logger.error(e);
+        toast.error("Error saving project");
+      });
+    }
+  };
+};
 
 export const useProject = (
   username: string | null,
@@ -343,8 +364,8 @@ export const useProject = (
 
   return {
     project,
-    updateProject,
-    tags
+    tags,
+    updateProject
   };
 };
 
@@ -439,17 +460,18 @@ export const useCollaboration = (project: Project, username: string) => {
   }, [invites_.status, invites_.data]);
 
   const uninvited = users
-    .filter(user => project.collaboratorIds
+    .filter(user => (project.collaboratorIds.concat([project.creatorId]))
       .find(id => id === user.id) === undefined && invites.find(({
       recipientId,
       status
     }) => recipientId === user.id && status === "pending") === undefined);
   const accepted = project.collaboratorIds
-    .map(id => assert(users.find(user => user.id === id)));
+    .map(id => users.find(user => user.id === id))
+    .filter(Boolean).concat(users.filter(user => user.id === project.creatorId));
   const invited = invites
     .filter(({ status }) => status === "pending")
-    .map(({ recipientId }) => assert(users.find(({ id }) =>
-      id === recipientId)));
+    .map(({ recipientId }) => users.find(({ id }) =>
+      id === recipientId)).filter(Boolean);
 
   const inviteCollaborator = (id: string) => {
     setInvites(cur => [...cur, {

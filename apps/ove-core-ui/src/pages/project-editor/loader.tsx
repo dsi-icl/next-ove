@@ -1,5 +1,5 @@
 import ProjectEditor from "./page";
-import { useProject } from "./hooks";
+import { useProject, useSave } from "./hooks";
 import { useQuery } from "../../hooks";
 import { trpc } from "../../utils/api";
 import { isError } from "@ove/ove-types";
@@ -18,9 +18,11 @@ const Loader = ({ username }: { username: string }) => {
     tags
   } = useProject(userId, query.get("project"));
 
+  const { saveProject } = useSave();
+
   return project === null || userId === null ? null :
     <ProjectEditor project={project} updateProject={updateProject}
-                   tags={tags} username={username} />;
+                   tags={tags} username={username} saveProject={saveProject} />;
 };
 
 export default Loader;

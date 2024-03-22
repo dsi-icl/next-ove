@@ -24,6 +24,13 @@
       grid-template-columns: 1fr 1fr 1fr 1fr;
     }
 
+    .heading {
+      margin: 2rem;
+      font-weight: 700;
+      font-size: 1.5rem;
+      border-bottom: 1px solid grey;
+    }
+
     #mask {
       background: rgba(0, 0, 0, 0.75);
       position: fixed;
@@ -33,15 +40,16 @@
       bottom: 0;
       left: 0;
     }
+  }
 
-    #new {
-      position: absolute;
-      bottom: 2rem;
-      right: 2rem;
-      padding: 0.5rem;
-      border: 1px solid white;
-      border-radius: 50%;
-      color: white;
-    }
+  #new {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    margin-left: auto;
+    padding: 0.5rem;
+    border: 1px solid black;
+    border-radius: 50%;
+    color: black;
   }
 }

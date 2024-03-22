@@ -6,7 +6,6 @@ import {
   Save,
   Upload
 } from "react-bootstrap-icons";
-import { toast } from "sonner";
 import React, { type ReactNode } from "react";
 import { type Actions as TActions } from "../hooks";
 
@@ -61,7 +60,6 @@ const Actions = ({ setAction, save }: ActionsProps) => {
   const handler = (action: TActions | null) => {
     if (action === null) {
       save();
-      toast("Project saved successfully!");
       return;
     }
 

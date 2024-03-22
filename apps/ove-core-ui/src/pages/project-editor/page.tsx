@@ -8,7 +8,7 @@ import {
   useSections,
   useSpace
 } from "./hooks";
-import { dataTypes, toProject } from "./utils";
+import { dataTypes } from "./utils";
 import Canvas from "./canvas/canvas";
 import Actions from "./actions/actions";
 import Sections from "./sections/sections";
@@ -95,13 +95,15 @@ type ProjectEditorProps = {
   updateProject: (project: ProjectMetadata) => void
   tags: string[]
   username: string
+  saveProject: (project: Project, layout: Section[]) => void
 }
 
 const ProjectEditor = ({
   project,
   updateProject,
   tags,
-  username
+  username,
+  saveProject
 }: ProjectEditorProps) => {
   const { observatories } = useObservatories();
   const space = useSpace();
@@ -244,7 +246,7 @@ const ProjectEditor = ({
       <ResizableHandle withHandle={!isOpen} />
       <ResizablePanel defaultSize={5}>
         <Actions setAction={setAction}
-                 save={() => toProject(project, sections.all)} />
+                 save={() => saveProject(project, sections.all)} />
       </ResizablePanel>
     </ResizablePanelGroup>
     <Dialog ref={dialog} closeDialog={() => setAction(null)}

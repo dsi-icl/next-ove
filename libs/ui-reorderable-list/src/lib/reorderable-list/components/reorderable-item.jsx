@@ -1,4 +1,4 @@
-import React, { Component, createRef } from "react";
+import React, { Component, createRef, ReactElement } from "react";
 import PropTypes from "prop-types";
 import {
   appendClassIfNotExists,
@@ -45,8 +45,8 @@ export default class ReOrderableItem extends Component {
   };
 
   static propTypes = {
-    children: PropTypes.instanceOf(React.ReactElement),
-    component: PropTypes.instanceOf(React.ReactElement),
+    children: PropTypes.node,
+    component: PropTypes.node,
     list: PropTypes.object,
     onItemDrag: PropTypes.func,
     onItemDragEnd: PropTypes.func,

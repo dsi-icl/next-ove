@@ -152,10 +152,10 @@ function drawSpaces({
     );
   }
 
-  const minSectionHeight = assert(d3.min(sections.map(d =>
-    x(d.height))));
-  const minSectionWidth = assert(d3.min(sections.map(d =>
-    x(d.width))));
+  const minSectionHeight = d3.min(sections.map(d =>
+    x(d.height))) ?? 0;
+  const minSectionWidth = d3.min(sections.map(d =>
+    x(d.width))) ?? 0;
   const sectionTextSize = Math.min(minSectionHeight, minSectionWidth) / 4;
   svg.selectAll(".section-label")
     .data(() => sections)

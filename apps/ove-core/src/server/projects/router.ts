@@ -28,6 +28,21 @@ const SectionSchema: z.ZodType<Section> = z.strictObject({
   ordering: z.number()
 });
 
+const OptionalSectionSchema: z.ZodType<PartialBy<Section, "id">> = z.strictObject({
+  id: z.string().optional(),
+  width: z.number(),
+  height: z.number(),
+  x: z.number(),
+  y: z.number(),
+  asset: z.string(),
+  assetId: z.string().nullable(),
+  config: z.custom<JsonValue>(),
+  states: z.string().array(),
+  dataType: z.string(),
+  projectId: z.string(),
+  ordering: z.number()
+});
+
 const ProjectSchema: z.ZodType<Project & {
   layout: Section[]
 }> = z.strictObject({
@@ -44,7 +59,28 @@ const ProjectSchema: z.ZodType<Project & {
   presenterNotes: z.string(),
   notes: z.string(),
   tags: z.string().array(),
-  isSaved: z.boolean()
+  isPublic: z.boolean()
+});
+
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
+const OptionalProjectSchema: z.ZodType<PartialBy<Project, "id"> & {
+  layout: PartialBy<Section, "id">[]
+}> = z.strictObject({
+  id: z.string().optional(),
+  creatorId: z.string(),
+  collaboratorIds: z.string().array(),
+  created: z.date(),
+  updated: z.date(),
+  layout: OptionalSectionSchema.array(),
+  title: z.string(),
+  description: z.string(),
+  thumbnail: z.string().nullable(),
+  publications: z.string().array(),
+  presenterNotes: z.string(),
+  notes: z.string(),
+  tags: z.string().array(),
+  isPublic: z.boolean()
 });
 
 const UserSchema: z.ZodType<User> = z.strictObject({
@@ -76,6 +112,10 @@ export type Controller = {
   getInvitesForProject: (prisma: PrismaClient, projectId: string) =>
     Promise<Invite[]>
   getFiles: (projectId: string) => Promise<z.infer<typeof FileSchema>[]>
+  saveProject: (prisma: PrismaClient,
+    project: PartialBy<Project, "id"> & {
+      layout: PartialBy<Section, "id">[]
+    }) => Promise<void>
 }
 
 export const projectsRouter = router({
@@ -126,6 +166,19 @@ export const projectsRouter = router({
       logger.info(`Getting invites for ${projectId}`);
       return await safe(logger, () =>
         controller.getInvitesForProject(ctx.prisma, projectId));
+    }),
+  saveProject: protectedProcedure
+    .meta({
+      method: "POST",
+      path: "/project/{projectId}",
+      protected: true
+    })
+    .input(OptionalProjectSchema)
+    .output(z.union([OVEExceptionSchema, z.void()]))
+    .mutation(async ({ ctx, input }) => {
+      logger.info(`Saving project ${input.id}`);
+      return safe(logger, () =>
+        controller.saveProject(ctx.prisma, input));
     }),
   getFiles: protectedProcedure
     .meta({

@@ -50,11 +50,12 @@ export default class ReOrderableList extends Component {
     componentProps: PropTypes.object,
     orientation: PropTypes.oneOf(["vertical", "horizontal"]).isRequired,
     placeholder: PropTypes.oneOfType([
-      PropTypes.instanceOf(Object),
-      PropTypes.instanceOf(ReactElement)
-    ]).isRequired,
+      PropTypes.object,
+      PropTypes.node,
+      PropTypes.func
+    ]),
     group: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
-    children: PropTypes.instanceOf(ReactElement),
+    children: PropTypes.node,
     onListUpdate: PropTypes.func
   };
 

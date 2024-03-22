@@ -49,7 +49,6 @@ export const useAuth = () => {
         expiry: res.expiry,
         refresh: tokens.refresh
       };
-      console.log(refreshedTokens);
       localStorage.setItem("tokens", Json.stringify(refreshedTokens));
       setTokens(refreshedTokens);
       return refreshedTokens;

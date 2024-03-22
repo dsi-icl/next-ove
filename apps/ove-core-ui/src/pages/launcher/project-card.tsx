@@ -1,29 +1,35 @@
 import React from "react";
-import { type Project } from "@prisma/client";
+import { type Project, type User } from "@prisma/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@ove/ui-base-components";
 
 import styles from "./project-card.module.scss";
 
 type ProjectCardProps = {
+  user: User
   project: Project
   openDialog: () => void
 }
 
 const ProjectCard = ({
-  project: { id, title, thumbnail },
+  user,
+  project,
   openDialog
 }: ProjectCardProps) => {
   const navigate = useNavigate();
+  const canEdit = user.role === "admin" ||
+    ((user.id === project.creatorId ||
+      project.collaboratorIds.includes(user.id)) && user.role !== "client");
 
-  return <li key={title} className={styles.main}>
-    <img src={thumbnail ?? "/missing-thumbnail.jpg"}
-         alt={`Thumbnail for ${title}`} />
-    <h4>{title}</h4>
+  return <li key={project.title} className={styles.main}>
+    <img src={project.thumbnail ?? "/missing-thumbnail.jpg"}
+         alt={`Thumbnail for ${project.title}`} />
+    <h4>{project.title}</h4>
     <div className={styles.actions}>
-      <Button onClick={() => navigate(`/project-editor?project=${id}`)}>
+      {canEdit ? <Button
+        onClick={() => navigate(`/project-editor?project=${project.id}`)}>
         EDIT
-      </Button>
+      </Button> : null}
       <Button onClick={openDialog}>
         LAUNCH
       </Button>

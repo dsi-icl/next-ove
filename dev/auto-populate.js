@@ -30,17 +30,23 @@ const generateUsers = () => credentials.concat(Array.from({ length: 2 }, (_x) =>
   username: randUserName(),
   email: randEmail(),
   password: randPassword(),
-  role: rand(['admin', 'creator']),
+  role: rand(['admin', 'creator', 'client']),
 })));
 
-const generateProjects = userIds => Array.from({ length: 5 }, (_x) => {
+/** @type {(users: import('@prisma/client').User[]) => Omit<import('@prisma/client').Project, "id">[]} */
+const generateProjects = users => Array.from({ length: 5 }, (_x) => {
+  /** @type {string[]} */
+  const userIds = users.map(({ id }) => id);
   /** @type {string} */
   const creatorId = rand(userIds);
   /** @type {Date} */
   const createdAt = randRecentDate();
   /** @type {number} */
   const collaboratorLen = randNumber({ min: 0, max: userIds.length });
-  const collaboratorIds = unique([creatorId].concat(/** @type {string[]} */rand(userIds, { length: collaboratorLen })));
+  const collaboratorIds = unique(/** @type {string[]} */rand(userIds, { length: collaboratorLen })).filter(id => {
+    const user = users.find(user => user.id === id);
+    return id !== creatorId && user.role !== "bridge";
+  });
   return ({
     creatorId,
     collaboratorIds: collaboratorIds,
@@ -51,12 +57,13 @@ const generateProjects = userIds => Array.from({ length: 5 }, (_x) => {
     }), // from: created
     title: randProductName(),
     description: randProductDescription(),
+    /** @type {string | null} */
     thumbnail: randBoolean() ? process.env.THUMBNAIL : undefined, // dev thumbnail
     publications: unique(randProductName({ length: 3 })),
     presenterNotes: randText(),
     notes: randText(),
     tags: unique(randVehicleType({ length: 4 })),
-    isSaved: randBoolean()
+    isPublic: randBoolean()
   });
 });
 
@@ -93,9 +100,8 @@ const load = async () => {
   });
 
   const users = await prisma.user.findMany({});
-  const userIds = users.map(({ id }) => id);
 
-  for (const project of generateProjects(userIds)) {
+  for (const project of generateProjects(users)) {
     await prisma.project.create({
       data: project,
       include: {

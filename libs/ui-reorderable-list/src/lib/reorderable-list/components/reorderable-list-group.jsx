@@ -26,7 +26,7 @@ export default class ReOrderableListGroup extends Component {
     group: PropTypes.any,
     name: PropTypes.string,
     onListGroupUpdate: PropTypes.func,
-    children: PropTypes.instanceOf(ReactElement),
+    children: PropTypes.node,
   };
 
   /**
