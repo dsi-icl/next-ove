@@ -68,3 +68,5 @@ export const AutoScheduleSchema = z.strictObject({
 });
 
 export type AutoSchedule = z.infer<typeof AutoScheduleSchema>;
+
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>

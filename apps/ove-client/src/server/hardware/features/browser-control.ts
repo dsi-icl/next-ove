@@ -16,20 +16,28 @@ const windowController = <{
   createWindow: ((url?: string, displayId?: number) => string) | null,
   takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null,
   closeWindow: ((windowId: string) => void) | null,
+  reloadWindow: ((windowId: string) => void) | null,
+  reloadWindows: (() => void) | null
 }>{
   createWindow: null,
   takeScreenshots: null,
-  closeWindow: null
+  closeWindow: null,
+  reloadWindow: null,
+  reloadWindows: null
 };
 
 const init = (
   createWindow: (url?: string, displayId?: number) => string,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
-  closeWindow: (windowId: string) => void
+  closeWindow: (windowId: string) => void,
+  reloadWindow: (windowId: string) => void,
+  reloadWindows: () => void
 ) => {
   windowController.createWindow = createWindow;
   windowController.takeScreenshots = takeScreenshots;
   windowController.closeWindow = closeWindow;
+  windowController.reloadWindow = reloadWindow;
+  windowController.reloadWindows = reloadWindows;
 };
 
 const closeBrowser = (windowId: string) => {
@@ -143,12 +151,30 @@ const closeBrowsers = (browsers: IterableIterator<Browser>) => {
   return status;
 };
 
+const reloadBrowser = (windowId: string) => {
+  if (windowController.reloadWindow === null) {
+    throw new Error("Controller not initialised for managing browsers");
+  }
+  windowController.reloadWindow(windowId);
+  return true;
+};
+
+const reloadBrowsers = () => {
+  if (windowController.reloadWindows === null) {
+    throw new Error("Controller not initialised for managing browsers");
+  }
+  windowController.reloadWindows();
+  return true;
+};
+
 const service = {
   init,
   openBrowser,
   closeBrowser,
   closeBrowsers,
-  screenshot
+  screenshot,
+  reloadBrowser,
+  reloadBrowsers
 };
 
 export default service;

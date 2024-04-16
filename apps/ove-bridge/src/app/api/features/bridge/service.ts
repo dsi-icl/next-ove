@@ -15,6 +15,10 @@ import { execSync } from "child_process";
 import { env, logger } from "../../../../env";
 import { createClient } from "../hardware/node-service";
 import { closeSocket, getSocketStatus } from "./sockets";
+import {
+  refreshReconciliation,
+  startReconciliation, stopReconciliation
+} from "../hardware/reconciliation";
 
 let initBridge_: (() => void) | null = null;
 let initHardware_: (() => void) | null = null;
@@ -128,5 +132,17 @@ export const service: TBridgeService = {
   getAppVersion: () => app.getVersion(),
   getPublicKey: () => env.PUBLIC_KEY,
   getAutoSchedule: () => env.AUTO_SCHEDULE,
-  getGeometry: () => env.GEOMETRY
+  getGeometry: () => env.GEOMETRY,
+  refreshReconciliation: () => {
+    refreshReconciliation();
+    return true;
+  },
+  startReconciliation: () => {
+    startReconciliation();
+    return true;
+  },
+  stopReconciliation: () => {
+    stopReconciliation();
+    return true;
+  }
 };

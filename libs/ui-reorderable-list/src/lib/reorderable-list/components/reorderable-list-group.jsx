@@ -1,5 +1,3 @@
-/* global ReactElement*/
-
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { get, set } from "../lib/object";

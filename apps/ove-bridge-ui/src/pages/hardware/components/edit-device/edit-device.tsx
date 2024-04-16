@@ -34,7 +34,7 @@ const DeviceFormSchema = z.strictObject({
   ip: z.string(),
   port: z.number(),
   mac: z.string()
-})
+});
 
 type DeviceForm = z.infer<typeof DeviceFormSchema>
 

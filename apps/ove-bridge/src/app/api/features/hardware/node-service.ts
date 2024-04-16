@@ -16,7 +16,9 @@ import {
 } from "@ove/ove-types";
 import { z } from "zod";
 import superjson from "superjson";
-import { env } from "../../../../env";
+import { env, logger } from "../../../../env";
+import { raise } from "@ove/ove-utils";
+import { statusOptions } from "../../utils/status";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
@@ -102,9 +104,9 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getStatus.query(
+  return statusOptions(() => createClient(device).getStatus.query(
     parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>
-  );
+  ), device.ip);
 };
 
 const execute = async (device: Device, args: TBridgeServiceArgs<"execute">) => {
@@ -197,6 +199,50 @@ const closeBrowsers = async (
   );
 };
 
+const reloadBrowser = async (
+  device: Device,
+  args: TBridgeServiceArgs<"reloadBrowser">
+) => {
+  const reloadBrowsersOptsSchema = z.strictObject({ browserId: z.number() });
+  const parsedOpts = reloadBrowsersOptsSchema.safeParse(args);
+
+  if (!parsedOpts.success) return undefined;
+
+  return await createClient(device).reloadBrowser.mutate(
+    parsedOpts.data as z.infer<TClientAPI["reloadBrowser"]["args"]>
+  );
+};
+
+const reloadBrowsers = async (
+  device: Device,
+  args: TBridgeServiceArgs<"reloadBrowsers">
+) => {
+  const reloadBrowsersOptsSchema = z.object({}).strict();
+  const parsedOpts = reloadBrowsersOptsSchema.safeParse(args);
+
+  if (!parsedOpts.success) return undefined;
+
+  return await createClient(device).reloadBrowsers.mutate(
+    parsedOpts.data as z.infer<TClientAPI["reloadBrowsers"]["args"]>
+  );
+};
+
+const setWindowConfig = async (
+  device: Device,
+  args: TBridgeServiceArgs<"setWindowConfig">
+) => {
+  const setConfigOptsSchema = z.strictObject({
+    config: z.record(z.string(), z.string())
+  });
+  const parsedOpts = setConfigOptsSchema.safeParse(args);
+
+  if (!parsedOpts.success) return undefined;
+
+  return await createClient(device).setWindowConfig.mutate(
+    parsedOpts.data as z.infer<TClientAPI["setWindowConfig"]["args"]>
+  );
+};
+
 const getBrowsers = async (
   device: Device,
   args: TBridgeServiceArgs<"getBrowsers">
@@ -206,9 +252,14 @@ const getBrowsers = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).getBrowsers.query(
-    parsedOpts.data as z.infer<TClientAPI["getBrowsers"]["args"]>
-  );
+  try {
+    return await createClient(device).getBrowsers.query(
+      parsedOpts.data as z.infer<TClientAPI["getBrowsers"]["args"]>
+    );
+  } catch (e) {
+    logger.error(e);
+    return raise("Unable to get browsers on client");
+  }
 };
 
 const NodeService: TBridgeHardwareService = {
@@ -223,7 +274,10 @@ const NodeService: TBridgeHardwareService = {
   closeBrowser,
   getBrowser,
   getBrowsers,
-  closeBrowsers
+  closeBrowsers,
+  reloadBrowser,
+  reloadBrowsers,
+  setWindowConfig
 };
 
 export default NodeService;

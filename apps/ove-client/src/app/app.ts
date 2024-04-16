@@ -108,7 +108,7 @@ const loadUIWindow = (idx: string, url?: `/${string}`) => {
 
 const loadMainWindow = () => {
   if (env.AUTHORISED_CREDENTIALS === undefined) {
-    console.log("Loading UI Window");
+    logger.info("Loading UI Window");
     const defaultIdx = initWindow();
     loadUIWindow(defaultIdx);
     const browserId = Array.from(state.browsers.keys())
@@ -116,7 +116,7 @@ const loadMainWindow = () => {
     state.browsers.set(
       browserId, { displayId: -1, url: "", windowId: defaultIdx });
   } else {
-    console.log("Loading Window Config");
+    logger.info("Loading Window Config");
     try {
       loadWindowConfig();
     } catch (e) {
@@ -129,7 +129,9 @@ const onReady = loadMainWindow;
 
 const loadWindowConfig = () => {
   Object.entries(env.WINDOW_CONFIG).forEach(([k, v]) => {
-    const browser = Array.from(state.browsers.entries()).find(([_k, v_]) => v_.displayId === parseInt(k));
+    const browser =
+      Array.from(state.browsers.entries()).find(v_ =>
+        v_[1].displayId === parseInt(k));
     let idx: string;
     if (browser === undefined) {
       idx = initWindow(parseInt(k));
@@ -145,8 +147,13 @@ const loadWindowConfig = () => {
       });
 
     if (browser === undefined) {
-      const browserId = Array.from(state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
-      state.browsers.set(browserId, { displayId: parseInt(k), url: v, windowId: idx });
+      const browserId = Array.from(
+        state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
+      state.browsers.set(browserId, {
+        displayId: parseInt(k),
+        url: v,
+        windowId: idx
+      });
     } else {
       state.browsers.set(browser[0], { url: v, ...browser[1] });
     }
@@ -214,6 +221,12 @@ const app = {
         logger.error(reason);
         loadErrorPage(idx);
       });
+  },
+  reloadWindow: (idx: string) => {
+    windows[idx]?.webContents.reloadIgnoringCache();
+  },
+  reloadWindows: () => {
+    Object.values(windows).forEach(bw => bw.webContents.reloadIgnoringCache());
   },
   loadWindowConfig,
   triggerIPC,

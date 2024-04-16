@@ -4,7 +4,7 @@ import {
   IDSchema,
   ImageSchema,
   ScreenshotMethodSchema,
-  SourceSchemas,
+  SourceSchemas, StatusOptionsSchema,
   StatusSchema
 } from "../hardware";
 import { ResponseSchema } from "../ove-types";
@@ -54,7 +54,7 @@ export const ServiceAPISchema = {
       }
     },
     args: z.strictObject({}),
-    returns: StatusSchema,
+    returns: StatusOptionsSchema,
     exposed: "client" as const
   },
   getInfo: {
@@ -293,6 +293,42 @@ export const ServiceAPISchema = {
     args: z.strictObject({}),
     returns: StatusSchema,
     exposed: "bridge" as const
+  },
+  setWindowConfig: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/env/windowConfig",
+        protected: true
+      }
+    },
+    args: z.strictObject({ config: z.record(z.string(), z.string()) }),
+    returns: StatusSchema,
+    exposed: "client" as const
+  },
+  reloadBrowser: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/browser/{browserId}/reload",
+        protected: true
+      }
+    },
+    args: z.strictObject({ browserId: IDSchema }),
+    returns: StatusSchema,
+    exposed: "client" as const
+  },
+  reloadBrowsers: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/browsers/reload",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
+    returns: StatusSchema,
+    exposed: "client" as const
   }
 };
 

@@ -1,5 +1,3 @@
-/* global console */
-
 // polyfill of Node.js EventEmitter in the browser
 import Emitter from "component-emitter";
 import superjson from "superjson";
@@ -76,8 +74,9 @@ class Decoder extends Emitter {
 
   /**
    * Clean up internal buffers
+   * @return {undefined}
    */
-  destroy() {
+  destroy(): undefined {
     return undefined;
   }
 }

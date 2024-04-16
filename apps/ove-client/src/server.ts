@@ -15,13 +15,16 @@ import {
   createWindow,
   takeScreenshots,
   closeWindow,
+  reloadWindow,
+  reloadWindows,
   triggerIPC
 } from "./electron";
 import { env, logger } from "./env";
 
 export const start = () => {
   const app = express();
-  init(createWindow, takeScreenshots, closeWindow, triggerIPC);
+  init(createWindow, takeScreenshots, closeWindow, reloadWindow, reloadWindows,
+    triggerIPC);
 
   app.use(cors({ origin: "*" }));
 

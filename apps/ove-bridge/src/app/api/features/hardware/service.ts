@@ -15,6 +15,7 @@ import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
 import MDCService from "./mdc-service";
 import { env, logger } from "../../../../env";
+import { updateState } from "./reconciliation";
 
 export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
@@ -74,6 +75,7 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
 ): Promise<Optional<z.infer<TBridgeRoutesSchema[Key]["client"]>>> => {
   if ((Object.keys(service) as Array<keyof TBridgeHardwareService>)
     .includes(k)) {
+    await updateState(device, k, args);
     return await assert(service[k])(device, args);
   } else return undefined;
 };

@@ -1,6 +1,6 @@
 import * as net from "net";
 import * as crypto from "crypto";
-import { Device, OVEException, PJLinkSource } from "@ove/ove-types";
+import { Device, isError, OVEException, PJLinkSource } from "@ove/ove-types";
 import { replaceAll } from "@ove/ove-utils";
 import { z } from "zod";
 
@@ -250,8 +250,23 @@ export const mute = (timeout: number, device: Device) =>
 export const unmute = (timeout: number, device: Device) =>
   runCommand(timeout, COMMAND.UNMUTE, device);
 
-export const getIsMuted = (timeout: number, device: Device) =>
-  runCommand(timeout, COMMAND.GET_IS_MUTED, device);
+export const getIsMuted = async (timeout: number, device: Device) => {
+  const res = await runCommand(timeout, COMMAND.GET_IS_MUTED, device);
+  if (isError(res)) return res;
+  return res.split("=")[1] === "31";
+};
+
+export const getIsAudioMuted = async (timeout: number, device: Device) => {
+  const res = await runCommand(timeout, COMMAND.GET_IS_MUTED, device);
+  if (isError(res)) return res;
+  return res.split("=")[1] === "21";
+};
+
+export const getIsVideoMuted = async (timeout: number, device: Device) => {
+  const res = await runCommand(timeout, COMMAND.GET_IS_MUTED, device);
+  if (isError(res)) return res;
+  return res.split("=")[1] === "11";
+};
 
 export const getErrors = (timeout: number, device: Device) =>
   runCommand(timeout, COMMAND.GET_ERRORS, device);

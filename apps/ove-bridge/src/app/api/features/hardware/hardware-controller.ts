@@ -10,6 +10,7 @@ import {
 import { assert, Parser } from "@ove/ove-utils";
 import { env, logger } from "../../../../env";
 import { io, type Socket } from "socket.io-client";
+import { startReconciliation } from "./reconciliation";
 
 let socket: Socket<
   THardwareServerToClientEvents,
@@ -24,6 +25,7 @@ export const closeHardwareSocket = () => {
 
 export const initHardware = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
+  startReconciliation();
   socket = io(`${env.CORE_URL}/hardware`, {
     autoConnect: false,
     parser: Parser,

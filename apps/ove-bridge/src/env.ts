@@ -38,7 +38,11 @@ const schema = z.strictObject({
   URL: z.string(),
   MDC_TIMEOUT: z.number(),
   PJLINK_TIMEOUT: z.number(),
-  MDC_RESTART_TIMEOUT: z.number()
+  MDC_RESTART_TIMEOUT: z.number(),
+  RECONCILIATION_TIMEOUT: z.number(),
+  RECONCILIATION_ERROR_TIMEOUT: z.number(),
+  SYN_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
+  ARP_SCAN_COMMAND: z.string().optional() // include %IP% for IP replacement
 });
 
 const staticConfig = {
@@ -72,7 +76,9 @@ const defaultConfig: z.infer<typeof schema> = {
   URL: "http://localhost:3334",
   MDC_TIMEOUT: 5_000,
   MDC_RESTART_TIMEOUT: 1_000,
-  PJLINK_TIMEOUT: 5_000
+  PJLINK_TIMEOUT: 5_000,
+  RECONCILIATION_ERROR_TIMEOUT: 5_000,
+  RECONCILIATION_TIMEOUT: 60_000
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");

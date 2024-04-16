@@ -30,6 +30,24 @@ export const closeWindow = (idx: string): boolean => {
   return true;
 };
 
+export const reloadWindow = (idx: string) => {
+  if (!App.isInitialised()) {
+    throw new Error("Window controller is not initialised");
+  }
+
+  App.reloadWindow(idx);
+  return true;
+};
+
+export const reloadWindows = () => {
+  if (!App.isInitialised()) {
+    throw new Error("Window controller is not initialised");
+  }
+
+  App.reloadWindows();
+  return true;
+};
+
 export const triggerIPC: OutboundAPI = Object.entries(App.triggerIPC)
   .reduce((acc, [k, v]) => {
     acc[k] = (...args: Parameters<typeof v>) => {

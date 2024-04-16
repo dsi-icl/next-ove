@@ -90,3 +90,12 @@ export const BoundsSchema = z.strictObject({
   rows: z.number(),
   columns: z.number()
 });
+
+export const StatusOptionsSchema = z.union([
+  z.literal("off"),
+  z.literal("on"),
+  z.literal("ARP"),
+  z.literal("SYN")
+]);
+
+export type StatusOptions = z.infer<typeof StatusOptionsSchema>;

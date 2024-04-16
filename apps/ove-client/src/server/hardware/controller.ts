@@ -12,10 +12,13 @@ export const init = (
   createWindow: (url?: string, displayId?: number) => string,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
   closeWindow: (windowId: string) => boolean | null,
+  reloadWindow: (windowId: string) => void,
+  reloadWindows: () => void,
   triggerIPC: OutboundAPI
 ) => {
   // TODO: if authorised, load rendering page
-  service.init(createWindow, takeScreenshots, closeWindow);
+  service.init(createWindow, takeScreenshots, closeWindow,
+    reloadWindow, reloadWindows);
 
   if (env.AUTHORISED_CREDENTIALS === undefined && updatePin !== null) {
     state.pinUpdateCallback = triggerIPC["updatePin"];
@@ -26,7 +29,7 @@ export const init = (
 const controller: TClientService = {
   getStatus: async () => {
     logger.info("GET /status - getting service's status");
-    return true;
+    return "on";
   },
   getInfo: async ({ type }) => {
     logger.info(`GET /info?type=${type ?? "general"}
@@ -107,6 +110,23 @@ const controller: TClientService = {
     }
     service.closeBrowsers(state.browsers.values());
     state.browsers.clear();
+    return true;
+  },
+  reloadBrowser: async ({ browserId }) => {
+    logger.info(`POST /browser/${browserId}/reload - reloading browser`);
+    const windowId = state.browsers.get(browserId)?.windowId;
+    if (windowId === undefined) {
+      throw new Error(`No browser with ID: ${browserId}`);
+    }
+    return service.reloadBrowser(windowId);
+  },
+  reloadBrowsers: async () => {
+    logger.info("POST /browsers/reload - reloading browsers");
+    return service.reloadBrowsers();
+  },
+  setWindowConfig: async ({ config }) => {
+    logger.info("POST /env/windowConfig - setting window config");
+    env.WINDOW_CONFIG = config;
     return true;
   }
 };

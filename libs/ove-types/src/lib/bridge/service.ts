@@ -312,6 +312,39 @@ export const APIRoutes = {
     input: z.strictObject({ bridgeId: z.string() }),
     output: getBridgeResponseSchema(
       getDeviceResponseSchema(BoundsSchema.optional()))
+  },
+  refreshReconciliation: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/reconciliation/refresh" as const,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.boolean()))
+  },
+  startReconciliation: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/reconciliation" as const,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.boolean()))
+  },
+  stopReconciliation: {
+    meta: {
+      openapi: {
+        method: "DELETE" as const,
+        path: "/reconciliation" as const,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.boolean()))
   }
 };
 

@@ -2,6 +2,7 @@ import { state } from "../state";
 import { io } from "../bridge/sockets";
 import { isError } from "@ove/ove-types";
 import { type Context } from "../context";
+import { assert } from "@ove/ove-utils";
 
 const getObservatories = async (ctx: Context) => {
   const observatories = await ctx.prisma.user.findMany({
@@ -25,7 +26,7 @@ const getObservatoryBounds = async (ctx: Context) => {
   const observatories =
     (await getObservatories(ctx)).filter(({ isOnline }) => isOnline);
   return (await Promise.all(observatories.map(async ({ name }) =>
-    io.sockets.get(state.bridgeClients.get(name)!)!
+    assert(io.sockets.get(assert(state.bridgeClients.get(name))))
       .emitWithAck("getGeometry", {}))))
     .reduce((acc, x) => {
       if (isError(x.response) || x.response === undefined) return acc;

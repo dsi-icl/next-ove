@@ -1,8 +1,8 @@
-import { type Device } from "@ove/ove-types";
+import { type Device, type StatusOptions } from "@ove/ove-types";
 
 export type HardwareInfo = {
   device: Device
-  status: DeviceStatus
+  status: StatusOptions
 }
 
 export type ActionController = {
@@ -31,8 +31,6 @@ export type DeviceAction = {
   action: Action | null
   pending: boolean
 }
-
-export type DeviceStatus = "running" | "off" | "offline"
 
 export type FilterType = "id" | "tags"
 

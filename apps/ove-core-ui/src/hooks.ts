@@ -61,7 +61,7 @@ export const useAuth = () => {
   useEffect(() => {
     if (tokens === null || tokens.expiry > new Date()) return;
     refresh().catch(logger.error);
-  }, []);
+  }, [refresh, tokens]);
 
   return {
     loggedIn: tokens !== null || env.DISABLE_AUTH,

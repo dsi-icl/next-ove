@@ -10,6 +10,7 @@ import { z } from "zod";
 import * as mdc from "@ove/mdc-control";
 import { raise } from "@ove/ove-utils";
 import { env } from "../../../../env";
+import { statusOptions } from "../../utils/status";
 
 const reboot = async (
   { ip, port, protocol }: Device,
@@ -98,8 +99,10 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return statusOptions(async () => {
+    const res = await mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
+    return isError(res) ? res : "on";
+  }, ip);
 };
 
 const mute = async ({

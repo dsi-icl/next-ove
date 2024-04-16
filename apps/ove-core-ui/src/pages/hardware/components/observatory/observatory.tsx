@@ -6,10 +6,10 @@ import Toolbar from "../toolbar/toolbar";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
+import { type HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
 import React, { useMemo, useState } from "react";
 import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
-import { type DeviceStatus, type HardwareInfo } from "../../types";
 
 import styles from "./observatory.module.scss";
 
@@ -28,10 +28,6 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const hardware = useMemo(() => {
     if (!isOnline || getHardware.status !== "success" ||
       is(OVEExceptionSchema, getHardware.data.response)) return [];
-    const formatStatus = (status: boolean | null): DeviceStatus => {
-      if (status === null) return "offline";
-      return status ? "running" : "off";
-    };
 
     const getSingleStatus = (deviceId: string) => {
       if (deviceAction.deviceId !== deviceId) return null;
@@ -48,11 +44,11 @@ export const useHardware = (isOnline: boolean, bridgeId: string) => {
     };
 
     return getHardware.data.response.map(device => {
-      const status = !skipSingle("status", bridgeId, deviceAction) ?
-        getSingleStatus(device.id) : getMultiStatus(device.id);
+      const status = (!skipSingle("status", bridgeId, deviceAction) ?
+        getSingleStatus(device.id) : getMultiStatus(device.id)) ?? "off";
       return ({
         device,
-        status: formatStatus(status)
+        status
       });
     });
   }, [isOnline, bridgeId, deviceAction, getHardware.status,

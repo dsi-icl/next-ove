@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import React, { Component, ReactElement } from "react";
+import React, { Component } from "react";
 import {
   getClosestElement,
   insertAfter,
