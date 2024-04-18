@@ -9,6 +9,7 @@ import {
   isError,
   type MDCSources,
   type PJLinkSource,
+  type StatusOptions,
   type TBridgeHardwareService
 } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
@@ -18,14 +19,14 @@ type Reconciliation<StateType> = {
 }
 
 type NodeState = {
-  status: boolean
+  status: StatusOptions
   reconcileStatus: NodeJS.Timeout | null
   browsers: { displayId: number, url: string }[] | null
   reconcileBrowsers: NodeJS.Timeout | null
 }
 
 type MDCState = {
-  status: boolean
+  status: StatusOptions
   reconcileStatus: NodeJS.Timeout | null
   source: keyof MDCSources
   reconcileSource: NodeJS.Timeout | null
@@ -36,7 +37,7 @@ type MDCState = {
 }
 
 type PJLinkState = {
-  status: boolean
+  status: StatusOptions
   reconcileStatus: NodeJS.Timeout | null
   source: keyof PJLinkSource
   reconcileSource: NodeJS.Timeout | null
@@ -49,14 +50,14 @@ type PJLinkState = {
 }
 
 const initialNodeState: NodeState = {
-  status: false,
+  status: "off",
   reconcileStatus: null,
   browsers: null,
   reconcileBrowsers: null
 };
 
 const initialMDCState: MDCState = {
-  status: false,
+  status: "off",
   reconcileStatus: null,
   source: "DP",
   reconcileSource: null,
@@ -67,7 +68,7 @@ const initialMDCState: MDCState = {
 };
 
 const initialPJLinkState: PJLinkState = {
-  status: false,
+  status: "off",
   reconcileStatus: null,
   source: "VIDEO",
   reconcileSource: null,
@@ -155,13 +156,13 @@ export const updateState = async <Key extends keyof TBridgeHardwareService>(
     }
     case "start": {
       const deviceState = assert(state.get(device.id));
-      deviceState.status = true;
+      deviceState.status = "on";
       state.set(device.id, { ...deviceState });
       break;
     }
     case "shutdown": {
       const deviceState = assert(state.get(device.id));
-      deviceState.status = false;
+      deviceState.status = "off";
       state.set(device.id, { ...deviceState });
       break;
     }
@@ -208,16 +209,20 @@ const clearOptionalInterval = (interval: NodeJS.Timeout | null) => {
 };
 
 const reconcileStatus = async (
-  target: boolean,
+  target: StatusOptions,
   device: Device,
   service: TBridgeHardwareService
 ) => {
   const currentStatus = await service.getStatus?.(device, {});
   if (currentStatus !== target) {
-    await service.start?.(device, {});
+    if (currentStatus === "off") {
+      await service.start?.(device, {});
+    } else {
+      await service.shutdown?.(device, {});
+    }
   } else {
-    const desiredState = state.get(device.id);
-    if (desiredState === undefined || desiredState.reconcileStatus === null) {
+    const desiredState = assert(state.get(device.id));
+    if (desiredState.reconcileStatus === null) {
       return;
     }
     clearInterval(desiredState.reconcileStatus);
@@ -237,12 +242,85 @@ const reconcileSource = async (
     await service.setSource?.(device, { source: target });
   } else {
     const desiredState = state.get(device.id) as MDCState | PJLinkState;
-    if (desiredState === undefined || desiredState.reconcileSource === null) {
+    if (desiredState.reconcileSource === null) {
       return;
     }
     clearInterval(desiredState.reconcileSource);
     state.set(device.id, { ...desiredState, reconcileSource: null });
   }
+};
+
+const resetBrowserReconciliation = (device: Device) => {
+  const desiredState = assert(state.get(device.id)) as NodeState;
+  if (desiredState.reconcileBrowsers === null) {
+    return;
+  }
+  clearInterval(desiredState.reconcileBrowsers);
+  state.set(device.id, { ...desiredState, reconcileBrowsers: null });
+};
+
+const openAllBrowsers = async (target: {
+  displayId: number,
+  url: string
+}[], device: Device, service: TBridgeHardwareService) => {
+  for (const browser of target) {
+    await service.openBrowser?.(device, {
+      displayId: browser.displayId,
+      url: browser.url
+    });
+  }
+};
+
+const closeChangedBrowsers = async (
+  target: {
+    displayId: number,
+    url: string
+  }[],
+  device: Device,
+  service: TBridgeHardwareService,
+  currentBrowsers: Map<number, {
+    displayId: number
+    windowId: string
+    url?: string
+  }>
+) => {
+  let changed = false;
+  for (const [key, browser] of currentBrowsers.entries()) {
+    if (target.find(br => br.url === browser.url &&
+      br.displayId === browser.displayId) !== undefined) continue;
+    changed = true;
+    await service.closeBrowser?.(device, { browserId: key });
+  }
+
+  return changed;
+};
+
+const openChangedBrowsers = async (
+  target: {
+    displayId: number,
+    url: string
+  }[],
+  device: Device,
+  service: TBridgeHardwareService,
+  currentBrowsers: Map<number, {
+    displayId: number,
+    windowId: string,
+    url?: string
+  }>
+) => {
+  let changed = false;
+  const browsers = Array.from(currentBrowsers.values());
+  for (const browser of target) {
+    if (browsers.find(br => br.url === browser.url &&
+      br.displayId === browser.displayId) !== undefined) continue;
+    changed = true;
+    await service.openBrowser?.(device, {
+      displayId: browser.displayId,
+      url: browser.url
+    });
+  }
+
+  return changed;
 };
 
 const reconcileBrowsers = async (target: {
@@ -252,30 +330,19 @@ const reconcileBrowsers = async (target: {
   if (target === null) return;
   const currentBrowsers = await service.getBrowsers?.(device, {});
   if (currentBrowsers === undefined || isError(currentBrowsers)) {
-    for await (const browser of target) {
-      service.openBrowser?.(device, {
-        displayId: browser.displayId,
-        url: browser.url
-      });
+    if (target.length > 0) {
+      await openAllBrowsers(target, device, service);
+    } else {
+      resetBrowserReconciliation(device);
     }
     return;
   }
 
-  for (const [key, browser] of currentBrowsers.entries()) {
-    if (target.find(br => br.url === browser.url &&
-      br.displayId === browser.displayId) !== undefined) continue;
-    service.closeBrowser?.(device, { browserId: key });
+  if ((await closeChangedBrowsers(target, device, service, currentBrowsers)) ||
+    (await openChangedBrowsers(target, device, service, currentBrowsers))) {
+    return;
   }
-
-  const browsers = Array.from(currentBrowsers.values());
-  for (const browser of target) {
-    if (browsers.find(br => br.url === browser.url &&
-      br.displayId === browser.displayId) !== undefined) continue;
-    service.openBrowser?.(device, {
-      displayId: browser.displayId,
-      url: browser.url
-    });
-  }
+  resetBrowserReconciliation(device);
 };
 
 const reconcileIsMuted = async (
@@ -286,7 +353,16 @@ const reconcileIsMuted = async (
   const currentValue = await service.getInfo?.(device, {}) as {
     isMuted: boolean
   };
-  if (currentValue.isMuted === target) return;
+  if (currentValue.isMuted === target) {
+    const desiredState = state.get(device.id) as MDCState | PJLinkState;
+    if (desiredState.reconcileIsMuted === null) {
+      return;
+    }
+    clearInterval(desiredState.reconcileIsMuted);
+    state.set(device.id, { ...desiredState, reconcileIsMuted: null });
+    return;
+  }
+
   if (target) {
     await service.mute?.(device, {});
   } else {
@@ -300,7 +376,15 @@ const reconcileVolume = async (
   service: TBridgeHardwareService
 ) => {
   const current = await service.getInfo?.(device, {}) as { volume: number };
-  if (current.volume === target) return;
+  if (current.volume === target) {
+    const desiredState = state.get(device.id) as MDCState;
+    if (desiredState.reconcileVolume === null) {
+      return;
+    }
+    clearInterval(desiredState.reconcileVolume);
+    state.set(device.id, { ...desiredState, reconcileVolume: null });
+    return;
+  }
   await service.setVolume?.(device, { volume: target });
 };
 
@@ -312,7 +396,15 @@ const reconcileIsAudioMuted = async (
   const current = await service.getInfo?.(device, {}) as {
     isAudioMuted: boolean
   };
-  if (current.isAudioMuted === target) return;
+  if (current.isAudioMuted === target) {
+    const desiredState = state.get(device.id) as PJLinkState;
+    if (desiredState.reconcileIsAudioMuted === null) {
+      return;
+    }
+    clearInterval(desiredState.reconcileIsAudioMuted);
+    state.set(device.id, { ...desiredState, reconcileIsAudioMuted: null });
+    return;
+  }
   if (target) {
     await service.muteAudio?.(device, {});
   } else {
@@ -328,7 +420,15 @@ const reconcileIsVideoMuted = async (
   const current = await service.getInfo?.(device, {}) as {
     isVideoMuted: boolean
   };
-  if (current.isVideoMuted === target) return;
+  if (current.isVideoMuted === target) {
+    const desiredState = state.get(device.id) as PJLinkState;
+    if (desiredState.reconcileIsVideoMuted === null) {
+      return;
+    }
+    clearInterval(desiredState.reconcileIsVideoMuted);
+    state.set(device.id, { ...desiredState, reconcileIsVideoMuted: null });
+    return;
+  }
   if (target) {
     await service.muteVideo?.(device, {});
   } else {
@@ -411,6 +511,7 @@ const reconcileMDC = async (
     isMuted: boolean
     volume: number
   };
+
   if (currentState !== desiredState.status) {
     reconciliation.reconcileStatus = setInterval(() =>
       reconcileStatus(desiredState.status, device, MDCService));

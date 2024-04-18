@@ -18,6 +18,7 @@ type DataTableProps<TData, TValue> = {
   data: TData[]
   filter: string | null
   filterType: "id" | "tags"
+  selected: string[] | null
 }
 
 const getSize = (id: string) => {
@@ -45,7 +46,8 @@ const DataTable = <TData, TValue>({
   columns,
   data,
   filter,
-  filterType
+  filterType,
+  selected
 }: DataTableProps<TData, TValue>) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -66,8 +68,12 @@ const DataTable = <TData, TValue>({
   });
 
   useEffect(() => {
-    table.getColumn(filterType)?.setFilterValue(filter ?? "");
-  }, [filter, filterType, table]);
+    table.getColumn(filterType)?.setFilterValue({
+      filterType,
+      filter,
+      selected
+    });
+  }, [filter, filterType, table, selected]);
 
   return <div>
     <table className={styles.table}>

@@ -2,7 +2,13 @@ import App from "./app/app";
 import SquirrelEvents from "./app/events/squirrel.events";
 import ElectronEvents from "./app/events/electron.events";
 import initUpdates from "./app/events/update.events";
-import { app, BrowserWindow, desktopCapturer, screen } from "electron";
+import {
+  app,
+  BrowserWindow,
+  desktopCapturer,
+  screen,
+  systemPreferences
+} from "electron";
 import { OutboundAPI } from "./ipc-routes";
 
 export const start = (closeServer: () => void) => {
@@ -60,8 +66,12 @@ export const triggerIPC: OutboundAPI = Object.entries(App.triggerIPC)
     return acc;
   }, <Record<string, unknown>>{}) as OutboundAPI;
 
-export const takeScreenshots = () =>
-  desktopCapturer.getSources({ types: ["screen"] });
+export const takeScreenshots = async () => {
+  if (systemPreferences.getMediaAccessStatus("screen") === "denied") {
+    throw new Error("Screen capture access denied");
+  }
+  return desktopCapturer.getSources({ types: ["screen"] });
+};
 
 export const initializeElectron = () => {
   if (SquirrelEvents.handleEvents()) {

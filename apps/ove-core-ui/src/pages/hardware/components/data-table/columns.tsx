@@ -16,6 +16,12 @@ export type HardwareRow = {
   actions: ReactNode
 }
 
+type FilterValue = {
+  filterType: "tags" | "id"
+  filter: string | null
+  selected: string[] | null
+}
+
 const ProtocolIcon = ({ protocol }: { protocol: ServiceType }) => {
   switch (protocol) {
     case "node":
@@ -51,8 +57,19 @@ export const columns: ColumnDef<HardwareRow>[] = [
       ID
       <ArrowUpDown className="ml-2 h-4 w-4" />
     </button>,
-    filterFn: (row, columnId, filterValue) =>
-      (row.getValue(columnId) as string).startsWith(filterValue)
+    filterFn: (row, columnId, filterValue) => {
+      const { filterType, filter, selected } = filterValue as FilterValue;
+      const v = row.getValue(columnId) as string;
+      if (selected === null) {
+        if (filterType === "tags" || filter === null) return true;
+        return filter === v;
+      } else {
+        if (filterType === "tags" || filter === null) {
+          return selected.includes(v);
+        }
+        return selected.includes(v) && v.startsWith(filter);
+      }
+    }
   },
   {
     accessorKey: "hostname",
@@ -84,8 +101,10 @@ export const columns: ColumnDef<HardwareRow>[] = [
       <ArrowUpDown className="ml-2 h-4 w-4" />
     </button>,
     filterFn: (row, columnId, filterValue) => {
-      return (row.getValue(columnId) as string[]).find(tag =>
-        tag.startsWith(filterValue)) !== undefined;
+      const { filterType, filter } = filterValue as FilterValue;
+      const v = row.getValue(columnId) as string[];
+      if (filterType === "id" || filter === null) return true;
+      return v.find(tag => tag.startsWith(filter)) !== undefined;
     }
   },
   {

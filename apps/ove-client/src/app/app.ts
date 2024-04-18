@@ -106,13 +106,15 @@ const loadUIWindow = (idx: string, url?: `/${string}`) => {
   }
 };
 
+const generateNewBrowserId = () => Array.from(state.browsers.keys())
+  .reduce((acc, x) => x > acc ? x : acc, -1) + 1;
+
 const loadMainWindow = () => {
   if (env.AUTHORISED_CREDENTIALS === undefined) {
     logger.info("Loading UI Window");
     const defaultIdx = initWindow();
     loadUIWindow(defaultIdx);
-    const browserId = Array.from(state.browsers.keys())
-      .reduce((acc, x) => x > acc ? x : acc, 0);
+    const browserId = generateNewBrowserId();
     state.browsers.set(
       browserId, { displayId: -1, url: "", windowId: defaultIdx });
   } else {
@@ -147,8 +149,7 @@ const loadWindowConfig = () => {
       });
 
     if (browser === undefined) {
-      const browserId = Array.from(
-        state.browsers.keys()).reduce((acc, x) => x > acc ? x : acc, 0);
+      const browserId = generateNewBrowserId();
       state.browsers.set(browserId, {
         displayId: parseInt(k),
         url: v,

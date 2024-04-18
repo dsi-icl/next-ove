@@ -88,8 +88,19 @@ export const BoundsSchema = z.strictObject({
   width: z.number(),
   height: z.number(),
   rows: z.number(),
-  columns: z.number()
+  columns: z.number(),
+  displays: z.strictObject({
+    displayId: z.string(), // ID of screen
+    renderer: z.strictObject({
+      deviceId: z.string(),
+      displayId: z.string() // ID of device's display
+    }),
+    row: z.number(),
+    column: z.number()
+  }).array()
 });
+
+export type Bounds = z.infer<typeof BoundsSchema>
 
 export const StatusOptionsSchema = z.union([
   z.literal("off"),

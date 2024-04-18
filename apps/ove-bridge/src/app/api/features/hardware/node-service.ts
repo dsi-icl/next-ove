@@ -243,6 +243,20 @@ const setWindowConfig = async (
   );
 };
 
+const getWindowConfig = async (
+  device: Device,
+  args: TBridgeServiceArgs<"getWindowConfig">
+) => {
+  const configOptsSchema = z.object({});
+  const parsedOpts = configOptsSchema.safeParse(args);
+
+  if (!parsedOpts.success) return undefined;
+
+  return await createClient(device).getWindowConfig.query(
+    parsedOpts.data as z.infer<TClientAPI["getWindowConfig"]["args"]>
+  );
+};
+
 const getBrowsers = async (
   device: Device,
   args: TBridgeServiceArgs<"getBrowsers">
@@ -277,7 +291,8 @@ const NodeService: TBridgeHardwareService = {
   closeBrowsers,
   reloadBrowser,
   reloadBrowsers,
-  setWindowConfig
+  setWindowConfig,
+  getWindowConfig
 };
 
 export default NodeService;

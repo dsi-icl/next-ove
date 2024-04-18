@@ -45,7 +45,6 @@ export const initHardware = () => {
     logger.info(`${assert(socket).id} disconnected from /hardware`);
   });
 
-
   BridgeServiceKeys.forEach(k => {
     const deviceHandlerInterface = (
       args: Parameters<typeof deviceHandler>[1],

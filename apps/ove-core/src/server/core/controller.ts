@@ -1,6 +1,6 @@
 import { state } from "../state";
 import { io } from "../bridge/sockets";
-import { isError } from "@ove/ove-types";
+import { type Bounds, isError } from "@ove/ove-types";
 import { type Context } from "../context";
 import { assert } from "@ove/ove-utils";
 
@@ -32,12 +32,7 @@ const getObservatoryBounds = async (ctx: Context) => {
       if (isError(x.response) || x.response === undefined) return acc;
       acc[x.meta.bridge] = x.response;
       return acc;
-    }, <Record<string, {
-      width: number,
-      height: number,
-      rows: number,
-      columns: number
-    }>>{});
+    }, <Record<string, Bounds>>{});
 };
 
 const controller = {

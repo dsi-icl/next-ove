@@ -2,6 +2,7 @@ import Header from "../header/header";
 import { assert } from "@ove/ove-utils";
 import Actions from "../actions/actions";
 import { skipSingle } from "../../utils";
+import Preview from "../preview/preview";
 import Toolbar from "../toolbar/toolbar";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
@@ -81,17 +82,22 @@ const Observatory = ({ name, isOnline }: {
 }) => {
   const { hardware } = useHardware(isOnline, name);
   const [filter, setFilter] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[] | null>(null);
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
+  const bounds = trpc.core.getObservatoryBounds.useQuery();
 
   return <section className={styles.observatory}>
     <Header name={name} isOnline={isOnline} />
     {isOnline ? <>
+      {bounds.status === "success" && !isError(bounds.data) ?
+        <Preview bridgeId={name} bounds={bounds.data[name]}
+                 setSelected={setSelected} selected={selected} /> : null}
       <Toolbar filterType={filterType} hardware={hardware} filter={filter}
                setFilterType={setFilterType} setFilter={setFilter}
                name={name} />
       <div className={styles["table-container"]}>
         <DataTable columns={columns} filterType={filterType} filter={filter}
-                   data={getData(name, hardware)} />
+                   data={getData(name, hardware)} selected={selected} />
       </div>
     </> : null}
   </section>;

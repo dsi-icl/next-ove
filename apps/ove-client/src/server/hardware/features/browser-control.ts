@@ -123,7 +123,7 @@ const screenshot = async (
 
   if (screens.length !== 0) {
     displays = displays
-      .filter(({ displayId }) => screens.includes(Number(displayId)));
+      .filter(({ displayId }) => screens.includes(parseInt(displayId ?? "-1")));
   }
 
   if (displays.length === 0) {

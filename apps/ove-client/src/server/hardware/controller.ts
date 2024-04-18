@@ -128,6 +128,10 @@ const controller: TClientService = {
     logger.info("POST /env/windowConfig - setting window config");
     env.WINDOW_CONFIG = config;
     return true;
+  },
+  getWindowConfig: async () => {
+    logger.info("GET /env/windowConfig - getting window config");
+    return env.WINDOW_CONFIG;
   }
 };
 

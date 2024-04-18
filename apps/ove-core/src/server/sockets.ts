@@ -17,7 +17,6 @@ export const io: Server = new Server<
   server,
   {
     cors: { origin: "*", methods: ["GET", "POST", "DELETE"] },
-    credentials: false,
     parser: Parser,
     path: env.SOCKET_PATH
   } as Partial<ServerOptions>

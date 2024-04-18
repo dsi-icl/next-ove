@@ -23,7 +23,32 @@
                 "schema": {
                   "anyOf": [
                     {
-                      "type": "boolean"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "off"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "on"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "ARP"
+                          ]
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "SYN"
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "object",
@@ -580,6 +605,198 @@
                   "anyOf": [
                     {
                       "type": "number"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/env/windowConfig": {
+      "post": {
+        "operationId": "setWindowConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "config"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      },
+      "get": {
+        "operationId": "getWindowConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/browser/{browserId}/reload": {
+      "post": {
+        "operationId": "reloadBrowser",
+        "parameters": [
+          {
+            "name": "browserId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "oveError": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "oveError"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/error"
+          }
+        }
+      }
+    },
+    "/browsers/reload": {
+      "post": {
+        "operationId": "reloadBrowsers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
                     },
                     {
                       "type": "object",

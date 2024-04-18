@@ -306,6 +306,18 @@ export const ServiceAPISchema = {
     returns: StatusSchema,
     exposed: "client" as const
   },
+  getWindowConfig: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/env/windowConfig",
+        protected: true
+      }
+    },
+    args: z.strictObject({}),
+    returns: z.record(z.string(), z.string()),
+    exposed: "client" as const
+  },
   reloadBrowser: {
     meta: {
       openapi: {
