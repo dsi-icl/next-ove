@@ -6,17 +6,15 @@ import { state, updatePin } from "../state";
 import { type OutboundAPI } from "../../ipc-routes";
 import { type TClientService } from "@ove/ove-types";
 import { type DesktopCapturerSource } from "electron";
-import { assert } from "@ove/ove-utils";
 
 export const init = (
-  createWindow: (url?: string, displayId?: number) => string,
+  createWindow: () => Promise<number[]>,
   takeScreenshots: () => Promise<DesktopCapturerSource[]>,
-  closeWindow: (windowId: string) => boolean | null,
-  reloadWindow: (windowId: string) => void,
+  closeWindow: (windowId: number) => boolean | null,
+  reloadWindow: (windowId: number) => void,
   reloadWindows: () => void,
   triggerIPC: OutboundAPI
 ) => {
-  // TODO: if authorised, load rendering page
   service.init(createWindow, takeScreenshots, closeWindow,
     reloadWindow, reloadWindows);
 
@@ -36,13 +34,9 @@ const controller: TClientService = {
      - getting device information`);
     return service.getInfo(type);
   },
-  getBrowser: async ({ browserId }) => {
-    logger.info(`GET /browser/${browserId}`);
-    return assert(state.browsers.get(browserId));
-  },
   getBrowsers: async () => {
     logger.info("GET /browsers - getting active browsers");
-    return state.browsers;
+    return Object.fromEntries(state.browsers.entries());
   },
   reboot: async () => {
     logger.info("POST /reboot - rebooting device");
@@ -66,59 +60,34 @@ const controller: TClientService = {
     ${screens.join(", ")} via the ${method} method`);
     return service.screenshot(method, screens);
   },
-  openBrowser: async ({ displayId, url }) => {
-    logger.info(`POST /browser - opening browser on display 
-    ${displayId} with url ${url}`);
+  openBrowsers: async () => {
+    logger.info("POST /browser - opening browsers");
 
     if (state.pinUpdateHandler !== null) {
       clearInterval(state.pinUpdateHandler);
     }
 
-    const idx = service.openBrowser(url, displayId);
+    const idxs = await service.openBrowser();
 
-    if (idx === null) throw new Error("Unable to open browser");
+    if (idxs.length === 0) throw new Error("Unable to open browser");
 
-    const browserId = Array.from(state.browsers.keys())
-      .reduce((acc, x) => x > acc ? x : acc, 0);
-    state.browsers.set(
-      browserId, { displayId: displayId ?? -1, url, windowId: idx });
-
-    return browserId;
-  },
-  closeBrowser: async ({ browserId }) => {
-    logger.info(`DELETE /browser/${browserId} - closing browser`);
-    const browser = state.browsers.get(browserId);
-    if (browser === undefined) {
-      throw new Error(`No browser with ID: ${browserId}`);
-    }
-
-    if (state.browsers.size === 1 &&
-      state.pinUpdateHandler === null && updatePin !== null) {
-      state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
-    }
-    service.closeBrowser(browser.windowId);
-    const isDeleted = state.browsers.delete(browserId);
-    if (!isDeleted) {
-      throw new Error(`Unable to delete browser with ID: ${browserId}`);
-    }
-    return true;
+    return idxs;
   },
   closeBrowsers: async () => {
     logger.info("DELETE /browsers - closing all browsers");
     if (state.pinUpdateHandler === null && updatePin !== null) {
       state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
     }
-    service.closeBrowsers(state.browsers.values());
+    service.closeBrowsers(state.browsers.keys());
     state.browsers.clear();
     return true;
   },
   reloadBrowser: async ({ browserId }) => {
     logger.info(`POST /browser/${browserId}/reload - reloading browser`);
-    const windowId = state.browsers.get(browserId)?.windowId;
-    if (windowId === undefined) {
+    if (!state.browsers.has(browserId)) {
       throw new Error(`No browser with ID: ${browserId}`);
     }
-    return service.reloadBrowser(windowId);
+    return service.reloadBrowser(browserId);
   },
   reloadBrowsers: async () => {
     logger.info("POST /browsers/reload - reloading browsers");

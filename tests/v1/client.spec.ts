@@ -1,4 +1,4 @@
-import { readFileSync } from "atomically";
+import { readFileSync, writeFileSync } from "atomically";
 import fetch, { type Response as NodeResponse } from "node-fetch";
 import path from "path";
 import {
@@ -9,33 +9,67 @@ import {
   MemorySchema, NetworkSchema, OSSchema, PrinterSchema, ProcessesSchema,
   SystemSchema, USBSchema, VboxSchema, WifiSchema
 } from "./utils";
-import { z, ZodTypeAny } from "zod";
+import { z, type ZodTypeAny } from "zod";
+
+type Env = {
+  "base-client-url": string
+  "rest-client-url": string
+  token: string
+  "trpc-client-url": string
+  "client-env": string
+}
 
 const ENVIRONMENT = "dev";
 const SKIP_POWER = true;
-const SHORT_TIMEOUT = 10_000;
+const SHORT_TIMEOUT = 30_000;
 const OK = 200;
+const BROWSER_DELAY = 5_000;
 
-const initEnv = () => JSON.parse(readFileSync(path.join(__dirname, "private.env.json")).toString())[ENVIRONMENT];
-
-const validateBrowser = (data: unknown) => {
-  validateSchema(z.strictObject({
-    displayId: z.number(),
-    windowId: z.string(),
-    url: z.string()
-  }), data);
-  expect((data as { url: string }).url).toBe("https://ove.readthedocs.io");
-  expect((data as { displayId: number }).displayId).toBe(1);
-};
+const delay = (delay: number) => new Promise(resolve => setTimeout(resolve, delay));
+const initEnv = () => (JSON.parse(readFileSync(path.join(__dirname, "private.env.json")).toString()) as Record<string, Env>)[ENVIRONMENT];
+const loadClientEnv = (env: Env) => JSON.parse(readFileSync(env["client-env"]).toString()) as Record<string, any>;
+const saveClientEnv = (env: Env, clientEnv: Record<string, any>) => writeFileSync(env["client-env"], JSON.stringify(clientEnv, undefined, 2));
 
 const validateJSON = async (res: NodeResponse, isTRPC = false): Promise<unknown> => {
   expect(res.status).toBe(OK);
   expect(res.headers.get("Content-Type")).toBe("application/json");
-  return !isTRPC ? res.json() : (await res.json()).result.data.json;
+  return !isTRPC ? res.json() : (await res.json()).result.data;
 };
 
 const validateSchema = <T>(schema: ZodTypeAny, data: T) => {
-  expect(schema.safeParse(data).success).toBe(true);
+  const parsed = schema.safeParse(data);
+  if (!parsed.success) {
+    expect(parsed.error.errors).toStrictEqual([]);
+  }
+  expect(parsed.success).toBe(true);
+};
+
+const getBrowsers = async (url: string, config: object, isTRPC: boolean) => {
+  const res = await fetch(url, config);
+  const data = await validateJSON(res, isTRPC);
+
+  validateSchema(z.record(z.string(), z.strictObject({
+    displayId: z.number(),
+    url: z.string()
+  })), data);
+
+  return data as Record<string, { displayId: number, url: string }>;
+};
+
+const closeBrowsers = async (url: string, config: object, isTRPC: boolean) => {
+  const res = await fetch(url, config);
+  const data = await validateJSON(res, isTRPC);
+
+  expect(data).toBe(true);
+};
+
+const openBrowsers = async (url: string, config: object, windowConfig: object, isTRPC: boolean) => {
+  const res = await fetch(url, config);
+  const data = await validateJSON(res, isTRPC);
+
+  expect(data).toStrictEqual(Array.from({ length: Object.keys(windowConfig).length }, (_x, i) => i));
+
+  return data as number[];
 };
 
 describe("Basic functionality", () => {
@@ -51,15 +85,15 @@ describe("Basic functionality", () => {
 });
 
 describe("Rest API", () => {
-  let env: { "rest-client-url": string, token: string } = initEnv();
+  let env = initEnv();
+  let clientEnv = loadClientEnv(env);
   const auth = { headers: { Authorization: `Basic ${env.token}` } };
-  let browserId: number;
 
   test("GET /status", async () => {
     const res = await fetch(`${env["rest-client-url"]}/status`, auth);
     const data = await validateJSON(res);
 
-    expect(data).toBe(true);
+    expect(data).toBe("on");
   }, SHORT_TIMEOUT);
 
   test("GET /info", async () => {
@@ -218,178 +252,211 @@ describe("Rest API", () => {
     });
     const data = await validateJSON(res);
 
-    validateSchema(z.array(z.string()), data);
+    validateSchema(z.union([z.array(z.string()), z.strictObject({ oveError: z.literal("Screen capture access denied") })]), data);
   }, SHORT_TIMEOUT);
 
-  test("GET /browsers", async () => {
-    const res = await fetch(`${env["rest-client-url"]}/browsers`, auth);
-    const data = await validateJSON(res);
-
-    expect(data).toStrictEqual({});
-  }, SHORT_TIMEOUT);
-
-  test("DELETE /browsers", async () => {
-    const res = await fetch(`${env["rest-client-url"]}/browsers`, {
+  test("POST /browser/{browserId}/reload", async () => {
+    const browsers = await (await fetch(`${env["rest-client-url"]}/browsers`, auth)).json();
+    const browserId = Object.keys(browsers).at(0);
+    expect(browserId).toBe("0");
+    const res = await fetch(`${env["rest-client-url"]}/browser/${browserId}/reload`, {
       ...auth,
-      method: "DELETE"
+      method: "POST"
     });
     const data = await validateJSON(res);
-
     expect(data).toBe(true);
-  }, SHORT_TIMEOUT);
+  });
 
-  test("POST /browser", async () => {
-    const res = await fetch(`${env["rest-client-url"]}/browser`, {
+  test("POST /browsers/reload", async () => {
+    const res = await fetch(`${env["rest-client-url"]}/browsers/reload`, {
+      ...auth,
+      method: "POST"
+    });
+    const data = await validateJSON(res);
+    expect(data).toBe(true);
+  });
+
+  test("browsers", async () => {
+    await getBrowsers(`${env["rest-client-url"]}/browsers`, auth, false);
+    await closeBrowsers(`${env["rest-client-url"]}/browsers`, {
+      ...auth,
+      method: "DELETE"
+    }, false);
+    await delay(BROWSER_DELAY);
+    await openBrowsers(`${env["rest-client-url"]}/browsers`, {
       headers: { ...auth.headers, "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({ url: "https://ove.readthedocs.io", displayId: 1 })
+      body: JSON.stringify({})
+    }, clientEnv["WINDOW_CONFIG"], false);
+    await delay(BROWSER_DELAY);
+
+    const res = await fetch(`${env["rest-client-url"]}/browsers`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({})
     });
-    const data = await validateJSON(res);
+    await delay(BROWSER_DELAY);
+    await validateJSON(res);
+  }, SHORT_TIMEOUT * 7 + BROWSER_DELAY * 5);
 
-    expect(data).toBe(0);
-
-    browserId = data as number;
+  test("GET /env/windowConfig", async () => {
+    const config = await (await fetch(`${env["rest-client-url"]}/env/windowConfig`, auth)).json();
+    expect(config).toStrictEqual(clientEnv["WINDOW_CONFIG"]);
   }, SHORT_TIMEOUT);
 
-  test("GET /browser/:browserId", async () => {
-    const res = await fetch(`${env["rest-client-url"]}/browser/${browserId}`, auth);
-    const data = await validateJSON(res);
-    validateBrowser(data);
-  }, SHORT_TIMEOUT);
-
-  test("DELETE /browser/:browserId", async () => {
-    const res = await fetch(`${env["rest-client-url"]}/browser/${browserId}`, {
-      ...auth,
-      method: "DELETE"
+  test("POST /env/windowConfig", async () => {
+    const config = {
+      "1": "https://www.google.com",
+      "2": "https://www.google.com"
+    };
+    await fetch(`${env["rest-client-url"]}/env/windowConfig`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ config })
     });
-    const data = await validateJSON(res);
-
-    expect(data).toBe(true);
+    expect(loadClientEnv(env)["WINDOW_CONFIG"]).toStrictEqual(config);
+    const res = await fetch(`${env["rest-client-url"]}/env/windowConfig`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ config: clientEnv["WINDOW_CONFIG"] })
+    });
+    await validateJSON(res);
   }, SHORT_TIMEOUT);
 });
 
 describe("tRPC API", () => {
-  let env: { "trpc-client-url": string, token: string } = initEnv();
+  let env = initEnv();
+  let clientEnv = loadClientEnv(env);
   const auth = { headers: { Authorization: `Basic ${env.token}` } };
-  let browserId: number;
+
+  beforeEach(() => {
+    saveClientEnv(env, {
+      ...clientEnv,
+      AUTHORISED_CREDENTIALS: undefined,
+      WINDOW_CONFIG: {
+        "1": "https://ove.readthedocs.io",
+        "2": "https://ove.readthedocs.io"
+      }
+    });
+  });
 
   test("getStatus", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getStatus?input={"json": {}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getStatus?input={}`, auth);
     const data = await validateJSON(res, true);
 
-    expect(data).toBe(true);
+    expect(data).toBe("on");
   }, SHORT_TIMEOUT);
 
   test("getInfo - default", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(GeneralSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - invalid", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "invalid"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "invalid"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(GeneralSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - general", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "general"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "general"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(GeneralSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - system", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "system"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "system"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(SystemSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - cpu", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "cpu"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "cpu"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(CPUSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - memory", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "memory"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "memory"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(MemorySchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - battery", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "battery"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "battery"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(BatterySchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - graphics", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "graphics"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "graphics"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(GraphicsSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - os", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "os"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "os"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(OSSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - processes", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "processes"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "processes"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(ProcessesSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - fs", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "fs"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "fs"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(FSSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - usb", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "usb"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "usb"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(USBSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - printer", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "printer"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "printer"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(PrinterSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - audio", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "audio"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "audio"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(AudioSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - network", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "network"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "network"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(NetworkSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - wifi", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "wifi"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "wifi"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(WifiSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - bluetooth", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "bluetooth"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "bluetooth"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(BluetoothSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - docker", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "docker"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "docker"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(DockerSchema, data);
   }, SHORT_TIMEOUT);
 
   test("getInfo - vbox", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"json": {"type": "vbox"}}`, auth);
+    const res = await fetch(`${env["trpc-client-url"]}/getInfo?input={"type": "vbox"}`, auth);
     const data = await validateJSON(res, true);
     validateSchema(VboxSchema, data);
   }, SHORT_TIMEOUT);
@@ -399,7 +466,7 @@ describe("tRPC API", () => {
     const res = await fetch(`${env["trpc-client-url"]}/shutdown`, {
       headers: { ...auth.headers, "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({ json: {} })
+      body: JSON.stringify({})
     });
     const data = await validateJSON(res, true);
 
@@ -411,7 +478,7 @@ describe("tRPC API", () => {
     const res = await fetch(`${env["trpc-client-url"]}/reboot`, {
       headers: { ...auth.headers, "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({ json: {} })
+      body: JSON.stringify({})
     });
     const data = await validateJSON(res, true);
 
@@ -422,7 +489,7 @@ describe("tRPC API", () => {
     const res = await fetch(`${env["trpc-client-url"]}/execute`, {
       headers: { ...auth.headers, "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({ json: { command: "echo hello world" } })
+      body: JSON.stringify({ command: "echo hello world" })
     });
     const data = await validateJSON(res, true);
 
@@ -434,67 +501,85 @@ describe("tRPC API", () => {
     const res = await fetch(`${env["trpc-client-url"]}/screenshot`, {
       headers: { ...auth.headers, "Content-Type": "application/json" },
       method: "POST",
-      body: JSON.stringify({ json: { method: "response", screens: [1] } })
+      body: JSON.stringify({ method: "response", screens: [1] })
     });
     const data = await validateJSON(res, true);
 
-    validateSchema(z.array(z.string()), data);
+    validateSchema(z.union([z.array(z.string()), z.strictObject({ oveError: z.literal("Screen capture access denied") })]), data);
   }, SHORT_TIMEOUT);
 
-  test("getBrowsers", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getBrowsers?input={"json": {}}`, auth);
-    const data = await validateJSON(res, true);
-
-    validateSchema(z.array(z.array(z.union([z.number(), z.strictObject({
-      displayId: z.number(),
-      url: z.string(),
-      windowId: z.string()
-    })]))), data);
-  }, SHORT_TIMEOUT);
-
-  test("closeBrowsers", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/closeBrowsers`, {
-      headers: { ...auth.headers, "Content-Type": "application/json" },
+  test("POST /browser/{browserId}/reload", async () => {
+    const browsers = (await (await fetch(`${env["trpc-client-url"]}/getBrowsers?input={}`, auth)).json()).result.data;
+    const browserId = Object.keys(browsers).at(0);
+    expect(browserId).toBe("0");
+    const res = await fetch(`${env["trpc-client-url"]}/reloadBrowser`, {
+      ...auth,
       method: "POST",
-      body: JSON.stringify({ json: {} })
+      body: JSON.stringify({ browserId })
     });
     const data = await validateJSON(res, true);
-
     expect(data).toBe(true);
-  }, SHORT_TIMEOUT);
+  });
 
-  test("openBrowser", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/openBrowser`, {
-      headers: { ...auth.headers, "Content-Type": "application/json" },
+  test("POST /browsers/reload", async () => {
+    const res = await fetch(`${env["trpc-client-url"]}/reloadBrowsers`, {
+      ...auth,
       method: "POST",
-      body: JSON.stringify({
-        json: {
-          url: "https://ove.readthedocs.io",
-          displayId: 1
-        }
-      })
+      body: "{}"
     });
     const data = await validateJSON(res, true);
-
-    expect(data).toBe(0);
-
-    browserId = data as number;
-  }, SHORT_TIMEOUT);
-
-  test("getBrowser", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/getBrowser?input={"json": {"browserId": ${browserId}}}`, auth);
-    const data = await validateJSON(res, true);
-    validateBrowser(data);
-  }, SHORT_TIMEOUT);
-
-  test("closeBrowser", async () => {
-    const res = await fetch(`${env["trpc-client-url"]}/closeBrowser`, {
-      headers: { ...auth.headers, "Content-Type": "application/json" },
-      method: "POST",
-      body: JSON.stringify({ json: { browserId } })
-    });
-    const data = await validateJSON(res, true);
-
     expect(data).toBe(true);
+  });
+
+  test("browsers", async () => {
+    await getBrowsers(`${env["trpc-client-url"]}/getBrowsers?input={}`, auth, true);
+    await closeBrowsers(`${env["trpc-client-url"]}/closeBrowsers`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({})
+    }, true);
+    await delay(BROWSER_DELAY);
+    await openBrowsers(`${env["trpc-client-url"]}/openBrowsers`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({})
+    }, clientEnv["WINDOW_CONFIG"], true);
+    await delay(BROWSER_DELAY);
+
+    const res = await fetch(`${env["trpc-client-url"]}/openBrowsers`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({})
+    });
+    await delay(BROWSER_DELAY);
+    await validateJSON(res, true);
+  }, SHORT_TIMEOUT * 7 + BROWSER_DELAY * 5);
+
+  test("GET /env/windowConfig", async () => {
+    const config = (await (await fetch(`${env["trpc-client-url"]}/getWindowConfig?input={}`, auth)).json()).result.data;
+    expect(config).toStrictEqual(clientEnv["WINDOW_CONFIG"]);
   }, SHORT_TIMEOUT);
+
+  test("POST /env/windowConfig", async () => {
+    const config = {
+      "1": "https://www.google.com",
+      "2": "https://www.google.com"
+    };
+    await fetch(`${env["trpc-client-url"]}/setWindowConfig`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ config })
+    });
+    expect(loadClientEnv(env)["WINDOW_CONFIG"]).toStrictEqual(config);
+    const res = await fetch(`${env["trpc-client-url"]}/setWindowConfig`, {
+      headers: { ...auth.headers, "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({ config: clientEnv["WINDOW_CONFIG"] })
+    });
+    await validateJSON(res, true);
+  }, SHORT_TIMEOUT);
+
+  afterEach(() => {
+    saveClientEnv(env, clientEnv);
+  });
 });

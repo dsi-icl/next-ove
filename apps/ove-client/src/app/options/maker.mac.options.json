@@ -1,7 +1,7 @@
 {
   "$schema": "../../../../../node_modules/nx-electron/src/validation/maker.schema.json",
   "appId": "org.next-ove.client",
-  "productName": "Next-OVE Client",
+  "productName": "next-ove client",
   "copyright": "Copyright © 2023 Data Science Institute",
   "files": [
     "!**/.env*",
@@ -19,7 +19,7 @@
     "type": "distribution"
   },
   "dmg": {
-    "background": "apps/ove-client/build/icon.png",
+    "background": "apps/ove-client/build/background.svg",
     "iconSize": 160,
     "iconTextSize": 12,
     "window": {

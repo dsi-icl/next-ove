@@ -69,18 +69,6 @@ export const ServiceAPISchema = {
     returns: z.unknown(),
     exposed: "client" as const
   },
-  getBrowser: {
-    meta: {
-      openapi: {
-        method: "GET" as const,
-        path: "/browser/{browserId}",
-        protected: true
-      }
-    },
-    args: z.strictObject({ browserId: z.number() }),
-    returns: BrowserSchema,
-    exposed: "client" as const
-  },
   getBrowsers: {
     meta: {
       openapi: {
@@ -90,7 +78,7 @@ export const ServiceAPISchema = {
       }
     },
     args: z.strictObject({}),
-    returns: z.map(z.number(), BrowserSchema),
+    returns: z.record(z.string(), BrowserSchema),
     exposed: "client" as const
   },
   reboot: {
@@ -144,31 +132,16 @@ export const ServiceAPISchema = {
     returns: z.array(ImageSchema),
     exposed: "client" as const
   },
-  openBrowser: {
+  openBrowsers: {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/browser",
+        path: "/browsers",
         protected: true
       }
     },
-    args: z.strictObject({
-      url: z.string().optional(),
-      displayId: IDSchema.optional()
-    }),
-    returns: IDSchema,
-    exposed: "client" as const
-  },
-  closeBrowser: {
-    meta: {
-      openapi: {
-        method: "DELETE" as const,
-        path: "/browser/{browserId}",
-        protected: true
-      }
-    },
-    args: z.strictObject({ browserId: IDSchema }),
-    returns: z.boolean(),
+    args: z.strictObject({}),
+    returns: IDSchema.array(),
     exposed: "client" as const
   },
   closeBrowsers: {

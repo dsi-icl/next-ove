@@ -9,39 +9,33 @@ import {
   screen,
   systemPreferences
 } from "electron";
-import { OutboundAPI } from "./ipc-routes";
+import { type OutboundAPI } from "./ipc-routes";
 
 export const start = (closeServer: () => void) => {
-  App.init(app, BrowserWindow, screen, closeServer);
+  App.initialise(app, BrowserWindow, screen, closeServer);
 };
 
-export const createWindow = (url?: string, displayId?: number): string => {
+export const createWindow = async (): Promise<number[]> => {
   if (!App.isInitialised()) {
     throw new Error("Window controller is not initialised");
   }
-  if (url === undefined) {
-    return App.openWindow(App.loadDisplayWindow, displayId);
-  } else {
-    return App.openWindow((idx: string) => {
-      App.loadCustomWindow(url, idx);
-    }, displayId);
-  }
+  return App.open();
 };
 
-export const closeWindow = (idx: string): boolean => {
+export const closeWindow = (idx: number): boolean => {
   if (!App.isInitialised()) {
     throw new Error("Window controller is not initialised");
   }
-  App.closeWindow(idx);
+  App.close(idx);
   return true;
 };
 
-export const reloadWindow = (idx: string) => {
+export const reloadWindow = (idx: number) => {
   if (!App.isInitialised()) {
     throw new Error("Window controller is not initialised");
   }
 
-  App.reloadWindow(idx);
+  App.reload(idx);
   return true;
 };
 
@@ -50,7 +44,7 @@ export const reloadWindows = () => {
     throw new Error("Window controller is not initialised");
   }
 
-  App.reloadWindows();
+  App.reloadAll();
   return true;
 };
 

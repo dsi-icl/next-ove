@@ -14,7 +14,7 @@ const schema = z.strictObject({
     HOSTNAME: z.string(),
     PROTOCOL: z.string()
   }).optional(),
-  BRIDGE_URL: z.string().optional(),
+  BROWSER_DELAY: z.number(),
   LOG_LEVEL: z.number().optional(),
   AUTHORISED_CREDENTIALS: z.string().optional(),
   AUTH_ERROR_LIMIT: z.number(),
@@ -36,7 +36,8 @@ const defaultConfig: z.infer<typeof schema> = {
   HOSTNAME: "localhost",
   PROTOCOL: "http",
   AUTH_ERROR_LIMIT: 3,
-  WINDOW_CONFIG: {}
+  WINDOW_CONFIG: {},
+  BROWSER_DELAY: 2000
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-client-config.json");

@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:3334/api/v1"
+      "url": "http://0.0.0.0:3334/api/v1"
     }
   ],
   "paths": {
@@ -117,19 +117,10 @@
         }
       }
     },
-    "/browser/{browserId}": {
+    "/browsers": {
       "get": {
-        "operationId": "getBrowser",
-        "parameters": [
-          {
-            "name": "browserId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
+        "operationId": "getBrowsers",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -139,22 +130,21 @@
                   "anyOf": [
                     {
                       "type": "object",
-                      "properties": {
-                        "displayId": {
-                          "type": "number"
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "displayId": {
+                            "type": "number"
+                          },
+                          "url": {
+                            "type": "string"
+                          }
                         },
-                        "url": {
-                          "type": "string"
-                        },
-                        "windowId": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "displayId",
-                        "windowId"
-                      ],
-                      "additionalProperties": false
+                        "required": [
+                          "displayId"
+                        ],
+                        "additionalProperties": false
+                      }
                     },
                     {
                       "type": "object",
@@ -178,54 +168,20 @@
           }
         }
       },
-      "delete": {
-        "operationId": "closeBrowser",
-        "parameters": [
-          {
-            "name": "browserId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "oveError": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "oveError"
-                      ],
-                      "additionalProperties": false
-                    }
-                  ]
-                }
+      "post": {
+        "operationId": "openBrowsers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
               }
             }
-          },
-          "default": {
-            "$ref": "#/components/responses/error"
           }
-        }
-      }
-    },
-    "/browsers": {
-      "get": {
-        "operationId": "getBrowsers",
+        },
         "parameters": [],
         "responses": {
           "200": {
@@ -236,35 +192,8 @@
                   "anyOf": [
                     {
                       "type": "array",
-                      "maxItems": 125,
                       "items": {
-                        "type": "array",
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "displayId": {
-                                "type": "number"
-                              },
-                              "url": {
-                                "type": "string"
-                              },
-                              "windowId": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "displayId",
-                              "windowId"
-                            ],
-                            "additionalProperties": false
-                          }
-                        ],
-                        "minItems": 2,
-                        "maxItems": 2
+                        "type": "number"
                       }
                     },
                     {
@@ -573,62 +502,6 @@
         }
       }
     },
-    "/browser": {
-      "post": {
-        "operationId": "openBrowser",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "displayId": {
-                    "type": "number"
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          }
-        },
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "oveError": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "oveError"
-                      ],
-                      "additionalProperties": false
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "default": {
-            "$ref": "#/components/responses/error"
-          }
-        }
-      }
-    },
     "/env/windowConfig": {
       "post": {
         "operationId": "setWindowConfig",
@@ -836,15 +709,11 @@
                   },
                   "key": {
                     "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
                   }
                 },
                 "required": [
                   "pin",
-                  "key",
-                  "url"
+                  "key"
                 ],
                 "additionalProperties": false
               }

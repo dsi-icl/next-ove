@@ -182,7 +182,9 @@ export const MemDataSchema: z.ZodType<MemData> = z.strictObject({
   slab: z.number(),
   swaptotal: z.number(),
   swapused: z.number(),
-  swapfree: z.number()
+  swapfree: z.number(),
+  writeback: z.number().nullable(),
+  dirty: z.number().nullable()
 });
 
 // @ts-ignore
@@ -348,7 +350,7 @@ const BatteryDataSchemaBase = z.strictObject({
   currentCapacity: z.number(),
   capacityUnit: z.string(),
   percent: z.number(),
-  timeRemaining: z.number(),
+  timeRemaining: z.number().nullable(),
   acConnected: z.boolean(),
   type: z.string(),
   model: z.string(),
@@ -684,7 +686,11 @@ export const CurrentLoadCPUDataSchema: z.ZodType<CurrentLoadCpuData> = z.strictO
   rawLoadSystem: z.number(),
   rawLoadNice: z.number(),
   rawLoadIdle: z.number(),
-  rawLoadIrq: z.number()
+  rawLoadIrq: z.number(),
+  loadSteal: z.number(),
+  loadGuest: z.number(),
+  rawLoadSteal: z.number(),
+  rawLoadGuest: z.number()
 });
 
 // @ts-ignore
@@ -702,6 +708,10 @@ export const CurrentLoadDataSchema: z.ZodType<CurrentLoadData> = z.strictObject(
   rawCurrentLoadNice: z.number(),
   rawCurrentLoadIdle: z.number(),
   rawCurrentLoadIrq: z.number(),
+  currentLoadSteal: z.number(),
+  currentLoadGuest: z.number(),
+  rawCurrentLoadSteal: z.number(),
+  rawCurrentLoadGuest: z.number(),
   cpus: CurrentLoadCPUDataSchema.array()
 });
 
@@ -742,8 +752,8 @@ export const ProcessesProcessLoadDataSchema: z.ZodType<ProcessesProcessLoadData>
   proc: z.string(),
   pid: z.number().nullable(), // error in library type –s missing nullable
   pids: z.number().array(),
-  cpu: z.union([z.number(), z.literal("nan")]), // nan accepted as string
-  mem: z.union([z.number(), z.literal("nan")]) // nan accepted as string
+  cpu: z.union([z.number(), z.literal("nan"), z.literal("NaN")]).nullable(), // nan accepted as string
+  mem: z.union([z.number(), z.literal("nan"), z.literal("NaN")]).nullable() // nan accepted as string
 });
 
 // @ts-ignore
@@ -751,9 +761,9 @@ export const ServicesDataSchema: z.ZodType<ServicesData> = z.strictObject({
   name: z.string(),
   running: z.boolean(),
   startmode: z.string(),
-  pids: z.union([z.number(), z.literal("nan")]).array(), // nan accepted as string
-  cpu: z.union([z.number(), z.literal("nan")]), // nan accepted as string
-  mem: z.union([z.number(), z.literal("nan")]) // nan accepted as string
+  pids: z.union([z.number(), z.literal("nan"), z.literal("NaN")]).nullable().array(), // nan accepted as string
+  cpu: z.union([z.number(), z.literal("nan"), z.literal("NaN")]).nullable(), // nan accepted as string
+  mem: z.union([z.number(), z.literal("nan"), z.literal("NaN")]).nullable() // nan accepted as string
 });
 
 // 8. Docker
@@ -989,15 +999,15 @@ export const PrinterDataSchema: z.ZodType<PrinterData> = z.strictObject({
 // @ts-ignore
 export const USBDataSchema: z.ZodType<UsbData> = z.strictObject({
   id: z.union([z.number(), z.string()]),
-  bus: z.number(),
-  deviceId: z.number(),
+  bus: z.number().nullable(),
+  deviceId: z.number().nullable(),
   name: z.string(),
   type: z.string(),
   removable: z.boolean(),
-  vendor: z.string(),
-  manufacturer: z.string(),
-  maxPower: z.string(),
-  serialNumber: z.string()
+  vendor: z.string().nullable(),
+  manufacturer: z.string().nullable(),
+  maxPower: z.string().nullable(),
+  serialNumber: z.string().nullable()
 });
 
 // @ts-ignore

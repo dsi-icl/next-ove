@@ -78,8 +78,7 @@ export type Device = z.infer<typeof DeviceSchema>;
 
 export const BrowserSchema = z.strictObject({
   displayId: z.number(),
-  url: z.string().optional(),
-  windowId: z.string()
+  url: z.string().optional()
 });
 
 export type Browser = z.infer<typeof BrowserSchema>

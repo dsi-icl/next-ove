@@ -2,23 +2,22 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { logger } from "../../../env";
 import SystemInfo from "./system-info";
 import { type DesktopCapturerSource } from "electron";
 import { Systeminformation } from "systeminformation";
+import { type ScreenshotMethod } from "@ove/ove-types";
 import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
-import {
-  Browser,
-  type ScreenshotMethod
-} from "@ove/ove-types";
-import { logger } from "../../../env";
 
-const windowController = <{
-  createWindow: ((url?: string, displayId?: number) => string) | null,
+type WindowController = {
+  createWindow: (() => Promise<number[]>) | null,
   takeScreenshots: (() => Promise<DesktopCapturerSource[]>) | null,
-  closeWindow: ((windowId: string) => void) | null,
-  reloadWindow: ((windowId: string) => void) | null,
+  closeWindow: ((windowId: number) => void) | null,
+  reloadWindow: ((windowId: number) => void) | null,
   reloadWindows: (() => void) | null
-}>{
+}
+
+const windowController: WindowController = {
   createWindow: null,
   takeScreenshots: null,
   closeWindow: null,
@@ -27,11 +26,11 @@ const windowController = <{
 };
 
 const init = (
-  createWindow: (url?: string, displayId?: number) => string,
-  takeScreenshots: () => Promise<DesktopCapturerSource[]>,
-  closeWindow: (windowId: string) => void,
-  reloadWindow: (windowId: string) => void,
-  reloadWindows: () => void
+  createWindow: WindowController["createWindow"],
+  takeScreenshots: WindowController["takeScreenshots"],
+  closeWindow: WindowController["closeWindow"],
+  reloadWindow: WindowController["reloadWindow"],
+  reloadWindows: WindowController["reloadWindows"]
 ) => {
   windowController.createWindow = createWindow;
   windowController.takeScreenshots = takeScreenshots;
@@ -40,19 +39,11 @@ const init = (
   windowController.reloadWindows = reloadWindows;
 };
 
-const closeBrowser = (windowId: string) => {
-  if (windowController.closeWindow === null) {
-    throw new Error("Window controller not initialised");
-  }
-  windowController.closeWindow(windowId);
-  return true;
-};
-
-const openBrowser = (url?: string, displayId?: number) => {
+const openBrowser = () => {
   if (windowController.createWindow === null) {
     throw new Error("Window controller not initialised");
   }
-  return windowController.createWindow(url, displayId);
+  return windowController.createWindow();
 };
 
 const processScreenshots = (
@@ -143,15 +134,17 @@ const screenshot = async (
   throw new Error(`Failed to take screenshot on displays: ${errored}`);
 };
 
-const closeBrowsers = (browsers: IterableIterator<Browser>) => {
-  let status = true;
+const closeBrowsers = (browsers: IterableIterator<number>) => {
   for (const browser of browsers) {
-    status = status && closeBrowser(browser.windowId);
+    if (windowController.closeWindow === null) {
+      throw new Error("Controller not initialised for managing browsers");
+    }
+    windowController.closeWindow(browser);
   }
-  return status;
+  return true;
 };
 
-const reloadBrowser = (windowId: string) => {
+const reloadBrowser = (windowId: number) => {
   if (windowController.reloadWindow === null) {
     throw new Error("Controller not initialised for managing browsers");
   }
@@ -170,7 +163,6 @@ const reloadBrowsers = () => {
 const service = {
   init,
   openBrowser,
-  closeBrowser,
   closeBrowsers,
   screenshot,
   reloadBrowser,

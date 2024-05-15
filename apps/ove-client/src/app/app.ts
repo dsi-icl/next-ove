@@ -1,4 +1,4 @@
-/* global __dirname */
+/* global __dirname, setTimeout */
 
 import {
   type OutboundAPI,
@@ -6,7 +6,6 @@ import {
 } from "../ipc-routes";
 import { join } from "path";
 import { exit } from "process";
-import { nanoid } from "nanoid";
 import { pathToFileURL } from "url";
 import { env, logger } from "../env";
 import { assert } from "@ove/ove-utils";
@@ -16,24 +15,13 @@ import { state } from "../server/state";
 let application: App;
 let BrowserWindow: typeof BW;
 let screen: Screen;
-let windows: {
-  [key: string]: BW
-};
 let closeServer: () => void;
 let initialised = false;
 
-let defaultIdx: string | null = null;
+let pinIdx: number | null = null;
+const windows = new Map<number, BW>();
 
-const onWindowAllClosed = () => {
-  if (defaultIdx === null) {
-    loadMainWindow();
-  } else {
-    state.browsers.clear();
-    application?.quit();
-  }
-};
-
-const initWindow = (displayId?: number) => {
+const initWindow = (url: string, displayId?: number) => {
   let bounds;
 
   if (displayId !== undefined) {
@@ -42,7 +30,9 @@ const initWindow = (displayId?: number) => {
       .find(monitor =>
         monitor.id === displayId)?.bounds ?? { x: 0, y: 0 };
   } else {
-    bounds = screen.getPrimaryDisplay().bounds;
+    const primary = screen.getPrimaryDisplay();
+    bounds = primary.bounds;
+    displayId = primary.id;
   }
 
   const mw = new BrowserWindow({
@@ -56,121 +46,91 @@ const initWindow = (displayId?: number) => {
       preload: join(__dirname, "main.preload.js")
     }
   });
-  const idx = nanoid();
-  windows = { ...windows, [idx]: mw };
-  windows[idx].setMenu(null);
-  windows[idx].center();
+  const idx = generateNewBrowserId();
+  windows.set(idx, mw);
+  state.browsers.set(idx, { displayId, url });
+  mw.setMenu(null);
+  mw.center();
 
-  windows[idx].once("ready-to-show", () => {
-    windows[idx]?.show();
-  });
-
-  windows[idx].on("closed", () => {
-    delete windows[idx];
+  mw.once("ready-to-show", () => {
+    mw.show();
   });
 
   return idx;
 };
 
-const loadErrorPage = (idx: string) => {
-  const formattedUrl = pathToFileURL(join(__dirname, "assets",
-    "error.html")).toString();
-  windows[idx].loadURL(formattedUrl)
-    .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+const loadURL = (idx: number, url: string, isFatal = false) => {
+  if (!windows.has(idx)) throw new Error("Missing window");
+  assert(windows.get(idx))?.loadURL(url)
+    .then(() => logger.info(`Loaded url: ${url}`))
     .catch(reason => {
-      logger.fatal(reason);
-      closeServer();
-      application.exit(0);
-      exit(1);
+      if (isFatal) {
+        logger.fatal(reason);
+        closeServer();
+        application.exit(1);
+        exit(1);
+      } else {
+        logger.error(reason);
+        loadURL(idx, pathToFileURL(join(__dirname, "assets", "error.html"))
+          .toString(), true);
+      }
     });
 };
 
-const loadUIWindow = (idx: string, url?: `/${string}`) => {
+const formatURL = (url?: string) => {
   if (!application.isPackaged) {
-    const formattedUrl = `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}${url ?? ""}`;
-    windows[idx].loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
-      .catch(reason => {
-        logger.error(reason);
-        loadErrorPage(idx);
-      });
+    url = url ?? "/";
+    return url.startsWith("/") ?
+      `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}${url}` :
+      url;
   } else {
-    const formattedUrl = pathToFileURL(join(__dirname, "..", env.UI_ALIAS,
-      `${url ?? "index"}.html`)).toString();
-    windows[idx].loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
-      .catch(reason => {
-        logger.error(reason);
-        loadErrorPage(idx);
-      });
+    url = url ?? "/index.html";
+    const isLocal = url.startsWith("/");
+    url = isLocal && !url.endsWith(".html") ?
+      `${url}.html` : url;
+    url = isLocal ? url.substring(1) : url;
+    return isLocal ?
+      pathToFileURL(join(__dirname, "..", env.UI_ALIAS, url)).toString() : url;
   }
 };
 
 const generateNewBrowserId = () => Array.from(state.browsers.keys())
   .reduce((acc, x) => x > acc ? x : acc, -1) + 1;
 
-const loadMainWindow = () => {
+const loadDefaultWindows = async () => {
+  const idxs: number[] = [];
   if (env.AUTHORISED_CREDENTIALS === undefined) {
-    logger.info("Loading UI Window");
-    const defaultIdx = initWindow();
-    loadUIWindow(defaultIdx);
-    const browserId = generateNewBrowserId();
-    state.browsers.set(
-      browserId, { displayId: -1, url: "", windowId: defaultIdx });
+    const idx = initWindow("/");
+    pinIdx = idx;
+    idxs.push(idx);
+    loadURL(idx, formatURL());
   } else {
-    logger.info("Loading Window Config");
-    try {
-      loadWindowConfig();
-    } catch (e) {
-      logger.error(e);
+    for (const [k, v] of Object.entries(env.WINDOW_CONFIG)) {
+      const browser =
+        Array.from(state.browsers.entries()).find(v_ =>
+          v_[1].displayId === parseInt(k));
+      const idx = browser === undefined ?
+        initWindow(v, parseInt(k)) : browser[0];
+      await new Promise(resolve => setTimeout(resolve, env.BROWSER_DELAY));
+      idxs.push(idx);
+      loadURL(idx, v);
     }
   }
-};
 
-const onReady = loadMainWindow;
-
-const loadWindowConfig = () => {
-  Object.entries(env.WINDOW_CONFIG).forEach(([k, v]) => {
-    const browser =
-      Array.from(state.browsers.entries()).find(v_ =>
-        v_[1].displayId === parseInt(k));
-    let idx: string;
-    if (browser === undefined) {
-      idx = initWindow(parseInt(k));
-    } else {
-      idx = browser[1].windowId;
-    }
-
-    windows[idx].loadURL(v)
-      .then(() => logger.info(`Loaded url: ${v}`))
-      .catch(reason => {
-        logger.error(reason);
-        loadErrorPage(idx);
-      });
-
-    if (browser === undefined) {
-      const browserId = generateNewBrowserId();
-      state.browsers.set(browserId, {
-        displayId: parseInt(k),
-        url: v,
-        windowId: idx
-      });
-    } else {
-      state.browsers.set(browser[0], { url: v, ...browser[1] });
-    }
-  });
+  return idxs;
 };
 
 const onActivate = () => {
-  if (Object.keys(windows).length === 0) {
-    onReady();
-  }
+  if (windows.size !== 0) return;
+  loadDefaultWindows().catch(logger.error);
 };
 
 const triggerIPC: OutboundAPI = {
   updatePin: pin => {
-    if (defaultIdx === null) throw new Error("Missing default ID");
-    windows[defaultIdx].webContents.send(outboundChannels["updatePin"], pin);
+    if (pinIdx === null) throw new Error("Missing default ID");
+    if (!windows.has(pinIdx)) throw new Error("Missing window");
+    assert(windows.get(pinIdx)).webContents
+      .send(outboundChannels["updatePin"], pin);
   }
 };
 
@@ -185,54 +145,58 @@ const init = (
   screen = sc;
   closeServer = cs;
 
-  application.on("window-all-closed", onWindowAllClosed);
-  application.on("ready", onReady);
+  application.on("window-all-closed", () => {
+    if (env.AUTHORISED_CREDENTIALS !== undefined) return;
+    app.quit();
+    closeServer();
+    exit(0);
+  });
+  application.on("ready", loadDefaultWindows);
   application.on("activate", onActivate);
   application.on("will-quit", closeServer);
 
   initialised = true;
 };
 
+const closeAll = () => {
+  for (const [idx, window] of windows.entries()) {
+    window.close();
+    if (idx === pinIdx) {
+      pinIdx = null;
+    }
+  }
+  windows.clear();
+  state.browsers.clear();
+};
+
 const app = {
-  openWindow: (loadWindow: (idx: string) => void, displayId?: number) => {
-    if (defaultIdx !== null) {
-      windows[defaultIdx].close();
-      state.browsers.clear();
-      delete windows[defaultIdx];
+  initialise: init,
+  open: async () => {
+    closeAll();
+    return new Promise<number[]>(resolve =>
+      setTimeout(async () =>
+        resolve(await loadDefaultWindows()), env.BROWSER_DELAY));
+  },
+  close: (idx: number) => {
+    if (!windows.has(idx)) throw new Error("Missing window");
+    assert(windows.get(idx)).close();
+    windows.delete(idx);
+    state.browsers.delete(idx);
+    if (idx === pinIdx) {
+      pinIdx = null;
     }
-    defaultIdx = null;
-    const idx = initWindow(displayId);
-    loadWindow(idx);
-    return idx;
   },
-  closeWindow: (idx: string) => {
-    if (idx === defaultIdx) {
-      defaultIdx = null;
+  reload: (idx: number) => {
+    if (!windows.has(idx)) throw new Error("Missing window");
+    windows.get(idx)?.webContents.reloadIgnoringCache();
+  },
+  reloadAll: () => {
+    for (const window of windows.values()) {
+      window.webContents.reloadIgnoringCache();
     }
-    windows[idx].close();
-    delete windows[idx];
   },
-  loadDisplayWindow: (idx: string) => {
-    loadUIWindow(idx);
-  },
-  loadCustomWindow: (url: string, idx: string) => {
-    windows[idx]?.loadURL(url.toString())
-      .then(() => logger.info(`Loaded custom window with url: ${url}`))
-      .catch(reason => {
-        logger.error(reason);
-        loadErrorPage(idx);
-      });
-  },
-  reloadWindow: (idx: string) => {
-    windows[idx]?.webContents.reloadIgnoringCache();
-  },
-  reloadWindows: () => {
-    Object.values(windows).forEach(bw => bw.webContents.reloadIgnoringCache());
-  },
-  loadWindowConfig,
   triggerIPC,
-  isInitialised: () => initialised,
-  init
+  isInitialised: () => initialised
 };
 
 export default app;
