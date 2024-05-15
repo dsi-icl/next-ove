@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thumbnail Generator - Test</title>
+</head>
+<body>
+<div style="height: 80vh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+  <img id="test-img" style="height: 512px; width: 512px;" src="" alt="test: 'air pollution factories climate change' used as prompt">
+  <button onclick="generate()">GENERATE</button>
+</div>
+<script>
+  const generate = () => {
+    const hostname = "localhost";
+    const port = 9091;
+    const prompt = "air%20pollution%20factories%20climate%20change";
+    fetch(`http://${hostname}:${port}/generate?prompt=${prompt}`)
+      .then(res => res.text()).then(src => document.getElementById("test-img").src = src);
+  };
+</script>
+</body>
+</html>
