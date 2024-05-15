@@ -3,10 +3,8 @@ import Console from "../console/console";
 import { useStore } from "../../../../store";
 import LiveView from "../live-view/live-view";
 import InfoContainer from "../info/info-container";
-import BrowserInput from "../browser-modals/browser-input";
 import BrowserStatus from "../browser-modals/browser-status";
 import ScreenshotInput from "../screenshot/screenshot-input";
-import BrowserIdInput from "../browser-modals/browser-id-input";
 import ScreenshotDisplay from "../screenshot/screenshot-display";
 import Volume from "../volume/volume";
 import Calendar from "../calendar/calendar";
@@ -32,12 +30,7 @@ const Popups = ({ isOpen }: { isOpen: boolean }) => {
       return deviceAction.pending ?
         <ScreenshotInput /> : <ScreenshotDisplay />;
     case "browser":
-      return deviceAction.pending ?
-        <BrowserIdInput /> : <BrowserStatus />;
-    case "browser_open":
-      return <BrowserInput />;
-    case "browser_close":
-      return <BrowserIdInput />;
+      return <BrowserStatus />;
     case "input_change":
       return <div>Input Change</div>; // TODO - implement
     case "volume":

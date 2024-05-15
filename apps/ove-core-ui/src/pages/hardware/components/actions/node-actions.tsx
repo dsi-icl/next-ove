@@ -6,10 +6,8 @@ import Shutdown from "./action/shutdown";
 import Reboot from "./action/reboot";
 import Execute from "./action/execute";
 import Screenshot from "./action/screenshot";
-import GetBrowser from "./action/get-browser";
 import GetBrowsers from "./action/get-browsers";
-import OpenBrowser from "./action/open-browser";
-import CloseBrowser from "./action/close-browser";
+import OpenBrowsers from "./action/open-browsers";
 import CloseBrowsers from "./action/close-browsers";
 import { type ActionController } from "../../types";
 
@@ -31,10 +29,8 @@ const NodeActions = ({ device, bridgeId }: ActionController) => <div
     <Screenshot bridgeId={bridgeId} deviceId={device.id} />
   </div>
   <div id={styles["windows"]} className={styles.container}>
-    <GetBrowser bridgeId={bridgeId} deviceId={device.id} />
     <GetBrowsers bridgeId={bridgeId} deviceId={device.id} />
-    <OpenBrowser bridgeId={bridgeId} deviceId={device.id} />
-    <CloseBrowser bridgeId={bridgeId} deviceId={device.id} />
+    <OpenBrowsers bridgeId={bridgeId} deviceId={device.id} />
     <CloseBrowsers bridgeId={bridgeId} deviceId={device.id} />
   </div>
 </div>;

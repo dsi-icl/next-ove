@@ -20,8 +20,6 @@ const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
       return { width: "35vw", height: "40vh" };
     }
     case "volume":
-    case "browser_open":
-    case "browser_close":
       return { width: "25vw", height: "30vh" };
     case "calendar":
       return { width: "65vw", height: "80svh" };
@@ -33,8 +31,7 @@ const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
 const isSpecial = (action: DeviceAction["action"]) =>
   action === "info" || action === "execute" || action === "screenshot" ||
   action === "monitoring" || action === "calendar" ||
-  action === "power_mode" || action === "volume" || action === "browser" ||
-  action === "browser_close" || action === "browser_open";
+  action === "power_mode" || action === "volume" || action === "browser";
 
 const Hardware = () => {
   const getObservatories = trpc.core.getObservatories.useQuery();

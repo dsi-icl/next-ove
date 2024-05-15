@@ -91,10 +91,9 @@ const getDialogTitle = (action: ActionsT | null, title: string) => {
 };
 
 type ProjectEditorProps = {
-  project: Project & { layout: Section[] }
+  project: Project
   updateProject: (project: ProjectMetadata) => void
   tags: string[]
-  username: string
   saveProject: (project: Project, layout: Section[]) => void
 }
 
@@ -102,14 +101,13 @@ const ProjectEditor = ({
   project,
   updateProject,
   tags,
-  username,
   saveProject
 }: ProjectEditorProps) => {
   const { observatories } = useObservatories();
-  const space = useSpace();
+  const space = useSpace(observatories);
   const { dialog, isOpen, action, setAction } = useActions();
-  const container = useContainer(space);
-  const sections = useSections(project.id, project.layout);
+  const container = useContainer(space.space);
+  const sections = useSections(project.id);
   const states = useCustomStates(
     sections.states,
     sections.select,
@@ -133,7 +131,7 @@ const ProjectEditor = ({
     uninvited,
     inviteCollaborator,
     removeCollaborator
-  } = useCollaboration(project, username);
+  } = useCollaboration(project);
 
   useEffect(() => {
     setInnerDialogStyle(undefined);
@@ -145,7 +143,7 @@ const ProjectEditor = ({
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
                          setAction={setAction} files={assets} toURL={toURL}
-                         fromURL={fromURL} getLatest={getLatest}
+                         fromURL={fromURL}
                          allTags={tags} invited={invited} uninvited={uninvited}
                          generator={generateThumbnail} accepted={accepted}
                          inviteCollaborator={inviteCollaborator}
@@ -163,8 +161,7 @@ const ProjectEditor = ({
         const controller = getLatest("control");
         return <ControllerEditor controller={controller} getData={getData}
                                  update={data =>
-                                   addFile(controller.name, data,
-                                     controller.assetId)} />;
+                                   addFile(controller.name, data)} />;
       }
       case "upload":
         return <FileUpload files={assets} getLatest={getLatest}
@@ -178,7 +175,7 @@ const ProjectEditor = ({
         const env = getLatest("env");
         return <EnvEditor env={env} getData={getData}
                           update={data =>
-                            addFile(env.name, data, env.assetId)} />;
+                            addFile(env.name, data)} />;
       }
       case "live":
         return <Controller />;
@@ -225,18 +222,17 @@ const ProjectEditor = ({
           <ResizableHandle withHandle={!isOpen} />
           <ResizablePanel defaultSize={40}>
             <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={40}>
+              <ResizablePanel defaultSize={20}>
                 <SpaceConfig space={space} presets={observatories} />
               </ResizablePanel>
               <ResizableHandle withHandle={!isOpen} />
-              <ResizablePanel defaultSize={60}>
+              <ResizablePanel defaultSize={80}>
                 <SectionConfig sections={sections.getSections(states.selected)}
                                setAction={setAction} files={assets}
                                fromURL={fromURL}
                                selected={sections.selected} space={space}
                                toURL={toURL}
                                state={states.selected} projectId={project.id}
-                               getLatest={getLatest}
                                updateSection={sections.updateSection} />
               </ResizablePanel>
             </ResizablePanelGroup>

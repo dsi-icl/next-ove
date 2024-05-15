@@ -42,10 +42,18 @@ const baseSchema = z.strictObject({
     USE_SSL: z.boolean(),
     GLOBAL_BUCKETS: z.string().array()
   }).optional(),
+  CONTROLLER_FORMAT: z.strictObject({
+    SERVER: z.string(),
+    RENDERER: z.string(),
+    SPACE: z.string(),
+    CUSTOM_CONFIG: z.record(z.string(), z.custom()),
+    DATA_TYPE_MAP: z.record(z.string(), z.string())
+  }).optional(),
   DISABLE_AUTH: z.boolean(),
   TEST_USER: z.string().optional(),
   SOCKET_DIST: z.string(),
-  TOKEN_EXPIRY: z.string()
+  TOKEN_EXPIRY: z.string(),
+  THUMBNAIL_GENERATOR: z.string().optional()
 });
 
 const schema = baseSchema.refine(config =>

@@ -21,19 +21,19 @@ import { Grid, Brush, Fullscreen } from "react-bootstrap-icons";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./section-config.module.scss";
+import { toast } from "sonner";
 
 type SectionConfigProps = {
   sections: Section[]
   selected: string | null
   updateSection: (section: Omit<Section, "id">) => void
-  space: Space & { cells: TGeometry[] }
+  space: { space: Space | null, cells: TGeometry[] | null }
   projectId: string
   state: string
   setAction: (action: Actions | null) => void
   files: File[]
   fromURL: (url: string | null) => File | null
   toURL: (name: string, version: number) => string
-  getLatest: (id: string) => File
 }
 
 const getDataTypeFromFile = (file: File) => {
@@ -55,23 +55,33 @@ const sort = (k: keyof DataType, a: DataType, b: DataType) => {
 const toPercentage = (x: number) => parseFloat(`${(x * 100)}`.slice(0, 5));
 const fromPercentage = (x: number) => parseFloat(x.toString()) / 100;
 
-const getRow = (y: number, space: Space & { cells: TGeometry[] }) => {
+const getRow = (y: number, space: {
+  space: Space | null,
+  cells: TGeometry[] | null
+}) => {
+  if (space.space === null || space.cells === null) return null;
   if (y === 0) return 0;
-  if (y === 1) return space.rows;
+  if (y === 1) return space.space.rows;
   for (let i = 0; i < space.cells.length; i++) {
-    if (space.cells[i].y === y * space.height) {
-      return Math.floor(i / space.columns);
+    if (space.cells[i].y === y * space.space.height) {
+      return Math.floor(i / space.space.columns);
     }
   }
 
   return null;
 };
 
-const getColumn = (x: number, space: Space & { cells: TGeometry[] }) => {
+const getColumn = (x: number, space: {
+  space: Space | null,
+  cells: TGeometry[] | null
+}) => {
+  if (space.space === null || space.cells === null) return null;
   if (x === 0) return 0;
-  if (x === 1) return space.columns;
+  if (x === 1) return space.space.columns;
   for (let i = 0; i < space.cells.length; i++) {
-    if (space.cells[i].x === x * space.width) return i % space.columns;
+    if (space.cells[i].x === x * space.space.width) {
+      return i % space.space.columns;
+    }
   }
 
   return null;
@@ -107,11 +117,9 @@ const SectionConfig = ({
   space,
   projectId,
   state,
-  setAction,
   files,
   fromURL,
-  toURL,
-  getLatest
+  toURL
 }: SectionConfigProps) => {
   const {
     register,
@@ -170,28 +178,33 @@ const SectionConfig = ({
   }, [selected, sections, fromURL, resetField, setValue, space]);
 
   const onSubmit = (section: SectionConfigForm) => {
+    if (mode === "grid" && (space.space === null || space.cells === null)) {
+      toast.error("Please select an observatory");
+      return;
+    }
     updateSection({
       x: mode === "custom" ? fromPercentage(assert(section.x)) :
-        assert(section.columnFrom) / space.columns,
+        assert(section.columnFrom) / assert(space.space).columns,
       y: mode === "custom" ? fromPercentage(assert(section.y)) :
-        assert(section.rowFrom) / space.rows,
+        assert(section.rowFrom) / assert(space.space).rows,
       width: mode === "custom" ? fromPercentage(assert(section.width)) :
         (assert(section.columnTo) - assert(
-          section.columnFrom)) * (1 / space.columns),
+          section.columnFrom)) * (1 / assert(space.space).columns),
       height: mode === "custom" ? fromPercentage(assert(section.height)) :
-        (assert(section.rowTo) - assert(section.rowFrom)) * (1 / space.rows),
+        (assert(section.rowTo) - assert(
+          section.rowFrom)) * (1 / assert(space.space).rows),
       config: Json.parse(config),
       assetId: files.find(({
         name,
         version
       }) => name === section.fileName &&
-        version.toString() === section.fileVersion)?.assetId ?? null,
+        version.toString() === section.fileVersion)?.name ?? null,
       asset: section.asset,
       dataType: section.dataType,
       states: [state],
       ordering: sections.find(section =>
         section.id === selected)?.ordering ?? sections.length,
-      projectId: projectId
+      projectId
     });
   };
 
@@ -213,7 +226,7 @@ const SectionConfig = ({
       const file = assert(files.find(({
         name,
         version
-      }) => name === fileName && version === parseInt(fileVersion)));
+      }) => name === fileName && version === fileVersion));
       setValue("dataType", getDataTypeFromFile(file) ??
         "-- select an option --");
     }
@@ -223,13 +236,8 @@ const SectionConfig = ({
     <h2>Section Config</h2>
     <form onSubmit={handleSubmit(onSubmit)}>
       <div id={styles["left-container"]}>
-        <Geometry setMode={setMode} mode={mode} space={space}
+        <Geometry setMode={setMode} mode={mode} space={space.space}
                   setValue={setValue} register={register} />
-        <div id={styles["config-container"]}>
-          <label htmlFor="config">Config:</label>
-          <input className={styles.config} {...register("config")} type="button"
-                 onClick={() => setAction("custom-config")} />
-        </div>
       </div>
       <fieldset id={styles["assets"]}>
         <label htmlFor="asset">Asset:</label>
@@ -238,7 +246,7 @@ const SectionConfig = ({
             onAssetChange(e?.target?.value)
         })} />
         <S3FileSelect register={register} watch={watch} fromURL={fromURL}
-                      getLatest={getLatest} setValue={setValue}
+                      setValue={setValue}
                       files={files} url={watch("asset")} />
         <label htmlFor="dataType" className={styles["data-type-label"]}>Data
           Type:</label>
@@ -262,7 +270,7 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
   register: UseFormRegister<SectionConfigForm>,
   setMode: (mode: "custom" | "grid") => void,
   setValue: UseFormSetValue<SectionConfigForm>,
-  space: Space
+  space: Space | null
 }) => {
   const fullscreen = () => {
     setValue("x", 0);
@@ -270,9 +278,9 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
     setValue("width", 100);
     setValue("height", 100);
     setValue("columnFrom", 0);
-    setValue("columnTo", space.columns);
+    setValue("columnTo", space?.columns ?? 0);
     setValue("rowFrom", 0);
-    setValue("rowTo", space.rows);
+    setValue("rowTo", space?.rows ?? 0);
   };
 
   const backgroundColor = mode === "custom" ? "#dadedf" : undefined;
@@ -325,22 +333,29 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
     <fieldset style={mode === "grid" ? undefined : { display: "none" }}>
       <div className={styles.column}>
         <label htmlFor="rowFrom">Row:</label>
-        <input {...register("rowFrom", { valueAsNumber: true })}
-               placeholder="From:" />
+        <input
+          disabled={space === null}
+          {...register("rowFrom", { valueAsNumber: true })}
+          placeholder="From:" />
       </div>
       <div className={styles.column}>
         <input
-          className={styles.to} {...register("rowTo", { valueAsNumber: true })}
+          disabled={space === null}
+          className={styles.to}
+          {...register("rowTo", { valueAsNumber: true })}
           placeholder="To:" />
       </div>
       <div className={styles.column}>
         <label htmlFor="columnFrom">Column:</label>
-        <input {...register("columnFrom", { valueAsNumber: true })}
-               placeholder="From:" />
+        <input
+          disabled={space === null}
+          {...register("columnFrom", { valueAsNumber: true })}
+          placeholder="From:" />
       </div>
       <div className={styles.column}>
         <input
-          className={styles.to} {...register("columnTo", { valueAsNumber: true })}
+          disabled={space === null} className={styles.to}
+          {...register("columnTo", { valueAsNumber: true })}
           placeholder="To:" />
       </div>
     </fieldset>

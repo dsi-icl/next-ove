@@ -115,6 +115,6 @@ model Section {
   // ordering for the section
   ordering  Int
   // project the section is part of
-  project   Project? @relation(fields: [projectId], references: [id])
-  projectId String?  @db.ObjectId
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String   @db.ObjectId
 }

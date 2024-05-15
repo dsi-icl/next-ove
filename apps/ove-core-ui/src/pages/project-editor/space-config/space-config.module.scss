@@ -2,75 +2,18 @@
   height: 100%;
   padding: 0 1rem;
 
-  & h2 {
-    font-weight: 700;
-    text-align: center;
-  }
-
-  #custom-container {
-    display: flex;
-    justify-content: space-between;
-  }
-
   & form {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    height: calc(100% - 2rem);
 
     & label {
       font-weight: 700;
-      font-size: 1rem;
-    }
-
-    .col {
-      display: flex;
-      flex-direction: column;
-      width: calc(50% - 1.5rem);
-    }
-
-    .ratio {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-
-      & p {
-        font-weight: 700;
-        margin: 0 0.125rem;
-      }
-
-      & input {
-        width: calc(100% - 1rem);
-      }
-
-      .left {
-        direction: rtl;
-        text-align: right;
-      }
-    }
-
-    & input {
-      border: 1px solid black;
-      border-radius: 0.25rem;
-      height: 2rem;
-      padding: 0 0.25rem;
-    }
-
-    #custom-submit {
-      display: none;
-    }
-
-    & button {
-      margin-top: auto;
-      height: 2rem;
-      background-color: #002147;
-      color: white;
-      width: 25%;
-      margin-left: auto;
-      border-radius: 0.25rem;
+      text-align: center;
     }
 
     & select {
+      margin-top: 1.5rem;
       border: 1px solid black;
       border-radius: 0.25rem;
       height: 2rem;

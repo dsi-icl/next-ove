@@ -13,7 +13,7 @@ import { NavigationMenuLink, Toaster } from "@ove/ui-base-components";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const App = () => {
-  const { loggedIn, username, login, logout, tokens, refresh } = useAuth();
+  const { loggedIn, login, logout, tokens, refresh } = useAuth();
 
   const navContent = [
     {
@@ -138,7 +138,7 @@ export const App = () => {
     <QueryClientProvider client={queryClient}>
       <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
            content={navContent} />
-      <Router loggedIn={loggedIn} login={login} username={username} />
+      <Router loggedIn={loggedIn} login={login} />
       <Toaster />
     </QueryClientProvider>
   </trpc.Provider>;

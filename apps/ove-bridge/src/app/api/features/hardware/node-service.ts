@@ -15,7 +15,6 @@ import {
   TClientAPI
 } from "@ove/ove-types";
 import { z } from "zod";
-import superjson from "superjson";
 import { env, logger } from "../../../../env";
 import { raise } from "@ove/ove-utils";
 import { statusOptions } from "../../utils/status";
@@ -45,8 +44,7 @@ export const createClient = (
           };
         }
       })
-    ],
-    transformer: superjson
+    ]
   });
 
 const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">) => {
@@ -139,49 +137,18 @@ const screenshot = async (
   );
 };
 
-const openBrowser = async (
+const openBrowsers = async (
   device: Device,
-  args: TBridgeServiceArgs<"openBrowser">
+  args: TBridgeServiceArgs<"openBrowsers">
 ) => {
   const openBrowserOptsSchema = z
-    .object({ displayId: z.number(), url: z.string() })
-    .strict();
+    .strictObject({});
   const parsedOpts = openBrowserOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return await createClient(device).openBrowser.mutate(
-    parsedOpts.data as z.infer<TClientAPI["openBrowser"]["args"]>
-  );
-};
-
-const getBrowser = async (
-  device: Device,
-  args: TBridgeServiceArgs<"getBrowser">
-) => {
-  const getBrowserStatusOptsSchema = z
-    .object({ browserId: z.number() })
-    .strict();
-  const parsedOpts = getBrowserStatusOptsSchema.safeParse(args);
-
-  if (!parsedOpts.success) return undefined;
-
-  return await createClient(device).getBrowser.query(
-    parsedOpts.data as z.infer<TClientAPI["getBrowser"]["args"]>
-  );
-};
-
-const closeBrowser = async (
-  device: Device,
-  args: TBridgeServiceArgs<"closeBrowser">
-) => {
-  const closeBrowserOptsSchema = z.object({ browserId: z.number() }).strict();
-  const parsedOpts = closeBrowserOptsSchema.safeParse(args);
-
-  if (!parsedOpts.success) return undefined;
-
-  return await createClient(device).closeBrowser.mutate(
-    parsedOpts.data as z.infer<TClientAPI["closeBrowser"]["args"]>
+  return await createClient(device).openBrowsers.mutate(
+    parsedOpts.data as z.infer<TClientAPI["openBrowsers"]["args"]>
   );
 };
 
@@ -284,9 +251,7 @@ const NodeService: TBridgeHardwareService = {
   getStatus,
   execute,
   screenshot,
-  openBrowser,
-  closeBrowser,
-  getBrowser,
+  openBrowsers,
   getBrowsers,
   closeBrowsers,
   reloadBrowser,

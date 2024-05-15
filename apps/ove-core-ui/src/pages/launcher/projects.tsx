@@ -15,7 +15,7 @@ const Projects = () => {
 
   return projects.status === "success" && !isError(projects.data) &&
   user.status === "success" && !isError(user.data) ?
-    <div style={{position: "relative"}}>
+    <div style={{ position: "relative" }}>
       <section className={styles["project-container"]}>
         <h4 className={styles.heading}>Projects</h4>
         <ul className={styles.projects}>

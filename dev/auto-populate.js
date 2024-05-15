@@ -75,9 +75,9 @@ const generateSections = projectIds => projectIds.flatMap(projectId => {
     /** @type {number} */
     const y = randFloat({ min: 0, max: 1 });
     /** @type {number} */
-    const width = randFloat({ min: 0, max: 1 - x });
+    const width = randFloat({ min: 0.001, max: 1 - x });
     /** @type {number} */
-    const height = randFloat({ min: 0, max: 1 - y });
+    const height = randFloat({ min: 0.001, max: 1 - y });
     return ({
       width,
       height,

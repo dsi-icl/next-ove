@@ -1,6 +1,5 @@
 import { z } from "zod";
 import Upload from "./upload";
-import { assert } from "@ove/ove-utils";
 import { useForm } from "react-hook-form";
 import { type File as FileT } from "@ove/ove-types";
 import Editor, { type CustomFile } from "./editor";
@@ -10,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 type FileUploadProps = {
   files: FileT[]
   getLatest: (id: string) => FileT
-  addFile: (name: string, data: string, assetId?: string) => void
+  addFile: (name: string, data: string) => void
   setDialogStyle: (style: CSSProperties | undefined) => void
   closeDialog: () => void
 }
@@ -32,9 +31,10 @@ const FileUpload = ({
   const names = files.map(({ name }) => name)
     .filter((name, i, arr) => arr.indexOf(name) === i);
   const [customFile, setCustomFile] = useState<CustomFile | null>(null);
-  const { register, handleSubmit, resetField, watch } = useForm<FileUploadForm>({
-    resolver: zodResolver(FileUploadFormSchema)
-  });
+  const { register, handleSubmit, resetField, watch } =
+    useForm<FileUploadForm>({
+      resolver: zodResolver(FileUploadFormSchema)
+    });
   const file = watch("file");
 
   useEffect(() => {
@@ -47,13 +47,7 @@ const FileUpload = ({
 
   const onSubmit = ({ file }: FileUploadForm) => {
     const name = convertCustomFile(customFile)?.[0]?.name ?? file[0].name;
-    let assetId: string | undefined = undefined;
-
-    if (names.includes(name)) {
-      assetId = assert(files.find(file => file.name === name)).assetId;
-    }
-
-    addFile(name, "", assetId);
+    addFile(name, "");
     resetField("file");
   };
 

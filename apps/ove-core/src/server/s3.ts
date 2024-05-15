@@ -1,6 +1,6 @@
 /* global globalThis */
 
-import Minio from "minio";
+import * as Minio from "minio";
 import { env } from "../env";
 
 const globalForS3 = globalThis as unknown as {s3: Minio.Client | null};
@@ -19,18 +19,3 @@ const createMinio = () => {
 export const s3 = createMinio();
 
 if (env.NODE_ENV !== "production") globalForS3.s3 = s3;
-
-const listObjects = (s3_: Minio.Client, bucketName: string) =>
-  new Promise<(Minio.BucketItem & {versionId: string})[]>((resolve, reject) => {
-    const stream = s3_
-      // @ts-expect-error – missing optional arguments parameter in library type
-      .listObjects(bucketName, "", true, { IncludeVersion: true });
-    const data: (Minio.BucketItem & {versionId: string})[] = [];
-    stream.on("data", obj => data.push(obj as typeof data[0]));
-    stream.on("end", () => resolve(data));
-    stream.on("error", err => reject(err));
-  });
-
-export const S3Controller = {
-  listObjects
-};

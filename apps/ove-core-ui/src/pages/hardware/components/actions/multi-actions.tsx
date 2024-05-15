@@ -7,10 +7,8 @@ import Reboot from "./action/reboot";
 import Execute from "./action/execute";
 import Screenshot from "./action/screenshot";
 import Input from "./action/input";
-import GetBrowser from "./action/get-browser";
 import GetBrowsers from "./action/get-browsers";
-import OpenBrowser from "./action/open-browser";
-import CloseBrowser from "./action/close-browser";
+import OpenBrowsers from "./action/open-browsers";
 import CloseBrowsers from "./action/close-browsers";
 import Volume from "./action/volume";
 import Mute from "./action/mute";
@@ -46,10 +44,8 @@ const MultiActions = ({ bridgeId, type, value }: {
       <Input bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
     <div className={styles.container}>
-      <GetBrowser bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
       <GetBrowsers bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
-      <OpenBrowser bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
-      <CloseBrowser bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
+      <OpenBrowsers bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
       <CloseBrowsers bridgeId={bridgeId} deviceId={deviceId} tag={tag} />
     </div>
     <div id={styles["volume"]} className={styles.container}>

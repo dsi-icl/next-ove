@@ -34,9 +34,8 @@ type MetadataProps = {
   files: File[]
   toURL: (name: string, version: number) => string
   fromURL: (url: string | null) => File | null
-  getLatest: (id: string) => File
   allTags: string[]
-  generator: () => { assetId: string, name: string } | null,
+  generator: () => void,
   accepted: User[],
   invited: User[],
   uninvited: User[],
@@ -65,7 +64,6 @@ const Metadata = ({
   setAction,
   toURL,
   fromURL,
-  getLatest,
   allTags,
   generator,
   accepted,
@@ -98,11 +96,8 @@ const Metadata = ({
   });
 
   const generateThumbnail = () => {
-    const file = assert(generator());
-    setTimeout(() => {
-      setValue("fileName", file.name);
-      setValue("fileVersion", "1");
-    }, 250);
+    generator();
+    // TODO: ensure fields update and generating thumbnail invalidates project
   };
 
   const onSubmit = (metadata: MetadataForm) => {
@@ -138,7 +133,7 @@ const Metadata = ({
     const removed = collaborators_
       .filter(({ status }) => status === "removed")
       .map(({ username }) => all.find(x => x.username === username &&
-        x.id !== project.creatorId)).filter(Boolean) as User[];
+        x.id !== project.creatorId)).filter(Boolean);
     added.forEach(x => inviteCollaborator(x.id));
     removed.forEach(x => removeCollaborator(x.id));
     updateProject({
@@ -153,6 +148,15 @@ const Metadata = ({
     });
     setAction(null);
   };
+  const tagsFilter = (tags: string[], tag: string) =>
+    tags.filter(x => x !== tag);
+  const publicationsFilter = (publications: string[], publication: string) =>
+    publications.filter(x => x !== publication);
+  const usernameFilter = <T extends object, >(usernames: (T & {
+    username: string
+  })[], username: string): (T & {
+    username: string
+  })[] => usernames.filter(x => x.username !== username);
 
   return <section id={styles["metadata"]}>
     <header>
@@ -167,7 +171,6 @@ const Metadata = ({
       <label htmlFor={styles["s3-select"]}>Thumbnail:</label>
       <div className={styles.thumbnail}>
         <S3FileSelect id={styles["s3-select"]} register={register}
-                      getLatest={getLatest}
                       setValue={setValue}
                       files={files} fromURL={fromURL} watch={watch}
                       url={project.thumbnail ?? ""} />
@@ -181,8 +184,7 @@ const Metadata = ({
             return <li key={tag}
                        style={{ backgroundColor }}>{tag}
               <button type="button"
-                      onClick={() => setTags(cur =>
-                        cur.filter(x => x !== tag))}>
+                      onClick={() => setTags(cur => tagsFilter(cur, tag))}>
                 <X /></button>
             </li>;
           })}
@@ -204,7 +206,7 @@ const Metadata = ({
             <div>{publication}
               <button type="button"
                       onClick={() => setPublications(cur =>
-                        cur.filter(x => x !== publication))}>
+                        publicationsFilter(cur, publication))}>
                 <X /></button>
             </div>
           </li>)}
@@ -247,7 +249,7 @@ const Metadata = ({
           {collaborators_.map(({ username }) => <li key={username}>{username}
             <button type="button"
                     onClick={() => setCollaborators_(cur =>
-                      cur.filter(x => x.username !== username))}>
+                      usernameFilter(cur, username))}>
               <X /></button>
           </li>)}
         </div>

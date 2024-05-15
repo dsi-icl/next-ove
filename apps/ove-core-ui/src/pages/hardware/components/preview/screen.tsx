@@ -94,7 +94,7 @@ const useBrowser = (bridgeId: string, deviceId: string, displayId: string) => {
     if (getBrowsers.status !== "success") return "";
     const res = getBrowsers.data.response;
     if (isError(res)) return "";
-    return Array.from(res.values())
+    return Array.from(Object.values(res))
       .find(({ displayId: id }) => id === parseInt(displayId))?.url ?? "";
   }, [getBrowsers.status, getBrowsers.data?.response, displayId]);
 };

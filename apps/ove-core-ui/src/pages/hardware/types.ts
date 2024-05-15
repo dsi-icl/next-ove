@@ -17,8 +17,6 @@ export type Action =
   | "screenshot"
   | "input_change"
   | "browser"
-  | "browser_open"
-  | "browser_close"
   | "volume"
   | "monitoring"
   | "calendar"

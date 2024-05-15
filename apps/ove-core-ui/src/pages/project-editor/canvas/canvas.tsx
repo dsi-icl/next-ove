@@ -10,11 +10,13 @@ import styles from "./canvas.module.scss";
 type PreviewProps = {
   sections: Section[]
   space: {
-    width: number,
-    height: number,
-    rows: number,
-    columns: number,
-    cells: Geometry[]
+    space: {
+      width: number,
+      height: number,
+      rows: number,
+      columns: number,
+    } | null
+    cells: Geometry[] | null
   }
   container: { width: number, height: number }
   dragSection: (id: string, x: number, y: number) => void
@@ -34,13 +36,13 @@ function drawSpaces({
   selected
 }: PreviewProps, svg_: MutableRefObject<SVGSVGElement | null>) {
   const x = d3.scaleLinear()
-    .range([0, container.width]).domain([0, space.width]);
+    .range([0, container.width]).domain([0, assert(space.space).width]);
   const inverseX = d3.scaleLinear()
-    .range([0, space.width]).domain([0, container.width]);
+    .range([0, assert(space.space).width]).domain([0, container.width]);
   const y = d3.scaleLinear()
-    .range([0, container.height]).domain([0, space.height]);
+    .range([0, container.height]).domain([0, assert(space.space).height]);
   const inverseY = d3.scaleLinear()
-    .range([0, space.height]).domain([0, container.height]);
+    .range([0, assert(space.space).height]).domain([0, container.height]);
 
   const svg = d3.select(svg_.current)
     .attr("width", () => container.width)
@@ -49,7 +51,7 @@ function drawSpaces({
   svg.selectAll("*").remove();
 
   svg.selectAll("rect")
-    .data(() => space.cells)
+    .data(() => assert(space.cells))
     .enter()
     .append("rect")
     .attr("x", d => x(d.x))
@@ -87,11 +89,13 @@ function drawSpaces({
   }
 
   const clampX = (x: number, w: number) => {
-    for (const cell of space.cells) {
-      if (Math.abs(cell.x - x) < ((space.width / space.columns) *
+    for (const cell of assert(space.cells)) {
+      if (Math.abs(cell.x - x) <
+        ((assert(space.space).width / assert(space.space).columns) *
         THRESHOLD_X)) return cell.x;
       if (Math.abs((cell.x + cell.width) - (x + w)) <
-        ((space.width / space.columns) * THRESHOLD_X)) {
+        ((assert(space.space).width / assert(
+          space.space).columns) * THRESHOLD_X)) {
         return (cell.x + cell.width) - w;
       }
     }
@@ -100,11 +104,13 @@ function drawSpaces({
   };
 
   const clampY = (y: number, h: number) => {
-    for (const cell of space.cells) {
-      if (Math.abs(cell.y - y) < ((space.height / space.rows) *
+    for (const cell of assert(space.cells)) {
+      if (Math.abs(cell.y - y) <
+        ((assert(space.space).height / assert(space.space).rows) *
         THRESHOLD_Y)) return cell.y;
       if (Math.abs((cell.y + cell.height) - (y + h)) <
-        ((space.height / space.rows) * THRESHOLD_Y)) {
+        ((assert(space.space).height / assert(
+          space.space).rows) * THRESHOLD_Y)) {
         return (cell.y + cell.height) - h;
       }
     }
@@ -121,10 +127,10 @@ function drawSpaces({
     const label =
       d3.select(`#label-${section.attr("id").slice(8)}`);
 
-    const nx = Math.max(0, Math.min(x(space.width) -
+    const nx = Math.max(0, Math.min(x(assert(space.space).width) -
       parseFloat(section.attr("width")), x(event.subject.x) +
       (event.x - event.subject.x)));
-    const ny = Math.max(0, Math.min(y(space.height) -
+    const ny = Math.max(0, Math.min(y(assert(space.space).height) -
       parseFloat(section.attr("height")), y(event.subject.y) +
       (event.y - event.subject.y)));
 
@@ -133,6 +139,10 @@ function drawSpaces({
         inverseX(parseFloat(section.attr("width"))))))
       .attr("y", y(clampY(inverseY(ny),
         inverseY(parseFloat(section.attr("height"))))));
+    const sectionTextSize = Math.min(
+      x(parseFloat(section.attr("width"))),
+      y(parseFloat(section.attr("height")))
+    ) / 8;
     label
       .attr("x", ((+nx) + (+section.attr("width")) / 2) -
         (selected === section.attr("id").slice(8) ?
@@ -147,30 +157,31 @@ function drawSpaces({
     section.style("stroke", "black");
     dragSection(
       section.attr("id").slice(8),
-      inverseX(parseFloat(section.attr("x"))) / space.width,
-      inverseY(parseFloat(section.attr("y"))) / space.height
+      inverseX(parseFloat(section.attr("x"))) / assert(space.space).width,
+      inverseY(parseFloat(section.attr("y"))) / assert(space.space).height
     );
   }
 
-  const minSectionHeight = d3.min(sections.map(d =>
-    x(d.height))) ?? 0;
-  const minSectionWidth = d3.min(sections.map(d =>
-    x(d.width))) ?? 0;
-  const sectionTextSize = Math.min(minSectionHeight, minSectionWidth) / 4;
   svg.selectAll(".section-label")
     .data(() => sections)
     .enter()
     .append("text")
     .text(d => d.ordering)
     .attr("id", d => `label-${d.id}`)
-    .attr("x", d =>
-      x((+d.x) + (+d.width) / 2) - (d.id === selected ?
-        sectionTextSize * 2 : sectionTextSize) * 0.25)
-    .attr("y", d =>
-      y((+d.y) + (+d.height) / 2) + (d.id === selected ?
-        sectionTextSize * 2 : sectionTextSize) * 0.5)
-    .style("font-size", d =>
-      `${d.id === selected ? sectionTextSize * 2 : sectionTextSize}px`)
+    .attr("x", d => {
+      const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
+      return x((+d.x) + (+d.width) / 2) - (d.id === selected ?
+        sectionTextSize * 2 : sectionTextSize) * 0.25;
+    })
+    .attr("y", d => {
+      const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
+      return y((+d.y) + (+d.height) / 2) + (d.id === selected ?
+        sectionTextSize * 2 : sectionTextSize) * 0.5;
+    })
+    .style("font-size", d => {
+      const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
+      return `${d.id === selected ? sectionTextSize * 2 : sectionTextSize}px`;
+    })
     .style("font-weight", d => d.id === selected ? 700 : 400)
     .classed(styles.label, true);
 }
@@ -179,20 +190,24 @@ const Canvas = (props: PreviewProps) => {
   const svg_ = useRef<SVGSVGElement | null>(null);
   const defs_ = useRef<SVGDefsElement | null>(null);
 
-  drawSpaces({
-    selected: props.selected,
-    container: props.container,
-    select: props.select,
-    space: props.space,
-    dragSection: props.dragSection,
-    sections: props.sections.map(s => ({
-      ...s,
-      width: s.width * props.space.width,
-      height: s.height * props.space.height,
-      x: s.x * props.space.width,
-      y: s.y * props.space.height
-    }))
-  }, svg_);
+  if (props.space.space !== null && props.space.cells !== null) {
+    drawSpaces({
+      selected: props.selected,
+      container: props.container,
+      select: props.select,
+      space: props.space,
+      dragSection: props.dragSection,
+      sections: props.sections.map(s => ({
+        ...s,
+        width: s.width * assert(props.space.space).width,
+        height: s.height * assert(props.space.space).height,
+        x: s.x * assert(props.space.space).width,
+        y: s.y * assert(props.space.space).height
+      }))
+    }, svg_);
+  } else {
+    d3.select(svg_.current).selectAll("*").remove();
+  }
 
   return <svg ref={svg_} width={props.container.width}
               height={props.container.height}>

@@ -7,7 +7,7 @@ import {
   type THardwareClientToServerEvents,
   type THardwareServerToClientEvents
 } from "@ove/ove-types";
-import { assert, Parser } from "@ove/ove-utils";
+import { assert } from "@ove/ove-utils";
 import { env, logger } from "../../../../env";
 import { io, type Socket } from "socket.io-client";
 import { startReconciliation } from "./reconciliation";
@@ -28,7 +28,6 @@ export const initHardware = () => {
   startReconciliation();
   socket = io(`${env.CORE_URL}/hardware`, {
     autoConnect: false,
-    parser: Parser,
     path: env.SOCKET_PATH
   });
   socket.auth = {

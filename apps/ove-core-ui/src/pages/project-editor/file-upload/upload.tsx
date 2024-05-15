@@ -10,7 +10,8 @@ import styles from "./file-upload.module.scss";
 type UploadProps = {
   names: string[]
   files: FileT[]
-  handleSubmit: (onSubmit: (form: FileUploadForm) => void) => FormEventHandler<HTMLFormElement>
+  handleSubmit: (onSubmit: (form: FileUploadForm) => void) =>
+    FormEventHandler<HTMLFormElement>
   onSubmit: (form: FileUploadForm) => void
   register: UseFormRegister<FileUploadForm>
   setMode: (key: "editor") => void

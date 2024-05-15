@@ -6,11 +6,11 @@ import styles from "./s3-file-select.module.scss";
 
 type S3FileSelectProps = {
   id?: string
+  disabled?: boolean
   register: (id: "fileName" | "fileVersion", args?: {
     onChange: (event: BaseSyntheticEvent<object> | undefined) => void
   }) => FieldValues,
-  files: { name: string, version: number }[]
-  getLatest: (id: string) => File,
+  files: File[]
   setValue: (key: "fileName" | "fileVersion", value: string) => void
   watch: (value: string) => string
   fromURL: (url: string | null) => File | null
@@ -19,10 +19,10 @@ type S3FileSelectProps = {
 
 const S3FileSelect = ({
   id,
+  disabled,
   files,
   register,
   setValue,
-  getLatest,
   watch,
   url,
   fromURL
@@ -36,14 +36,15 @@ const S3FileSelect = ({
     if (file !== null && file.name === name) {
       setValue("fileVersion", file.version.toString());
     } else {
-      setValue("fileVersion", getLatest(name).version.toString());
+      setValue("fileVersion", "latest");
     }
-  }, [fromURL, setValue, getLatest, url, name]);
+  }, [fromURL, setValue, url, name]);
 
   return <div id={id}>
     <div id={styles["container"]}>
       <label htmlFor="fileName">File Name</label>
       <select
+        disabled={disabled ?? false}
         className={styles.name} {...register("fileName")}>
         <option disabled value={"-- select an option --"}> -- select an option
           --
@@ -56,6 +57,7 @@ const S3FileSelect = ({
       </select>
       <label htmlFor="fileVersion">File Version</label>
       <select
+        disabled={disabled ?? false}
         className={styles.version} {...register("fileVersion")}>
         <option disabled value="-- select an option --"> -- select an option --
         </option>

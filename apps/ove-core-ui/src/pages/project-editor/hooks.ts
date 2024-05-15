@@ -13,17 +13,18 @@ import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { type ProjectMetadata } from "./metadata/metadata";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isError, type File } from "@ove/ove-types";
-import { logger } from "../../env";
+import { isError, type File as TFile, OVEException } from "@ove/ove-types";
+import { env, logger } from "../../env";
 import { toast } from "sonner";
+import superjson from "superjson";
 
-export const useContainer = (space: Space) => {
+export const useContainer = (space: Space | null) => {
   const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(100);
   const ref = useRef<HTMLDivElement | null>(null);
 
   const update = useCallback((contentRect?: Rect) => {
-    if (ref.current === null) return;
+    if (ref.current === null || space === null) return;
     const contentRect_ = contentRect ?? ref.current.getBoundingClientRect();
     const multiple = Math.min(
       contentRect_.width / space.width,
@@ -31,46 +32,75 @@ export const useContainer = (space: Space) => {
     );
     setWidth(multiple * space.width);
     setHeight(multiple * space.height);
-  }, [space.width, space.height]);
+  }, [space]);
 
-  useEffect(update, [space.width, space.height, update]);
+  useEffect(update, [space?.width, space?.height, update]);
 
   return { width, height, ref, update };
 };
 
-export const useSpace = () => {
-  const [rows, setRows] = useState(2);
-  const [columns, setColumns] = useState(2);
-  const [width, setWidth] = useState(16);
-  const [height, setHeight] = useState(9);
+export const useSpace = (observatories: Record<string, Rect & {
+  rows: number,
+  columns: number
+}>) => {
+  const observatory = useMemo(() =>
+    Object.entries(observatories).at(0) ?? null, [observatories]);
+  const [name, setName] = useState<string | null>(observatory?.[0] ?? null);
+  const [space, setSpace] = useState<{
+    width: number,
+    height: number,
+    rows: number,
+    columns: number
+  } | null>(observatory?.[1] ?? null);
 
-  const update = (space: Space) => {
-    setHeight(space.height || 4);
-    setWidth(space.width || 64);
-    setColumns(space.columns || 16);
-    setRows(space.rows || 4);
-  };
+  useEffect(() => {
+    if (name === null || Object.keys(observatories).includes(name)) return;
+    setName(null);
+    setSpace(null);
+  }, [observatories, name, setName, setSpace]);
 
-  const cells = Array.from(
-    { length: rows },
+  const cells = useMemo(() => space === null ? null : Array.from(
+    { length: space.rows },
     (_x, row) =>
-      Array.from({ length: columns }, (_y, col) => ({
-        x: (width / columns) * col,
-        y: (height / rows) * row,
-        width: width / columns,
-        height: height / rows
-      }))).flat();
+      Array.from({ length: space.columns }, (_y, col) => ({
+        x: (space.width / space.columns) * col,
+        y: (space.height / space.rows) * row,
+        width: space.width / space.columns,
+        height: space.height / space.rows
+      }))).flat(), [space]);
 
-  return { rows, columns, width, height, update, cells };
+  useEffect(() => console.log(space), [space]);
+
+  const update = useCallback((preset: string) => {
+    if (!Object.keys(observatories).includes(preset)) return;
+    setName(preset);
+    setSpace(observatories[preset]);
+  }, [observatories, setName, setSpace]);
+
+  return { space, update, cells, name };
 };
 
 const order = (sections: Section[]) =>
   [...sections.sort((a, b) => a.ordering - b.ordering)];
 
-export const useSections = (projectId: string, initialSections: Section[]) => {
-  const [sections_, setSections_] = useState(order(initialSections));
+export const useSections = (projectId: string) => {
+  const [sections_, setSections_] = useState<Section[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const setConfig = useStore(state => state.setConfig);
+  const getSections = trpc.projects.getSectionsForProject.useQuery(
+    { projectId },
+    {
+      retry: false,
+      refetchInterval: false
+    }
+  );
+
+  useEffect(() => {
+    if (getSections.status !== "success") return;
+    if (isError(getSections.data)) return;
+    setSections_(order(getSections.data));
+  }, [getSections.status, getSections.data, setSections_]);
+
   const setSections = (handler: (cur: Section[]) => Section[]) =>
     setSections_(cur => order(handler(cur)));
 
@@ -99,7 +129,8 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
 
   const updateSection = (section: Omit<Section, "id">) => {
     setSections(cur => {
-      const newSectionId = selected ?? nanoid(16);
+      const newSectionId = selected ?? nanoid(32);
+      console.log(selected, newSectionId);
       const newSections = cur.filter(({ id }) => id !== selected).concat([{
         ...section,
         ordering: cur.length,
@@ -120,22 +151,26 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
   };
 
   const removeState = (state: string) => {
+    const filter = (section: Section) =>
+      section.states.filter(s => s !== state);
     setSections(cur => cur.map(section => {
       if (!section.states.includes(state)) return section;
       if (section.states.length === 1) return undefined;
       return {
         ...section,
-        states: section.states.filter(s => s !== state)
+        states: filter(section)
       };
-    }).filter(Boolean) as Section[]);
+    }).filter(Boolean));
   };
 
   const updateState = (state: string, name: string) => {
+    const map = (section: Section) =>
+      section.states.map(c => c === state ? name : c);
     setSections(cur =>
       cur.map(section =>
         !section.states.includes(state) ? section : {
           ...section,
-          states: section.states.map(c => c === state ? name : c)
+          states: map(section)
         }));
   };
 
@@ -152,15 +187,17 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
     if (id === selected) {
       setSelected(null);
     }
+    const filter = (section: Section) =>
+      section.states.filter(s => s !== state);
     setSections(cur => {
       let newSections = cur.map(section => {
         if (section.id !== id) return section;
         if (section.states.length === 1) return undefined;
         return {
           ...section,
-          states: section.states.filter(s => s !== state)
+          states: filter(section)
         };
-      }).filter(Boolean) as Section[];
+      }).filter(Boolean);
 
       if (newSections.length !== cur.length) {
         newSections = newSections.map((section, i) => ({
@@ -174,7 +211,7 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
   };
 
   const generateSection = (state: string) => {
-    const newSectionId = nanoid(16);
+    const newSectionId = nanoid(32);
     setSections(cur => [...cur].concat([{
       id: newSectionId,
       x: 0,
@@ -186,7 +223,7 @@ export const useSections = (projectId: string, initialSections: Section[]) => {
       assetId: null,
       config: null,
       dataType: "html",
-      projectId: projectId,
+      projectId,
       states: [state]
     }]));
     setSelected(newSectionId);
@@ -319,7 +356,7 @@ export const useSave = () => {
   return {
     saveProject: (project: Project, layout: Section[]) => {
       saveProject.mutateAsync({
-        ...project,
+        project,
         layout
       }).then(() => toast.info("Successfully saved project!")).catch(e => {
         logger.error(e);
@@ -339,9 +376,7 @@ export const useProject = (
     { enabled: projectId !== null }
   );
 
-  const [project, setProject] = useState<(Project & {
-    layout: Section[]
-  }) | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const tags = useMemo(() => (tags_.status === "success" &&
   !isError(tags_.data) ? tags_.data : []).concat(project?.tags ?? [])
     .filter((x, i, arr) =>
@@ -371,81 +406,101 @@ export const useProject = (
 
 export const useFiles = (projectId: string) => {
   const files_ = trpc.projects.getFiles.useQuery({ projectId });
-  const [files, setFiles] = useState<File[]>([]);
+  const uploadRaw = trpc.projects.uploadFile.useMutation({ retry: false });
+  const thumbnail = trpc.projects.generateThumbnail
+    .useMutation({ retry: false });
+  const [files, setFiles] = useState<TFile[]>([]);
 
   useEffect(() => {
     if (files_.status !== "success" || isError(files_.data)) return;
     setFiles(files_.data);
   }, [files_.status, files_.data]);
 
-  const addFile = (name: string, data: string, assetId?: string) => {
+  const addFile = (name: string, data: string) => {
     if (files.find(file =>
       file.name === name && file.isGlobal) !== undefined) {
-      return null; // TODO: add snackbar failure message
-    }
-    if (assetId === undefined) {
-      assetId = nanoid(16);
-      setFiles(cur => [...cur, {
-        name: name,
-        version: 1,
-        assetId: assert(assetId),
-        isGlobal: false
-      }]);
-      // setData(cur => ({ ...cur, [`${name}/1`]: data }));
-    } else {
-      let latest: File | null = null;
-      setFiles(cur => {
-        latest = getLatest(assert(assetId));
-        // setData(cur => ({
-        //   ...cur,
-        //   [`${name}/${latest!.version + 1}`]: data
-        // }));
-        return [...cur, { ...latest, version: latest.version + 1 }];
-      });
+      toast.error("Cannot upload a global file");
+      return;
     }
 
-    return { assetId, name };
+    uploadRaw.mutateAsync({
+      projectId,
+      name,
+      data
+    }).catch(logger.error);
   };
 
-  const generateThumbnail = () => addFile(
-    `thumbnail-gen-${nanoid(2)}`, "thumbnail data"
-  ); // TODO: replace with real thumbnail generation
+  const uploadFile = (name: string, file: File) => {
+    if (files.find(file => file.name === name && file.isGlobal) !== undefined) {
+      toast.error("Cannot upload a global file");
+      return;
+    }
 
-  const getLatest = useCallback((id: string) => {
-    const latest = Math.max(...files.filter(file =>
-      file.assetId === id || file.name === id).map(({ version }) => version));
-    return assert(files.find(file =>
-      (file.assetId === id || file.name === id) && file.version === latest));
-  }, [files]);
+    fetch(
+      // eslint-disable-next-line max-len
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`
+    ).then(res => res.text()).then(res => {
+      const url: string | OVEException = superjson.parse(res);
+      if (isError(url)) {
+        toast.error(url.oveError);
+        return;
+      }
+      fetch(url, {
+        method: "PUT",
+        body: file
+      }).then(() => toast.info(`Uploaded file ${name}`))
+        .catch(() => toast.error(`Unable to upload file ${name}`));
+    });
+  };
 
-  const getData = async (file: File) => ""; // TODO: replace with server call
+  const generateThumbnail = () => thumbnail.mutateAsync({ projectId })
+    .then(() => toast.info("Generated thumbnail"))
+    .catch(() => toast.error("Error generating thumbnail"));
 
-  const toURL = (name: string, version: number) => `/s3/${name}/${version}`;
+  const getData = async (file: TFile) => {
+    const url = await (await fetch(
+      // eslint-disable-next-line max-len
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${file.name}/${file.version}/presigned/get`
+    )).text();
+    return await (await fetch(url)).text();
+  };
+
+  const getLatest = (name: string) => {
+    const file = files.find(file => file.name === name);
+    if (!file) throw new Error("File not found");
+    return { name, isGlobal: file.isGlobal, version: "latest" };
+  };
+
+  const toURL = (name: string, version: number) =>
+    `/store/${name}?versionId=${version}`;
   const fromURL = (url: string | null) => {
-    if (url === null || !url.startsWith("/s3/")) return null;
-    const sections = url.split("/");
+    if (url === null) return null;
+    const parsed = /^\/store\/(.+)\?versionId=(.+)$/.exec(url);
+    if (parsed === null || parsed.length !== 3) return null;
     return files.find(({
       name,
       version
-    }) => name === assert(sections.at(-2)) &&
-      version === parseInt(assert(sections.at(-1)))) ?? null;
+    }) => name === parsed[1] && version === parsed[2]) ?? null;
   };
 
   return {
     assets: files.filter(({ name }) => !["control", "env"].includes(name)),
     addFile,
+    uploadFile,
+    getLatest,
     toURL,
     fromURL,
-    getLatest,
     getData,
     generateThumbnail
   };
 };
 
-export const useCollaboration = (project: Project, username: string) => {
+export const useCollaboration = (project: Project) => {
   const users_ = trpc.projects.getUsers.useQuery();
   const invites_ = trpc.projects.getInvitesForProject
     .useQuery({ projectId: project.id });
+  const inviteCollaborator_ = trpc.projects.inviteCollaborator.useMutation();
+  const removeCollaborator_ = trpc.projects.removeCollaborator.useMutation();
   const [users, setUsers] = useState<User[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
 
@@ -467,21 +522,17 @@ export const useCollaboration = (project: Project, username: string) => {
     }) => recipientId === user.id && status === "pending") === undefined);
   const accepted = project.collaboratorIds
     .map(id => users.find(user => user.id === id))
-    .filter(Boolean).concat(users.filter(user => user.id === project.creatorId));
+    .filter(Boolean)
+    .concat(users.filter(user => user.id === project.creatorId));
   const invited = invites
     .filter(({ status }) => status === "pending")
     .map(({ recipientId }) => users.find(({ id }) =>
       id === recipientId)).filter(Boolean);
 
   const inviteCollaborator = (id: string) => {
-    setInvites(cur => [...cur, {
-      id: nanoid(16),
-      sent: new Date(),
-      status: "pending",
-      projectId: project.id,
-      senderId: username,
-      recipientId: id
-    }]);
+    inviteCollaborator_.mutateAsync(
+      { projectId: project.id, collaboratorId: id }).catch(logger.error);
+    invites_.refetch().catch(logger.error);
   };
 
   const removeCollaborator = (id: string) => {
@@ -489,8 +540,9 @@ export const useCollaboration = (project: Project, username: string) => {
     const user = assert(users.find(user => user.id === id));
     if (user.id === assert(users.find(({ id }) =>
       id === project.creatorId)).username) return;
-    setInvites(cur => cur.filter(x =>
-      x.recipientId !== id && x.status !== "declined"));
+    removeCollaborator_.mutateAsync(
+      { projectId: project.id, collaboratorId: id }).catch(logger.error);
+    invites_.refetch().catch(logger.error);
   };
 
   return {
@@ -510,12 +562,22 @@ export const useObservatories = () => {
     height: number,
     rows: number,
     columns: number
-  }>>({});
+  }>>(env.MODE === "development" ? {
+    dev: {
+      width: 32,
+      height: 9,
+      rows: 1,
+      columns: 2
+    }
+  } : {});
 
   useEffect(() => {
     if (observatories_.status !== "success" ||
       isError(observatories_.data)) return;
-    setObservatories(observatories_.data);
+    if (env.MODE !== "development" ||
+      Object.keys(observatories_.data).length > 0) {
+      setObservatories(observatories_.data);
+    }
   }, [observatories_.status, observatories_.data]);
 
   return { observatories };

@@ -8,7 +8,6 @@ import {
 import { server } from "./app";
 import { instrument } from "@socket.io/admin-ui";
 import { env, logger } from "../env";
-import { Parser } from "@ove/ove-utils";
 
 export const io: Server = new Server<
   THardwareClientToServerEvents,
@@ -17,7 +16,6 @@ export const io: Server = new Server<
   server,
   {
     cors: { origin: "*", methods: ["GET", "POST", "DELETE"] },
-    parser: Parser,
     path: env.SOCKET_PATH
   } as Partial<ServerOptions>
 );

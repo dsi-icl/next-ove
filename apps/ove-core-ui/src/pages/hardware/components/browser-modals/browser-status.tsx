@@ -15,57 +15,12 @@ const useBrowser = (
   deviceId: string | null,
   tag: string | undefined,
   action: DeviceAction,
-  setBrowsers: (browsers: Map<number, Browser> | {
-    response: Map<number, Browser>,
+  setBrowsers: (browsers: Record<string, Browser> | {
+    response: Record<string, Browser>,
     deviceId: string
   }[]) => void
 ) => {
   const browserId = useStore(state => state.hardwareConfig.browserId);
-  trpc.hardware.getBrowser.useQuery({
-    bridgeId,
-    deviceId: deviceId ?? "",
-    browserId: browserId ?? -1
-  }, {
-    enabled: browserId !== null && !skipSingle("browser", bridgeId, action),
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error(`Unable to get browser 
-        ${browserId ?? -1} on ${deviceId ?? ""}`);
-        return;
-      }
-
-      setBrowsers(new Map([[assert(browserId), response]]));
-    },
-    onError: () =>
-      toast.error(`Unable to get browser 
-      ${browserId ?? -1} on ${deviceId ?? ""}`)
-  });
-  trpc.hardware.getBrowserAll.useQuery({
-    bridgeId,
-    tag,
-    browserId: browserId ?? -1
-  }, {
-    enabled: browserId !== null && !skipMulti("browser", bridgeId, action),
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to get browsers");
-        return;
-      }
-
-      response.filter(({ response }) =>
-        "oveError" in response).forEach(({ deviceId }) =>
-        toast.error(`Failed to get browser on ${deviceId}`));
-      setBrowsers(response
-        .filter(({ response }) => !("oveError" in response)).map(({
-          deviceId,
-          response
-        }) => ({
-          deviceId,
-          response: new Map([[assert(browserId), response as Browser]])
-        })));
-    },
-    onError: () => toast.error("Unable to get browsers")
-  });
   trpc.hardware.getBrowsers.useQuery({ bridgeId, deviceId: deviceId ?? "" }, {
     enabled: browserId === null && !skipSingle("browser", bridgeId, action),
     onSuccess: ({ response }) => {
@@ -74,7 +29,7 @@ const useBrowser = (
         return;
       }
 
-      setBrowsers(response as Map<number, Browser>);
+      setBrowsers(response as Record<string, Browser>);
     },
     onError: () => toast.error("Unable to get browsers")
   });
@@ -92,7 +47,7 @@ const useBrowser = (
       setBrowsers(response
         .filter(({ response }) => !("oveError" in response)) as {
         deviceId: string,
-        response: Map<number, Browser>
+        response: Record<string, Browser>
       }[]);
     },
     onError: () => toast.error("Unable to get browsers")
@@ -100,8 +55,8 @@ const useBrowser = (
 };
 
 const BrowserStatus = () => {
-  const [browsers, setBrowsers] = useState<Map<number, Browser> | {
-    response: Map<number, Browser>,
+  const [browsers, setBrowsers] = useState<Record<string, Browser> | {
+    response: Record<string, Browser>,
     deviceId: string
   }[] | null>(null);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -119,7 +74,7 @@ const BrowserStatus = () => {
   const getMaxLen = (browsers_: typeof browsers) => {
     if (Array.isArray(browsers_)) return browsers_.length;
     if (browsers_ === null) return 0;
-    return browsers_.size;
+    return Object.keys(browsers_).length;
   };
   const deviceId = Array.isArray(browsers) ?
     browsers[idx].deviceId :
@@ -138,9 +93,9 @@ const BrowserStatus = () => {
           </tr>
         </thead>
         <tbody>
-          {Array.from((Array.isArray(browsers) ?
+          {Object.entries((Array.isArray(browsers) ?
             browsers[idx].response : browsers)
-            .entries()).map(([k, v]) =>
+          ).map(([k, v]) =>
             <tr key={k}>
               <td>{k}</td>
               <td>{v.displayId}</td>
