@@ -4,7 +4,7 @@ import {
   type TCallback
 } from "@ove/ove-types";
 import { io } from "socket.io-client";
-import { assert, Parser } from "@ove/ove-utils";
+import { assert } from "@ove/ove-utils";
 import { env, logger } from "../../../../env";
 import { controller } from "./controller";
 import {
@@ -20,7 +20,6 @@ export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
   setSocket(io(`${env.CORE_URL}/bridge`, {
     autoConnect: false,
-    parser: Parser,
     path: env.SOCKET_PATH
   }));
   if (socket === null) throw new Error("ILLEGAL");

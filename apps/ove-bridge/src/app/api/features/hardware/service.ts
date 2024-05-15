@@ -75,8 +75,9 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
 ): Promise<Optional<z.infer<TBridgeRoutesSchema[Key]["client"]>>> => {
   if ((Object.keys(service) as Array<keyof TBridgeHardwareService>)
     .includes(k)) {
+    const res = await assert(service[k])(device, args);
     await updateState(device, k, args);
-    return await assert(service[k])(device, args);
+    return res;
   } else return undefined;
 };
 

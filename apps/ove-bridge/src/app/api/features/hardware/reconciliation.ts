@@ -12,7 +12,7 @@ import {
   type StatusOptions,
   type TBridgeHardwareService
 } from "@ove/ove-types";
-import { assert } from "@ove/ove-utils";
+import { assert, recordEquals } from "@ove/ove-utils";
 
 type Reconciliation<StateType> = {
   [K in Extract<keyof StateType, `reconcile${string}`>]: NodeJS.Timeout | null
@@ -21,8 +21,10 @@ type Reconciliation<StateType> = {
 type NodeState = {
   status: StatusOptions
   reconcileStatus: NodeJS.Timeout | null
-  browsers: { displayId: number, url: string }[] | null
+  browsers: boolean | null
   reconcileBrowsers: NodeJS.Timeout | null
+  windowConfig: Record<string, string> | null
+  reconcileWindowConfig: NodeJS.Timeout | null
 }
 
 type MDCState = {
@@ -53,7 +55,9 @@ const initialNodeState: NodeState = {
   status: "off",
   reconcileStatus: null,
   browsers: null,
-  reconcileBrowsers: null
+  reconcileBrowsers: null,
+  windowConfig: null,
+  reconcileWindowConfig: null
 };
 
 const initialMDCState: MDCState = {
@@ -166,35 +170,15 @@ export const updateState = async <Key extends keyof TBridgeHardwareService>(
       state.set(device.id, { ...deviceState });
       break;
     }
-    case "openBrowser": {
+    case "openBrowsers": {
       const deviceState = state.get(device.id) as NodeState;
-      if (deviceState.browsers === null) {
-        deviceState.browsers = [];
-      }
-      deviceState.browsers.push(args as {
-        displayId: number,
-        url: string
-      });
+      deviceState.browsers = true;
       state.set(device.id, { ...deviceState });
       break;
     }
     case "closeBrowsers": {
       const deviceState = state.get(device.id) as NodeState;
-      deviceState.browsers = null;
-      state.set(device.id, { ...deviceState });
-      break;
-    }
-    case "closeBrowser": {
-      const deviceState = state.get(device.id) as NodeState;
-      const browsers = await NodeService.getBrowsers?.(device, {});
-      if (isError(browsers) || deviceState.browsers === null ||
-        browsers === undefined) break;
-      const target = browsers.get((args as { browserId: number }).browserId);
-      deviceState.browsers = deviceState.browsers.filter(browser =>
-        browser.displayId !== target?.displayId && browser.url !== target?.url);
-      if (deviceState.browsers.length === 0) {
-        deviceState.browsers = null;
-      }
+      deviceState.browsers = false;
       state.set(device.id, { ...deviceState });
       break;
     }
@@ -250,99 +234,47 @@ const reconcileSource = async (
   }
 };
 
-const resetBrowserReconciliation = (device: Device) => {
-  const desiredState = assert(state.get(device.id)) as NodeState;
-  if (desiredState.reconcileBrowsers === null) {
-    return;
-  }
-  clearInterval(desiredState.reconcileBrowsers);
-  state.set(device.id, { ...desiredState, reconcileBrowsers: null });
-};
-
-const openAllBrowsers = async (target: {
-  displayId: number,
-  url: string
-}[], device: Device, service: TBridgeHardwareService) => {
-  for (const browser of target) {
-    await service.openBrowser?.(device, {
-      displayId: browser.displayId,
-      url: browser.url
-    });
-  }
-};
-
-const closeChangedBrowsers = async (
-  target: {
-    displayId: number,
-    url: string
-  }[],
+const reconcileBrowsers = async (
+  target: boolean | null,
   device: Device,
-  service: TBridgeHardwareService,
-  currentBrowsers: Map<number, {
-    displayId: number
-    windowId: string
-    url?: string
-  }>
+  service: TBridgeHardwareService
 ) => {
-  let changed = false;
-  for (const [key, browser] of currentBrowsers.entries()) {
-    if (target.find(br => br.url === browser.url &&
-      br.displayId === browser.displayId) !== undefined) continue;
-    changed = true;
-    await service.closeBrowser?.(device, { browserId: key });
-  }
-
-  return changed;
-};
-
-const openChangedBrowsers = async (
-  target: {
-    displayId: number,
-    url: string
-  }[],
-  device: Device,
-  service: TBridgeHardwareService,
-  currentBrowsers: Map<number, {
-    displayId: number,
-    windowId: string,
-    url?: string
-  }>
-) => {
-  let changed = false;
-  const browsers = Array.from(currentBrowsers.values());
-  for (const browser of target) {
-    if (browsers.find(br => br.url === browser.url &&
-      br.displayId === browser.displayId) !== undefined) continue;
-    changed = true;
-    await service.openBrowser?.(device, {
-      displayId: browser.displayId,
-      url: browser.url
-    });
-  }
-
-  return changed;
-};
-
-const reconcileBrowsers = async (target: {
-  displayId: number,
-  url: string
-}[] | null, device: Device, service: TBridgeHardwareService) => {
   if (target === null) return;
   const currentBrowsers = await service.getBrowsers?.(device, {});
-  if (currentBrowsers === undefined || isError(currentBrowsers)) {
-    if (target.length > 0) {
-      await openAllBrowsers(target, device, service);
-    } else {
-      resetBrowserReconciliation(device);
-    }
-    return;
+  const windowConfig = await service.getWindowConfig?.(device, {});
+  if (currentBrowsers === undefined || isError(currentBrowsers) ||
+    windowConfig === undefined || isError(windowConfig)) {
+    throw new Error(`Error on client ${device.id}`);
   }
+  if (target && !recordEquals(currentBrowsers, windowConfig)) {
+    await service.openBrowsers?.(device, {});
+  } else if (!target && (typeof currentBrowsers === "object" &&
+    Object.keys(currentBrowsers).length !== 0)) {
+    await service.closeBrowsers?.(device, {});
+  } else {
+    const desiredState = state.get(device.id) as NodeState;
+    if (desiredState.reconcileBrowsers === null) return;
+    clearInterval(desiredState.reconcileBrowsers);
+    state.set(device.id, { ...desiredState, reconcileBrowsers: null });
+  }
+};
 
-  if ((await closeChangedBrowsers(target, device, service, currentBrowsers)) ||
-    (await openChangedBrowsers(target, device, service, currentBrowsers))) {
-    return;
+const reconcileWindowConfig = async (
+  target: Record<string, string> | null,
+  device: Device,
+  service: TBridgeHardwareService
+) => {
+  if (target === null) return;
+  const current = await service.getWindowConfig?.(device, {});
+  if (current === undefined || isError(current) ||
+    !recordEquals(target, current)) {
+    await service.setWindowConfig?.(device, { config: target });
+  } else {
+    const desiredState = state.get(device.id) as NodeState;
+    if (desiredState.reconcileWindowConfig === null) return;
+    clearInterval(desiredState.reconcileWindowConfig);
+    state.set(device.id, { ...desiredState, reconcileWindowConfig: null });
   }
-  resetBrowserReconciliation(device);
 };
 
 const reconcileIsMuted = async (
@@ -471,7 +403,8 @@ const reconcileNode = async (
 ) => {
   const currentState = {
     status: await NodeService.getStatus?.(device, {}),
-    browsers: await NodeService.getBrowsers?.(device, {})
+    browsers: await NodeService.getBrowsers?.(device, {}),
+    windowConfig: await NodeService.getWindowConfig?.(device, {})
   };
 
   if (currentState.status !== desiredState.status) {
@@ -481,22 +414,27 @@ const reconcileNode = async (
       env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
-  const browsers = isError(currentState.browsers) ? [] :
-    Array.from(currentState.browsers?.values() ?? []).map(({
-      displayId,
-      url
-    }) => ({ displayId, url }));
+  const browsers = isError(currentState.browsers) ? 0 :
+    Object.keys(currentState.browsers ?? {}).length;
 
-  if (browsers.length !== (desiredState.browsers?.length ?? 0) ||
-    !browsers.every(br =>
-      (desiredState.browsers ?? []).find(browser =>
-        browser.displayId === br.displayId &&
-        br.url === browser.url) !== undefined)) {
+  if (desiredState.browsers !== null &&
+    (desiredState.browsers && browsers <= 0 ||
+      !desiredState.browsers && browsers !== 0)) {
     reconciliation.reconcileBrowsers = setInterval(
       () => reconcileBrowsers(
         desiredState.browsers, device, NodeService),
       env.RECONCILIATION_ERROR_TIMEOUT
     );
+  }
+
+  if (desiredState.windowConfig !== null &&
+    (isError(currentState.windowConfig) ||
+      currentState.windowConfig === undefined ||
+      !recordEquals(currentState.windowConfig, desiredState.windowConfig))) {
+    reconciliation.reconcileWindowConfig = setInterval(
+      () => reconcileWindowConfig(
+        desiredState.windowConfig, device, NodeService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
 };
 

@@ -68,3 +68,14 @@ export const safe = async <T>(
     return { oveError: `UNKNOWN: ${JSON.stringify(e)}` };
   }
 };
+
+export const recordEquals = <T, U>(r1: Record<string, T>, r2: Record<string, U>, equality: ((k1: string, v1: T, k2: string, v2: U) => boolean) | null = null): boolean => {
+  const entries1 = Object.entries(r1);
+  const entries2 = Object.entries(r2);
+  if (equality === null) {
+    // @ts-expect-error - T and U may overlap
+    equality = (k1: string, v1: T, k2: string, v2: U) => k1 === k2 && v1 === v2;
+  }
+
+  return entries1.every(([k1, v1]) => entries2.find(([k2, v2]) => assert(equality)(k1, v1, k2, v2)) !== undefined);
+};

@@ -5,7 +5,6 @@ import { type DefaultEventsMap } from "socket.io/dist/typed-events";
 import { type Device, OVEExceptionSchema } from "../../libs/ove-types/src";
 import { readFileSync } from "atomically";
 import * as path from "path";
-import Parser from "../../libs/ove-utils/src/lib/ove-sockets";
 import { execSync } from "child_process";
 import { z } from "zod";
 import {
@@ -31,6 +30,12 @@ import {
   WifiSchema
 } from "./utils";
 
+type Env = {
+  "bridge-env": string
+}
+
+type BridgeEnv = { HARDWARE: Device[], BRIDGE_NAME?: string }
+
 const ENVIRONMENT = "dev";
 const SKIP_POWER = true;
 
@@ -42,7 +47,7 @@ const pjlinkSources = ["RGB", "VIDEO", "DIGITAL", "STORAGE", "NETWORK"];
 describe("ove-bridge hardware module", () => {
   let io: Server<DefaultEventsMap, DefaultEventsMap>,
     namespace: Namespace<DefaultEventsMap, DefaultEventsMap>,
-    env: { HARDWARE: Device[], BRIDGE_NAME?: string },
+    env: BridgeEnv,
     deviceDirectory: Map<string, boolean>,
     browserId: Map<string, number>,
     tag: string | undefined,
@@ -169,17 +174,15 @@ describe("ove-bridge hardware module", () => {
   };
 
   const initEnv = () => {
-    const temp: {
-      [key: string]: { "bridge-env": string }
-    } = JSON.parse(readFileSync(path.join(__dirname, "private.env.json")).toString());
-    env = JSON.parse(readFileSync(temp[ENVIRONMENT]["bridge-env"]).toString());
+    const temp = JSON.parse(readFileSync(path.join(__dirname, "private.env.json")).toString()) as Record<string, Env>;
+    env = JSON.parse(readFileSync(temp[ENVIRONMENT]["bridge-env"]).toString()) as BridgeEnv;
   };
 
   beforeAll((done) => {
     initEnv();
     browserId = new Map();
     const httpServer = createServer();
-    io = new Server(httpServer, { parser: Parser });
+    io = new Server(httpServer);
     pingDevices().then(res => {
       deviceDirectory = new Map(res);
       httpServer.listen(3333, () => {
