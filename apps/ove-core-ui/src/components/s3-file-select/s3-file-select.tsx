@@ -14,6 +14,7 @@ type S3FileSelectProps = {
   setValue: (key: "fileName" | "fileVersion", value: string) => void
   watch: (value: string) => string
   fromURL: (url: string | null) => File | null
+  getLatest: (name: string) => File
   url: string
 }
 
@@ -25,7 +26,8 @@ const S3FileSelect = ({
   setValue,
   watch,
   url,
-  fromURL
+  fromURL,
+  getLatest
 }: S3FileSelectProps) => {
   const name = watch("fileName");
 
@@ -36,7 +38,7 @@ const S3FileSelect = ({
     if (file !== null && file.name === name) {
       setValue("fileVersion", file.version.toString());
     } else {
-      setValue("fileVersion", "latest");
+      setValue("fileVersion", getLatest(name).version);
     }
   }, [fromURL, setValue, url, name]);
 

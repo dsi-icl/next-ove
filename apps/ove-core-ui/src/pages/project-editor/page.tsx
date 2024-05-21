@@ -95,13 +95,15 @@ type ProjectEditorProps = {
   updateProject: (project: ProjectMetadata) => void
   tags: string[]
   saveProject: (project: Project, layout: Section[]) => void
+  token: string
 }
 
 const ProjectEditor = ({
   project,
   updateProject,
   tags,
-  saveProject
+  saveProject,
+  token
 }: ProjectEditorProps) => {
   const { observatories } = useObservatories();
   const space = useSpace(observatories);
@@ -118,11 +120,12 @@ const ProjectEditor = ({
     assets,
     toURL,
     fromURL,
+    uploadFile,
     addFile,
     getLatest,
     getData,
     generateThumbnail
-  } = useFiles(project.id);
+  } = useFiles(project.id, token);
   const [innerDialogStyle, setInnerDialogStyle] =
     useState<CSSProperties | undefined>();
   const {
@@ -143,7 +146,7 @@ const ProjectEditor = ({
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
                          setAction={setAction} files={assets} toURL={toURL}
-                         fromURL={fromURL}
+                         fromURL={fromURL} getLatest={getLatest}
                          allTags={tags} invited={invited} uninvited={uninvited}
                          generator={generateThumbnail} accepted={accepted}
                          inviteCollaborator={inviteCollaborator}
@@ -164,8 +167,8 @@ const ProjectEditor = ({
                                    addFile(controller.name, data)} />;
       }
       case "upload":
-        return <FileUpload files={assets} getLatest={getLatest}
-                           addFile={addFile} closeDialog={() => setAction(null)}
+        return <FileUpload files={assets} getLatest={getLatest} addFile={addFile}
+                           uploadFile={uploadFile} closeDialog={() => setAction(null)}
                            setDialogStyle={setInnerDialogStyle} />;
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}
@@ -229,7 +232,7 @@ const ProjectEditor = ({
               <ResizablePanel defaultSize={80}>
                 <SectionConfig sections={sections.getSections(states.selected)}
                                setAction={setAction} files={assets}
-                               fromURL={fromURL}
+                               fromURL={fromURL} getLatest={getLatest}
                                selected={sections.selected} space={space}
                                toURL={toURL}
                                state={states.selected} projectId={project.id}

@@ -10,9 +10,10 @@ import ProjectEditorLoader from "../pages/project-editor/loader";
 type RouterProps = {
   loggedIn: boolean,
   login: (username: string, password: string) => Promise<void>,
+  token: string
 }
 
-const Router = ({ loggedIn, login }: RouterProps) => {
+const Router = ({ loggedIn, login, token }: RouterProps) => {
   return <Routes>
     <Route
       path="/"
@@ -34,7 +35,7 @@ const Router = ({ loggedIn, login }: RouterProps) => {
     <Route
       path="/project-editor"
       element={<ProtectedRoute condition={loggedIn} redirectTo="/login">
-        <ProjectEditorLoader /></ProtectedRoute>} />
+        <ProjectEditorLoader token={token} /></ProtectedRoute>} />
   </Routes>;
 };
 

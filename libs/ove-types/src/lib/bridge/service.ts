@@ -70,7 +70,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/device/{bridgeId}/{deviceId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/device/{deviceId}" as `/${string}`,
         protect: true
       }
     },
@@ -81,7 +81,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/devices/{bridgeId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/devices" as `/${string}`,
         protect: true
       }
     },
@@ -93,7 +93,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/device/{bridgeId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/device" as `/${string}`,
         protect: true
       }
     },
@@ -104,7 +104,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "DELETE" as const,
-        path: "/device/{bridgeId}/{deviceId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/device/{deviceId}" as `/${string}`,
         protect: true
       }
     },
@@ -115,7 +115,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/streams/{bridgeId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/streams" as `/${string}`,
         protect: true
       }
     },
@@ -126,7 +126,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "DELETE" as const,
-        path: "/streams/{bridgeId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/streams" as `/${string}`,
         protect: true
       }
     },
@@ -137,7 +137,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/streams/{bridgeId}" as `/${string}`,
+        path: "/bridges/{bridgeId}/streams" as `/${string}`,
         protect: true
       }
     },
@@ -149,7 +149,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/calendar" as `/${string}`,
+        path: "/bridges/{bridgeId}/calendar" as `/${string}`,
         protect: true
       }
     },
@@ -161,7 +161,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/socket/status" as `/${string}`,
+        path: "/bridges/{bridgeId}/socket/status" as `/${string}`,
         protect: true
       }
     },
@@ -172,7 +172,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/mode" as `/${string}`,
+        path: "/bridges/{bridgeId}/mode" as `/${string}`,
         protect: true
       }
     },
@@ -183,7 +183,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/mode/manual" as `/${string}`,
+        path: "/bridges/{bridgeId}/mode/manual" as `/${string}`,
         protect: true
       }
     },
@@ -194,7 +194,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/mode/eco" as `/${string}`,
+        path: "/bridge/{bridgeId}/mode/eco" as `/${string}`,
         protect: true
       }
     },
@@ -208,7 +208,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/mode/auto" as `/${string}`,
+        path: "/bridges/{bridgeId}/mode/auto" as `/${string}`,
         protect: true
       }
     },
@@ -222,7 +222,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/env" as `/${string}`,
+        path: "/bridges/{bridgeId}/env" as `/${string}`,
         protect: true
       }
     },
@@ -233,7 +233,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/env" as `/${string}`,
+        path: "/bridges/{bridgeId}/env" as `/${string}`,
         protect: true
       }
     },
@@ -244,7 +244,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/auth" as `/${string}`,
+        path: "/bridges/{bridgeId}/auth" as `/${string}`,
         protect: true
       }
     },
@@ -259,7 +259,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/devices/auth" as `/${string}`,
+        path: "/bridges/{bridgeId}/devices/auth" as `/${string}`,
         protect: true
       }
     },
@@ -271,7 +271,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/version" as `/${string}`,
+        path: "/bridges/{bridgeId}/version" as `/${string}`,
         protect: true
       }
     },
@@ -282,7 +282,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/key" as `/${string}`,
+        path: "/bridges/{bridgeId}/key" as `/${string}`,
         protect: true
       }
     },
@@ -293,7 +293,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/autoSchedule" as `/${string}`,
+        path: "/bridges/{bridgeId}/autoSchedule" as `/${string}`,
         protect: true
       }
     },
@@ -305,7 +305,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "GET" as const,
-        path: "/geometry" as const,
+        path: "/bridges/{bridgeId}/geometry" as const,
         protect: true
       }
     },
@@ -317,7 +317,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/reconciliation/refresh" as const,
+        path: "/bridges/{bridgeId}/reconciliation/refresh" as const,
         protect: true
       }
     },
@@ -328,7 +328,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "POST" as const,
-        path: "/reconciliation" as const,
+        path: "/bridges/{bridgeId}/reconciliation" as const,
         protect: true
       }
     },
@@ -339,7 +339,7 @@ export const APIRoutes = {
     meta: {
       openapi: {
         method: "DELETE" as const,
-        path: "/reconciliation" as const,
+        path: "/bridges/{bridgeId}/reconciliation" as const,
         protect: true
       }
     },

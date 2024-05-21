@@ -35,6 +35,7 @@ const Upload = ({
 }: UploadProps) => {
   const { ref, ...rest } = register("file", { required: true });
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   return <section
     id={styles["upload"]}>
@@ -47,7 +48,6 @@ const Upload = ({
         <li key={name}
             style={{ backgroundColor: colors[i % names.length] }}>
           {name}
-          <span>v</span>
           {/* @ts-expect-error – readOnly is unknown */}
           <select value={getLatest(name).version} readOnly={true}
                   style={{ backgroundColor: colors[i % names.length] }}>
@@ -58,7 +58,7 @@ const Upload = ({
           </select>
         </li>)}
     </ul>
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} ref={formRef}>
       <label htmlFor="file">New File:</label>
       <div className={styles.file}>
         <input type="file" {...rest} ref={e => {
@@ -75,7 +75,7 @@ const Upload = ({
         <div className={styles.actions}>
           <button onClick={() => setMode("editor")} type="button"><Brush />
           </button>
-          <button><UploadButton /></button>
+          <button type="submit"><UploadButton /></button>
         </div>
       </div>
     </form>

@@ -76,7 +76,7 @@ export type Controller = {
   getUsers: (prisma: PrismaClient) => Promise<User[]>
   getInvitesForProject: (prisma: PrismaClient, projectId: string) =>
     Promise<Invite[]>
-  getFiles: (s3: MinioClient | null, projectId: string) =>
+  getFiles: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string) =>
     Promise<z.infer<typeof FileSchema>[]>
   createProject: (
     prisma: PrismaClient,
@@ -95,11 +95,12 @@ export type Controller = {
   getSectionsForProject: (prisma: PrismaClient, projectId: string) =>
     Promise<Section[]>
   uploadFile: (
-    s3: MinioClient | null, projectId: string,
+    prisma: PrismaClient,
+    s3: MinioClient | null, username: string, projectId: string,
     objectName: string, data: string) => Promise<void | OVEException>
-  getPresignedGetURL: (s3: MinioClient | null, projectId: string,
+  getPresignedGetURL: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
     objectName: string, versionId: string) => Promise<string | OVEException>
-  getPresignedPutURL: (s3: MinioClient | null, projectId: string,
+  getPresignedPutURL: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
     objectName: string) => Promise<string | OVEException>
   generateThumbnail: (prisma: PrismaClient, projectId: string) =>
     Promise<string | OVEException>
@@ -109,15 +110,15 @@ export type Controller = {
     collaboratorId: string) => Promise<void | OVEException>
   getLayout: (prisma: PrismaClient, projectId: string) =>
     Promise<Section[] | OVEException>
-  getEnv: (s3: MinioClient | null, projectId: string) =>
+  getEnv: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string) =>
     Promise<object | OVEException>
-  getController: (s3: MinioClient | null, projectId: string,
+  getController: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
     observatory: string) => Promise<string | OVEException>
 }
 
 export const projectsRouter = router({
   getProjects: protectedProcedure
-    .meta({ method: "GET", path: "/projects", protected: true })
+    .meta({ openapi: { method: "GET", path: "/projects", protect: true } })
     .input(z.void())
     .output(z.union([OVEExceptionSchema, ProjectSchema.array()]))
     .query(async ({ ctx }) => {
@@ -126,7 +127,13 @@ export const projectsRouter = router({
         controller.getProjectsForUser(ctx.prisma, ctx.user));
     }),
   getProject: protectedProcedure
-    .meta({ method: "GET", path: "/project/{projectId}", protected: true })
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}",
+        protect: true
+      }
+    })
     .input(z.strictObject({ projectId: z.string() }))
     .output(z.union([OVEExceptionSchema, ProjectSchema.nullable()]))
     .query(async ({ ctx, input: { projectId } }) => {
@@ -135,7 +142,7 @@ export const projectsRouter = router({
         controller.getProject(ctx.prisma, ctx.user, projectId));
     }),
   getTags: protectedProcedure
-    .meta({ method: "GET", path: "/projects/tags", protected: true })
+    .meta({ openapi: { method: "GET", path: "/projects/tags", protect: true } })
     .input(z.void())
     .output(z.union([OVEExceptionSchema, z.string().array()]))
     .query(async ({ ctx }) => {
@@ -144,7 +151,7 @@ export const projectsRouter = router({
         controller.getTagsForUser(ctx.prisma, ctx.user));
     }),
   getUsers: protectedProcedure
-    .meta({ method: "GET", path: "/users", protected: true })
+    .meta({ openapi: { method: "GET", path: "/users", protect: true } })
     .input(z.void())
     .output(z.union([UserSchema.array(), OVEExceptionSchema]))
     .query(async ({ ctx }) => {
@@ -153,9 +160,11 @@ export const projectsRouter = router({
     }),
   getInvitesForProject: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/project/{projectId}/collaborators/invites",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/collaborators/invites",
+        protect: true
+      }
     })
     .input(z.strictObject({ projectId: z.string() }))
     .output(z.union([InviteSchema.array(), OVEExceptionSchema]))
@@ -166,9 +175,11 @@ export const projectsRouter = router({
     }),
   getSectionsForProject: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/project/{projectId}/sections",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/sections",
+        protect: true
+      }
     })
     .input(z.strictObject({ projectId: z.string() }))
     .output(z.union([OVEExceptionSchema, SectionSchema.array()]))
@@ -179,9 +190,11 @@ export const projectsRouter = router({
     }),
   createProject: protectedProcedure
     .meta({
-      method: "POST",
-      path: "/project/create",
-      protected: true
+      openapi: {
+        method: "POST",
+        path: "/project/create",
+        protect: true
+      }
     })
     .input(z.strictObject({
       project: ProjectSchema.pick({ title: true }).optional(),
@@ -203,9 +216,11 @@ export const projectsRouter = router({
     }),
   saveProject: protectedProcedure
     .meta({
-      method: "POST",
-      path: "/project",
-      protected: true
+      openapi: {
+        method: "POST",
+        path: "/project",
+        protect: true
+      }
     })
     .input(z.strictObject({
       project: ProjectSchema,
@@ -222,21 +237,25 @@ export const projectsRouter = router({
     }),
   getFiles: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/project/{projectId}/files",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/files",
+        protect: true
+      }
     })
     .input(z.strictObject({ projectId: z.string() }))
     .output(z.union([FileSchema.array(), OVEExceptionSchema]))
     .query(async ({ ctx, input: { projectId } }) => {
       logger.info(`Getting files for ${projectId}`);
-      return await safe(logger, () => controller.getFiles(ctx.s3, projectId));
+      return await safe(logger, () => controller.getFiles(ctx.prisma, ctx.s3, ctx.user, projectId));
     }),
   getFileContents: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/project/{projectId}/file",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/file",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string(),
@@ -251,9 +270,11 @@ export const projectsRouter = router({
     }),
   uploadFile: protectedProcedure
     .meta({
-      method: "POST",
-      path: "/project/{projectId}/file",
-      protected: true
+      openapi: {
+        method: "POST",
+        path: "/project/{projectId}/file",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string(),
@@ -264,13 +285,15 @@ export const projectsRouter = router({
     .mutation(async ({ ctx, input }) => {
       logger.info(`Uploading file: ${input.name}`);
       return await safe(logger, () =>
-        controller.uploadFile(ctx.s3, input.projectId, input.name, input.data));
+        controller.uploadFile(ctx.prisma, ctx.s3, ctx.user, input.projectId, input.name, input.data));
     }),
   getPresignedGetURL: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/project/{projectId}/file/{objectName}/{versionId}/presigned/get",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/file/{objectName}/{versionId}/presigned/get",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string(),
@@ -282,33 +305,36 @@ export const projectsRouter = router({
       // eslint-disable-next-line max-len
       logger.info(`Getting presigned 'GET' URL for ${input.objectName}/${input.versionId}`);
       return await safe(logger, () =>
-        controller.getPresignedGetURL(ctx.s3, input.projectId,
+        controller.getPresignedGetURL(ctx.prisma, ctx.s3, ctx.user, input.projectId,
           input.objectName, input.versionId));
     }),
   getPresignedPutURL: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/project/{projectId}/file/{objectName}/presigned/put",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/file/{objectName}/presigned/put",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string(),
-      objectName: z.string(),
-      versionId: z.string()
+      objectName: z.string()
     }))
     .output(z.union([z.string(), OVEExceptionSchema]))
     .query(async ({ ctx, input }) => {
       // eslint-disable-next-line max-len
-      logger.info(`Getting presigned 'PUT' URL for ${input.objectName}/${input.versionId}`);
+      logger.info(`Getting presigned 'PUT' URL for ${input.objectName}`);
       return await safe(logger, () =>
-        controller.getPresignedPutURL(ctx.s3,
+        controller.getPresignedPutURL(ctx.prisma, ctx.s3, ctx.user,
           input.projectId, input.objectName));
     }),
   generateThumbnail: protectedProcedure
     .meta({
-      method: "POST",
-      path: "/project/{projectId}/thumbnail",
-      protected: true
+      openapi: {
+        method: "POST",
+        path: "/project/{projectId}/thumbnail",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string()
@@ -321,9 +347,11 @@ export const projectsRouter = router({
     }),
   inviteCollaborator: protectedProcedure
     .meta({
-      method: "POST",
-      path: "/project/{projectId}/collaborator",
-      protected: true
+      openapi: {
+        method: "POST",
+        path: "/project/{projectId}/collaborator",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string(),
@@ -339,9 +367,11 @@ export const projectsRouter = router({
     }),
   removeCollaborator: protectedProcedure
     .meta({
-      method: "DELETE",
-      path: "/project/{projectId}/collaborator/{collaboratorId}",
-      protected: true
+      openapi: {
+        method: "DELETE",
+        path: "/project/{projectId}/collaborator/{collaboratorId}",
+        protect: true
+      }
     })
     .input(z.strictObject({
       projectId: z.string(),
@@ -357,9 +387,11 @@ export const projectsRouter = router({
     }),
   getLayout: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/layout",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/layout",
+        protect: true
+      }
     })
     .input(z.strictObject({ projectId: z.string() }))
     .output(z.union([SectionSchema.array(), OVEExceptionSchema]))
@@ -369,27 +401,31 @@ export const projectsRouter = router({
     }),
   getEnv: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/env",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/env",
+        protect: true
+      }
     })
     .input(z.strictObject({ projectId: z.string() }))
     .output(z.union([z.custom(), OVEExceptionSchema]))
     .query(({ ctx, input: { projectId } }) => {
       logger.info(`Getting environment for ${projectId}`);
-      return safe(logger, () => controller.getEnv(ctx.s3, projectId));
+      return safe(logger, () => controller.getEnv(ctx.prisma, ctx.s3, ctx.user, projectId));
     }),
   getController: protectedProcedure
     .meta({
-      method: "GET",
-      path: "/control",
-      protected: true
+      openapi: {
+        method: "GET",
+        path: "/project/{projectId}/control",
+        protect: true
+      }
     })
     .input(z.strictObject({ projectId: z.string(), observatory: z.string() }))
     .output(z.union([z.string(), OVEExceptionSchema]))
     .query(({ ctx, input: { projectId, observatory } }) => {
       logger.info(`Getting controller for ${projectId}`);
       return safe(logger, () =>
-        controller.getController(ctx.s3, projectId, observatory));
+        controller.getController(ctx.prisma, ctx.s3, ctx.user, projectId, observatory));
     })
 });

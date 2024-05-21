@@ -32,8 +32,9 @@ type MetadataProps = {
   updateProject: (metadata: ProjectMetadata) => void
   setAction: (action: Actions | null) => void
   files: File[]
-  toURL: (name: string, version: number) => string
+  toURL: (name: string, version: string) => string
   fromURL: (url: string | null) => File | null
+  getLatest: (name: string) => File
   allTags: string[]
   generator: () => void,
   accepted: User[],
@@ -64,6 +65,7 @@ const Metadata = ({
   setAction,
   toURL,
   fromURL,
+  getLatest,
   allTags,
   generator,
   accepted,
@@ -144,7 +146,7 @@ const Metadata = ({
       collaboratorIds: [...project.collaboratorIds.filter(x =>
         removed.find(({ id }) => id === x) === undefined)],
       thumbnail: fileName !== null && fileVersion !== null ?
-        toURL(fileName, parseInt(fileVersion)) : null
+        toURL(fileName, fileVersion) : null
     });
     setAction(null);
   };
@@ -171,7 +173,7 @@ const Metadata = ({
       <label htmlFor={styles["s3-select"]}>Thumbnail:</label>
       <div className={styles.thumbnail}>
         <S3FileSelect id={styles["s3-select"]} register={register}
-                      setValue={setValue}
+                      setValue={setValue} getLatest={getLatest}
                       files={files} fromURL={fromURL} watch={watch}
                       url={project.thumbnail ?? ""} />
         <button type="button" onClick={generateThumbnail}><Brush /></button>

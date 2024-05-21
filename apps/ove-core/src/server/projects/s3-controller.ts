@@ -4,19 +4,22 @@ import { Readable } from "stream";
 const listObjects = (
   s3: Minio.Client,
   bucketName: string
-) => new Promise<(Minio.BucketItem & { versionId: string })[]>((
+) => new Promise<(Minio.BucketItem & { versionId: string, isLatest: boolean, lastModified: Date })[]>((
   resolve, reject) => {
   const stream = s3
     // @ts-expect-error – missing optional arguments parameter in library type
     .listObjects(bucketName, "", true, { IncludeVersion: true });
-  const data: (Minio.BucketItem & { versionId: string })[] = [];
+  const data: (Minio.BucketItem & { versionId: string, isLatest: boolean, lastModified: Date })[] = [];
   stream.on("data", obj => data.push(obj as typeof data[0]));
   stream.on("end", () => resolve(data));
   stream.on("error", err => reject(err));
 });
 
-const createBucket = (s3: Minio.Client, bucketName: string) =>
-  s3.makeBucket(bucketName);
+const createBucket = async (s3: Minio.Client, bucketName: string) => {
+  await s3.makeBucket(bucketName);
+  const versioningConfig = { Status: 'Enabled' };
+  await s3.setBucketVersioning(bucketName, versioningConfig);
+};
 
 const listBuckets = (s3: Minio.Client) => s3.listBuckets();
 
@@ -41,7 +44,7 @@ const getPresignedGetURL = (
 ) => s3.presignedGetObject(
   bucketName,
   objectName,
-  undefined,
+  24 * 60 * 60,
   versionId === undefined ? undefined : { versionId }
 );
 

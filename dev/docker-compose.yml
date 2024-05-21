@@ -57,5 +57,40 @@ services:
     image: nginx:1.21.6-alpine
     ports:
       - "80:80"
+    depends_on:
+      - static
+      - ove-core
+      - ove-apps
     volumes:
       - ./dev.conf:/etc/nginx/conf.d/default.conf:ro
+  ove-core:
+    image: ovehub/ove:0.6.3-arm
+    restart: unless-stopped
+    environment:
+      OVE_SPACES_JSON: "http://192.168.72.1:8082/spaces.json"
+      LOG_LEVEL: 2
+    ports:
+      - "9081:8080"
+    depends_on:
+      - static
+  ove-apps:
+    image: ovehub/ove-apps:0.6.4-arm
+    restart: unless-stopped
+    depends_on:
+      - ove-core
+    ports:
+      - "9084:8084"
+      - "9083:8083"
+    environment:
+      OVE_MAPS_LAYERS: "/run/secrets/MapLayers.json"
+      OVE_NETWORKS_CONFIG_JSON: "/run/secrets/ove_networks_config.json"
+      OVE_HOST: "192.168.72.1:9081"
+      LOG_LEVEL: 2
+    secrets:
+      - ove_networks_config.json
+      - MapLayers.json
+secrets:
+  ove_networks_config.json:
+    file: ove_networks_config.json
+  MapLayers.json:
+    file: MapLayers.json

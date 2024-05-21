@@ -5,7 +5,7 @@ import { trpc } from "../../utils/api";
 import { isError } from "@ove/ove-types";
 import React, { useMemo } from "react";
 
-const Loader = () => {
+const Loader = ({token}: {token: string}) => {
   const query = useQuery();
   const user = trpc.getUserID.useQuery();
 
@@ -22,7 +22,7 @@ const Loader = () => {
 
   return project === null || userId === null ? null :
     <ProjectEditor project={project} updateProject={updateProject}
-                   tags={tags} saveProject={saveProject} />;
+                   tags={tags} saveProject={saveProject} token={token} />;
 };
 
 export default Loader;

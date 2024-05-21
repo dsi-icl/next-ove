@@ -204,6 +204,8 @@
           }
       }
   </style>
+  <meta name="description" content="Universal controller for next-ove"/>
+  <meta name="template-version" content="1"/>
 </head>
 <body>
 <nav>
@@ -268,7 +270,7 @@
    * Special default state - initial loaded state
    * @type {string}
    */
-  const DEFAULT_STATE = '*';
+  const DEFAULT_STATE = '__default__';
   /**
    * Special preload state - no sections can be loaded, only used for
    * initial transition.
@@ -300,13 +302,23 @@
   let bounds = null;
 
   /**
+   * Access token for server.
+   * @type {{token: string, expiry: Date}}
+   */
+  let token;
+
+  const getToken = async () => {
+    token = await (await fetch(`${env.SERVER}/token`, {headers: {Authorization: `Bearer ${env.TOKEN}`}, method: "POST"})).json();
+  };
+
+  /**
    * Loads the environment configuration for the project.
    * Only variables stored in the env.json file and prefixed OVE_PUBLIC_
    * will be loaded.
    * @type {() => Promise<void>}
    */
   const loadEnv = async () => {
-    const projectEnv = await (await fetch(`${env.SERVER}/env?projectId=${env.PROJECT_ID}`, { headers: { authorization: `Bearer ${env.TOKEN}` } })).json();
+    const projectEnv = await (await fetch(`${env.SERVER}/project/${env.PROJECT_ID}/env`, { headers: { authorization: `Bearer ${token.token}` } })).json();
     for (const key of Object.keys(projectEnv)) {
       env[key] = projectEnv[key];
     }
@@ -317,8 +329,8 @@
    * @type {() => Promise<void>}
    */
   const loadProject = async () => {
-    project = await (await fetch(`${env.SERVER}/project?projectId=${env.PROJECT_ID}`, { headers: { authorization: `Bearer ${env.TOKEN}` } })).json();
-    project.layouts = await (await fetch(`${env.SERVER}/layout?projectId=${env.PROJECT_ID}`, { headers: { authorization: `Bearer ${env.TOKEN}` } })).json();
+    project = await (await fetch(`${env.SERVER}/project/${env.PROJECT_ID}`, { headers: { authorization: `Bearer ${token.token}` } })).json();
+    project.layouts = await (await fetch(`${env.SERVER}/project/${env.PROJECT_ID}/layout`, { headers: { authorization: `Bearer ${token.token}` } })).json();
   };
 
   /**
@@ -326,7 +338,7 @@
    * @type {() => Promise<void>}
    */
   const loadBounds = async () => {
-    bounds = await (await fetch(`${env.SERVER}/observatories/${env.OBSERVATORY}`, { headers: { authorization: `Bearer ${env.TOKEN}` } })).json();
+    bounds = (await (await fetch(`${env.SERVER}/core/bridges/bounds`, { headers: { authorization: `Bearer ${token.token}` } })).json())[env.OBSERVATORY];
   };
 
   /**
@@ -438,10 +450,13 @@
     }
 
     for (const [uid, ordering, section] of await formatPostSections(toPost.union(toRepost))) {
-      const sectionId = await (await fetch(`${env.RENDERER}/section`, {
+      const sectionId = (await (await fetch(`${env.RENDERER}/section`, {
+        headers: {
+          "Content-Type": "application/json"
+        },
         method: 'POST',
         body: JSON.stringify(section)
-      })).json();
+      })).json()).id;
       sections.set(uid, sectionId);
 
       loadController(section.app.url, sectionId, ordering, main);
@@ -473,7 +488,7 @@
     for (const elem of document.getElementsByClassName('selected')) {
       elem.classList.remove('selected');
     }
-    document.getElementById(`${currentSection}`).classList.add('selected');
+    document.getElementById(`${currentSection}`)?.classList.add('selected');
   };
 
   /**
@@ -663,6 +678,7 @@
    * @returns {() => Promise<void>}
    */
   window.onload = async () => {
+    await getToken();
     await Promise.all([loadEnv(), loadProject(), loadBounds()]);
     await resume();
     generateMenu();

@@ -138,7 +138,7 @@ export const App = () => {
     <QueryClientProvider client={queryClient}>
       <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
            content={navContent} />
-      <Router loggedIn={loggedIn} login={login} />
+      <Router loggedIn={loggedIn} login={login} token={tokens?.access ?? ""} />
       <Toaster />
     </QueryClientProvider>
   </trpc.Provider>;

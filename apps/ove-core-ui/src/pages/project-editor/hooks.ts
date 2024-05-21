@@ -13,10 +13,9 @@ import { useDialog } from "@ove/ui-components";
 import { type Rect, type Space } from "./types";
 import { type ProjectMetadata } from "./metadata/metadata";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isError, type File as TFile, OVEException } from "@ove/ove-types";
+import { isError, type File as TFile } from "@ove/ove-types";
 import { env, logger } from "../../env";
 import { toast } from "sonner";
-import superjson from "superjson";
 
 export const useContainer = (space: Space | null) => {
   const [width, setWidth] = useState(100);
@@ -404,7 +403,7 @@ export const useProject = (
   };
 };
 
-export const useFiles = (projectId: string) => {
+export const useFiles = (projectId: string, token: string) => {
   const files_ = trpc.projects.getFiles.useQuery({ projectId });
   const uploadRaw = trpc.projects.uploadFile.useMutation({ retry: false });
   const thumbnail = trpc.projects.generateThumbnail
@@ -413,6 +412,7 @@ export const useFiles = (projectId: string) => {
 
   useEffect(() => {
     if (files_.status !== "success" || isError(files_.data)) return;
+    console.log(files_.data);
     setFiles(files_.data);
   }, [files_.status, files_.data]);
 
@@ -431,6 +431,7 @@ export const useFiles = (projectId: string) => {
   };
 
   const uploadFile = (name: string, file: File) => {
+    console.log(`Uploading ${name}`);
     if (files.find(file => file.name === name && file.isGlobal) !== undefined) {
       toast.error("Cannot upload a global file");
       return;
@@ -438,14 +439,17 @@ export const useFiles = (projectId: string) => {
 
     fetch(
       // eslint-disable-next-line max-len
-      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`
-    ).then(res => res.text()).then(res => {
-      const url: string | OVEException = superjson.parse(res);
-      if (isError(url)) {
-        toast.error(url.oveError);
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`,
+      {
+        headers: {Authorization: `Bearer: ${token}`}
+      }
+    ).then(res => res.json()).then(res => {
+      console.log(`Putting: ${res}`);
+      if (isError(res)) {
+        toast.error(res.oveError);
         return;
       }
-      fetch(url, {
+      fetch(res as string, {
         method: "PUT",
         body: file
       }).then(() => toast.info(`Uploaded file ${name}`))
@@ -466,12 +470,12 @@ export const useFiles = (projectId: string) => {
   };
 
   const getLatest = (name: string) => {
-    const file = files.find(file => file.name === name);
+    const file = files.find(file => file.name === name && file.isLatest);
     if (!file) throw new Error("File not found");
-    return { name, isGlobal: file.isGlobal, version: "latest" };
+    return file;
   };
 
-  const toURL = (name: string, version: number) =>
+  const toURL = (name: string, version: string) =>
     `/store/${name}?versionId=${version}`;
   const fromURL = (url: string | null) => {
     if (url === null) return null;

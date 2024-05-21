@@ -33,7 +33,8 @@ type SectionConfigProps = {
   setAction: (action: Actions | null) => void
   files: File[]
   fromURL: (url: string | null) => File | null
-  toURL: (name: string, version: number) => string
+  toURL: (name: string, version: string) => string
+  getLatest: (name: string) => File
 }
 
 const getDataTypeFromFile = (file: File) => {
@@ -119,7 +120,8 @@ const SectionConfig = ({
   state,
   files,
   fromURL,
-  toURL
+  toURL,
+  getLatest
 }: SectionConfigProps) => {
   const {
     register,
@@ -222,7 +224,8 @@ const SectionConfig = ({
     if (fileName !== null && fileName !== undefined &&
       fileName !== "-- select an option --" && fileVersion !== null &&
       fileVersion !== undefined && fileVersion !== "-- select an option --") {
-      setValue("asset", toURL(fileName, parseInt(fileVersion)));
+      setValue("asset", toURL(fileName, fileVersion));
+      console.log(fileName, fileVersion);
       const file = assert(files.find(({
         name,
         version
@@ -246,7 +249,7 @@ const SectionConfig = ({
             onAssetChange(e?.target?.value)
         })} />
         <S3FileSelect register={register} watch={watch} fromURL={fromURL}
-                      setValue={setValue}
+                      setValue={setValue} getLatest={getLatest}
                       files={files} url={watch("asset")} />
         <label htmlFor="dataType" className={styles["data-type-label"]}>Data
           Type:</label>

@@ -46,7 +46,6 @@ const baseSchema = z.strictObject({
     SERVER: z.string(),
     RENDERER: z.string(),
     SPACE: z.string(),
-    CUSTOM_CONFIG: z.record(z.string(), z.custom()),
     DATA_TYPE_MAP: z.record(z.string(), z.string())
   }).optional(),
   DISABLE_AUTH: z.boolean(),

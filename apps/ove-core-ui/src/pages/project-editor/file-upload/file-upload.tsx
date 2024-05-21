@@ -9,21 +9,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 type FileUploadProps = {
   files: FileT[]
   getLatest: (id: string) => FileT
+  uploadFile: (name: string, file: File) => void
   addFile: (name: string, data: string) => void
   setDialogStyle: (style: CSSProperties | undefined) => void
   closeDialog: () => void
 }
 
 export const FileUploadFormSchema = z.strictObject({
-  file: z.custom<File>().array()
+  file: z.union([z.custom<File>().array(), z.custom<File>()])
 });
 
 export type FileUploadForm = z.infer<typeof FileUploadFormSchema>
 
 const FileUpload = ({
-  addFile,
+  uploadFile,
   files,
   getLatest,
+  addFile,
   setDialogStyle,
   closeDialog
 }: FileUploadProps) => {
@@ -31,11 +33,15 @@ const FileUpload = ({
   const names = files.map(({ name }) => name)
     .filter((name, i, arr) => arr.indexOf(name) === i);
   const [customFile, setCustomFile] = useState<CustomFile | null>(null);
-  const { register, handleSubmit, resetField, watch } =
+  const { register, formState: { errors }, handleSubmit, resetField, watch } =
     useForm<FileUploadForm>({
       resolver: zodResolver(FileUploadFormSchema)
     });
   const file = watch("file");
+
+  useEffect(() => {
+    console.log(errors);
+  }, [errors]);
 
   useEffect(() => {
     setDialogStyle({ padding: mode === "upload" ? "2rem" : "0" });
@@ -46,8 +52,12 @@ const FileUpload = ({
   }, [file]);
 
   const onSubmit = ({ file }: FileUploadForm) => {
-    const name = convertCustomFile(customFile)?.[0]?.name ?? file[0].name;
-    addFile(name, "");
+    console.log("Submitting file");
+    if (customFile !== null) {
+      addFile(customFile.name, customFile.data);
+    } else {
+      uploadFile(("length" in file ? file[0] : file).name, "length" in file ? file[0] : file);
+    }
     resetField("file");
   };
 
@@ -66,7 +76,7 @@ const FileUpload = ({
   };
 
   return mode === "upload" ?
-    <Upload file={convertCustomFile(customFile) ?? file} getLatest={getLatest}
+    <Upload file={convertCustomFile(customFile) ?? (file !== undefined && "length" in file ? file : [file])} getLatest={getLatest}
             names={names} files={files} onSubmit={onSubmit}
             handleSubmit={handleSubmit} setMode={setMode}
             register={register} closeDialog={closeDialog} /> :

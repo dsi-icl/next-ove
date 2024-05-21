@@ -373,6 +373,10 @@ tools/sandworm
 /dev/public/*
 /dev/credentials.json
 /dev/dev.conf
+/dev/global_buckets/*
+!/dev/global_buckets/.gitkeep
+/dev/MapLayers.json
+/dev/ove_networks_config.json
 
 # Core environment config
 /apps/ove-core/src/config/config.json

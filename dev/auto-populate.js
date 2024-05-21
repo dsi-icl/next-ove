@@ -1,5 +1,7 @@
 const PrismaClient = require('@prisma/client').PrismaClient;
 const { readFileSync } = require('fs');
+const Minio = require('minio');
+const glob = require('glob').glob;
 const {
   rand, randAnimal, randBetweenDate, randBoolean,
   randEmail, randFloat, randNumber,
@@ -8,8 +10,18 @@ const {
   randUserName, randUuid, randVehicleType
 } = require('@ngneat/falso');
 const dotenv = require('dotenv');
+const path = require('path');
+const { Readable } = require('stream');
 
 dotenv.config();
+
+const s3 = new Minio.Client({
+  endPoint: process.env.ASSET_STORE_END_POINT,
+  port: parseInt(process.env.ASSET_STORE_PORT),
+  useSSL: process.env.ASSET_STORE_USE_SSL === 'true',
+  accessKey: process.env.ASSET_STORE_ACCESS_KEY,
+  secretKey: process.env.ASSET_STORE_SECRET_KEY
+});
 
 const prisma = new PrismaClient();
 
@@ -19,6 +31,19 @@ const credentials = JSON.parse(readFileSync('./credentials.json').toString());
 const unique = arr => arr.filter((x, i, arr) => arr.indexOf(x) === i);
 
 const clear = async () => {
+  for (const { name } of (await s3.listBuckets())) {
+    const objects = await new Promise((resolve, reject) => {
+      const stream = s3
+        // @ts-expect-error – missing optional arguments parameter in library type
+        .listObjects(name, '', true, { IncludeVersion: true });
+      const data = [];
+      stream.on('data', obj => data.push(obj));
+      stream.on('end', () => resolve(data));
+      stream.on('error', err => reject(err));
+    });
+    await s3.removeObjects(name, objects);
+    await s3.removeBucket(name);
+  }
   await prisma.invite.deleteMany({});
   await prisma.refreshToken.deleteMany({});
   await prisma.section.deleteMany({});
@@ -33,7 +58,7 @@ const generateUsers = () => credentials.concat(Array.from({ length: 2 }, (_x) =>
   role: rand(['admin', 'creator', 'client']),
 })));
 
-/** @type {(users: import('@prisma/client').User[]) => Omit<import('@prisma/client').Project, "id">[]} */
+/** @type {(users: import('@prisma/client').User[]) => Omit<import('@prisma/client').Project, 'id'>[]} */
 const generateProjects = users => Array.from({ length: 5 }, (_x) => {
   /** @type {string[]} */
   const userIds = users.map(({ id }) => id);
@@ -45,7 +70,7 @@ const generateProjects = users => Array.from({ length: 5 }, (_x) => {
   const collaboratorLen = randNumber({ min: 0, max: userIds.length });
   const collaboratorIds = unique(/** @type {string[]} */rand(userIds, { length: collaboratorLen })).filter(id => {
     const user = users.find(user => user.id === id);
-    return id !== creatorId && user.role !== "bridge";
+    return id !== creatorId && user.role !== 'bridge';
   });
   return ({
     creatorId,
@@ -94,6 +119,38 @@ const generateSections = projectIds => projectIds.flatMap(projectId => {
   });
 });
 
+const createBucket = async title => {
+  try {
+    const bucketName = title.replaceAll(' ', '-').toLowerCase();
+    await s3.makeBucket(bucketName);
+    const versioningConfig = { Status: 'Enabled' };
+    await s3.setBucketVersioning(bucketName, versioningConfig);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const uploadFile = async (bucket, path) => {
+  try {
+    const repeat = randBoolean();
+    await s3.fPutObject(bucket.replaceAll(' ', '-').toLowerCase(), path.split('/').at(-1), path);
+    if (repeat) {
+      await s3.fPutObject(bucket.replaceAll(' ', '-').toLowerCase(), path.split('/').at(-1), path);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const uploadData = async (bucket, objectName, data) => {
+  try {
+    const rs = Readable.from(data, { encoding: 'utf-8' });
+    s3.putObject(bucket, objectName, rs).catch(console.error);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
 const load = async () => {
   await prisma.user.createMany({
     data: generateUsers()
@@ -101,13 +158,37 @@ const load = async () => {
 
   const users = await prisma.user.findMany({});
 
+  for (const directory of (await glob('./global_buckets/*'))) {
+    const bucket = directory.split('/').at(-1);
+    await createBucket(bucket);
+
+    for (const file of await glob(`${directory}/*`)) {
+      await uploadFile(bucket, file);
+    }
+  }
+
   for (const project of generateProjects(users)) {
+    await createBucket(project.title);
     await prisma.project.create({
       data: project,
       include: {
         collaborators: true
       }
     });
+
+    let template = readFileSync(path.join('..', 'apps', 'ove-core', 'src', 'assets', 'control-template.html')).toString();
+    template = template.replaceAll("{{SERVER}}", process.env.CONTROLLER_FORMAT_SERVER);
+    template = template.replaceAll("{{RENDERER}}", process.env.CONTROLLER_FORMAT_RENDERER);
+    template = template.replaceAll("{{SPACE}}", process.env.CONTROLLER_FORMAT_SPACE);
+    template = template.replaceAll("{{DATA_TYPE_MAP}}", JSON.stringify({
+      videos: process.env.CONTROLLER_FORMAT_APP_VIDEOS,
+      images: process.env.CONTROLLER_FORMAT_APP_IMAGES,
+      svg: process.env.CONTROLLER_FORMAT_APP_SVG,
+      audio: process.env.CONTROLLER_FORMAT_APP_AUDIO,
+      html: process.env.CONTROLLER_FORMAT_APP_HTML
+    }, undefined, 2));
+    await uploadData(project.title.replaceAll(' ', '-').toLowerCase(), 'control.html', template);
+    await uploadData(project.title.replaceAll(' ', '-').toLowerCase(), 'env.json', '{}');
   }
 
   const projects = await prisma.project.findMany({});

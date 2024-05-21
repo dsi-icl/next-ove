@@ -8,16 +8,7 @@ import * as jwt from "jsonwebtoken";
 import { type Tokens } from "@ove/ove-types";
 import { type Context } from "../context";
 import { PrismaClient } from "@prisma/client";
-
-const generateToken = (
-  username: string,
-  key: string,
-  expiresIn?: string
-): string => jwt.sign(
-  { username },
-  key,
-  expiresIn !== undefined ? { expiresIn } : undefined
-);
+import service from "./service";
 
 const login = async (ctx: Context): Promise<Tokens> => {
   if (ctx.user === null) {
@@ -59,9 +50,9 @@ const login = async (ctx: Context): Promise<Tokens> => {
     });
   }
 
-  const accessToken = generateToken(
+  const accessToken = service.generateToken(
     username, env.ACCESS_TOKEN_SECRET, env.TOKEN_EXPIRY);
-  const refreshToken = generateToken(username, env.REFRESH_TOKEN_SECRET);
+  const refreshToken = service.generateToken(username, env.REFRESH_TOKEN_SECRET);
 
   await ctx.prisma.refreshToken.upsert({
     where: {
@@ -114,7 +105,7 @@ const getToken = async (ctx: Context) => {
   }
 
   return {
-    token: generateToken(
+    token: service.generateToken(
       user.username, env.ACCESS_TOKEN_SECRET, env.TOKEN_EXPIRY),
     expiry: new Date(Date.now() + ms(env.TOKEN_EXPIRY))
   };

@@ -8,6 +8,9 @@ import { type Client } from "minio";
 import { nanoid } from "nanoid";
 import fetch from "node-fetch";
 import { isError } from "@ove/ove-types";
+import { readFileSync } from "atomically";
+import path from "path";
+import service from "../auth/service";
 
 const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUnique({
@@ -70,6 +73,9 @@ const getInvitesForProject = async (prisma: PrismaClient, projectId: string) =>
     }
   });
 
+const titleToBucketName = (title: string) =>
+  title.replaceAll(" ", "-").toLowerCase();
+
 const createProject = async (
   prisma: PrismaClient,
   s3: Client | null,
@@ -98,20 +104,21 @@ const createProject = async (
   });
 
   if (s3 !== null) {
-    await S3Controller.createBucket(s3, project_.id);
+    await S3Controller.createBucket(s3, titleToBucketName(title));
 
     if (files === undefined || !files.includes(".env")) {
-      await S3Controller.uploadFile(s3, project_.id, ".env", Json.EMPTY);
+      await S3Controller.uploadFile(s3,
+        titleToBucketName(title), ".env", Json.EMPTY);
     }
     if (files === undefined || !files.includes("control.html")) {
-      // TODO: replace with HTML Controller template
+      let template = readFileSync(path.join("assets", "control-template.html")).toString();
       await S3Controller
-        .uploadFile(s3, project_.id, "control.html", "");
+        .uploadFile(s3, titleToBucketName(title), "control.html", template);
     }
 
     if (files !== undefined) {
       files_ = await Promise.all(files.map(file => S3Controller
-        .getPresignedPutURL(s3, project_.id, file)));
+        .getPresignedPutURL(s3, titleToBucketName(title), file)));
     }
   }
 
@@ -176,24 +183,36 @@ const saveProject = async (
   return { project: project_, layout: layout_ };
 };
 
+const addLatest = <T extends {
+  versionId: string,
+  isLatest: boolean,
+  lastModified: Date
+}>(files: T[]): T[] => files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
+  ...file,
+  versionId: "latest",
+  lastModified: new Date()
+})));
+
 const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
   (await Promise.all(env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS
     .map(bucket => S3Controller
-      .listObjects(s3, bucket)) ?? [])).flat()
-    .map(object => ({
-      name: assert(object.name),
-      version: object.versionId,
-      isGlobal: true
-    }));
-
-const getFiles = async (s3: Client | null, projectId: string) => {
-  if (s3 === null) return [];
-  const globals = await getGlobalFiles(s3);
-  const projectFiles = (await S3Controller
-    .listObjects(s3, projectId)).map(object => ({
+      .listObjects(s3, bucket)) ?? [])).flat().sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime()).map((object, i) => ({
     name: assert(object.name),
-    version: object.versionId,
-    isGlobal: false
+    version: `v${i}`,
+    isGlobal: true,
+    isLatest: object.isLatest
+  }));
+
+const getFiles = async (prisma: PrismaClient, s3: Client | null, username: string, projectId: string) => {
+  const project = await getProject(prisma, username, projectId);
+  if (s3 === null || project === null) return [];
+  const globals = await getGlobalFiles(s3);
+  const projectFiles = addLatest(await S3Controller
+    .listObjects(s3, titleToBucketName(project.title))).sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime()).map((object, i) => ({
+    name: assert(object.name),
+    version: object.versionId === "latest" ? "latest" : `v${i}`,
+    isGlobal: false,
+    isLatest: object.isLatest
   }));
   return globals.concat(projectFiles);
 };
@@ -206,34 +225,52 @@ const getSectionsForProject = async (prisma: PrismaClient, projectId: string) =>
   });
 
 const uploadFile = async (
+  prisma: PrismaClient,
   s3: Client | null,
+  username: string,
   projectId: string,
   objectName: string,
   data: string
 ) => {
+  const project = await getProject(prisma, username, projectId);
+  if (project === null) return raise(`No project with id ${projectId}`);
   if (s3 === null) return raise("No S3 store configured");
-  await S3Controller.uploadFile(s3, projectId, objectName, data);
+  await S3Controller.uploadFile(s3, titleToBucketName(project.title), objectName, data);
+};
+
+const getS3Version = async (s3: Client, bucketName: string, objectName: string, versionId: string) => {
+  const files = (await Promise.all(assert(env.ASSET_STORE_CONFIG).GLOBAL_BUCKETS.concat([bucketName]).flatMap(bucket => S3Controller.listObjects(s3, bucket)))).flat().filter(file => file.name === objectName).sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime());
+  const idx = versionId === "latest" ? -1 : parseInt(versionId.substring(1));
+  return assert(files.at(idx)).versionId;
 };
 
 const getPresignedGetURL = async (
+  prisma: PrismaClient,
   s3: Client | null,
+  username: string,
   projectId: string,
   objectName: string,
   versionId: string
 ) => {
+  const project = await getProject(prisma, username, projectId);
+  if (project === null) return raise(`No project with id ${projectId}`);
   if (s3 === null) return raise("No S3 store configured");
   return S3Controller.getPresignedGetURL(
-    s3, projectId, objectName,
-    versionId === "latest" ? undefined : versionId);
+    s3, titleToBucketName(project.title), objectName,
+    await getS3Version(s3, titleToBucketName(project.title), objectName, versionId));
 };
 
 const getPresignedPutURL = async (
+  prisma: PrismaClient,
   s3: Client | null,
+  username: string,
   projectId: string,
   objectName: string
 ) => {
+  const project = await getProject(prisma, username, projectId);
+  if (project === null) return raise(`No project with id ${projectId}`);
   if (s3 === null) return raise("No S3 store configured");
-  return S3Controller.getPresignedPutURL(s3, projectId, objectName);
+  return S3Controller.getPresignedPutURL(s3, titleToBucketName(project.title), objectName);
 };
 
 const generateThumbnail = async (prisma: PrismaClient, projectId: string) => {
@@ -289,9 +326,9 @@ const getLayout = (prisma: PrismaClient, projectId: string) => {
   return prisma.section.findMany({ where: { projectId } });
 };
 
-const getEnv = async (s3: Client | null, projectId: string) => {
+const getEnv = async (prisma: PrismaClient, s3: Client | null, username: string, projectId: string) => {
   if (s3 === null) return raise("No S3 store configured");
-  const url = await getPresignedGetURL(s3, projectId, "env.json", "latest");
+  const url = await getPresignedGetURL(prisma, s3, username, projectId, "env.json", "latest");
   if (isError(url)) return url;
   const data = await (await fetch(url)).json();
   return Object.fromEntries(Object.entries(data)
@@ -300,12 +337,14 @@ const getEnv = async (s3: Client | null, projectId: string) => {
 };
 
 const getController = async (
+  prisma: PrismaClient,
   s3: Client | null,
+  username: string,
   projectId: string,
   observatory: string
 ) => {
   if (s3 === null) return raise("No S3 store configured");
-  const url = await getPresignedGetURL(s3, projectId, "control.html", "latest");
+  const url = await getPresignedGetURL(prisma, s3, username, projectId, "control.html", "latest");
   if (isError(url)) return url;
   let data = await (await fetch(url)).text();
 
@@ -314,11 +353,44 @@ const getController = async (
   }
 
   for (const [k, v] of Object.entries(env.CONTROLLER_FORMAT)) {
-    data = data.replaceAll(`{{${k}}}`, Json.stringify(v));
+    if (typeof v === "string") {
+      data = data.replaceAll(`{{${k}}}`, Json.stringify(v));
+    } else {
+      data = data.replaceAll(`${k}: {}`, `${k}: ${Json.stringify(v)}`);
+    }
   }
 
   data = data.replaceAll("{{OBSERVATORY}}", observatory)
     .replaceAll("{{PROJECT_ID}}", projectId);
+
+  const user = await prisma.user.findUnique({
+    where: {
+      username
+    }
+  });
+
+  if (user === null) throw new Error("Missing user");
+
+  const token = await prisma.refreshToken.findUnique({
+    where: {
+      userId: user.id
+    }
+  });
+
+  let dataToken = token?.token;
+
+  if (token === null) {
+    const refreshToken = service.generateToken(username, env.REFRESH_TOKEN_SECRET);
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id
+      }
+    });
+    dataToken = refreshToken;
+  }
+
+  data = data.replaceAll("{{TOKEN}}", assert(dataToken));
 
   return data;
 };
