@@ -1,5 +1,5 @@
 import type { Action, DeviceAction } from "./types";
-import { isError, OVEException } from "@ove/ove-types";
+import { isError, type OVEException } from "@ove/ove-types";
 
 export const skipSingle = (
   type: Action,

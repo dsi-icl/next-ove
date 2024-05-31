@@ -1,7 +1,7 @@
 /* global globalThis */
 
-import * as Minio from "minio";
 import { env } from "../env";
+import * as Minio from "minio";
 
 const globalForS3 = globalThis as unknown as {s3: Minio.Client | null};
 

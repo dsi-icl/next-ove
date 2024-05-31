@@ -1,6 +1,6 @@
-import { type Namespace } from "socket.io";
 import { prisma } from "./db";
 import { logger } from "../env";
+import type { Namespace } from "socket.io";
 
 export const setupNamespace = <T extends Namespace>(
   io: T,

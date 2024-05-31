@@ -4,7 +4,7 @@ import { isError } from "@ove/ove-types";
 import { checkErrors } from "../../../utils";
 import { logger } from "../../../../../env";
 import { trpc } from "../../../../../utils/api";
-import { type ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 import { PlayCircle } from "react-bootstrap-icons";
 
 const useStart = (

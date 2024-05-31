@@ -7,7 +7,7 @@ import Toolbar from "../toolbar/toolbar";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
-import { type HardwareInfo } from "../../types";
+import type { HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
 import React, { useMemo, useState } from "react";
 import { is, isError, OVEExceptionSchema } from "@ove/ove-types";

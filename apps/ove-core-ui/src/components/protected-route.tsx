@@ -1,5 +1,5 @@
-import React, { type ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import React, { type ReactNode } from "react";
 
 /**
  * Only allows navigation to a route if a condition is met.

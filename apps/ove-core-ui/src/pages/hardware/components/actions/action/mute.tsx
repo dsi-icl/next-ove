@@ -4,7 +4,7 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
-import { type ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 import { VolumeMute } from "react-bootstrap-icons";
 
 const useMute = (

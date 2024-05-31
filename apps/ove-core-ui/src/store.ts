@@ -1,19 +1,17 @@
-import {
-  type Browser,
-  type CalendarEvent,
-  type PowerMode,
-  type ScreenshotMethod,
-  type Tokens
+import type {
+  Browser,
+  CalendarEvent,
+  PowerMode,
+  ScreenshotMethod,
+  Tokens
 } from "@ove/ove-types";
 import { create } from "zustand";
 import { Json } from "@ove/ove-utils";
-import { type DeviceAction } from "./pages/hardware/types";
+import type { DeviceAction } from "./pages/hardware/types";
 
 type Store = {
   tokens: Tokens | null
   setTokens: (tokens: Tokens | null) => void
-  config: string,
-  setConfig: (config: string) => void
   hardwareConfig: {
     deviceAction: DeviceAction
     setDeviceAction: (deviceAction: DeviceAction) => void
@@ -64,8 +62,6 @@ export const useStore = create<Store>(set => ({
   tokens: getCurrentTokens(),
   setTokens: (tokens: Tokens | null) =>
     tokens === null ? set({ tokens: null }) : set({ tokens: { ...tokens } }),
-  config: "{}",
-  setConfig: (config: string) => set({ config }),
   hardwareConfig: {
     command: null,
     setCommand: command => set(state => ({

@@ -1,7 +1,7 @@
 import React from "react";
 import { trpc } from "../../../../../utils/api";
+import type { ActionProps } from "../../../types";
 import { ArrowRepeat } from "react-bootstrap-icons";
-import { ActionProps } from "../../../types";
 
 const useStatus = (
   bridgeId: string,

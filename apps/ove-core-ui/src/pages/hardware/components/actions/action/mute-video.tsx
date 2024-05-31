@@ -4,7 +4,7 @@ import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
-import { type ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 import { CameraVideo, VolumeMute } from "react-bootstrap-icons";
 
 import styles from "../actions.module.scss";

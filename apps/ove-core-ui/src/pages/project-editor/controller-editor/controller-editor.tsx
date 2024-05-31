@@ -1,8 +1,8 @@
 import ace from "ace-builds";
 import AceEditor from "react-ace";
-import { type File } from "@ove/ove-types";
-import React, { useEffect, useRef, useState } from "react";
+import type { File } from "@ove/ove-types";
 import url from "ace-builds/src-noconflict/mode-html";
+import React, { useEffect, useRef, useState } from "react";
 
 import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
@@ -45,7 +45,7 @@ const ControllerEditor = ({
     theme="dracula"
     mode="html"
     name="controller-config"
-    style={{ width: "100%" }}
+    style={{ width: "100%", height: "100%" }}
     onChange={setData}
     fontSize={14}
     showPrintMargin={true}

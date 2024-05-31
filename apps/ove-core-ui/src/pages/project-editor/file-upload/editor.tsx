@@ -1,14 +1,14 @@
 import ace from "ace-builds";
 import AceEditor from "react-ace";
-import React, { useEffect, useState } from "react";
 import { Button } from "@ove/ui-base-components";
-import json from "ace-builds/src-noconflict/mode-json";
-import markdown from "ace-builds/src-noconflict/mode-markdown";
+import React, { useEffect, useState } from "react";
 import tex from "ace-builds/src-noconflict/mode-tex";
-import html from "ace-builds/src-noconflict/mode-html";
-import text from "ace-builds/src-noconflict/mode-text";
 import css from "ace-builds/src-noconflict/mode-css";
 import svg from "ace-builds/src-noconflict/mode-svg";
+import html from "ace-builds/src-noconflict/mode-html";
+import json from "ace-builds/src-noconflict/mode-json";
+import text from "ace-builds/src-noconflict/mode-text";
+import markdown from "ace-builds/src-noconflict/mode-markdown";
 
 import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
@@ -23,7 +23,7 @@ ace.config.setModuleUrl("ace/mode/text", text);
 ace.config.setModuleUrl("ace/mode/css", css);
 ace.config.setModuleUrl("ace/mode/svg", svg);
 
-export type Language = "markdown" | "json" | "latex" | "css" | "csv" | "html"
+export type Language = "css" | "csv" | "html" | "json" | "latex" | "markdown" | "tsv"
 
 export type CustomFile = {
   data: string
@@ -50,12 +50,7 @@ const Editor = ({ close, file, save }: EditorProps) => {
     useState<Language>(file?.language ?? "markdown");
 
   const languageToMode = (language: Language) =>
-    language === "csv" ? "text" : language;
-
-  useEffect(() => {
-    if (data === file?.data && language === file?.language) return;
-    setData("");
-  }, [language, data, file?.data, file?.language]);
+    language === "csv" || language === "tsv" ? "text" : language;
 
   const addFileExtension = (name: string) => {
     const extension = getExtensionForLanguage(language);
@@ -92,10 +87,11 @@ const Editor = ({ close, file, save }: EditorProps) => {
                   setLanguage((e?.target?.value as Language) ?? "markdown")}>
           <option value="css">CSS</option>
           <option value="csv">Data Table (CSV)</option>
+          <option value="tsv">Data Table (TSV)</option>
           <option value="html">HTML</option>
-          <option value="markdown">Markdown</option>
           <option value="json">JSON</option>
           <option value="latex">LaTeX</option>
+          <option value="markdown">Markdown</option>
           <option value="svg">SVG</option>
         </select>
       </div>

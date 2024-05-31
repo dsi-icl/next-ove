@@ -1,8 +1,8 @@
-import { mergeRouters, router } from "./trpc";
-import { hardwareRouter } from "./hardware/router";
 import { authRouter } from "./auth/router";
-import { bridgeRouter } from "./bridge/router";
 import { coreRouter } from "./core/router";
+import { mergeRouters, router } from "./trpc";
+import { bridgeRouter } from "./bridge/router";
+import { hardwareRouter } from "./hardware/router";
 import { projectsRouter } from "./projects/router";
 
 const baseRouter = router({

@@ -2,13 +2,13 @@
 
 import ms from "ms";
 import { env } from "../../env";
-import { TRPCError } from "@trpc/server";
+import service from "./service";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
-import { type Tokens } from "@ove/ove-types";
-import { type Context } from "../context";
-import { PrismaClient } from "@prisma/client";
-import service from "./service";
+import { TRPCError } from "@trpc/server";
+import type { Context } from "../context";
+import type { Tokens } from "@ove/ove-types";
+import type { PrismaClient } from "@prisma/client";
 
 const login = async (ctx: Context): Promise<Tokens> => {
   if (ctx.user === null) {

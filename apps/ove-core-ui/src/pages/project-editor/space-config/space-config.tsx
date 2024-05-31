@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { type Geometry, type Space } from "../types";
 import React, { useRef } from "react";
+import { useForm } from "react-hook-form";
+import type { Geometry, Space } from "../types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 
 import styles from "./space-config.module.scss";
 
@@ -29,12 +31,15 @@ const SpaceConfig = ({
   const {
     register,
     handleSubmit,
-    setValue
+    setValue,
+    formState: { errors }
   } = useForm<SpaceConfigForm>({
     defaultValues: {
       preset: name ?? "-- select an option --"
-    }
+    },
+    resolver: zodResolver(SpaceConfigFormSchema)
   });
+  useFormErrorHandling(errors);
 
   const onSubmit = ({ preset }: {
     preset: string | null

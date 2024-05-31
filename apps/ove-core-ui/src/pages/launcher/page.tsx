@@ -1,9 +1,9 @@
 import { env } from "../../env";
+import Projects from "./projects";
 import React, { useState } from "react";
 import { ToggleLeft, ToggleRight } from "lucide-react";
 
 import styles from "./launcher.module.scss";
-import Projects from "./projects";
 
 const Launcher = ({ loggedIn }: { loggedIn: boolean }) => {
   const [mode, setMode] = useState<"legacy" | "modern">("modern");

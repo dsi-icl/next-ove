@@ -1,10 +1,8 @@
-import { type Namespace } from "socket.io";
-import {
-  type TSocketInEvents, type TSocketOutEvents
-} from "@ove/ove-types";
+import { state } from "../state";
+import type { Namespace } from "socket.io";
 import { io as SocketServer } from "../sockets";
 import { setupNamespace } from "../socket-setup";
-import { state } from "../state";
+import type { TSocketInEvents, TSocketOutEvents } from "@ove/ove-types";
 
 export const io: Namespace<
   TSocketInEvents, TSocketOutEvents

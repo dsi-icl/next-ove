@@ -1,14 +1,13 @@
 import { env } from "../env";
-import superjson from "superjson";
 import { isAuthed } from "./auth/utils";
-import { type Context } from "./context";
-import { type OpenApiMeta } from "trpc-openapi";
+import type { Context } from "./context";
+import type { OpenApiMeta } from "trpc-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
 
 const trpc = initTRPC
   .meta<OpenApiMeta>()
   .context<Context>()
-  .create({ transformer: superjson });
+  .create();
 
 export const router = trpc.router;
 export const procedure = trpc.procedure;

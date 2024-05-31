@@ -1,4 +1,4 @@
-import { type Device, type StatusOptions } from "@ove/ove-types";
+import type { Device, StatusOptions } from "@ove/ove-types";
 
 export type HardwareInfo = {
   device: Device

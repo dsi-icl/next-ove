@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore } from "../../../../../store";
-import { type ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 import { VolumeDown } from "react-bootstrap-icons";
 
 const Volume = ({ bridgeId, deviceId, tag }: ActionProps) => {

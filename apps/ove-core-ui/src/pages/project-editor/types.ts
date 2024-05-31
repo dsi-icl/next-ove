@@ -12,10 +12,3 @@ export type Geometry = Rect & {
   x: number
   y: number
 }
-
-export type DataType = {
-  name: string
-  displayName: string
-  color: string
-  extensions: string[]
-}

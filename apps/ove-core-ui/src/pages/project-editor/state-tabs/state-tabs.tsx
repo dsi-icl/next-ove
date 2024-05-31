@@ -8,9 +8,10 @@ import React, {
 import { z } from "zod";
 import { X } from "react-bootstrap-icons";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 
 import styles from "./state-tabs.module.scss";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 type StateTabsProps = {
   selected: string
@@ -149,10 +150,12 @@ const EditTab = ({ onSubmit }: EditTabProps) => {
   const {
     register,
     resetField,
-    handleSubmit
+    handleSubmit,
+    formState: { errors }
   } = useForm<TitleForm>({
     resolver: zodResolver(TitleFormSchema)
   });
+  useFormErrorHandling(errors);
 
   useEffect(() => () => resetField("name"), [resetField]);
 

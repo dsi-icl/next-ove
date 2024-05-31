@@ -1,8 +1,8 @@
-import { procedure, protectedProcedure, router } from "../trpc";
 import { z } from "zod";
-import controller from "./controller";
-import { type OVEException, OVEExceptionSchema } from "@ove/ove-types";
 import { logger } from "../../env";
+import controller from "./controller";
+import { procedure, protectedProcedure, router } from "../trpc";
+import { type OVEException, OVEExceptionSchema } from "@ove/ove-types";
 
 const safe = async <T>(handler: () => T): Promise<T | OVEException> => {
   try {

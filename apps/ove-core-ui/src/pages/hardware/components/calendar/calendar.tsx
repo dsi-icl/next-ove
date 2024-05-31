@@ -1,9 +1,10 @@
 import React from "react";
+import {
+  Calendar as CalendarDisplay,
+  useCalendar
+} from "@ove/ui-components";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import {
-  Calendar as CalendarDisplay, useCalendar
-} from "@ove/ui-components";
 
 const Calendar = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);

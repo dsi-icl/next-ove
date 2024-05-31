@@ -1,9 +1,9 @@
-import { inferAsyncReturnType } from "@trpc/server";
-import {
+import { s3 } from "./s3";
+import { prisma } from "./db";
+import type {
   NodeHTTPCreateContextFnOptions
 } from "@trpc/server/dist/adapters/node-http";
-import { prisma } from "./db";
-import { s3 } from "./s3";
+import type { inferAsyncReturnType } from "@trpc/server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ContextOptions = NodeHTTPCreateContextFnOptions<any, any>

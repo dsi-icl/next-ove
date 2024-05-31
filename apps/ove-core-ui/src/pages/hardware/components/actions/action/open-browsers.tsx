@@ -1,11 +1,11 @@
 import React from "react";
-import { type ActionProps } from "../../../types";
-import { WindowPlus } from "react-bootstrap-icons";
-import { trpc } from "../../../../../utils/api";
-import { isError } from "@ove/ove-types";
 import { toast } from "sonner";
-import { checkErrors } from "../../../utils";
+import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
+import { checkErrors } from "../../../utils";
+import { trpc } from "../../../../../utils/api";
+import type { ActionProps } from "../../../types";
+import { WindowPlus } from "react-bootstrap-icons";
 
 const useOpenBrowsers = (
   bridgeId: string,

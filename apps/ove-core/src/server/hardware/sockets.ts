@@ -1,11 +1,11 @@
-import { type Namespace } from "socket.io";
-import {
-  type THardwareClientToServerEvents,
-  type THardwareServerToClientEvents
+import type {
+  THardwareClientToServerEvents,
+  THardwareServerToClientEvents
 } from "@ove/ove-types";
+import { state } from "../state";
+import type { Namespace } from "socket.io";
 import { io as SocketServer } from "../sockets";
 import { setupNamespace } from "../socket-setup";
-import { state } from "../state";
 
 export const io: Namespace<
   THardwareClientToServerEvents,

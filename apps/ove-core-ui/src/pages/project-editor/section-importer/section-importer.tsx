@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { type Actions } from "../hooks";
+import type { Actions } from "../hooks";
 import { actionColors } from "../utils";
-import { type DataType } from "../types";
 import { X } from "react-bootstrap-icons";
 import { Json, assert } from "@ove/ove-utils";
-import { type Section } from "@prisma/client";
+import type { Section } from "@prisma/client";
+import type { DataType } from "@ove/ove-types";
 
 import styles from "./section-importer.module.scss";
 

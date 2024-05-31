@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { trpc } from "../../../../utils/api";
 import { logger } from "../../../../env";
+import { trpc } from "../../../../utils/api";
 
 export const useStreams = (bridgeId: string, isOpen: boolean) => {
   const streams = trpc.bridge.getStreams.useQuery({ bridgeId });

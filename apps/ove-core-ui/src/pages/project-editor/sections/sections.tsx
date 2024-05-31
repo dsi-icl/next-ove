@@ -1,8 +1,8 @@
-import { dataTypes } from "../utils";
-import { type Actions } from "../hooks";
+import type { Actions } from "../hooks";
 import { Import, X } from "lucide-react";
+import { dataTypes } from "@ove/ove-types";
 import { Json, assert } from "@ove/ove-utils";
-import { type Section } from "@prisma/client";
+import type { Section } from "@prisma/client";
 import React, { useRef, useState } from "react";
 import { PlusCircle } from "react-bootstrap-icons";
 import ResizeContainer from "../canvas/resize-container";
@@ -68,7 +68,7 @@ const Sections = ({
         .concat(curList.slice(assert(startOrder), assert(endOrder)))
         .map((section, i) => ({
           ...section,
-          ordering: i
+          ordering: i + assert(startOrder)
         })))
       .concat(curList.slice(assert(endOrder) + 1));
   };

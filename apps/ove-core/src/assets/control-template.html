@@ -204,8 +204,8 @@
           }
       }
   </style>
-  <meta name="description" content="Universal controller for next-ove"/>
-  <meta name="template-version" content="1"/>
+  <meta name="description" content="Universal controller for next-ove" />
+  <meta name="template-version" content="1" />
 </head>
 <body>
 <nav>
@@ -262,7 +262,7 @@
   /**
    * Project details - currently only loading Sections, but project metadata
    * may also be included in design in future.
-   * @type {{layouts: {id: string, ordering: number, states: string[], asset: string}[]} | null}
+   * @type {{layouts: {id: string, ordering: number, states: string[], asset: string}[], title: string} | null}
    */
   let project = null;
 
@@ -308,7 +308,10 @@
   let token;
 
   const getToken = async () => {
-    token = await (await fetch(`${env.SERVER}/token`, {headers: {Authorization: `Bearer ${env.TOKEN}`}, method: "POST"})).json();
+    token = await (await fetch(`${env.SERVER}/token`, {
+      headers: { Authorization: `Bearer ${env.TOKEN}` },
+      method: 'POST'
+    })).json();
   };
 
   /**
@@ -338,7 +341,8 @@
    * @type {() => Promise<void>}
    */
   const loadBounds = async () => {
-    bounds = (await (await fetch(`${env.SERVER}/core/bridges/bounds`, { headers: { authorization: `Bearer ${token.token}` } })).json())[env.OBSERVATORY];
+    const geometry = await (await fetch(`${env.RENDERER}/spaces/${env.SPACE}/geometry`)).json();
+    bounds = { width: geometry.w, height: geometry.h };
   };
 
   /**
@@ -400,8 +404,15 @@
   const formatSection = async (layout, ordering) => {
     let url;
     if (layout.asset.startsWith('/store/')) {
-      const xs = layout.asset.split('/');
-      url = await (await fetch(`${env.SERVER}/project/${env.PROJECT_ID}/file/${xs[2]}/${x[3]}/presigned/get`)).json();
+      const [base, version] = layout.asset.split("?");
+      const xs = base.split('/');
+      let name = xs[3];
+
+      if (["data-table", "markdown", "latex", "json", "geojson"].includes(layout.dataType)) {
+        const parts = name.split(".");
+        name = `${parts.slice(0, -1).join(".")}_OVE_FORMAT.${layout.dataType === "geojson" ? parts.at(-1) : "html"}`;
+      }
+      url = await (await fetch(`${env.SERVER}/project/${env.PROJECT_ID}/file/${name}/${version}/presigned/get`, {headers: {Authorization: `Bearer ${token.token}`}})).json();
     } else {
       url = layout.asset;
     }
@@ -452,7 +463,7 @@
     for (const [uid, ordering, section] of await formatPostSections(toPost.union(toRepost))) {
       const sectionId = (await (await fetch(`${env.RENDERER}/section`, {
         headers: {
-          "Content-Type": "application/json"
+          'Content-Type': 'application/json'
         },
         method: 'POST',
         body: JSON.stringify(section)
@@ -495,9 +506,9 @@
    * Updates the currently selected section on state change.
    * If a section is provided, this is used.
    * If the currently selected section is in the new state, it does nothing.
-   * Otherwise it selects the section with the minimum ordering.
+   * Otherwise, it selects the section with the minimum ordering.
    *
-   * @type {(selectedSection?: number) => void}
+   * @type {(selectedSection: number | undefined) => void}
    */
   const updateCurrentSection = selectedSection => {
     if (selectedSection !== undefined) {
@@ -512,7 +523,7 @@
   /**
    * Transitions to the next state.
    *
-   * @type {(next: string, selectedSection?: number) => Promise<void>}
+   * @type {(next: string, selectedSection: number | undefined) => Promise<void>}
    */
   const transition = async (next, selectedSection) => {
     await updateState(next);
@@ -528,7 +539,7 @@
   const loadDefaultState = async () => {
     sections.clear();
     await fetch(`${env.RENDERER}/sections`, { method: 'DELETE' });
-    await transition(DEFAULT_STATE);
+    await transition(DEFAULT_STATE, undefined);
   };
 
   /**
@@ -580,8 +591,8 @@
       return;
     }
 
-    currentState = selectedState;
-    updateCurrentSection();
+    currentState = /** @type{string} */ selectedState;
+    updateCurrentSection(undefined);
     const main = document.getElementById('controller');
     for (const { id, app: { url } } of currentSections) {
       loadController(url, id, orderings.get(id), main);
@@ -599,7 +610,7 @@
    */
   const generateMenu = () => {
     const menu = document.getElementById('menu');
-    const states = project.layouts.flatMap(({ states }) => states).filter((x, i, arr) => arr.indexOf(x) === i);
+    const states = project.layouts.flatMap(({ states }) => states).concat([DEFAULT_STATE]).filter((x, i, arr) => arr.indexOf(x) === i);
     for (const state of states) {
       const li = document.createElement('li');
       const details = document.createElement('details');
@@ -616,7 +627,7 @@
       button.onclick = async () => {
         closeNav();
         if (currentState === state) return;
-        await transition(state);
+        await transition(state, undefined);
         menu.innerHTML = '';
         generateMenu();
       };
@@ -680,6 +691,7 @@
   window.onload = async () => {
     await getToken();
     await Promise.all([loadEnv(), loadProject(), loadBounds()]);
+    document.title = project?.title ?? '';
     await resume();
     generateMenu();
   };

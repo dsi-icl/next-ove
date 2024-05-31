@@ -1,17 +1,19 @@
 import { z } from "zod";
 import React from "react";
-import { type Actions } from "../hooks";
 import { useForm } from "react-hook-form";
+import type {
+  LaunchConfig as LaunchConfigT
+} from "../../pages/project-editor/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type Project, type Section } from "@prisma/client";
+import type { Project, Section } from "@prisma/client";
 
 import styles from "./launch-config.module.scss";
 
 type LaunchConfigProps = {
   observatories: string[]
-  setAction: (action: Actions | null) => void
+  launch: (config: LaunchConfigT) => void
   project: Project,
-  sections: Section[]
+  sections: Section[] | null
 }
 
 const LaunchConfigFormSchema = z.strictObject({
@@ -22,8 +24,10 @@ const LaunchConfigFormSchema = z.strictObject({
 type LaunchConfigForm = z.infer<typeof LaunchConfigFormSchema>
 
 const LaunchConfig = ({
+  project,
   observatories,
-  setAction
+  launch,
+  sections
 }: LaunchConfigProps) => {
   const { register, handleSubmit } = useForm<LaunchConfigForm>({
     resolver: zodResolver(LaunchConfigFormSchema)
@@ -31,8 +35,7 @@ const LaunchConfig = ({
 
   const onSubmit = ({ observatory, confirmation }: LaunchConfigForm) => {
     if (!confirmation) return;
-    console.log(`LAUNCHING ON ${observatory}`); // TODO: replace with launch
-    setAction("live");
+    launch({ projectId: project.id, observatory, layout: sections });
   };
 
   return <section id={styles["launch"]}>

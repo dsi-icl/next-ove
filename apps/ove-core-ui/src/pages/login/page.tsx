@@ -1,9 +1,10 @@
 import { z } from "zod";
 import React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 
 import styles from "./page.module.scss";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 const LoginFormSchema = z.strictObject({
   username: z.string(),
@@ -15,9 +16,10 @@ type LoginForm = z.infer<typeof LoginFormSchema>
 const Login = ({ login }: {
   login: (username: string, password: string) => Promise<void>
 }) => {
-  const { register, handleSubmit } = useForm<LoginForm>({
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(LoginFormSchema)
   });
+  useFormErrorHandling(errors);
   const onSubmit = handleSubmit(({
     username,
     password

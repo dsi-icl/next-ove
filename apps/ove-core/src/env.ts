@@ -52,7 +52,8 @@ const baseSchema = z.strictObject({
   TEST_USER: z.string().optional(),
   SOCKET_DIST: z.string(),
   TOKEN_EXPIRY: z.string(),
-  THUMBNAIL_GENERATOR: z.string().optional()
+  THUMBNAIL_GENERATOR: z.string().optional(),
+  DATA_FORMATTER: z.string().optional()
 });
 
 const schema = baseSchema.refine(config =>

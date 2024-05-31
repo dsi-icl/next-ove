@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 import React, { useCallback, useEffect, useRef } from "react";
 
 import styles from "./search-select.module.scss";
@@ -23,10 +24,12 @@ const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
     handleSubmit,
     watch,
     setValue,
-    register
+    register,
+    formState: { errors }
   } = useForm<SearchSelectForm>({
     resolver: zodResolver(SearchSelectFormSchema)
   });
+  useFormErrorHandling(errors);
 
   const onSubmit = useCallback(({ filter }: { filter: string }) => {
     setFilter(filter === "" ? null : filter);

@@ -1,8 +1,8 @@
 import App from "./app/app";
 import React, { StrictMode } from "react";
-import { Helmet, HelmetProvider } from "react-helmet-async";
 import * as ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 
 interface ImportMeta {
   env: {

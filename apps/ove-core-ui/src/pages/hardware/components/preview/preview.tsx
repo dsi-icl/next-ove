@@ -1,6 +1,6 @@
 import React from "react";
-import { type Bounds } from "@ove/ove-types";
 import Screen from "./screen";
+import type { Bounds } from "@ove/ove-types";
 
 const Preview = ({ bounds, bridgeId, setSelected, selected }: {
   bounds: Bounds,

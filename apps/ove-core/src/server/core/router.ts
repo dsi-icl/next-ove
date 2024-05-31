@@ -2,8 +2,8 @@ import { z } from "zod";
 import { logger } from "../../env";
 import { safe } from "@ove/ove-utils";
 import controller from "./controller";
-import { BoundsSchema, OVEExceptionSchema } from "@ove/ove-types";
 import { protectedProcedure, router } from "../trpc";
+import { BoundsSchema, OVEExceptionSchema } from "@ove/ove-types";
 
 const ObservatorySchema = z.strictObject({
   name: z.string(),

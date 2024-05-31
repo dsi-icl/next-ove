@@ -1,7 +1,7 @@
-import { GpuCard } from "react-bootstrap-icons";
 import React from "react";
+import { GpuCard } from "react-bootstrap-icons";
 import { useStore } from "../../../../../store";
-import { ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 
 const Input = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =

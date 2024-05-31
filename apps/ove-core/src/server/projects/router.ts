@@ -1,22 +1,23 @@
-import { protectedProcedure, router } from "../trpc";
-import { z } from "zod";
-import { safe } from "@ove/ove-utils";
-import { logger } from "../../env";
-import controller from "./controller";
-import { type Client as MinioClient } from "minio";
 import {
   FileSchema,
   type OVEException,
-  OVEExceptionSchema
+  OVEExceptionSchema,
+  type DataTypes,
+  DataTypesSchema
 } from "@ove/ove-types";
-import {
-  type PrismaClient,
-  type Invite,
-  type Project,
-  type Section,
-  type User
+import type {
+  PrismaClient,
+  Invite,
+  Project,
+  Section,
+  User
 } from "@prisma/client";
-import { type JsonValue } from "@prisma/client/runtime/library";
+import { z } from "zod";
+import { logger } from "../../env";
+import controller from "./controller";
+import { Json, safe } from "@ove/ove-utils";
+import type { Client as MinioClient } from "minio";
+import { protectedProcedure, router } from "../trpc";
 
 const SectionSchema = z.strictObject({
   id: z.string(),
@@ -26,7 +27,6 @@ const SectionSchema = z.strictObject({
   y: z.number(),
   asset: z.string(),
   assetId: z.string().nullable(),
-  config: z.custom<JsonValue>(),
   states: z.string().array(),
   dataType: z.string(),
   projectId: z.string(),
@@ -37,8 +37,8 @@ const ProjectSchema = z.strictObject({
   id: z.string(),
   creatorId: z.string(),
   collaboratorIds: z.string().array(),
-  created: z.date(),
-  updated: z.date(),
+  created: z.string(),
+  updated: z.string(),
   title: z.string(),
   description: z.string(),
   thumbnail: z.string().nullable(),
@@ -48,6 +48,8 @@ const ProjectSchema = z.strictObject({
   tags: z.string().array(),
   isPublic: z.boolean()
 });
+
+const ProjectSchemaOutput = ProjectSchema.omit({created: true, updated: true}).extend({created: z.date(), updated: z.date()})
 
 const UserSchema = z.strictObject({
   id: z.string(),
@@ -66,6 +68,13 @@ const InviteSchema = z.strictObject({
   senderId: z.string(),
   recipientId: z.string()
 });
+
+const DataFormatConfigOptionsSchema = z.strictObject({
+  containsHeader: z.boolean().optional(),
+  tableSource: z.union([z.literal("csv"), z.literal("html"), z.literal("tsv")]).optional()
+});
+
+export type DataFormatConfigOptions = z.infer<typeof DataFormatConfigOptionsSchema>
 
 export type Controller = {
   getProjectsForUser: (prisma: PrismaClient, user: string) => Promise<Project[]>
@@ -87,18 +96,14 @@ export type Controller = {
     files: string[] | undefined
   ) => Promise<
     { project: Project, layout: Section[], files?: string[] } | OVEException>
-  saveProject: (prisma: PrismaClient, project: Project,
+  saveProject: (prisma: PrismaClient, username: string, project: Project,
     layout: Section[]) => Promise<{
     project: Project,
     layout: Section[]
   }>
   getSectionsForProject: (prisma: PrismaClient, projectId: string) =>
     Promise<Section[]>
-  uploadFile: (
-    prisma: PrismaClient,
-    s3: MinioClient | null, username: string, projectId: string,
-    objectName: string, data: string) => Promise<void | OVEException>
-  getPresignedGetURL: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
+  getPresignedGetURL: (s3: MinioClient | null, bucketName: string,
     objectName: string, versionId: string) => Promise<string | OVEException>
   getPresignedPutURL: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
     objectName: string) => Promise<string | OVEException>
@@ -113,14 +118,18 @@ export type Controller = {
   getEnv: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string) =>
     Promise<object | OVEException>
   getController: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
-    observatory: string) => Promise<string | OVEException>
+    observatory: string, layout?: Section[]) => Promise<string | OVEException>
+  formatData: (title: string, dataType: DataTypes, data: string, opts?: DataFormatConfigOptions) => Promise<{
+    data: string
+    fileName: string
+  } | OVEException>
 }
 
 export const projectsRouter = router({
   getProjects: protectedProcedure
     .meta({ openapi: { method: "GET", path: "/projects", protect: true } })
     .input(z.void())
-    .output(z.union([OVEExceptionSchema, ProjectSchema.array()]))
+    .output(z.union([OVEExceptionSchema, ProjectSchemaOutput.array()]))
     .query(async ({ ctx }) => {
       logger.info(`Getting projects for user ${ctx.user}`);
       return await safe(logger, () =>
@@ -135,7 +144,7 @@ export const projectsRouter = router({
       }
     })
     .input(z.strictObject({ projectId: z.string() }))
-    .output(z.union([OVEExceptionSchema, ProjectSchema.nullable()]))
+    .output(z.union([OVEExceptionSchema, ProjectSchemaOutput.nullable()]))
     .query(async ({ ctx, input: { projectId } }) => {
       logger.info(`Getting project ${projectId}`);
       return await safe(logger, () =>
@@ -200,19 +209,26 @@ export const projectsRouter = router({
       project: ProjectSchema.pick({ title: true }).optional(),
       layout: SectionSchema.omit({
         id: true,
-        PROJECT_ID: true
+        projectId: true
       }).array().optional(),
       files: z.string().array().optional()
     }))
     .output(z.union([OVEExceptionSchema, z.strictObject({
-      project: ProjectSchema,
-      layout: SectionSchema.array()
+      project: ProjectSchemaOutput,
+      layout: SectionSchema.array(),
+      files: z.string().array().optional()
     })]))
     .mutation(async ({ ctx, input: { files, project, layout } }) => {
       logger.info("Creating new project");
-      return safe(logger, () =>
+      const res = await safe(logger, () =>
         controller.createProject(ctx.prisma, ctx.s3, ctx.user,
           project, layout, files));
+      z.strictObject({
+        project: ProjectSchemaOutput,
+        layout: SectionSchema.array(),
+        files: z.string().array().optional()
+      }).parse(res);
+      return res;
     }),
   saveProject: protectedProcedure
     .meta({
@@ -227,13 +243,13 @@ export const projectsRouter = router({
       layout: SectionSchema.array()
     }))
     .output(z.union([OVEExceptionSchema, z.strictObject({
-      project: ProjectSchema,
+      project: ProjectSchemaOutput,
       layout: SectionSchema.array()
     })]))
     .mutation(async ({ ctx, input }) => {
       logger.info(`Saving project ${input.project.id}`);
       return safe(logger, () =>
-        controller.saveProject(ctx.prisma, input.project, input.layout));
+        controller.saveProject(ctx.prisma, ctx.user, { ...input.project, created: new Date(input.project.created), updated: new Date(input.project.updated) }, input.layout));
     }),
   getFiles: protectedProcedure
     .meta({
@@ -268,35 +284,16 @@ export const projectsRouter = router({
       logger.info(`Getting data for ${input.name} v${input.version}`);
       return "";
     }),
-  uploadFile: protectedProcedure
-    .meta({
-      openapi: {
-        method: "POST",
-        path: "/project/{projectId}/file",
-        protect: true
-      }
-    })
-    .input(z.strictObject({
-      projectId: z.string(),
-      name: z.string(),
-      data: z.string()
-    }))
-    .output(z.union([z.void(), OVEExceptionSchema]))
-    .mutation(async ({ ctx, input }) => {
-      logger.info(`Uploading file: ${input.name}`);
-      return await safe(logger, () =>
-        controller.uploadFile(ctx.prisma, ctx.s3, ctx.user, input.projectId, input.name, input.data));
-    }),
   getPresignedGetURL: protectedProcedure
     .meta({
       openapi: {
         method: "GET",
-        path: "/project/{projectId}/file/{objectName}/{versionId}/presigned/get",
+        path: "/project/{bucketName}/file/{objectName}/{versionId}/presigned/get",
         protect: true
       }
     })
     .input(z.strictObject({
-      projectId: z.string(),
+      bucketName: z.string(),
       objectName: z.string(),
       versionId: z.string()
     }))
@@ -305,7 +302,7 @@ export const projectsRouter = router({
       // eslint-disable-next-line max-len
       logger.info(`Getting presigned 'GET' URL for ${input.objectName}/${input.versionId}`);
       return await safe(logger, () =>
-        controller.getPresignedGetURL(ctx.prisma, ctx.s3, ctx.user, input.projectId,
+        controller.getPresignedGetURL(ctx.s3, input.bucketName,
           input.objectName, input.versionId));
     }),
   getPresignedPutURL: protectedProcedure
@@ -421,11 +418,29 @@ export const projectsRouter = router({
         protect: true
       }
     })
-    .input(z.strictObject({ projectId: z.string(), observatory: z.string() }))
+    .input(z.strictObject({
+      projectId: z.string(),
+      observatory: z.string(),
+      layout: z.string().optional()
+    }))
     .output(z.union([z.string(), OVEExceptionSchema]))
-    .query(({ ctx, input: { projectId, observatory } }) => {
+    .query(({ ctx, input: { projectId, observatory, layout } }) => {
       logger.info(`Getting controller for ${projectId}`);
       return safe(logger, () =>
-        controller.getController(ctx.prisma, ctx.s3, ctx.user, projectId, observatory));
+        controller.getController(ctx.prisma, ctx.s3, ctx.user, projectId, observatory, SectionSchema.array().optional().parse(layout === undefined ? undefined : Json.parse(layout))));
+    }),
+  formatData: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/project/data/format",
+        protect: true
+      }
+    })
+    .input(z.strictObject({ title: z.string(), dataType: DataTypesSchema, data: z.string(), opts: DataFormatConfigOptionsSchema.optional() }))
+    .output(z.union([z.strictObject({data: z.string(), fileName: z.string()}), OVEExceptionSchema]))
+    .mutation(({ input: { title, dataType, data, opts } }) => {
+      logger.info(`Formatting data of type ${dataType}`);
+      return safe(logger, () => controller.formatData(title, dataType, data, opts));
     })
 });

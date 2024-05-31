@@ -1,17 +1,18 @@
 import { z } from "zod";
 import { assert } from "@ove/ove-utils";
-import React, { useState } from "react";
-import { type Actions } from "../hooks";
+import type { Actions } from "../hooks";
 import { actionColors } from "../utils";
 import { useForm } from "react-hook-form";
-import { type File } from "@ove/ove-types";
-import { type User } from "@prisma/client";
+import type { File } from "@ove/ove-types";
+import type { User } from "@prisma/client";
 import { Brush, X } from "react-bootstrap-icons";
 import { Button } from "@ove/ui-base-components";
+import React, { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./metadata.module.scss";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 const ProjectMetadataSchema = z.strictObject({
   title: z.string(),
@@ -43,22 +44,24 @@ type MetadataProps = {
   inviteCollaborator: (id: string) => void
   removeCollaborator: (id: string) => void
   closeDialog: () => void
+  bucketName: string
 }
 
-const MetadataFormSchema = z.objectUtil.mergeShapes(
-  ProjectMetadataSchema,
-  z.strictObject({
-    fileName: z.string().nullable(),
-    fileVersion: z.string().nullable(),
-    tag: z.string(),
-    publication: z.string(),
-    collaborator: z.string()
-  })
-);
+const CustomDataSchema = z.strictObject({
+  fileName: z.string().nullable(),
+  fileVersion: z.string().nullable(),
+  tag: z.string(),
+  publication: z.string(),
+  collaborator: z.string()
+});
+
+const MetadataFormSchema = ProjectMetadataSchema.merge(CustomDataSchema).strict();
 
 type MetadataForm = z.infer<typeof MetadataFormSchema>
 
+// TODO: add isPublic flag
 const Metadata = ({
+  bucketName,
   files,
   project,
   updateProject,
@@ -85,10 +88,19 @@ const Metadata = ({
     register,
     handleSubmit,
     setValue,
-    watch
+    watch,
+    formState: { errors }
   } = useForm<MetadataForm>({
     defaultValues: {
-      ...project,
+      tags: project.tags,
+      publications: project.publications,
+      collaboratorIds: project.collaboratorIds,
+      title: project.title,
+      description: project.description,
+      thumbnail: project.thumbnail,
+      creatorId: project.creatorId,
+      presenterNotes: project.presenterNotes,
+      notes: project.notes,
       fileName: fromURL(project.thumbnail ?? "")?.name ??
         "-- select an option --",
       fileVersion: fromURL(project.thumbnail ?? "")?.version.toString() ??
@@ -96,10 +108,11 @@ const Metadata = ({
     },
     resolver: zodResolver(MetadataFormSchema)
   });
+  useFormErrorHandling(errors);
 
+  // TODO: ensure fields update and generating thumbnail invalidates project
   const generateThumbnail = () => {
     generator();
-    // TODO: ensure fields update and generating thumbnail invalidates project
   };
 
   const onSubmit = (metadata: MetadataForm) => {
@@ -126,7 +139,14 @@ const Metadata = ({
       setValue("collaborator", "");
       return;
     }
-    const { fileName, fileVersion, ...config } = metadata;
+    const {
+      fileName,
+      fileVersion,
+      tag: _tag,
+      publication: _publication,
+      collaborator: _collaborator,
+      ...config
+    } = metadata;
     const added = collaborators_
       .filter(({ status }) => status === "added")
       .map(({ username }) =>
@@ -145,7 +165,7 @@ const Metadata = ({
       tags,
       collaboratorIds: [...project.collaboratorIds.filter(x =>
         removed.find(({ id }) => id === x) === undefined)],
-      thumbnail: fileName !== null && fileVersion !== null ?
+      thumbnail: fileName !== null && fileName !== undefined && fileName !== "-- select an option --" && fileVersion !== null && fileVersion !== undefined && fileVersion !== "-- select an option --" ?
         toURL(fileName, fileVersion) : null
     });
     setAction(null);
@@ -160,6 +180,13 @@ const Metadata = ({
     username: string
   })[] => usernames.filter(x => x.username !== username);
 
+  const fileName = watch("fileName");
+
+  useEffect(() => {
+    if (fileName === null || fileName === undefined || fileName === "-- select an option --") return;
+    setValue("fileVersion", getLatest(fileName).version);
+  }, [setValue, fileName, bucketName, getLatest]);
+
   return <section id={styles["metadata"]}>
     <header>
       <h2>Project Details</h2>
@@ -173,9 +200,7 @@ const Metadata = ({
       <label htmlFor={styles["s3-select"]}>Thumbnail:</label>
       <div className={styles.thumbnail}>
         <S3FileSelect id={styles["s3-select"]} register={register}
-                      setValue={setValue} getLatest={getLatest}
-                      files={files} fromURL={fromURL} watch={watch}
-                      url={project.thumbnail ?? ""} />
+                      files={files} watch={watch} />
         <button type="button" onClick={generateThumbnail}><Brush /></button>
       </div>
       <label htmlFor="tag">Tags:</label>
@@ -273,7 +298,7 @@ const Metadata = ({
       <label htmlFor="presenterNotes">Presenter Notes:</label>
       <textarea {...register("presenterNotes")} />
       <div className={styles.submit}>
-        <Button variant="default" type="submit">SAVE</Button>
+        <Button variant="default" type="submit">UPDATE</Button>
       </div>
     </form>
   </section>;

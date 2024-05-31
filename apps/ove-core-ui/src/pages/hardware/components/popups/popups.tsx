@@ -1,14 +1,14 @@
 import React from "react";
+import Volume from "../volume/volume";
 import Console from "../console/console";
+import Calendar from "../calendar/calendar";
 import { useStore } from "../../../../store";
 import LiveView from "../live-view/live-view";
+import PowerMode from "../power-mode/power-mode";
 import InfoContainer from "../info/info-container";
 import BrowserStatus from "../browser-modals/browser-status";
 import ScreenshotInput from "../screenshot/screenshot-input";
 import ScreenshotDisplay from "../screenshot/screenshot-display";
-import Volume from "../volume/volume";
-import Calendar from "../calendar/calendar";
-import PowerMode from "../power-mode/power-mode";
 
 const Popups = ({ isOpen }: { isOpen: boolean }) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);

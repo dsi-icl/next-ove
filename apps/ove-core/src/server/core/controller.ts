@@ -1,8 +1,8 @@
 import { state } from "../state";
 import { io } from "../bridge/sockets";
-import { type Bounds, isError } from "@ove/ove-types";
-import { type Context } from "../context";
 import { assert } from "@ove/ove-utils";
+import type { Context } from "../context";
+import { type Bounds, isError } from "@ove/ove-types";
 
 const getObservatories = async (ctx: Context) => {
   const observatories = await ctx.prisma.user.findMany({

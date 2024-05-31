@@ -1,12 +1,19 @@
 {
   "NODE_ENV": "production",
+  "LOG_LEVEL": 2,
+  "LOGGING_SERVER": "",
   "PORT": 8080,
   "HOSTNAME": "127.0.0.1",
   "PROTOCOL": "http",
+  "SOCKET_PATH": "/socket.io",
   "SOCKET_ADMIN": {
     "USERNAME": "example",
     "PASSWORD": "salted+hashed"
   },
+  "ACCESS_TOKEN_SECRET": "",
+  "ACCESS_TOKEN_PASSPHRASE": "",
+  "REFRESH_TOKEN_SECRET": "",
+  "REFRESH_TOKEN_PASSPHRASE": "",
   "ASSET_STORE_CONFIG": {
     "ACCESS_KEY": "",
     "SECRET_KEY": "",
@@ -17,5 +24,20 @@
   },
   "DISABLE_AUTH": false,
   "SOCKET_DIST": "",
-  "TOKEN_EXPIRY": "24h"
+  "TOKEN_EXPIRY": "24h",
+  "TEST_USER": "",
+  "CONTROLLER_FORMAT": {
+    "SERVER": "",
+    "RENDERER": "",
+    "SPACE": "",
+    "DATA_TYPE_MAP": {
+      "videos": "",
+      "images": "",
+      "svg": "",
+      "audio": "",
+      "html": ""
+    }
+  },
+  "THUMBNAIL_GENERATOR": "",
+  "DATA_FORMATTER": ""
 }

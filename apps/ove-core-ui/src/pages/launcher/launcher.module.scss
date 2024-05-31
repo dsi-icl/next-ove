@@ -11,10 +11,13 @@
   .launcher {
     width: 100%;
     height: 100%;
+    position: relative;
   }
 
   .project-container {
+    z-index: 0;
     height: 100%;
+    padding-bottom: 4rem;
     position: relative;
 
     .projects {
@@ -43,13 +46,15 @@
   }
 
   #new {
-    position: absolute;
+    position: fixed;
     bottom: 2rem;
     right: 2rem;
     margin-left: auto;
     padding: 0.5rem;
+    background-color: white;
     border: 1px solid black;
     border-radius: 50%;
     color: black;
+    z-index: 100;
   }
 }

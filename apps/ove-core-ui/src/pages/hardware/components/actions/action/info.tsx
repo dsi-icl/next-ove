@@ -1,6 +1,6 @@
 import React from "react";
 import { useStore } from "../../../../../store";
-import { type ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 import { InfoCircle } from "react-bootstrap-icons";
 
 const Info = ({ bridgeId, deviceId, tag }: ActionProps) => {

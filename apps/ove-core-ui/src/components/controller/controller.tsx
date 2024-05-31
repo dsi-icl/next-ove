@@ -1,20 +1,24 @@
 import React from "react";
-import {
-  ArrowClockwise,
-  FileEarmarkText,
-  Gear,
-  XLg
-} from "react-bootstrap-icons";
+import { Json } from "@ove/ove-utils";
+import { trpc } from "../../utils/api";
+import { isError } from "@ove/ove-types";
+import type { LaunchConfig } from "../../pages/project-editor/hooks";
 
 import styles from "./controller.module.scss";
 
-const Controller = () => <section id={styles["controller"]}>
-  <nav>
-    <button className={styles.align}><FileEarmarkText /></button>
-    <button><Gear /></button>
-    <button><ArrowClockwise /></button>
-    <button><XLg /></button>
-  </nav>
-</section>;
+type ControllerProps = {
+  config: LaunchConfig
+}
+
+const Controller = ({ config }: ControllerProps) => {
+  const controller = trpc.projects.getController.useQuery({
+    ...config,
+    layout: config.layout === null ? undefined : Json.stringify(config.layout)
+  }, { cacheTime: 0 });
+  return <section id={styles["controller"]}>
+    {controller.status === "success" && !isError(controller.data) ?
+      <iframe title="controller" srcDoc={controller.data}></iframe> : null}
+  </section>;
+};
 
 export default Controller;

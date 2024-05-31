@@ -1,9 +1,9 @@
 import ProjectEditor from "./page";
-import { useProject, useSave } from "./hooks";
 import { useQuery } from "../../hooks";
 import { trpc } from "../../utils/api";
-import { isError } from "@ove/ove-types";
 import React, { useMemo } from "react";
+import { isError } from "@ove/ove-types";
+import { useProject, useSave } from "./hooks";
 
 const Loader = ({token}: {token: string}) => {
   const query = useQuery();
@@ -15,10 +15,11 @@ const Loader = ({token}: {token: string}) => {
   const {
     project,
     updateProject,
-    tags
+    tags,
+    createProject
   } = useProject(userId, query.get("project"));
 
-  const { saveProject } = useSave();
+  const { saveProject } = useSave(createProject);
 
   return project === null || userId === null ? null :
     <ProjectEditor project={project} updateProject={updateProject}

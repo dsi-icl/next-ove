@@ -2,14 +2,13 @@
 
 import { env } from "../env";
 import Router from "./router";
-import superjson from "superjson";
 import { useAuth } from "../hooks";
 import { trpc } from "../utils/api";
 import { httpLink } from "@trpc/client";
 import { Nav } from "@ove/ui-components";
 import { HddStack } from "react-bootstrap-icons";
-import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { NavigationMenuLink, Toaster } from "@ove/ui-base-components";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const App = () => {
@@ -117,8 +116,7 @@ export const App = () => {
           return res;
         }
       })
-    ],
-    transformer: superjson
+    ]
   }), [refresh, tokens?.access]);
 
   const [trpcClient, setTrpcClient] = useState(createTrpcClient);

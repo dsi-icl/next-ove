@@ -1,13 +1,13 @@
 /* global process */
 
-import { Server, type ServerOptions } from "socket.io";
-import {
-  type THardwareServerToClientEvents,
-  type THardwareClientToServerEvents
+import type {
+  THardwareServerToClientEvents,
+  THardwareClientToServerEvents
 } from "@ove/ove-types";
 import { server } from "./app";
-import { instrument } from "@socket.io/admin-ui";
 import { env, logger } from "../env";
+import { instrument } from "@socket.io/admin-ui";
+import { Server, type ServerOptions } from "socket.io";
 
 export const io: Server = new Server<
   THardwareClientToServerEvents,

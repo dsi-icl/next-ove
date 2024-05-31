@@ -1,15 +1,15 @@
 import React from "react";
-import Status from "./action/status";
 import Info from "./action/info";
 import Start from "./action/start";
-import Shutdown from "./action/shutdown";
 import Reboot from "./action/reboot";
+import Status from "./action/status";
 import Execute from "./action/execute";
+import Shutdown from "./action/shutdown";
 import Screenshot from "./action/screenshot";
 import GetBrowsers from "./action/get-browsers";
 import OpenBrowsers from "./action/open-browsers";
 import CloseBrowsers from "./action/close-browsers";
-import { type ActionController } from "../../types";
+import type { ActionController } from "../../types";
 
 import styles from "./actions.module.scss";
 

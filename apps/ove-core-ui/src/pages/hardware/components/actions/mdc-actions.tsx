@@ -1,14 +1,14 @@
 import React from "react";
-import Status from "./action/status";
 import Info from "./action/info";
-import Start from "./action/start";
-import Shutdown from "./action/shutdown";
-import Reboot from "./action/reboot";
-import Input from "./action/input";
-import Volume from "./action/volume";
 import Mute from "./action/mute";
+import Input from "./action/input";
+import Start from "./action/start";
+import Reboot from "./action/reboot";
+import Status from "./action/status";
 import Unmute from "./action/unmute";
-import { type ActionController } from "../../types";
+import Volume from "./action/volume";
+import Shutdown from "./action/shutdown";
+import type { ActionController } from "../../types";
 
 import styles from "./actions.module.scss";
 

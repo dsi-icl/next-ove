@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { isError } from "@ove/ove-types";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import { type InfoTypes } from "../../../../utils";
+import type { InfoTypes } from "../../../../utils";
 import { skipMulti, skipSingle } from "../../utils";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 

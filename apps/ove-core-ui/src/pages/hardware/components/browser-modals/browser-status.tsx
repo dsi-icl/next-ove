@@ -3,7 +3,7 @@ import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import { type DeviceAction } from "../../types";
+import type { DeviceAction } from "../../types";
 import { skipMulti, skipSingle } from "../../utils";
 import { type Browser, isError } from "@ove/ove-types";
 import PaginatedDialog from "../paginated-dialog/paginated-dialog";

@@ -1,21 +1,20 @@
 import {
-  type Invite,
-  type Project,
-  type Section,
-  type User
-} from "@prisma/client";
-import "@total-typescript/ts-reset";
+  DataType,
+  dataTypes,
+  type File as TFile,
+  isError
+} from "@ove/ove-types";
+import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { trpc } from "../../utils/api";
-import { useStore } from "../../store";
-import { assert } from "@ove/ove-utils";
-import { useDialog } from "@ove/ui-components";
-import { type Rect, type Space } from "./types";
-import { type ProjectMetadata } from "./metadata/metadata";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { isError, type File as TFile } from "@ove/ove-types";
 import { env, logger } from "../../env";
-import { toast } from "sonner";
+import type { Rect, Space } from "./types";
+import { assert, Json } from "@ove/ove-utils";
+import type { ProjectMetadata } from "./metadata/metadata";
+import type { Invite, Project, Section, User } from "@prisma/client";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import "@total-typescript/ts-reset";
 
 export const useContainer = (space: Space | null) => {
   const [width, setWidth] = useState(100);
@@ -53,6 +52,12 @@ export const useSpace = (observatories: Record<string, Rect & {
   } | null>(observatory?.[1] ?? null);
 
   useEffect(() => {
+    if (name !== null || space !== null) return;
+    setName(observatory?.[0] ?? null);
+    setSpace(observatory?.[1] ?? null);
+  }, [observatory]);
+
+  useEffect(() => {
     if (name === null || Object.keys(observatories).includes(name)) return;
     setName(null);
     setSpace(null);
@@ -67,8 +72,6 @@ export const useSpace = (observatories: Record<string, Rect & {
         width: space.width / space.columns,
         height: space.height / space.rows
       }))).flat(), [space]);
-
-  useEffect(() => console.log(space), [space]);
 
   const update = useCallback((preset: string) => {
     if (!Object.keys(observatories).includes(preset)) return;
@@ -85,7 +88,6 @@ const order = (sections: Section[]) =>
 export const useSections = (projectId: string) => {
   const [sections_, setSections_] = useState<Section[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const setConfig = useStore(state => state.setConfig);
   const getSections = trpc.projects.getSectionsForProject.useQuery(
     { projectId },
     {
@@ -102,15 +104,6 @@ export const useSections = (projectId: string) => {
 
   const setSections = (handler: (cur: Section[]) => Section[]) =>
     setSections_(cur => order(handler(cur)));
-
-  useEffect(() => {
-    if (selected === null) {
-      setConfig("{}");
-    } else {
-      const config = assert(sections_.find(({ id }) => id === selected)).config;
-      setConfig(config === null ? "{}" : JSON.stringify(config));
-    }
-  }, [selected, sections_, setConfig]);
 
   // GET IT – NEW ORDER/BLUE MONDAY. I'M SO FUNNY.
   const reorder = (id: string, blueMonday: number, sections: Section[]) => {
@@ -129,7 +122,6 @@ export const useSections = (projectId: string) => {
   const updateSection = (section: Omit<Section, "id">) => {
     setSections(cur => {
       const newSectionId = selected ?? nanoid(32);
-      console.log(selected, newSectionId);
       const newSections = cur.filter(({ id }) => id !== selected).concat([{
         ...section,
         ordering: cur.length,
@@ -220,7 +212,6 @@ export const useSections = (projectId: string) => {
       ordering: cur.length,
       asset: "",
       assetId: null,
-      config: null,
       dataType: "html",
       projectId,
       states: [state]
@@ -262,20 +253,11 @@ export type Actions =
   | "env"
   | "live"
 
-export const useActions = () => {
-  const [action, setAction] = useState<Actions | null>(null);
-  const { openDialog, isOpen, closeDialog, ref } = useDialog();
-
-  useEffect(() => {
-    if (action === null) {
-      closeDialog();
-    } else {
-      openDialog();
-    }
-  }, [action, closeDialog, openDialog]);
-
-  return { dialog: ref, setAction, action, isOpen };
-};
+export type LaunchConfig = {
+  projectId: string
+  observatory: string
+  layout: Section[] | null
+}
 
 export const useCustomStates = (
   initialStates: string[],
@@ -328,10 +310,8 @@ export const useCustomStates = (
   };
 };
 
-const loadNewProject = (username: string): (Project & {
-  layout: Section[]
-}) | null => ({
-  id: nanoid(),
+const loadNewProject = (username: string): Project | null => ({
+  id: nanoid(32),
   title: "",
   description: "",
   notes: "",
@@ -341,26 +321,49 @@ const loadNewProject = (username: string): (Project & {
   creatorId: username,
   collaboratorIds: [username],
   thumbnail: null,
-  layout: [],
   created: new Date(),
   updated: new Date(),
   isPublic: false
 });
 
-export const useSave = () => {
+export const useSave = (updateProject: (project: Project) => void) => {
   const saveProject = trpc.projects.saveProject.useMutation({
+    retry: false
+  });
+  const createProject = trpc.projects.createProject.useMutation({
     retry: false
   });
 
   return {
-    saveProject: (project: Project, layout: Section[]) => {
+    saveProject: async (project: Project, layout: Section[]) => {
+      if (project.title === "") {
+        toast.error("Cannot save project without title");
+        return;
+      }
+      if (project.id.length === 32) {
+        const res = await createProject.mutateAsync({
+          project: { title: project.title },
+          layout: layout.map(x => {
+            const {id, projectId, ...data} = x;
+            return data;
+          })
+        });
+        if (isError(res)) {
+          toast.error("Error creating project");
+          return;
+        }
+        project = { ...project, ...res.project, created: new Date(res.project.created), updated: new Date(res.project.updated) };
+        updateProject(project);
+      }
       saveProject.mutateAsync({
-        project,
+        project: {
+          ...project,
+          created: project.created.toISOString(),
+          updated: project.updated.toISOString()
+        },
         layout
-      }).then(() => toast.info("Successfully saved project!")).catch(e => {
-        logger.error(e);
-        toast.error("Error saving project");
-      });
+      }).then(() => toast.info("Successfully saved project!"))
+        .catch(() => toast.error("Error saving project"));
     }
   };
 };
@@ -384,7 +387,11 @@ export const useProject = (
   useEffect(() => {
     if (project_.status !== "success" || project_.data === null ||
       isError(project_.data)) return;
-    setProject(project_.data);
+    setProject({
+      ...project_.data,
+      created: new Date(project_.data.created),
+      updated: new Date(project_.data.updated)
+    });
   }, [project_.status, project_.data]);
 
   useEffect(() => {
@@ -399,62 +406,77 @@ export const useProject = (
   return {
     project,
     tags,
-    updateProject
+    updateProject,
+    createProject: setProject
   };
 };
 
 export const useFiles = (projectId: string, token: string) => {
   const files_ = trpc.projects.getFiles.useQuery({ projectId });
-  const uploadRaw = trpc.projects.uploadFile.useMutation({ retry: false });
   const thumbnail = trpc.projects.generateThumbnail
     .useMutation({ retry: false });
   const [files, setFiles] = useState<TFile[]>([]);
 
   useEffect(() => {
     if (files_.status !== "success" || isError(files_.data)) return;
-    console.log(files_.data);
     setFiles(files_.data);
   }, [files_.status, files_.data]);
 
-  const addFile = (name: string, data: string) => {
-    if (files.find(file =>
-      file.name === name && file.isGlobal) !== undefined) {
-      toast.error("Cannot upload a global file");
+  const uploadRawFile = async (name: string, file: File) => {
+    const url = await (await fetch(`${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`, { headers: { Authorization: `Bearer ${token}` } })).json();
+    if (isError(url)) {
+      toast.error(url.oveError);
       return;
     }
-
-    uploadRaw.mutateAsync({
-      projectId,
-      name,
-      data
-    }).catch(logger.error);
+    await fetch(url as string, { method: "PUT", body: file });
   };
 
-  const uploadFile = (name: string, file: File) => {
-    console.log(`Uploading ${name}`);
+  const checkForFormatting = async (name: string, file: File) => {
+    const extension = file.name.split(".").at(-1);
+    if (extension === undefined) throw new Error("Missing file extension");
+    const dataType = dataTypes.find(dt => dt.extensions.includes(`.${extension}`));
+    if (dataType === undefined) throw new Error("Invalid file extension");
+    if (dataType.requiresFormatting) {
+      await uploadFormattedFile(name, extension, dataType, file);
+    }
+  };
+
+  const uploadFormattedFile = async (name: string, extension: string, dataType: DataType, file: File) => {
+    const data = await file.text();
+
+    const formatted = await (await fetch(`${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/data/format`, {
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      method: "POST",
+      body: Json.stringify({
+        data,
+        dataType: dataType.name,
+        title: name,
+        opts: dataType.name === "data-table" ? {
+          containsHeader: false,
+          tableSource: extension
+        } : undefined
+      })
+    })).json();
+    const formattedFile = new File([formatted.data], formatted.fileName, { type: "text/plain" });
+
+    const url = await (await fetch(`${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${formatted.fileName}/presigned/put`, { headers: { Authorization: `Bearer ${token}` } })).json();
+    if (isError(url)) throw new Error(url.oveError);
+    await fetch(url as string, { method: "PUT", body: formattedFile });
+  };
+
+  const uploadFile = async (name: string, file: File) => {
     if (files.find(file => file.name === name && file.isGlobal) !== undefined) {
       toast.error("Cannot upload a global file");
       return;
     }
 
-    fetch(
-      // eslint-disable-next-line max-len
-      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`,
-      {
-        headers: {Authorization: `Bearer: ${token}`}
-      }
-    ).then(res => res.json()).then(res => {
-      console.log(`Putting: ${res}`);
-      if (isError(res)) {
-        toast.error(res.oveError);
-        return;
-      }
-      fetch(res as string, {
-        method: "PUT",
-        body: file
-      }).then(() => toast.info(`Uploaded file ${name}`))
-        .catch(() => toast.error(`Unable to upload file ${name}`));
-    });
+    try {
+      await uploadRawFile(name, file);
+      await checkForFormatting(name, file);
+      files_.refetch().catch();
+    } catch (e) {
+      toast.error(`Unable to upload file ${name}`);
+    }
   };
 
   const generateThumbnail = () => thumbnail.mutateAsync({ projectId })
@@ -462,35 +484,45 @@ export const useFiles = (projectId: string, token: string) => {
     .catch(() => toast.error("Error generating thumbnail"));
 
   const getData = async (file: TFile) => {
-    const url = await (await fetch(
+    const url: string = Json.parse(await (await fetch(
       // eslint-disable-next-line max-len
-      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${file.name}/${file.version}/presigned/get`
-    )).text();
-    return await (await fetch(url)).text();
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${file.bucketName}/file/${file.name}/${file.version}/presigned/get`,
+      {
+        headers: { Authorization: `Bearer ${token}` }
+      }
+    )).text());
+    return (await fetch(url)).text();
   };
 
-  const getLatest = (name: string) => {
-    const file = files.find(file => file.name === name && file.isLatest);
+  const getLatest = (bucketName: string, name: string) => {
+    name = name.startsWith(`${bucketName}/`) ? assert(name.split("/").at(-1)) : name;
+    const file = files.find(file => file.name === name && file.bucketName === bucketName && file.isLatest);
     if (!file) throw new Error("File not found");
     return file;
   };
 
-  const toURL = (name: string, version: string) =>
-    `/store/${name}?versionId=${version}`;
+  const hasVersion = (bucketName: string, name: string, version: string) => {
+    name = name.startsWith(`${bucketName}/`) ? assert(name.split("/").at(-1)) : name;
+    return files.filter(file => file.name === name && file.bucketName === bucketName).map(f => f.version).includes(version);
+  };
+
+  const toURL = (bucketName: string, name: string, version: string) =>
+    `/store/${bucketName}/${name}?versionId=${version}`;
   const fromURL = (url: string | null) => {
     if (url === null) return null;
-    const parsed = /^\/store\/(.+)\?versionId=(.+)$/.exec(url);
-    if (parsed === null || parsed.length !== 3) return null;
+    const parsed = /^\/store\/(.+)\/(.+)\?versionId=(.+)$/.exec(url);
+    if (parsed === null || parsed.length !== 4) return null;
     return files.find(({
+      bucketName,
       name,
       version
-    }) => name === parsed[1] && version === parsed[2]) ?? null;
+    }) => bucketName === parsed[1] && name === parsed[2] && version === parsed[3]) ?? null;
   };
 
   return {
     assets: files.filter(({ name }) => !["control", "env"].includes(name)),
-    addFile,
     uploadFile,
+    hasVersion,
     getLatest,
     toURL,
     fromURL,
@@ -515,7 +547,10 @@ export const useCollaboration = (project: Project) => {
 
   useEffect(() => {
     if (invites_.status !== "success" || isError(invites_.data)) return;
-    setInvites(invites_.data);
+    setInvites(invites_.data.map(invite => ({
+      ...invite,
+      sent: new Date(invite.sent)
+    })));
   }, [invites_.status, invites_.data]);
 
   const uninvited = users
@@ -527,7 +562,8 @@ export const useCollaboration = (project: Project) => {
   const accepted = project.collaboratorIds
     .map(id => users.find(user => user.id === id))
     .filter(Boolean)
-    .concat(users.filter(user => user.id === project.creatorId));
+    .concat(users.filter(user => user.id === project.creatorId))
+    .filter((x, i, arr) => arr.indexOf(x) === i);
   const invited = invites
     .filter(({ status }) => status === "pending")
     .map(({ recipientId }) => users.find(({ id }) =>
@@ -557,32 +593,4 @@ export const useCollaboration = (project: Project) => {
     inviteCollaborator,
     removeCollaborator
   };
-};
-
-export const useObservatories = () => {
-  const observatories_ = trpc.core.getObservatoryBounds.useQuery();
-  const [observatories, setObservatories] = useState<Record<string, {
-    width: number,
-    height: number,
-    rows: number,
-    columns: number
-  }>>(env.MODE === "development" ? {
-    dev: {
-      width: 32,
-      height: 9,
-      rows: 1,
-      columns: 2
-    }
-  } : {});
-
-  useEffect(() => {
-    if (observatories_.status !== "success" ||
-      isError(observatories_.data)) return;
-    if (env.MODE !== "development" ||
-      Object.keys(observatories_.data).length > 0) {
-      setObservatories(observatories_.data);
-    }
-  }, [observatories_.status, observatories_.data]);
-
-  return { observatories };
 };

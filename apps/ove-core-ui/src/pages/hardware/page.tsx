@@ -1,6 +1,6 @@
 import { trpc } from "../../utils/api";
 import { useStore } from "../../store";
-import { type DeviceAction } from "./types";
+import type { DeviceAction } from "./types";
 import Popups from "./components/popups/popups";
 import { Dialog, useDialog } from "@ove/ui-components";
 import { Helmet, HelmetProvider } from "react-helmet-async";

@@ -1,10 +1,9 @@
 import { env } from "./env";
-import superjson from "superjson";
-import { type Tokens } from "@ove/ove-types";
+import type { Tokens } from "@ove/ove-types";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // IGNORE PATH - dependency removed at runtime
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { type AppRouter } from "../../ove-core/src/server/router";
+import type { AppRouter } from "../../ove-core/src/server/router";
 
 export type InfoTypes = "general" | "system" | "cpu" | "memory";
 
@@ -27,6 +26,5 @@ const createClient_ = (authorization: string) =>
           return { authorization };
         }
       })
-    ],
-    transformer: superjson
+    ]
   });

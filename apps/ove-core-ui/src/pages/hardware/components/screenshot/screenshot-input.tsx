@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 import { isError, ScreenshotMethodSchema } from "@ove/ove-types";
 
 import styles from "./screenshot.module.scss";
@@ -84,9 +85,15 @@ const useScreenshot = (
 
 const ScreenshotInput = () => {
   const [screens, setScreens] = useState<number[]>([]);
-  const { register, handleSubmit, resetField } = useForm<ScreenshotInputForm>({
+  const {
+    register,
+    handleSubmit,
+    resetField,
+    formState: { errors }
+  } = useForm<ScreenshotInputForm>({
     resolver: zodResolver(ScreenshotInputFormSchema)
   });
+  useFormErrorHandling(errors);
   const setDeviceAction = useStore(state =>
     state.hardwareConfig.setDeviceAction);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);

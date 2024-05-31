@@ -1,7 +1,7 @@
 import React from "react";
-import { type Project, type User } from "@prisma/client";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@ove/ui-base-components";
+import type { Project, User } from "@prisma/client";
 
 import styles from "./project-card.module.scss";
 

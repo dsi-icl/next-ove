@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { trpc } from "../../../../utils/api";
 import { useStore } from "../../../../store";
-import { type CalendarEvent } from "@ove/ove-types";
+import type { CalendarEvent } from "@ove/ove-types";
 import { PowerMode as PowerModeDisplay } from "@ove/ui-components";
 
 const useFetchPowerMode = (bridgeId: string, calendar: CalendarEvent[]) => {

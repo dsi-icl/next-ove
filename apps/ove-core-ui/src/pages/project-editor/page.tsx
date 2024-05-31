@@ -1,39 +1,40 @@
 import {
   type Actions as ActionsT,
-  useActions,
+  type LaunchConfig as LaunchConfigT,
   useCollaboration,
   useContainer,
   useCustomStates,
-  useFiles, useObservatories,
+  useFiles,
   useSections,
   useSpace
 } from "./hooks";
-import { dataTypes } from "./utils";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup
+} from "@ove/ui-base-components";
 import Canvas from "./canvas/canvas";
 import Actions from "./actions/actions";
+import { dataTypes } from "@ove/ove-types";
 import Sections from "./sections/sections";
 import { Dialog } from "@ove/ui-components";
-import { type Project, type Section } from "@prisma/client";
 import EnvEditor from "./env-editor/env-editor";
 import StateTabs from "./state-tabs/state-tabs";
 import FileUpload from "./file-upload/file-upload";
 import SpaceConfig from "./space-config/space-config";
+import type { Project, Section } from "@prisma/client";
 import ResizeContainer from "./canvas/resize-container";
-import ConfigEditor from "./config-editor/config-editor";
-import LaunchConfig from "./launch-config/launch-config";
+import { assert, titleToBucketName } from "@ove/ove-utils";
+import { useActions, useObservatories } from "../../hooks";
 import SectionConfig from "./section-config/section-config";
 import Controller from "../../components/controller/controller";
 import SectionImporter from "./section-importer/section-importer";
 import ControllerEditor from "./controller-editor/controller-editor";
 import Metadata, { type ProjectMetadata } from "./metadata/metadata";
 import React, { useState, type CSSProperties, useEffect } from "react";
+import LaunchConfig from "../../components/launch-config/launch-config";
 
 import styles from "./page.module.scss";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup
-} from "@ove/ui-base-components";
 
 const getDialogStyling = (
   action: ActionsT | null
@@ -50,6 +51,13 @@ const getDialogStyling = (
     return {
       width: "60vw", borderRadius: "0.25rem"
     };
+  } else if (action === "live") {
+    return {
+      width: "calc((90vh / 9) * 16)",
+      aspectRatio: "unset",
+      height: "calc(90vh + 3rem)",
+      maxHeight: "100vh"
+    };
   }
 
   return { borderRadius: "0.25rem" };
@@ -59,7 +67,7 @@ const getInnerDialogStyling = (
   action: ActionsT | null
 ): CSSProperties | undefined => {
   if (action !== null &&
-    ["controller", "custom-config", "env"].includes(action)) {
+    ["controller", "env", "live"].includes(action)) {
     return {
       padding: "0"
     };
@@ -107,7 +115,13 @@ const ProjectEditor = ({
 }: ProjectEditorProps) => {
   const { observatories } = useObservatories();
   const space = useSpace(observatories);
-  const { dialog, isOpen, action, setAction } = useActions();
+  const {
+    dialog,
+    isOpen,
+    action,
+    config,
+    setAction
+  } = useActions<ActionsT | null>();
   const container = useContainer(space.space);
   const sections = useSections(project.id);
   const states = useCustomStates(
@@ -121,13 +135,14 @@ const ProjectEditor = ({
     toURL,
     fromURL,
     uploadFile,
-    addFile,
     getLatest,
     getData,
+    hasVersion,
     generateThumbnail
   } = useFiles(project.id, token);
   const [innerDialogStyle, setInnerDialogStyle] =
     useState<CSSProperties | undefined>();
+  const bucketName = titleToBucketName(project.title);
   const {
     invited,
     accepted,
@@ -145,11 +160,15 @@ const ProjectEditor = ({
     switch (action) {
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
-                         setAction={setAction} files={assets} toURL={toURL}
-                         fromURL={fromURL} getLatest={getLatest}
+                         setAction={setAction}
+                         files={assets.filter(({ bucketName: bn }) => bucketName === bn)}
+                         toURL={(name, version) => toURL(bucketName, name, version)}
+                         fromURL={fromURL}
+                         getLatest={name => getLatest(bucketName, name)}
                          allTags={tags} invited={invited} uninvited={uninvited}
                          generator={generateThumbnail} accepted={accepted}
                          inviteCollaborator={inviteCollaborator}
+                         bucketName={bucketName}
                          removeCollaborator={removeCollaborator}
                          closeDialog={() => setAction(null)} />;
       case "import-section":
@@ -158,30 +177,30 @@ const ProjectEditor = ({
           setAction={setAction} selectedState={states.selected}
           getSections={sections.getSectionsToImport} formatState={states.format}
           states={states.states.filter(state => state !== states.selected)} />;
-      case "custom-config":
-        return <ConfigEditor />;
       case "controller": {
-        const controller = getLatest("control");
+        const controller = getLatest(bucketName, "control.html");
         return <ControllerEditor controller={controller} getData={getData}
                                  update={data =>
-                                   addFile(controller.name, data)} />;
+                                   uploadFile(controller.name, new File([data], controller.name, { type: "text/plain" }))} />;
       }
       case "upload":
-        return <FileUpload files={assets} getLatest={getLatest} addFile={addFile}
-                           uploadFile={uploadFile} closeDialog={() => setAction(null)}
+        return <FileUpload files={assets} getLatest={getLatest}
+                           uploadFile={uploadFile}
+                           closeDialog={() => setAction(null)}
                            setDialogStyle={setInnerDialogStyle} />;
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}
-                             setAction={setAction} project={project}
-                             sections={sections.all} />;
+                             sections={sections.all}
+                             launch={(config: LaunchConfigT) => void setAction("live", config)}
+                             project={project} />;
       case "env": {
-        const env = getLatest("env");
+        const env = getLatest(bucketName, "env.json");
         return <EnvEditor env={env} getData={getData}
                           update={data =>
-                            addFile(env.name, data)} />;
+                            uploadFile(env.name, new File([data], env.name, { type: "text/plain" }))} />;
       }
       case "live":
-        return <Controller />;
+        return <Controller config={assert(config)} />;
       default:
         return null;
     }
@@ -226,7 +245,8 @@ const ProjectEditor = ({
           <ResizablePanel defaultSize={40}>
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={20}>
-                <SpaceConfig space={space} presets={observatories} />
+                {space.name !== null ?
+                  <SpaceConfig space={space} presets={observatories} /> : null}
               </ResizablePanel>
               <ResizableHandle withHandle={!isOpen} />
               <ResizablePanel defaultSize={80}>
@@ -234,7 +254,7 @@ const ProjectEditor = ({
                                setAction={setAction} files={assets}
                                fromURL={fromURL} getLatest={getLatest}
                                selected={sections.selected} space={space}
-                               toURL={toURL}
+                               toURL={toURL} hasVersion={hasVersion}
                                state={states.selected} projectId={project.id}
                                updateSection={sections.updateSection} />
               </ResizablePanel>
@@ -244,7 +264,7 @@ const ProjectEditor = ({
       </ResizablePanel>
       <ResizableHandle withHandle={!isOpen} />
       <ResizablePanel defaultSize={5}>
-        <Actions setAction={setAction}
+        <Actions setAction={setAction} projectId={project.id}
                  save={() => saveProject(project, sections.all)} />
       </ResizablePanel>
     </ResizablePanelGroup>

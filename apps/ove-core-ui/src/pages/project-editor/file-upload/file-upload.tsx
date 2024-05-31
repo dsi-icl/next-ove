@@ -1,16 +1,16 @@
 import { z } from "zod";
 import Upload from "./upload";
 import { useForm } from "react-hook-form";
-import { type File as FileT } from "@ove/ove-types";
 import Editor, { type CustomFile } from "./editor";
-import React, { type CSSProperties, useState, useEffect } from "react";
+import type { File as FileT } from "@ove/ove-types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
+import React, { type CSSProperties, useState, useEffect } from "react";
 
 type FileUploadProps = {
   files: FileT[]
-  getLatest: (id: string) => FileT
+  getLatest: (bucketName: string, name: string) => FileT
   uploadFile: (name: string, file: File) => void
-  addFile: (name: string, data: string) => void
   setDialogStyle: (style: CSSProperties | undefined) => void
   closeDialog: () => void
 }
@@ -25,12 +25,11 @@ const FileUpload = ({
   uploadFile,
   files,
   getLatest,
-  addFile,
   setDialogStyle,
   closeDialog
 }: FileUploadProps) => {
   const [mode, setMode] = useState<"upload" | "editor">("upload");
-  const names = files.map(({ name }) => name)
+  const names = files.map(({ bucketName, name }) => `${bucketName}/${name}`)
     .filter((name, i, arr) => arr.indexOf(name) === i);
   const [customFile, setCustomFile] = useState<CustomFile | null>(null);
   const { register, formState: { errors }, handleSubmit, resetField, watch } =
@@ -38,10 +37,7 @@ const FileUpload = ({
       resolver: zodResolver(FileUploadFormSchema)
     });
   const file = watch("file");
-
-  useEffect(() => {
-    console.log(errors);
-  }, [errors]);
+  useFormErrorHandling(errors);
 
   useEffect(() => {
     setDialogStyle({ padding: mode === "upload" ? "2rem" : "0" });
@@ -52,9 +48,8 @@ const FileUpload = ({
   }, [file]);
 
   const onSubmit = ({ file }: FileUploadForm) => {
-    console.log("Submitting file");
     if (customFile !== null) {
-      addFile(customFile.name, customFile.data);
+      uploadFile(customFile.name, new File([customFile.data], customFile.name, {type: "text/plain"}));
     } else {
       uploadFile(("length" in file ? file[0] : file).name, "length" in file ? file[0] : file);
     }

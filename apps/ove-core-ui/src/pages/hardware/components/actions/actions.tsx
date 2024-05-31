@@ -1,8 +1,8 @@
 import React from "react";
-import NodeActions from "./node-actions";
-import { type ActionController } from "../../types";
 import MDCActions from "./mdc-actions";
+import NodeActions from "./node-actions";
 import ProjectorActions from "./projector-actions";
+import type { ActionController } from "../../types";
 
 const Actions = ({ device, bridgeId }: ActionController) => {
   switch (device.type) {

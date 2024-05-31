@@ -7,11 +7,12 @@ import {
   Upload
 } from "react-bootstrap-icons";
 import React, { type ReactNode } from "react";
-import { type Actions as TActions } from "../hooks";
+import type { Actions as TActions } from "../hooks";
 
 import styles from "./actions.module.scss";
 
 type ActionsProps = {
+  projectId: string
   setAction: (action: TActions | null) => void
   save: () => void
 }
@@ -23,7 +24,7 @@ type Icon = {
   action: TActions | null
 }
 
-const Actions = ({ setAction, save }: ActionsProps) => {
+const Actions = ({ projectId, setAction, save }: ActionsProps) => {
   const iconSize = "1.25rem";
   const icons: Icon[] = [{
     icon: <Controller size={iconSize} />,
@@ -71,6 +72,7 @@ const Actions = ({ setAction, save }: ActionsProps) => {
     <div className={styles.actions}>
       {icons.map(icon => <div className={styles.action} key={icon.title}>
         <button onClick={() => handler(icon.action)}
+                disabled={(icon.action === "controller" || icon.action === "env" || icon.action === "upload") && projectId.length === 32}
                 style={{ backgroundColor: icon.color }}
                 title={icon.title}>{icon.icon}</button>
       </div>)}

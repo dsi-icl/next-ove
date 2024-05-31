@@ -1,15 +1,15 @@
 /* global __dirname */
 
-import * as path from "path";
 import cors from "cors";
-import { app } from "./server/app";
-import { appRouter } from "./server/router";
-import { createContext } from "./server/context";
-import { openApiDocument } from "./server/open-api";
-import * as express from "express";
 import { env } from "./env";
+import * as path from "path";
+import { app } from "./server/app";
+import * as express from "express";
+import { appRouter } from "./server/router";
 import FileUtils from "@ove/ove-server-utils";
 import * as swaggerUi from "swagger-ui-express";
+import { createContext } from "./server/context";
+import { openApiDocument } from "./server/open-api";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { createOpenApiExpressMiddleware } from "trpc-openapi";
 

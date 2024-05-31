@@ -1,7 +1,7 @@
-import React, { ReactNode } from "react";
 import { ArrowUpDown } from "lucide-react";
-import { type ColumnDef } from "@tanstack/react-table";
-import { type ServiceType, StatusOptions } from "@ove/ove-types";
+import React, { type ReactNode } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { ServiceType, StatusOptions } from "@ove/ove-types";
 import { Display, HddNetwork, Projector } from "react-bootstrap-icons";
 
 import styles from "../observatory/observatory.module.scss";

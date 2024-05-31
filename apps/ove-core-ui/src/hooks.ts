@@ -1,10 +1,15 @@
+import { env } from "./env";
+import { toast } from "sonner";
+import { trpc } from "./utils/api";
 import { useStore } from "./store";
-import { env, logger } from "./env";
 import { Json } from "@ove/ove-utils";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { isError } from "@ove/ove-types";
+import { useDialog } from "@ove/ui-components";
+import type { FieldErrors } from "react-hook-form";
 import { createAuthClient, createClient } from "./utils";
 import { useLocation, useNavigate } from "react-router-dom";
-import { isError } from "@ove/ove-types";
+import type { LaunchConfig } from "./pages/project-editor/hooks";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -22,16 +27,14 @@ export const useAuth = () => {
     try {
       const res = await createAuthClient(username, password).login.mutate();
       if ("oveError" in res) {
-        logger.error(res.oveError);
         logout();
       } else {
-        setTokens(res);
+        setTokens({ ...res, expiry: new Date(res.expiry) });
         setUsername(username);
         localStorage.setItem("tokens", Json.stringify(res));
         navigate("/", { replace: true });
       }
     } catch (e) {
-      logger.error(e);
       logout();
     }
   }, [logout, navigate, setTokens]);
@@ -46,7 +49,7 @@ export const useAuth = () => {
       }
       const refreshedTokens = {
         access: res.token,
-        expiry: res.expiry,
+        expiry: new Date(res.expiry),
         refresh: tokens.refresh
       };
       localStorage.setItem("tokens", Json.stringify(refreshedTokens));
@@ -54,13 +57,12 @@ export const useAuth = () => {
       return refreshedTokens;
     } catch (e) {
       logout();
-      return;
     }
   }, [tokens, logout, setTokens]);
 
   useEffect(() => {
     if (tokens === null || tokens.expiry > new Date()) return;
-    refresh().catch(logger.error);
+    refresh().catch();
   }, [refresh, tokens]);
 
   return {
@@ -77,4 +79,49 @@ export const useQuery = () => {
   const { search } = useLocation();
 
   return useMemo(() => new URLSearchParams(search), [search]);
+};
+
+export const useObservatories = () => {
+  const observatories_ = trpc.core.getObservatoryBounds.useQuery();
+  const [observatories, setObservatories] = useState<Record<string, {
+    width: number,
+    height: number,
+    rows: number,
+    columns: number
+  }>>({});
+
+  useEffect(() => {
+    if (observatories_.status !== "success" ||
+      isError(observatories_.data)) return;
+    if (env.MODE !== "development" ||
+      Object.keys(observatories_.data).length > 0) {
+      setObservatories(observatories_.data);
+    }
+  }, [observatories_.status, observatories_.data]);
+
+  return { observatories };
+};
+
+export const useActions = <T>() => {
+  const [action_, setAction_] = useState<{
+    action: T,
+    config?: LaunchConfig
+  } | null>(null);
+  const { openDialog, isOpen, closeDialog, ref } = useDialog();
+  const action = useMemo(() => action_?.action ?? null, [action_]);
+  const config = useMemo(() => action_?.config ?? null, [action_]);
+
+  useEffect(() => {
+    if (action === null) {
+      closeDialog();
+    } else {
+      openDialog();
+    }
+  }, [action, closeDialog, openDialog]);
+
+  const setAction = useCallback((action: T, config?: LaunchConfig) => {
+    setAction_(action === null ? null : { action, config });
+  }, [setAction_]);
+
+  return { dialog: ref, setAction, action, config, isOpen };
 };

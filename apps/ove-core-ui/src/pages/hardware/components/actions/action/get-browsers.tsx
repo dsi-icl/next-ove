@@ -1,9 +1,9 @@
 import React from "react";
 import { Window } from "react-bootstrap-icons";
 import { useStore } from "../../../../../store";
+import type { ActionProps } from "../../../types";
 
 import styles from "../actions.module.scss";
-import { ActionProps } from "../../../types";
 
 const GetBrowsers = ({ bridgeId, deviceId, tag }: ActionProps) => {
   const setDeviceAction =

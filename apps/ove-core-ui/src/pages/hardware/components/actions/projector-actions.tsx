@@ -1,17 +1,17 @@
 import React from "react";
-import Status from "./action/status";
 import Info from "./action/info";
-import Start from "./action/start";
-import Shutdown from "./action/shutdown";
-import Reboot from "./action/reboot";
-import Volume from "./action/volume";
 import Mute from "./action/mute";
+import Start from "./action/start";
+import Reboot from "./action/reboot";
+import Status from "./action/status";
 import Unmute from "./action/unmute";
+import Volume from "./action/volume";
+import Shutdown from "./action/shutdown";
 import MuteAudio from "./action/mute-audio";
-import UnmuteAudio from "./action/unmute-audio";
 import MuteVideo from "./action/mute-video";
+import UnmuteAudio from "./action/unmute-audio";
 import UnmuteVideo from "./action/unmute-video";
-import { type ActionController } from "../../types";
+import type { ActionController } from "../../types";
 
 import styles from "./actions.module.scss";
 

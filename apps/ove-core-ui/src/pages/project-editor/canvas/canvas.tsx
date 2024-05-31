@@ -1,8 +1,8 @@
 import * as d3 from "d3";
-import { dataTypes } from "../utils";
 import { assert } from "@ove/ove-utils";
-import { type Geometry } from "../types";
-import { type Section } from "@prisma/client";
+import type { Geometry } from "../types";
+import { dataTypes } from "@ove/ove-types";
+import type { Section } from "@prisma/client";
 import React, { type MutableRefObject, useRef } from "react";
 
 import styles from "./canvas.module.scss";

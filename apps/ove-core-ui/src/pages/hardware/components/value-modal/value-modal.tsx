@@ -1,7 +1,8 @@
 import { z } from "zod";
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FieldValues, Path, useForm } from "react-hook-form";
+import { useFormErrorHandling } from "@ove/ui-components";
+import { type FieldValues, type Path, useForm } from "react-hook-form";
 
 import styles from "./value-modal.module.scss";
 
@@ -20,9 +21,10 @@ const ValueModal = <T extends FieldValues>({
   header,
   onSubmit
 }: ValueModalProps<T>) => {
-  const { handleSubmit, register } = useForm<T>({
+  const { handleSubmit, register, formState: { errors } } = useForm<T>({
     resolver: zodResolver(schema)
   });
+  useFormErrorHandling(errors);
 
   return <div className={styles.input}>
     <h4>{header}</h4>

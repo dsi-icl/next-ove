@@ -1,5 +1,5 @@
 import React from "react";
-import { type HardwareInfo } from "../../types";
+import type { HardwareInfo } from "../../types";
 import MultiActions from "../actions/multi-actions";
 import SearchSelect from "../search-select/search-select";
 

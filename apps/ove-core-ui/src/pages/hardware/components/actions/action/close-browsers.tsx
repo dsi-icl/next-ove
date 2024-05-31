@@ -5,7 +5,7 @@ import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
 import { trpc } from "../../../../../utils/api";
 import { WindowX } from "react-bootstrap-icons";
-import { type ActionProps } from "../../../types";
+import type { ActionProps } from "../../../types";
 
 const useBrowsers = (
   bridgeId: string,

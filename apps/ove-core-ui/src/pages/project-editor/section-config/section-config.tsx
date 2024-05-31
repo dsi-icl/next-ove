@@ -1,27 +1,22 @@
 import { z } from "zod";
-import { dataTypes } from "../utils";
-import { type Actions } from "../hooks";
-import { type File } from "@ove/ove-types";
-import { assert, Json } from "@ove/ove-utils";
-import {
-  type DataType,
-  type Geometry as TGeometry,
-  type Space
-} from "../types";
 import {
   useForm,
   type UseFormRegister,
   type UseFormSetValue
 } from "react-hook-form";
-import { useStore } from "../../../store";
-import { type Section } from "@prisma/client";
-import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
+import type { Actions } from "../hooks";
+import { assert } from "@ove/ove-utils";
+import type { Section } from "@prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
+import type { Geometry as TGeometry, Space } from "../types";
+import React, { useCallback, useEffect, useState } from "react";
 import { Grid, Brush, Fullscreen } from "react-bootstrap-icons";
+import { type File, dataTypes, type DataType } from "@ove/ove-types";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./section-config.module.scss";
-import { toast } from "sonner";
 
 type SectionConfigProps = {
   sections: Section[]
@@ -33,14 +28,15 @@ type SectionConfigProps = {
   setAction: (action: Actions | null) => void
   files: File[]
   fromURL: (url: string | null) => File | null
-  toURL: (name: string, version: string) => string
-  getLatest: (name: string) => File
+  toURL: (bucketName: string, name: string, version: string) => string
+  getLatest: (bucketName: string, name: string) => File
+  hasVersion: (bucketName: string, name: string, version: string) => boolean
 }
 
 const getDataTypeFromFile = (file: File) => {
   for (const dt of dataTypes) {
     if (dt.extensions.some(extension =>
-      file.name.toUpperCase().endsWith(extension))) {
+      file.name.toLowerCase().endsWith(extension.toLowerCase()))) {
       return dt.name;
     }
   }
@@ -88,23 +84,17 @@ const getColumn = (x: number, space: {
   return null;
 };
 
-const formatConfig = (config: string) => {
-  const stripped = config.split("\n").map(x => x.trim()).join("");
-  return stripped.length < 20 ? stripped : `${stripped.slice(0, 20)}...`;
-};
-
 const SectionConfigFormSchema = z.strictObject({
-  width: z.number().nullable(),
-  height: z.number().nullable(),
-  x: z.number().nullable(),
-  y: z.number().nullable(),
-  config: z.string().nullable(),
-  fileName: z.string().nullable(),
-  fileVersion: z.string().nullable(),
-  rowFrom: z.number().nullable(),
-  rowTo: z.number().nullable(),
-  columnFrom: z.number().nullable(),
-  columnTo: z.number().nullable(),
+  width: z.number().nullable().optional(),
+  height: z.number().nullable().optional(),
+  x: z.number().nullable().optional(),
+  y: z.number().nullable().optional(),
+  fileName: z.string().nullable().optional(),
+  fileVersion: z.string().nullable().optional(),
+  rowFrom: z.number().nullable().optional(),
+  rowTo: z.number().nullable().optional(),
+  columnFrom: z.number().nullable().optional(),
+  columnTo: z.number().nullable().optional(),
   dataType: z.string(),
   asset: z.string()
 });
@@ -112,6 +102,7 @@ const SectionConfigFormSchema = z.strictObject({
 type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>
 
 const SectionConfig = ({
+  hasVersion,
   sections,
   selected,
   updateSection,
@@ -128,31 +119,32 @@ const SectionConfig = ({
     handleSubmit,
     setValue,
     resetField,
-    watch
+    watch,
+    formState: { errors }
   } = useForm<SectionConfigForm>(
     { resolver: zodResolver(SectionConfigFormSchema) });
+  useFormErrorHandling(errors);
   const [mode, setMode] = useState<"custom" | "grid">("custom");
-  const config = useStore(state => state.config);
   const [fileName, fileVersion] = watch(["fileName", "fileVersion"]);
 
-  useEffect(() => {
-    setValue("config", formatConfig(config));
-  }, [config, setValue]);
+  const resetFields = useCallback(() => {
+    resetField("x");
+    resetField("y");
+    resetField("width");
+    resetField("height");
+    resetField("rowFrom");
+    resetField("columnFrom");
+    resetField("rowTo");
+    resetField("columnTo");
+    resetField("asset");
+    setValue("fileName", "-- select an option --");
+    setValue("fileVersion", "-- select an option --");
+    setValue("dataType", "-- select an option --");
+  }, [resetField, setValue]);
 
   useEffect(() => {
     if (selected === null) {
-      resetField("x");
-      resetField("y");
-      resetField("width");
-      resetField("height");
-      resetField("rowFrom");
-      resetField("columnFrom");
-      resetField("rowTo");
-      resetField("columnTo");
-      resetField("asset");
-      setValue("fileName", "-- select an option --");
-      setValue("fileVersion", "-- select an option --");
-      setValue("dataType", "-- select an option --");
+      resetFields();
       return;
     }
 
@@ -174,7 +166,7 @@ const SectionConfig = ({
     setValue("asset", section.asset);
     const file = fromURL(section.asset);
     if (file !== null) {
-      setValue("fileName", file.name);
+      setValue("fileName", `${file.bucketName}/${file.name}`);
       setValue("fileVersion", file.version.toString());
     }
   }, [selected, sections, fromURL, resetField, setValue, space]);
@@ -195,7 +187,6 @@ const SectionConfig = ({
       height: mode === "custom" ? fromPercentage(assert(section.height)) :
         (assert(section.rowTo) - assert(
           section.rowFrom)) * (1 / assert(space.space).rows),
-      config: Json.parse(config),
       assetId: files.find(({
         name,
         version
@@ -208,32 +199,32 @@ const SectionConfig = ({
         section.id === selected)?.ordering ?? sections.length,
       projectId
     });
+
+    resetFields();
   };
 
-  const onAssetChange = (asset: string) => {
+  const url = watch("asset");
+
+  const onAssetChange = useCallback((asset: string) => {
     const file = fromURL(asset ?? "");
-    setValue("fileName", file?.name ?? null);
-    setValue("fileVersion", file?.version?.toString() ?? null);
+    setValue("fileVersion", file === null ? "-- select an option --" : file.version);
+    setValue("fileName", file === null ? "-- select an option --" : `${file.bucketName}/${file.name}`);
     if (file !== null) {
       setValue("dataType", getDataTypeFromFile(file) ??
         "-- select an option --");
     }
-  };
+  }, [setValue, fromURL]);
 
   useEffect(() => {
-    if (fileName !== null && fileName !== undefined &&
-      fileName !== "-- select an option --" && fileVersion !== null &&
-      fileVersion !== undefined && fileVersion !== "-- select an option --") {
-      setValue("asset", toURL(fileName, fileVersion));
-      console.log(fileName, fileVersion);
-      const file = assert(files.find(({
-        name,
-        version
-      }) => name === fileName && version === fileVersion));
-      setValue("dataType", getDataTypeFromFile(file) ??
-        "-- select an option --");
-    }
-  }, [fileName, fileVersion, files, setValue, toURL]);
+    onAssetChange(url);
+  }, [url, onAssetChange]);
+
+  useEffect(() => {
+    if (fileName === null || fileName === undefined || fileName === "-- select an option --") return;
+    const [bn, fn] = fileName.split("/");
+    const fv = fileVersion === null || fileVersion === undefined || fileVersion === "-- select an option --" || !hasVersion(bn, fn, fileVersion) ? getLatest(bn, fn).version : fileVersion;
+    setValue("asset", toURL(bn, fn, fv));
+  }, [fileName, setValue, toURL, fileVersion, getLatest, hasVersion]);
 
   return <section id={styles["section-config"]}>
     <h2>Section Config</h2>
@@ -244,13 +235,8 @@ const SectionConfig = ({
       </div>
       <fieldset id={styles["assets"]}>
         <label htmlFor="asset">Asset:</label>
-        <input {...register("asset", {
-          onChange: e =>
-            onAssetChange(e?.target?.value)
-        })} />
-        <S3FileSelect register={register} watch={watch} fromURL={fromURL}
-                      setValue={setValue} getLatest={getLatest}
-                      files={files} url={watch("asset")} />
+        <input {...register("asset")} />
+        <S3FileSelect register={register} watch={watch} files={files} />
         <label htmlFor="dataType" className={styles["data-type-label"]}>Data
           Type:</label>
         <select {...register("dataType")}>
