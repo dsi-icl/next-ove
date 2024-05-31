@@ -102,8 +102,6 @@ model Section {
   x         Float
   // top-left y-coordinate in %
   y         Float
-  // optional additional configuration for viewport etc.
-  config    Json?
   // asset url
   asset     String
   // optional asset id for matching with S3 Store
