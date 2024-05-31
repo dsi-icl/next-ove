@@ -67,7 +67,7 @@ services:
     image: ovehub/ove:0.6.3-arm
     restart: unless-stopped
     environment:
-      OVE_SPACES_JSON: "http://192.168.72.1:8082/spaces.json"
+      OVE_SPACES_JSON: ${OVE_SPACES}
       LOG_LEVEL: 2
     ports:
       - "9081:8080"
@@ -84,7 +84,7 @@ services:
     environment:
       OVE_MAPS_LAYERS: "/run/secrets/MapLayers.json"
       OVE_NETWORKS_CONFIG_JSON: "/run/secrets/ove_networks_config.json"
-      OVE_HOST: "192.168.72.1:9081"
+      OVE_HOST: ${OVE_HOST}
       LOG_LEVEL: 2
     secrets:
       - ove_networks_config.json

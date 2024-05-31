@@ -177,16 +177,6 @@ const load = async () => {
     });
 
     let template = readFileSync(path.join('..', 'apps', 'ove-core', 'src', 'assets', 'control-template.html')).toString();
-    template = template.replaceAll("{{SERVER}}", process.env.CONTROLLER_FORMAT_SERVER);
-    template = template.replaceAll("{{RENDERER}}", process.env.CONTROLLER_FORMAT_RENDERER);
-    template = template.replaceAll("{{SPACE}}", process.env.CONTROLLER_FORMAT_SPACE);
-    template = template.replaceAll("{{DATA_TYPE_MAP}}", JSON.stringify({
-      videos: process.env.CONTROLLER_FORMAT_APP_VIDEOS,
-      images: process.env.CONTROLLER_FORMAT_APP_IMAGES,
-      svg: process.env.CONTROLLER_FORMAT_APP_SVG,
-      audio: process.env.CONTROLLER_FORMAT_APP_AUDIO,
-      html: process.env.CONTROLLER_FORMAT_APP_HTML
-    }, undefined, 2));
     await uploadData(project.title.replaceAll(' ', '-').toLowerCase(), 'control.html', template);
     await uploadData(project.title.replaceAll(' ', '-').toLowerCase(), 'env.json', '{}');
   }
