@@ -1,0 +1,5 @@
+markdown==3.6
+jupyter==1.0.0
+Flask==3.0.3
+python-dotenv==1.0.1
+matplotlib==3.9.0

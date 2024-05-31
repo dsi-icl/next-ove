@@ -188,6 +188,7 @@ web_modules/
 .env
 .env.test
 apps/ove-core-ui/.env.docker
+.flaskenv
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -429,9 +430,6 @@ tools/doiuse/browser-usage.json
 # million-lint
 /tools/million-lint/config.json
 /tools/million-lint/data/*.json
-
-# thumbnail-generator
-/tools/thumbnail-generator/.flaskenv
 
 # nx
 /.nx/
