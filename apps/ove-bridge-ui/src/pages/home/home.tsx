@@ -1,3 +1,8 @@
+import {
+  type OVEException,
+  type Calendar as TCalendar,
+  isError
+} from "@ove/ove-types";
 // TODO: investigate circular dependency
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import {
@@ -13,11 +18,6 @@ import KeyPass from "./components/key-pass/key-pass";
 import Configuration from "./components/configuration/configuration";
 import AutoModeConfiguration
   from "./components/auto-mode-configuration/auto-mode-configuration";
-import {
-  type OVEException,
-  type Calendar as TCalendar,
-  isError
-} from "@ove/ove-types";
 
 import styles from "./home.module.scss";
 

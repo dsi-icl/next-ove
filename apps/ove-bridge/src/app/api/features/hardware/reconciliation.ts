@@ -1,9 +1,5 @@
 /* global NodeJS, setInterval, clearInterval */
 
-import { env, logger } from "../../../../env";
-import NodeService from "./node-service";
-import MDCService from "./mdc-service";
-import PJLinkService from "./pjlink-service";
 import {
   type Device,
   isError,
@@ -12,6 +8,10 @@ import {
   type StatusOptions,
   type TBridgeHardwareService
 } from "@ove/ove-types";
+import MDCService from "./mdc-service";
+import NodeService from "./node-service";
+import PJLinkService from "./pjlink-service";
+import { env, logger } from "../../../../env";
 import { assert, recordEquals } from "@ove/ove-utils";
 
 type Reconciliation<StateType> = {
@@ -52,7 +52,7 @@ type PJLinkState = {
 }
 
 const initialNodeState: NodeState = {
-  status: "off",
+  status: "on",
   reconcileStatus: null,
   browsers: null,
   reconcileBrowsers: null,
@@ -61,7 +61,7 @@ const initialNodeState: NodeState = {
 };
 
 const initialMDCState: MDCState = {
-  status: "off",
+  status: "on",
   reconcileStatus: null,
   source: "DP",
   reconcileSource: null,
@@ -452,19 +452,19 @@ const reconcileMDC = async (
 
   if (currentState !== desiredState.status) {
     reconciliation.reconcileStatus = setInterval(() =>
-      reconcileStatus(desiredState.status, device, MDCService));
+      reconcileStatus(desiredState.status, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
   if (currentInfo.source !== desiredState.source) {
     reconciliation.reconcileSource = setInterval(() =>
-      reconcileSource(desiredState.source, device, MDCService));
+      reconcileSource(desiredState.source, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
   if (currentInfo.isMuted !== desiredState.isMuted) {
     reconciliation.reconcileIsMuted = setInterval(() =>
-      reconcileIsMuted(desiredState.isMuted, device, MDCService));
+      reconcileIsMuted(desiredState.isMuted, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
   if (currentInfo.volume !== desiredState.volume) {
     reconciliation.reconcileVolume = setInterval(() =>
-      reconcileVolume(desiredState.volume, device, MDCService));
+      reconcileVolume(desiredState.volume, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
 };
 
@@ -487,24 +487,24 @@ const reconcilePJLink = async (
   };
   if (currentSource.source !== desiredState.source) {
     reconciliation.reconcileSource = setInterval(() =>
-      reconcileSource(desiredState.source, device, PJLinkService));
+      reconcileSource(desiredState.source, device, PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
   if (currentSource.isMuted !== desiredState.isMuted) {
     reconciliation.reconcileIsMuted = setInterval(() =>
-      reconcileIsMuted(desiredState.isMuted, device, PJLinkService));
+      reconcileIsMuted(desiredState.isMuted, device, PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
   if (currentSource.isAudioMuted !== desiredState.isAudioMuted) {
     reconciliation.reconcileIsAudioMuted = setInterval(() =>
       reconcileIsAudioMuted(desiredState.isAudioMuted, device,
-        PJLinkService));
+        PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
   if (currentSource.isVideoMuted !== desiredState.isVideoMuted) {
     reconciliation.reconcileIsVideoMuted = setInterval(() =>
       reconcileIsVideoMuted(desiredState.isVideoMuted, device,
-        PJLinkService));
+        PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
   }
 };
 

@@ -1,6 +1,5 @@
 /* global setTimeout */
 
-import * as PJLink from "@ove/pjlink-control";
 import {
   type Device,
   isError,
@@ -11,6 +10,7 @@ import {
 import { z } from "zod";
 import { env } from "../../../../env";
 import { raise } from "@ove/ove-utils";
+import * as PJLink from "@ove/pjlink-control";
 import { statusOptions } from "../../utils/status";
 
 const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">) => {

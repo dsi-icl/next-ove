@@ -48,13 +48,12 @@ export const initHardware = () => {
     const deviceHandlerInterface = (
       args: Parameters<typeof deviceHandler>[1],
       callback: Parameters<typeof deviceHandler>[2]
-    ) => deviceHandler(k, args, callback).then(() =>
-      logger.info(`Handled: ${k}`));
+    ) => deviceHandler(k, args, callback).then();
     const multiDeviceHandlerInterface = (
       args: Parameters<typeof multiDeviceHandler>[1],
       callback: Parameters<typeof multiDeviceHandler>[2]
     ) => multiDeviceHandler(k, args, callback)
-      .then(() => logger.info(`Handled: ${k}All`));
+      .then();
     assert(socket).on(k, deviceHandlerInterface as
       THardwareServerToClientEvents[typeof k]);
     assert(socket).on(`${k}All`, multiDeviceHandlerInterface as

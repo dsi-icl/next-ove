@@ -1,6 +1,6 @@
-import {
-  type Calendar,
-  type TBridgeService
+import type {
+  Calendar,
+  TBridgeService
 } from "@ove/ove-types";
 import {
   setAutoSchedule,
@@ -9,16 +9,17 @@ import {
 } from "./power-scheduler";
 import { app } from "electron";
 import fetch from "node-fetch";
+import {
+  refreshReconciliation,
+  startReconciliation,
+  stopReconciliation
+} from "../hardware/reconciliation";
 import { raise } from "@ove/ove-utils";
-import { closeHardwareSocket } from "../hardware/hardware-controller";
 import { execSync } from "child_process";
 import { env, logger } from "../../../../env";
 import { createClient } from "../hardware/node-service";
 import { closeSocket, getSocketStatus } from "./sockets";
-import {
-  refreshReconciliation,
-  startReconciliation, stopReconciliation
-} from "../hardware/reconciliation";
+import { closeHardwareSocket } from "../hardware/hardware-controller";
 
 let initBridge_: (() => void) | null = null;
 let initHardware_: (() => void) | null = null;

@@ -1,14 +1,19 @@
 import { z } from "zod";
-import { type Mode } from "../../utils";
-import { useForm } from "react-hook-form";
-import { type Device } from "@ove/ove-types";
-import React, { forwardRef, useEffect, useState } from "react";
 // TODO: investigate circular dependency
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { Dialog, Snackbar, useSnackbar } from "@ove/ui-components";
+import {
+  Dialog,
+  Snackbar,
+  useFormErrorHandling,
+  useSnackbar
+} from "@ove/ui-components";
+import type { Mode } from "../../utils";
+import { useForm } from "react-hook-form";
+import type { Device } from "@ove/ove-types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { forwardRef, useEffect, useState } from "react";
 
 import styles from "./auth.module.scss";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 type AuthProps = {
   device: Device | null;
@@ -25,9 +30,14 @@ const Auth = forwardRef<HTMLDialogElement, AuthProps>(
   ({ device, setMode }, ref) => {
     const [status, setStatus] = useState<boolean | null>(null);
     const { notification, isVisible } = useSnackbar();
-    const { register, handleSubmit } = useForm<AuthForm>({
+    const {
+      register,
+      handleSubmit,
+      formState: { errors }
+    } = useForm<AuthForm>({
       resolver: zodResolver(AuthFormSchema)
     });
+    useFormErrorHandling(errors);
 
     const handleAuth = async ({ pin }: { pin: string }) => {
       if (device === null) throw new Error("Cannot ID null device");

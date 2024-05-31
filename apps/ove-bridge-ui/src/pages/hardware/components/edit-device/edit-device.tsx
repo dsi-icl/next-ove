@@ -4,21 +4,22 @@ import React, {
   useCallback,
   useState
 } from "react";
-import { z } from "zod";
-import { type Mode } from "../../utils";
 import {
   type Device,
   type NativeEvent,
-  type ServiceType, ServiceTypeSchema
+  type ServiceType,
+  ServiceTypeSchema
 } from "@ove/ove-types";
-import { assert } from "@ove/ove-utils";
+import { z } from "zod";
+import type { Mode } from "../../utils";
 import { useForm } from "react-hook-form";
+import { assert, Json } from "@ove/ove-utils";
 // TODO: investigate circular dependency
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { Dialog } from "@ove/ui-components";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Dialog, useFormErrorHandling } from "@ove/ui-components";
 
 import styles from "./edit-device.module.scss";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 type EditDeviceProps = {
   setMode: (mode: Mode) => void;
@@ -76,7 +77,7 @@ const saveDevice_ = (
     tags: [],
     auth
   };
-  if (JSON.stringify(updatedDevice) === JSON.stringify(device)) {
+  if (Json.equals(updatedDevice, device)) {
     setMode("overview");
   } else {
     window.bridge
@@ -89,9 +90,14 @@ const saveDevice_ = (
 const EditDevice = forwardRef<HTMLDialogElement, EditDeviceProps>(
   ({ device, setMode }, ref) => {
     const [type, setType] = useState<ServiceType>(device?.type ?? "node");
-    const { register, handleSubmit } = useForm<DeviceForm>({
+    const {
+      register,
+      handleSubmit,
+      formState: { errors }
+    } = useForm<DeviceForm>({
       resolver: zodResolver(DeviceFormSchema)
     });
+    useFormErrorHandling(errors);
     const saveDevice = useCallback(
       (data: DeviceForm, e: BaseSyntheticEvent<object> | undefined) =>
         saveDevice_(device, setMode, type, data, e),

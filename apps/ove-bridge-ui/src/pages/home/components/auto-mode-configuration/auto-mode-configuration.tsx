@@ -2,6 +2,7 @@ import { z } from "zod";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 
 import styles from "./auto-mode-configuration.module.scss";
 
@@ -20,9 +21,15 @@ type AutoModeForm = z.infer<typeof AutoModeFormSchema>
 const defaultDaySelection = [false, false, false, false, false, false, false];
 
 const AutoModeConfiguration = ({ closeDialog }: AutoModeConfigurationProps) => {
-  const { register, setValue, handleSubmit } = useForm<AutoModeForm>({
+  const {
+    register,
+    setValue,
+    formState: { errors },
+    handleSubmit
+  } = useForm<AutoModeForm>({
     resolver: zodResolver(AutoModeFormSchema)
   });
+  useFormErrorHandling(errors);
 
   useEffect(() => {
     window.bridge.getAutoSchedule({}).then(autoSchedule => {

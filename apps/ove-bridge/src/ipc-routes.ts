@@ -1,4 +1,4 @@
-import { type InboundAPI } from "@ove/ove-types";
+import type { InboundAPI } from "@ove/ove-types";
 
 export const inboundChannels: InboundAPIChannels = {
   getDevice: "get-device",

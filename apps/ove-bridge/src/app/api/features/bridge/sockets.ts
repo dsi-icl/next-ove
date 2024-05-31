@@ -1,5 +1,5 @@
-import { Socket } from "socket.io-client";
-import { TSocketInEvents, TSocketOutEvents } from "@ove/ove-types";
+import type { Socket } from "socket.io-client";
+import type { TSocketInEvents, TSocketOutEvents } from "@ove/ove-types";
 
 export let socket: Socket<TSocketOutEvents, TSocketInEvents> | null = null;
 

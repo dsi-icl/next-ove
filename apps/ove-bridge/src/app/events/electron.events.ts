@@ -4,18 +4,18 @@
  * This module is responsible on handling all the inter process communications
  * between the frontend to the electron backend.
  */
-import * as schedule from "node-schedule";
-import { inboundChannels } from "../../ipc-routes";
-import { app, ipcMain, type IpcMain } from "electron";
+import App from "../app";
+import { logger } from "../../env";
+import { Json } from "@ove/ove-utils";
 import {
   registerSocketConnectedListener,
   registerSocketDisconnectListener
 } from "../api/features/bridge/sockets";
-import App from "../app";
-import { type InboundAPI } from "@ove/ove-types";
+import * as schedule from "node-schedule";
+import type { InboundAPI } from "@ove/ove-types";
+import { inboundChannels } from "../../ipc-routes";
+import { app, ipcMain, type IpcMain } from "electron";
 import { service } from "../api/features/bridge/service";
-import { Json } from "@ove/ove-utils";
-import { logger } from "../../env";
 
 export const bootstrapElectronEvents = (): IpcMain => ipcMain;
 

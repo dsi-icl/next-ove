@@ -1,10 +1,10 @@
 /* global process */
 // noinspection DuplicatedCode
 
-import { app, dialog } from "electron";
-import { autoUpdater } from "electron-updater";
 import { logger } from "../../env";
 import { Json } from "@ove/ove-utils";
+import { app, dialog } from "electron";
+import { autoUpdater } from "electron-updater";
 
 export default () => {
   if (!app.isPackaged) {

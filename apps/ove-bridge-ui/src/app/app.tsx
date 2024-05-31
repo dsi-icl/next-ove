@@ -3,11 +3,11 @@ import React from "react";
 import Router from "./router";
 // IGNORE PATH - dependency removed at runtime
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import {
-  type OutboundAPI,
-  type OutboundAPIChannels
+import type {
+  OutboundAPI,
+  OutboundAPIChannels
 } from "../../../ove-bridge/src/ipc-routes";
-import { type InboundAPI } from "@ove/ove-types";
+import type { InboundAPI } from "@ove/ove-types";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols

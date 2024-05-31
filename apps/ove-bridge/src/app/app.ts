@@ -1,13 +1,13 @@
 /* global process, __dirname */
 
 import { join } from "path";
+import { exit } from "process";
 import { pathToFileURL } from "url";
 import { env, logger } from "../env";
-import initAutoUpdate from "./events/update.events";
-import { type BrowserWindow as BW, type App, type Screen, app } from "electron";
-import { type OutboundAPI, outboundChannels } from "../ipc-routes";
 import { assert } from "@ove/ove-utils";
-import { exit } from "process";
+import initAutoUpdate from "./events/update.events";
+import { type OutboundAPI, outboundChannels } from "../ipc-routes";
+import { type BrowserWindow as BW, type App, type Screen, app } from "electron";
 
 let mainWindow: BW | null = null;
 let application: App;

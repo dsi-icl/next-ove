@@ -1,14 +1,14 @@
 /* global process */
 
-import { env, logger } from "../../../../env";
-import * as schedule from "node-schedule";
-import { AutoSchedule, CalendarEvent } from "@ove/ove-types";
-import subHours from "date-fns/subHours";
-import min from "date-fns/min";
-import addHours from "date-fns/addHours";
 import max from "date-fns/max";
-import { multiDeviceHandler } from "../hardware/service";
+import min from "date-fns/min";
 import { Json } from "@ove/ove-utils";
+import addHours from "date-fns/addHours";
+import subHours from "date-fns/subHours";
+import * as schedule from "node-schedule";
+import { env, logger } from "../../../../env";
+import { multiDeviceHandler } from "../hardware/service";
+import type { AutoSchedule, CalendarEvent } from "@ove/ove-types";
 
 export const setManualSchedule = () => {
   env.POWER_MODE = "manual";

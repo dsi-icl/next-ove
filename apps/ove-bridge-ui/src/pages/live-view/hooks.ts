@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { logger } from "../../env";
+import { useEffect, useState } from "react";
 
 export const useVideoStreams = () => {
   const [streams, setStreams] = useState<string[] | undefined>(undefined);

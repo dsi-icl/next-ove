@@ -10,12 +10,12 @@ import {
   type TBridgeRoutesSchema
 } from "@ove/ove-types";
 import { z } from "zod";
-import { raise, assert, Json } from "@ove/ove-utils";
+import MDCService from "./mdc-service";
 import NodeService from "./node-service";
 import PJLinkService from "./pjlink-service";
-import MDCService from "./mdc-service";
 import { env, logger } from "../../../../env";
 import { updateState } from "./reconciliation";
+import { raise, assert, Json } from "@ove/ove-utils";
 
 export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
@@ -59,10 +59,13 @@ const getServiceForProtocol =
   (protocol: ServiceType): TBridgeHardwareService => {
     switch (protocol) {
       case "node":
+        // throw new Error("disabled node");
         return NodeService;
       case "pjlink":
+        // throw new Error("disabled pjlink");
         return PJLinkService;
       case "mdc":
+        // throw new Error("disabled mdc");
         return MDCService;
     }
   };
@@ -97,6 +100,7 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
 ) => {
+  logger.info(`Handling: ${k}`);
   const callback = wrapCallback(cb);
   const device = await getDevice(args.deviceId);
 
@@ -135,6 +139,7 @@ export const multiDeviceHandler =
     args: z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>,
     cb: (response: z.infer<TBridgeRoutesSchema[`${Key}All`]["bridge"]>) => void
   ) => {
+    logger.info(`Handling: ${k}All`);
     const callback = wrapCallback(cb);
     const devices = await getDevices(args.tag);
 

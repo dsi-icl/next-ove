@@ -1,18 +1,18 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { type Device, type ServiceType } from "@ove/ove-types";
 import {
   Display,
   HddNetwork,
   PlusCircleFill,
   Projector
 } from "react-bootstrap-icons";
-import EditDevice from "../edit-device/edit-device";
 import Auth from "../auth/auth";
-import { type Mode } from "../../utils";
+import type { Mode } from "../../utils";
 import { assert } from "@ove/ove-utils";
 // TODO: investigate circular dependency
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { useDialog } from "@ove/ui-components";
+import EditDevice from "../edit-device/edit-device";
+import type { Device, ServiceType } from "@ove/ove-types";
+import React, { useCallback, useEffect, useState } from "react";
 
 import styles from "./devices.module.scss";
 

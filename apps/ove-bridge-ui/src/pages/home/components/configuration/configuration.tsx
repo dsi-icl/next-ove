@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useEnv, useSocket } from "./hooks";
-import { type NativeEvent } from "@ove/ove-types";
+import type { NativeEvent } from "@ove/ove-types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { type BaseSyntheticEvent } from "react";
+import { useFormErrorHandling } from "@ove/ui-components";
 
 import styles from "./configuration.module.scss";
 
@@ -21,9 +22,15 @@ const ConfigurationFormSchema = z.strictObject({
 type ConfigurationForm = z.infer<typeof ConfigurationFormSchema>
 
 const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
-  const { register, setValue, handleSubmit } = useForm<ConfigurationForm>({
+  const {
+    register,
+    setValue,
+    formState: { errors },
+    handleSubmit
+  } = useForm<ConfigurationForm>({
     resolver: zodResolver(ConfigurationFormSchema)
   });
+  useFormErrorHandling(errors);
   const updateEnv = useEnv(setValue);
   const connected = useSocket();
 

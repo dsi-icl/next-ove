@@ -1,11 +1,11 @@
-import { service } from "./service";
-import { env } from "../../../../env";
-import { assert } from "@ove/ove-utils";
 import {
   excludeKeys,
   type TAPIRoutes,
   type TBridgeController
 } from "@ove/ove-types";
+import { service } from "./service";
+import { env } from "../../../../env";
+import { assert } from "@ove/ove-utils";
 
 const wrap = <T>(x: T) => ({
   meta: { bridge: assert(env.BRIDGE_NAME) },

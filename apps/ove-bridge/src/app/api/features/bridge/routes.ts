@@ -1,19 +1,19 @@
 import {
-  type TSocketOutEvents,
-  type TParameters,
-  type TCallback
-} from "@ove/ove-types";
-import { io } from "socket.io-client";
-import { assert } from "@ove/ove-utils";
-import { env, logger } from "../../../../env";
-import { controller } from "./controller";
-import {
   setSocket,
   socket,
   socketConnectListeners,
   socketDisconnectListeners
 } from "./sockets";
+import type {
+  TSocketOutEvents,
+  TParameters,
+  TCallback
+} from "@ove/ove-types";
+import { io } from "socket.io-client";
+import { assert } from "@ove/ove-utils";
 import { initService } from "./service";
+import { controller } from "./controller";
+import { env, logger } from "../../../../env";
 import { initHardware } from "../hardware/hardware-controller";
 
 export const initBridge = () => {

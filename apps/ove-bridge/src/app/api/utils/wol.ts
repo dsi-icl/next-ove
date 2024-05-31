@@ -2,6 +2,7 @@
 
 import * as net from "net";
 import * as udp from "dgram";
+import { env, logger } from "../../../env";
 
 export const createMagicPacket = (mac: string) => {
   const MAC_REPEAT = 16;
@@ -22,51 +23,49 @@ export const createMagicPacket = (mac: string) => {
 
 export const wake = async (
   mac: string,
-  options?:
-    | {
+  timeout: number,
+  options?: {
     address?: string;
     port?: number;
-  }
-    | ((...args: unknown[]) => void),
-  callback?: (...args: unknown[]) => void
+  },
 ): Promise<boolean> => {
-  options = options || {};
-
-  if (typeof options == "function") {
-    callback = options as (...args: unknown[]) => void;
-  }
-
-  options = options as { address?: string; port?: number };
   const { address, port } = {
-    address: options.address || "255.255.255.255",
-    port: options.port || 9
+    address: options?.address ?? env.WOL_ADDRESS ?? "255.255.255.255",
+    port: options?.port ?? 9
   };
 
   // create magic packet
   const magicPacket = createMagicPacket(mac);
 
-  const socket: udp.Socket = udp
-    .createSocket(net.isIPv6(address) ? "udp6" : "udp4")
-    .on("error", err => {
-      socket.close();
-      callback && callback(err);
-    })
-    .once("listening", () => socket.setBroadcast(true));
-
   return new Promise((resolve, reject) => {
-    socket.send(
-      magicPacket,
-      0,
-      magicPacket.length,
-      port,
-      address,
-      (err, res) => {
-        const result = res == magicPacket.length;
-        if (err) reject(err);
-        else resolve(result);
-        callback && callback(err, result);
+    const socket: udp.Socket = udp
+      .createSocket(net.isIPv6(address) ? "udp6" : "udp4")
+      .on("error", err => {
         socket.close();
-      }
-    );
+        reject(err);
+      })
+      .once("listening", () => {
+        logger.trace("WOL socket listening");
+        socket.setBroadcast(true);
+        socket.send(
+          magicPacket,
+          0,
+          magicPacket.length,
+          port,
+          address,
+          (err, res) => {
+            logger.trace("WOL socket received response");
+            const result = res === magicPacket.length;
+            socket.close();
+            if (err) reject(err);
+            else resolve(result);
+          }
+        );
+      });
+
+    setTimeout(() => {
+      socket.close();
+      reject(`No response in ${timeout / 1_000}s`);
+    }, timeout);
   });
 };

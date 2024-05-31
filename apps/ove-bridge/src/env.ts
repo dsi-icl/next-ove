@@ -36,13 +36,15 @@ const schema = z.strictObject({
   STOP_VIDEO_SCRIPT: z.string().optional(),
   GEOMETRY: BoundsSchema.optional(),
   URL: z.string(),
+  NODE_TIMEOUT: z.number(),
   MDC_TIMEOUT: z.number(),
   PJLINK_TIMEOUT: z.number(),
   MDC_RESTART_TIMEOUT: z.number(),
   RECONCILIATION_TIMEOUT: z.number(),
   RECONCILIATION_ERROR_TIMEOUT: z.number(),
   SYN_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
-  ARP_SCAN_COMMAND: z.string().optional() // include %IP% for IP replacement
+  ARP_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
+  WOL_ADDRESS: z.string().optional()
 });
 
 const staticConfig = {
@@ -74,6 +76,7 @@ const defaultConfig: z.infer<typeof schema> = {
   PRIVATE_KEY: privateKey,
   PASSPHRASE: passPhrase,
   URL: "http://localhost:3334",
+  NODE_TIMEOUT: 5_000,
   MDC_TIMEOUT: 5_000,
   MDC_RESTART_TIMEOUT: 1_000,
   PJLINK_TIMEOUT: 5_000,
