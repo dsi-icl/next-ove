@@ -1,9 +1,9 @@
 /* global Proxy */
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { type OVEException } from "@ove/ove-types";
+import type { TLogger } from "@ove/ove-logging";
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { type TLogger } from "@ove/ove-logging";
+import type { OVEException } from "@ove/ove-types";
 
 export const replaceAll = (s: string, xs: string[]): string => {
   const replaceFn = (match: string) => xs[parseInt(match.substring(1)) - 1];
@@ -79,3 +79,6 @@ export const recordEquals = <T, U>(r1: Record<string, T>, r2: Record<string, U>,
 
   return entries1.every(([k1, v1]) => entries2.find(([k2, v2]) => assert(equality)(k1, v1, k2, v2)) !== undefined);
 };
+
+export const titleToBucketName = (title: string) =>
+  title.replaceAll(" ", "-").toLowerCase();

@@ -1,11 +1,12 @@
+export * from "./lib/hooks";
 export { default as Nav } from "./lib/nav";
-export { default as Dialog } from "./lib/dialog/dialog";
 export { useDialog } from "./lib/dialog/hook";
-export { default as Snackbar } from "./lib/snackbar/snackbar";
+export { useMode } from "./lib/power-mode/hooks";
 export { useSnackbar } from "./lib/snackbar/hook";
-export { default as VideoStreams } from "./lib/video-streams/video-streams";
+export { useCalendar } from "./lib/calendar/hooks";
+export { default as Dialog } from "./lib/dialog/dialog";
+export { default as Calendar } from "./lib/calendar/calendar";
+export { default as Snackbar } from "./lib/snackbar/snackbar";
 export { default as PowerMode } from "./lib/power-mode/power-mode";
 export { default as LastUpdated } from "./lib/calendar/last-updated";
-export { default as Calendar } from "./lib/calendar/calendar";
-export { useCalendar } from "./lib/calendar/hooks";
-export { useMode } from "./lib/power-mode/hooks";
+export { default as VideoStreams } from "./lib/video-streams/video-streams";
