@@ -36,13 +36,13 @@ export const authRouter = router({
       return safe(() => controller.login(ctx));
     }),
   token: procedure
-    .meta({ openapi: { method: "POST", path: "/token" } })
+    .meta({ openapi: { method: "GET", path: "/token" } })
     .input(z.void())
     .output(z.union([OVEExceptionSchema, z.strictObject({
       token: z.string(),
       expiry: z.date()
     })]))
-    .mutation(async ({ ctx }) => {
+    .query(async ({ ctx }) => {
       logger.info("Getting token for user");
       return safe(() => controller.getToken(ctx));
     }),

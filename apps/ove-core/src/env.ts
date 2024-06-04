@@ -25,10 +25,19 @@ const baseSchema = z.strictObject({
   PORT: z.number(),
   HOSTNAME: z.string(),
   PROTOCOL: z.string(),
-  ACCESS_TOKEN_SECRET: z.string(),
-  REFRESH_TOKEN_SECRET: z.string(),
-  ACCESS_TOKEN_PASSPHRASE: z.string(),
-  REFRESH_TOKEN_PASSPHRASE: z.string(),
+  TOKENS: z.strictObject({
+    ACCESS: z.strictObject({
+      SECRET: z.string(),
+      PASSPHRASE: z.string(),
+      EXPIRY: z.string(),
+      ISSUER: z.string()
+    }),
+    REFRESH: z.strictObject({
+      SECRET: z.string(),
+      PASSPHRASE: z.string(),
+      ISSUER: z.string()
+    })
+  }),
   SOCKET_PATH: z.string().optional(),
   SOCKET_ADMIN: z.strictObject({
     USERNAME: z.string(),
@@ -51,7 +60,6 @@ const baseSchema = z.strictObject({
   DISABLE_AUTH: z.boolean(),
   TEST_USER: z.string().optional(),
   SOCKET_DIST: z.string(),
-  TOKEN_EXPIRY: z.string(),
   THUMBNAIL_GENERATOR: z.string().optional(),
   DATA_FORMATTER: z.string().optional()
 });
@@ -85,14 +93,22 @@ const defaultConfig: z.infer<typeof schema> = {
   PORT: 3333,
   HOSTNAME: "127.0.0.1",
   PROTOCOL: "http",
-  ACCESS_TOKEN_PASSPHRASE: accessTokenPassphrase,
-  ACCESS_TOKEN_SECRET: accessTokenSecret,
-  REFRESH_TOKEN_SECRET: refreshTokenSecret,
-  REFRESH_TOKEN_PASSPHRASE: refreshTokenPassphrase,
+  TOKENS: {
+    ACCESS: {
+      SECRET: accessTokenSecret,
+      PASSPHRASE: accessTokenPassphrase,
+      ISSUER: staticConfig.APP_NAME,
+      EXPIRY: "24h"
+    },
+    REFRESH: {
+      SECRET: refreshTokenSecret,
+      PASSPHRASE: refreshTokenPassphrase,
+      ISSUER: staticConfig.APP_NAME
+    }
+  },
   DISABLE_AUTH: false,
   SOCKET_DIST: path.join(__dirname, "..", "..", "..",
-    "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
-  TOKEN_EXPIRY: "24h"
+    "node_modules", "@socket.io", "admin-ui", "ui", "dist")
 };
 
 const configPath = path.join(__dirname, "config", "config.json");

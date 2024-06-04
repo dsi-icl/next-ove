@@ -16,13 +16,12 @@ export const mergeRouters = trpc.mergeRouters;
 
 export const middleware = trpc.middleware;
 
-const isAuthedWrapper = middleware(opts => {
+const isAuthedWrapper = middleware(async opts => {
   const { ctx } = opts;
-  const username = isAuthed(ctx.user);
+  const username = await isAuthed(ctx.prisma, ctx.user);
 
   switch (username) {
     case null:
-      throw new TRPCError({ code: "UNAUTHORIZED" });
     case "unauthorised":
       throw new TRPCError({ code: "UNAUTHORIZED" });
     case "disabled":

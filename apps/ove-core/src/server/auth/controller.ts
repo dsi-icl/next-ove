@@ -10,6 +10,11 @@ import type { Context } from "../context";
 import type { Tokens } from "@ove/ove-types";
 import type { PrismaClient } from "@prisma/client";
 
+type RefreshToken = {
+  username: string
+  tokenId: string
+}
+
 const login = async (ctx: Context): Promise<Tokens> => {
   if (ctx.user === null) {
     throw new TRPCError({
@@ -51,8 +56,8 @@ const login = async (ctx: Context): Promise<Tokens> => {
   }
 
   const accessToken = service.generateToken(
-    username, env.ACCESS_TOKEN_SECRET, env.TOKEN_EXPIRY);
-  const refreshToken = service.generateToken(username, env.REFRESH_TOKEN_SECRET);
+    username, env.TOKENS.ACCESS.SECRET, env.TOKENS.ACCESS.ISSUER, env.TOKENS.ACCESS.EXPIRY, env.TOKENS.ACCESS.ISSUER);
+  const refreshToken = service.generateToken(username, env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER, undefined, env.TOKENS.REFRESH.ISSUER);
 
   await ctx.prisma.refreshToken.upsert({
     where: {
@@ -70,7 +75,7 @@ const login = async (ctx: Context): Promise<Tokens> => {
   return {
     access: accessToken,
     refresh: refreshToken,
-    expiry: new Date(Date.now() + ms(env.TOKEN_EXPIRY))
+    expiry: new Date(Date.now() + ms(env.TOKENS.ACCESS.EXPIRY))
   };
 };
 
@@ -94,20 +99,21 @@ const getToken = async (ctx: Context) => {
     });
   }
 
-  let user: { username: string };
+  let user: RefreshToken;
 
   try {
-    user = jwt.verify(ctx.user, env.REFRESH_TOKEN_SECRET) as {
-      username: string
-    };
+    user = jwt.verify(ctx.user, env.TOKENS.REFRESH.SECRET, {
+      issuer: env.TOKENS.REFRESH.ISSUER,
+      audience: env.TOKENS.REFRESH.ISSUER
+    }) as RefreshToken;
   } catch (e) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid token" });
   }
 
   return {
     token: service.generateToken(
-      user.username, env.ACCESS_TOKEN_SECRET, env.TOKEN_EXPIRY),
-    expiry: new Date(Date.now() + ms(env.TOKEN_EXPIRY))
+      user.username, env.TOKENS.ACCESS.SECRET, env.TOKENS.ACCESS.ISSUER, env.TOKENS.ACCESS.EXPIRY, env.TOKENS.ACCESS.ISSUER),
+    expiry: new Date(Date.now() + ms(env.TOKENS.ACCESS.EXPIRY))
   };
 };
 

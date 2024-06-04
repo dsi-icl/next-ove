@@ -32,7 +32,7 @@ const run = async () => {
   const {host, username, password} = await getDetails();
   const encoded = fixedEncodeURI(btoa(`${username}:${password}`));
 
-  const token = await (await fetch(`${host}/login`, { headers: {Authorization: `Basic ${encoded}`}, method: "POST" })).json().access;
+  const token = await (await fetch(`${host}/login`, { headers: {Authorization: `Basic ${encoded}`}, method: "POST" })).json();
   console.log(token);
 };
 

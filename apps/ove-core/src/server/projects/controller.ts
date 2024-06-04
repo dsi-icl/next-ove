@@ -405,7 +405,7 @@ const getController = async (
   let dataToken = token?.token;
 
   if (token === null) {
-    const refreshToken = service.generateToken(username, env.REFRESH_TOKEN_SECRET);
+    const refreshToken = service.generateToken(username, env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER, undefined, env.TOKENS.REFRESH.ISSUER);
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
@@ -416,7 +416,6 @@ const getController = async (
   }
 
   data = data.replaceAll("{{TOKEN}}", assert(dataToken));
-  console.log(layout);
 
   if (layout !== undefined) {
     data = data.replaceAll(/project = await [^;]+/g, "project = {title: \"Temp - Dev\"}");
@@ -496,7 +495,6 @@ const formatData = async (title: string, dataType: DataTypes, data: string, opts
     case "data-table": {
       if (opts === undefined) throw new Error("Missing options for data table formatting");
       const table = formatDataTable(title, data, opts);
-      console.log(table);
       return { data: table, fileName: `${title}_OVE_FORMAT.html` };
     }
     case "json":
