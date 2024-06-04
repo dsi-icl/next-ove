@@ -131,7 +131,6 @@
     "sqlite3": "^5.1.6",
     "ts-jest": "^29.1.2",
     "ts-node": "10.9.1",
-    "ts-to-zod": "^3.0.0",
     "tsconfig-paths": "^4.2.0",
     "typedoc": "^0.25.6",
     "typescript": "5.3.3",

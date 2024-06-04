@@ -4,18 +4,15 @@ import {
   type Device,
   type TBridgeHardwareService,
   type TBridgeServiceArgs,
-  MDCSourceSchema,
-  isError,
-  type OVEException
+  MDCSourceSchema
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../../../env";
-import { raise } from "@ove/ove-utils";
 import * as mdc from "@ove/mdc-control";
 import { statusOptions } from "../../utils/status";
 
 const reboot = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"reboot">
 ) => {
   const rebootOptsSchema = z.object({}).strict();
@@ -23,19 +20,11 @@ const reboot = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.setPower("off", 0x01, ip, port, protocol);
-
-  if (isError(res)) return res;
-  return new Promise<boolean | OVEException>(resolve =>
-    setTimeout(() => {
-      mdc.setPower("on", 0x01, ip, port, protocol)
-        .then(res => resolve(isError(res) ? res : true));
-    }, env.MDC_RESTART_TIMEOUT)
-  );
+  return mdc.setPower("reboot", env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const shutdown = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"shutdown">
 ) => {
   const shutdownOptsSchema = z.object({}).strict();
@@ -43,12 +32,11 @@ const shutdown = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.setPower("off", 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return mdc.setPower("off", env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const start = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"start">
 ) => {
   const startOptsSchema = z.object({}).strict();
@@ -56,12 +44,11 @@ const start = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.setPower("on", 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return mdc.setPower("on", env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const getInfo = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"getInfo">
 ) => {
   const infoOptsSchema = z
@@ -70,30 +57,11 @@ const getInfo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const power = await mdc.getPower(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-  const volume = await mdc.getVolume(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-  const source = await mdc
-    .getSource(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-  const isMuted = await mdc
-    .getIsMute(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-  const model = await mdc.getModel(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-
-  if (isError(power) || isError(volume) || isError(source) ||
-    isError(isMuted) || isError(model)) {
-    return raise("MDC ERROR");
-  }
-
-  return {
-    power,
-    volume,
-    source,
-    isMuted,
-    model
-  };
+  return mdc.getInfo(env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const getStatus = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"getStatus">
 ) => {
   const statusOptsSchema = z.object({}).strict();
@@ -101,28 +69,23 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return statusOptions(async () => {
-    const res = await mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port, protocol);
-    return isError(res) ? res : "on";
-  }, ip);
+  return statusOptions(async () => mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port), ip);
 };
 
 const mute = async ({
   ip,
-  port,
-  protocol
+  port
 }: Device, args: TBridgeServiceArgs<"mute">) => {
   const muteOptsSchema = z.object({}).strict();
   const parsedOpts = muteOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.setIsMute(true, 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return mdc.setIsMute(true, env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const unmute = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"unmute">
 ) => {
   const unmuteOptsSchema = z.object({}).strict();
@@ -130,12 +93,11 @@ const unmute = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc.setIsMute(false, 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return mdc.setIsMute(false, env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const setVolume = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"setVolume">
 ) => {
   const setVolumeOptsSchema = z.object({ volume: z.number() }).strict();
@@ -143,13 +105,12 @@ const setVolume = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc
-    .setVolume(parsedOpts.data.volume, 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return mdc
+    .setVolume(parsedOpts.data.volume, env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const setSource = async (
-  { ip, port, protocol }: Device,
+  { ip, port }: Device,
   args: TBridgeServiceArgs<"setSource">
 ) => {
   const setSourceOptsSchema = z
@@ -159,9 +120,8 @@ const setSource = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const res = await mdc
-    .setSource(mdc.sources[parsedOpts.data.source], 0x01, ip, port, protocol);
-  return isError(res) ? res : true;
+  return mdc
+    .setSource(mdc.sources[parsedOpts.data.source], env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const MDCService: TBridgeHardwareService = {
