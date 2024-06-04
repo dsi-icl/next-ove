@@ -40,25 +40,28 @@ const sendCommand = (
   const socket = new Socket()
   socket.setTimeout(timeout);
 
+  socket.on("timeout", () => {
+    socket.end(() => resolve(raise("Timeout")));
+  });
+
   socket.on("error", err => {
-    resolve(raise(err.message));
-    socket.destroy();
+    socket.end(() => resolve(raise(err.message)));
   });
 
   socket.on("data", data => {
     const args = new Uint8Array(data);
     const status = args.at(4);
-    if (status === 0x41) {
-      resolve(args);
-    } else {
-      resolve(raise(`Received error: ${args.at(6)}`));
-    }
-    socket.destroy();
+    socket.end(() => {
+      if (status === 0x41) {
+        resolve(args);
+      } else {
+        resolve(raise(`Received error: ${args.at(6)}`));
+      }
+    });
   });
 
   setTimeout(() => {
-    resolve(raise("TIMEOUT"));
-    socket.destroy();
+    socket.end(() => resolve(raise("TIMEOUT")));
   }, timeout);
 
   socket.connect(port ?? MDC_PORT, ip, () => {
@@ -67,8 +70,7 @@ const sendCommand = (
     command.push(checksum);
     socket.write(new Uint8Array(command), err => {
       if (err) {
-        resolve(raise(err.message));
-        socket.destroy();
+        socket.end(() => resolve(raise(err.message)));
       }
     });
   });
