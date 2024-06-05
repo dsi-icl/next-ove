@@ -23,13 +23,19 @@ RUN npx prisma generate
 WORKDIR /usr/src/app
 
 COPY ../../apps/ove-core ./apps/ove-core
+COPY ../../apps/ove-core-ui ./apps/ove-core-ui
+
 # reliant on following libraries
 COPY ../../libs/ove-server-utils ./libs/ove-server-utils
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../libs/ui-base-components ./libs/ui-base-components
+COPY ../../libs/ui-components ./libs/ui-components
+COPY ../../libs/ui-reorderable-list ./libs/ui-reorderable-list
 
 RUN npm exec nx run ove-core:build
+RUN npm exec nx run ove-core-ui:build
 
 RUN apk del .build-deps
 
@@ -40,6 +46,9 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV production
 
+COPY ../../apps/ove-core-ui/env.sh /docker-entrypoint.d/env.sh
+RUN chmod +x /docker-entrypoint.d/env.sh
+
 COPY --from=build /usr/src/app/dist/apps/ove-core/package.json ./
 COPY --from=build /usr/src/app/dist/apps/ove-core/package-lock.json ./
 COPY --from=build /usr/src/app/apps/ove-core/prisma/ ./
@@ -47,6 +56,7 @@ COPY --from=build /usr/src/app/apps/ove-core/prisma/ ./
 RUN npm ci --omit=dev
 RUN npx prisma generate
 
+COPY --from=build /usr/src/app/dist/apps/ove-core-ui/ ./ui
 COPY --from=build /usr/src/app/dist/apps/ove-core/ ./
 
 EXPOSE 8080

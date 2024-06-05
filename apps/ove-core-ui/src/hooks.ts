@@ -40,7 +40,7 @@ export const useAuth = () => {
   const refresh = useCallback(async () => {
     if (tokens === null) return;
     try {
-      const res = await createClient(tokens).token.mutate();
+      const res = await createClient(tokens).token.query();
       if (isError(res)) {
         logout();
         return;

@@ -29,8 +29,8 @@ app.use(`/api/v${env.API_VERSION}`, createOpenApiExpressMiddleware({
   createContext
 }) as Parameters<typeof app.use>[1]);
 
-app.use("/", swaggerUi.serve);
-app.get("/", swaggerUi.setup(openApiDocument));
+app.use("/api", swaggerUi.serve);
+app.get("/api", swaggerUi.setup(openApiDocument));
 
 if (env.NODE_ENV === "development") {
   FileUtils.saveSwagger(
@@ -38,3 +38,4 @@ if (env.NODE_ENV === "development") {
 }
 
 app.use("/assets", express.static(path.join(__dirname, "assets")));
+app.use("/", express.static(path.join(__dirname, "ui")));
