@@ -1,3 +1,5 @@
+/* global __dirname */
+
 import path from "path";
 import fetch from "node-fetch";
 import { env } from "../../env";
@@ -68,7 +70,8 @@ const getTagsForUser = async (prisma: PrismaClient, username: string) => {
 
 const getUsers = async (prisma: PrismaClient) => prisma.user.findMany();
 
-const getInvitesForProject = async (prisma: PrismaClient, projectId: string) => {
+const getInvitesForProject = async (
+  prisma: PrismaClient, projectId: string) => {
   if (projectId.length === 32) return [];
   return prisma.invite.findMany({
     where: {
@@ -112,7 +115,8 @@ const createProject = async (
         titleToBucketName(title), "env.json", Json.EMPTY);
     }
     if (files === undefined || !files.includes("control.html")) {
-      let template = readFileSync(path.join(__dirname, "assets", "control-template.html")).toString();
+      const template = readFileSync(
+        path.join(__dirname, "assets", "control-template.html")).toString();
       await S3Controller
         .uploadFile(s3, titleToBucketName(title), "control.html", template);
     }
@@ -154,7 +158,10 @@ const saveProject = async (
     }
   });
 
-  if (project.creatorId !== user?.id && !project.collaboratorIds.includes(user?.id ?? "ERROR")) throw new Error("Cannot make changes to public project");
+  if (project.creatorId !== user?.id &&
+    !project.collaboratorIds.includes(user?.id ?? "ERROR")) {
+    throw new Error("Cannot make changes to public project");
+  }
 
   const { id, ...data } = project;
   const existing = await prisma.project.findUniqueOrThrow({
@@ -164,7 +171,9 @@ const saveProject = async (
   });
 
   // TODO: replace with either bucket re-instantiation or lookup mechanism
-  if (existing.title !== data.title) throw new Error("Cannot change project title");
+  if (existing.title !== data.title) {
+    throw new Error("Cannot change project title");
+  }
 
   const sectionIds = (await prisma.section.findMany()).map(({ id }) => id);
   const newSectionIds = layout.map(({ id }) => id).filter(Boolean);
@@ -200,33 +209,48 @@ const saveProject = async (
   return { project: project_, layout: layout_ };
 };
 
-const groupBy = <T extends object>(xs: T[], key: keyof T) => xs.reduce((rv, x) => {
-  // @ts-expect-error
-  (rv[x[key]] = rv[x[key]] || []).push(x);
-  return rv;
-}, {} as {[K in keyof T]: T[]});
+const groupBy = <T extends object>(xs: T[], key: keyof T) =>
+  xs.reduce((rv, x) => {
+    // @ts-expect-error - object keys
+    (rv[x[key]] = rv[x[key]] || []).push(x);
+    return rv;
+  }, {} as { [_Key in keyof T]: T[] });
 
 const addLatest = <T extends {
   versionId: string,
   isLatest: boolean,
   lastModified: Date
-}>(files: T[]): T[] => files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
-  ...file,
-  versionId: "latest",
-  lastModified: new Date(),
-  isLatest: false
-})));
+}>(files: T[]): T[] =>
+    files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
+      ...file,
+      versionId: "latest",
+      lastModified: new Date(),
+      isLatest: false
+    })));
 
 const getProjectFiles = async (s3: Client, bucketName: string) => {
-  let files = await S3Controller.listObjects(s3, bucketName);
-  return Object.values(groupBy(files, "name")).map(group => group.sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime()).map((file, i) => ({...file, versionId: `v${i}`}))).flat();
+  const files = await S3Controller.listObjects(s3, bucketName);
+  return Object.values(groupBy(files, "name"))
+    .map(group => group.sort((a, b) =>
+      a.lastModified.getTime() - b.lastModified.getTime())
+      .map((file, i) => ({
+        ...file,
+        versionId: `v${i}`
+      }))).flat();
 };
 
 const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
   (await Promise.all(env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS
     .map(async bucket => {
       const objects = await S3Controller.listObjects(s3, bucket);
-      return Object.values(groupBy(objects, "name")).map(group => group.sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime()).map((obj, i) => ({...obj, versionId: `v${i}`, bucketName: bucket}))).flat();
+      return Object.values(groupBy(objects, "name"))
+        .map(group => group.sort((a, b) =>
+          a.lastModified.getTime() - b.lastModified.getTime())
+          .map((obj, i) => ({
+            ...obj,
+            versionId: `v${i}`,
+            bucketName: bucket
+          }))).flat();
     }) ?? [])).flat().map(object => ({
     name: assert(object.name),
     version: object.versionId,
@@ -235,21 +259,28 @@ const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
     bucketName: object.bucketName
   }));
 
-const getFiles = async (prisma: PrismaClient, s3: Client | null, username: string, projectId: string) => {
+const getFiles = async (
+  prisma: PrismaClient,
+  s3: Client | null,
+  username: string,
+  projectId: string
+) => {
   const project = await getProject(prisma, username, projectId);
   if (s3 === null || project === null) return [];
   const globals = await getGlobalFiles(s3);
-  const projectFiles = addLatest(await getProjectFiles(s3, titleToBucketName(project.title))).map(object => ({
+  const projectFiles = addLatest(await getProjectFiles(s3,
+    titleToBucketName(project.title))).map(object => ({
     name: assert(object.name),
     version: object.versionId,
     isGlobal: false,
     isLatest: object.isLatest,
     bucketName: titleToBucketName(project.title)
-  })).filter(({name}) => !name.includes("OVE_FORMAT"));
+  })).filter(({ name }) => !name.includes("OVE_FORMAT"));
   return globals.concat(projectFiles);
 };
 
-const getSectionsForProject = async (prisma: PrismaClient, projectId: string) => {
+const getSectionsForProject = async (prisma: PrismaClient,
+  projectId: string) => {
   if (projectId.length === 32) return [];
   return prisma.section.findMany({
     where: {
@@ -258,9 +289,19 @@ const getSectionsForProject = async (prisma: PrismaClient, projectId: string) =>
   });
 };
 
-const getS3Version = async (s3: Client, bucketName: string, objectName: string, versionId: string) => {
-  const files = (await Promise.all(assert(env.ASSET_STORE_CONFIG).GLOBAL_BUCKETS.concat([bucketName]).flatMap(bucket => S3Controller.listObjects(s3, bucket)))).flat().filter(file => file.name === objectName).sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime());
-  const idx = versionId === "latest" ? -1 : parseInt(versionId.substring(1)) - 1;
+const getS3Version = async (
+  s3: Client,
+  bucketName: string,
+  objectName: string,
+  versionId: string
+) => {
+  const files = (await Promise.all(assert(env.ASSET_STORE_CONFIG)
+    .GLOBAL_BUCKETS.concat([bucketName]).flatMap(bucket =>
+      S3Controller.listObjects(s3, bucket)))).flat().filter(file =>
+    file.name === objectName).sort((a, b) =>
+    a.lastModified.getTime() - b.lastModified.getTime());
+  const idx = versionId === "latest" ? -1 :
+    parseInt(versionId.substring(1)) - 1;
   return assert(files.at(idx)).versionId;
 };
 
@@ -286,7 +327,8 @@ const getPresignedPutURL = async (
   const project = await getProject(prisma, username, projectId);
   if (project === null) return raise(`No project with id ${projectId}`);
   if (s3 === null) return raise("No S3 store configured");
-  return S3Controller.getPresignedPutURL(s3, titleToBucketName(project.title), objectName);
+  return S3Controller.getPresignedPutURL(s3,
+    titleToBucketName(project.title), objectName);
 };
 
 const generateThumbnail = async (prisma: PrismaClient, projectId: string) => {
@@ -342,11 +384,17 @@ const getLayout = (prisma: PrismaClient, projectId: string) => {
   return prisma.section.findMany({ where: { projectId } });
 };
 
-const getEnv = async (prisma: PrismaClient, s3: Client | null, username: string, projectId: string) => {
+const getEnv = async (
+  prisma: PrismaClient,
+  s3: Client | null,
+  username: string,
+  projectId: string
+) => {
   if (s3 === null) return raise("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
   if (project === null) return raise(`No project with id ${projectId}`);
-  const url = await getPresignedGetURL(s3, titleToBucketName(project.title), "env.json", "latest");
+  const url = await getPresignedGetURL(s3,
+    titleToBucketName(project.title), "env.json", "latest");
   if (isError(url)) return url;
   const data = await (await fetch(url)).json();
   return Object.fromEntries(Object.entries(data)
@@ -366,9 +414,11 @@ const getController = async (
   const project = await getProject(prisma, username, projectId);
   let data: string;
   if (project === null) {
-    data = readFileSync(path.join(__dirname, "assets", "control-template.html")).toString();
+    data = readFileSync(
+      path.join(__dirname, "assets", "control-template.html")).toString();
   } else {
-    const url = await getPresignedGetURL(s3, titleToBucketName(project.title), "control.html", "latest");
+    const url = await getPresignedGetURL(s3,
+      titleToBucketName(project.title), "control.html", "latest");
     if (isError(url)) return url;
     data = await (await fetch(url)).text();
   }
@@ -405,7 +455,9 @@ const getController = async (
   let dataToken = token?.token;
 
   if (token === null) {
-    const refreshToken = service.generateToken(username, env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER, undefined, env.TOKENS.REFRESH.ISSUER);
+    const refreshToken = service.generateToken(username,
+      env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER,
+      undefined, env.TOKENS.REFRESH.ISSUER);
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
@@ -418,20 +470,32 @@ const getController = async (
   data = data.replaceAll("{{TOKEN}}", assert(dataToken));
 
   if (layout !== undefined) {
-    data = data.replaceAll(/project = await [^;]+/g, "project = {title: \"Temp - Dev\"}");
+    data = data.replaceAll(/project = await [^;]+/g,
+      "project = {title: \"Temp - Dev\"}");
     data = data.replaceAll(/projectEnv = [^;]+/g, "projectEnv = {}");
-    data = data.replaceAll(/project\.layouts = [^;]+/g, `project.layouts = ${Json.stringify(layout, undefined, 2)}`);
+    data = data.replaceAll(/project\.layouts = [^;]+/g,
+      `project.layouts = ${Json.stringify(layout, undefined, 2)}`);
   }
 
   return data;
 };
 
-const formatDataTable = (title: string, data: string, opts: DataFormatConfigOptions) => {
-  let template = readFileSync(path.join(__dirname, "assets", "table-format.html")).toString();
-  if (!("tableSource" in opts)) throw new Error("Missing options for data table formatting");
+const formatDataTable = (
+  title: string,
+  data: string,
+  opts: DataFormatConfigOptions
+) => {
+  let template = readFileSync(
+    path.join(__dirname, "assets", "table-format.html")).toString();
+  if (!("tableSource" in opts)) {
+    throw new Error("Missing options for data table formatting");
+  }
   if (opts.tableSource === "csv" || opts.tableSource === "tsv") {
-    template = template.replaceAll("const data = null;", `const data = ${JSON.stringify(data.split("\n").map(x => x.split(opts.tableSource === "csv" ? "," : "\t")))};`);
-    template = template.replaceAll("const containsHeader = true;", `const containsHeader = ${opts.containsHeader ?? false};`);
+    template = template.replaceAll("const data = null;",
+      `const data = ${JSON.stringify(data.split("\n")
+        .map(x => x.split(opts.tableSource === "csv" ? "," : "\t")))};`);
+    template = template.replaceAll("const containsHeader = true;",
+      `const containsHeader = ${opts.containsHeader ?? false};`);
   } else {
     template = template.replaceAll("%%DATA%%", data);
   }
@@ -442,13 +506,15 @@ const formatDataTable = (title: string, data: string, opts: DataFormatConfigOpti
 };
 
 const formatJSON = (title: string, data: string) => {
-  let template = readFileSync(path.join(__dirname, "assets", "json-format.html")).toString();
+  let template = readFileSync(
+    path.join(__dirname, "assets", "json-format.html")).toString();
   template = template.replaceAll("%%TITLE%%", title);
   return template.replaceAll("%%DATA%%", data);
 };
 
 const formatGeoJSON = (title: string, data: string) => {
-  let template = readFileSync(path.join(__dirname, "assets", "geojson-format.json")).toString();
+  let template = readFileSync(
+    path.join(__dirname, "assets", "geojson-format.json")).toString();
   template = template.replaceAll("%%TITLE%%", title);
   const idx = data.indexOf(",");
   const basemap = data.substring(0, idx);
@@ -457,13 +523,15 @@ const formatGeoJSON = (title: string, data: string) => {
 };
 
 const formatHTML = (title: string, data: string) => {
-  let template = readFileSync(path.join(__dirname, "assets", "html-format.html")).toString();
+  let template = readFileSync(
+    path.join(__dirname, "assets", "html-format.html")).toString();
   template = template.replaceAll("%%TITLE%%", title);
   return template.replaceAll("%%DATA%%", data);
 };
 
 const formatLatex = async (title: string, data: string) => {
-  let template = readFileSync(path.join(__dirname, "assets", "latex-format.html")).toString();
+  let template = readFileSync(
+    path.join(__dirname, "assets", "latex-format.html")).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.DATA_FORMATTER !== undefined) {
     data = await (await fetch(`${env.DATA_FORMATTER}/latex`, {
@@ -476,7 +544,8 @@ const formatLatex = async (title: string, data: string) => {
 };
 
 const formatMarkdown = async (title: string, data: string) => {
-  let template = readFileSync(path.join(__dirname, "assets", "markdown-format.html")).toString();
+  let template = readFileSync(
+    path.join(__dirname, "assets", "markdown-format.html")).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.DATA_FORMATTER !== undefined) {
     data = await (await fetch(`${env.DATA_FORMATTER}/markdown`, {
@@ -488,12 +557,19 @@ const formatMarkdown = async (title: string, data: string) => {
   return template.replaceAll("%%DATA%%", data);
 };
 
-const formatData = async (title: string, dataType: DataTypes, data: string, opts?: DataFormatConfigOptions) => {
+const formatData = async (
+  title: string,
+  dataType: DataTypes,
+  data: string,
+  opts?: DataFormatConfigOptions
+) => {
   const fileParts = title.split(".");
   const fileName = `${fileParts.slice(0, -1).join(".")}_OVE_FORMAT`;
   switch (dataType) {
     case "data-table": {
-      if (opts === undefined) throw new Error("Missing options for data table formatting");
+      if (opts === undefined) {
+        throw new Error("Missing options for data table formatting");
+      }
       const table = formatDataTable(title, data, opts);
       return { data: table, fileName: `${title}_OVE_FORMAT.html` };
     }
@@ -504,9 +580,15 @@ const formatData = async (title: string, dataType: DataTypes, data: string, opts
     case "html":
       return { data: formatHTML(title, data), fileName: `${fileName}.html` };
     case "latex":
-      return { data: await formatLatex(title, data), fileName: `${fileName}.html` };
+      return {
+        data: await formatLatex(title, data),
+        fileName: `${fileName}.html`
+      };
     case "markdown":
-      return { data: await formatMarkdown(title, data), fileName: `${fileName}.html` };
+      return {
+        data: await formatMarkdown(title, data),
+        fileName: `${fileName}.html`
+      };
     default:
       return { data, fileName: `${fileName}.${fileParts.at(-1)}` };
   }

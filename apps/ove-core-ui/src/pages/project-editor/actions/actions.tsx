@@ -72,7 +72,9 @@ const Actions = ({ projectId, setAction, save }: ActionsProps) => {
     <div className={styles.actions}>
       {icons.map(icon => <div className={styles.action} key={icon.title}>
         <button onClick={() => handler(icon.action)}
-                disabled={(icon.action === "controller" || icon.action === "env" || icon.action === "upload") && projectId.length === 32}
+                disabled={(icon.action === "controller" ||
+                    icon.action === "env" || icon.action === "upload") &&
+                  projectId.length === 32}
                 style={{ backgroundColor: icon.color }}
                 title={icon.title}>{icon.icon}</button>
       </div>)}

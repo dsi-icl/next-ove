@@ -53,9 +53,10 @@ export const useSpace = (observatories: Record<string, Rect & {
 
   useEffect(() => {
     if (name !== null || space !== null) return;
+    if (observatory === null) return;
     setName(observatory?.[0] ?? null);
     setSpace(observatory?.[1] ?? null);
-  }, [observatory]);
+  }, [observatory, name, space]);
 
   useEffect(() => {
     if (name === null || Object.keys(observatories).includes(name)) return;
@@ -344,7 +345,7 @@ export const useSave = (updateProject: (project: Project) => void) => {
         const res = await createProject.mutateAsync({
           project: { title: project.title },
           layout: layout.map(x => {
-            const {id, projectId, ...data} = x;
+            const { id: _id, projectId: _projectId, ...data } = x;
             return data;
           })
         });
@@ -352,7 +353,11 @@ export const useSave = (updateProject: (project: Project) => void) => {
           toast.error("Error creating project");
           return;
         }
-        project = { ...project, ...res.project, created: new Date(res.project.created), updated: new Date(res.project.updated) };
+        project = {
+          ...project, ...res.project,
+          created: new Date(res.project.created),
+          updated: new Date(res.project.updated)
+        };
         updateProject(project);
       }
       saveProject.mutateAsync({
@@ -423,7 +428,10 @@ export const useFiles = (projectId: string, token: string) => {
   }, [files_.status, files_.data]);
 
   const uploadRawFile = async (name: string, file: File) => {
-    const url = await (await fetch(`${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`, { headers: { Authorization: `Bearer ${token}` } })).json();
+    const url = await (await fetch(
+      // eslint-disable-next-line
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${name}/presigned/put`,
+      { headers: { Authorization: `Bearer ${token}` } })).json();
     if (isError(url)) {
       toast.error(url.oveError);
       return;
@@ -434,32 +442,46 @@ export const useFiles = (projectId: string, token: string) => {
   const checkForFormatting = async (name: string, file: File) => {
     const extension = file.name.split(".").at(-1);
     if (extension === undefined) throw new Error("Missing file extension");
-    const dataType = dataTypes.find(dt => dt.extensions.includes(`.${extension}`));
+    const dataType = dataTypes.find(dt =>
+      dt.extensions.includes(`.${extension}`));
     if (dataType === undefined) throw new Error("Invalid file extension");
     if (dataType.requiresFormatting) {
       await uploadFormattedFile(name, extension, dataType, file);
     }
   };
 
-  const uploadFormattedFile = async (name: string, extension: string, dataType: DataType, file: File) => {
+  const uploadFormattedFile = async (
+    name: string,
+    extension: string,
+    dataType: DataType,
+    file: File
+  ) => {
     const data = await file.text();
 
-    const formatted = await (await fetch(`${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/data/format`, {
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      method: "POST",
-      body: Json.stringify({
-        data,
-        dataType: dataType.name,
-        title: name,
-        opts: dataType.name === "data-table" ? {
-          containsHeader: false,
-          tableSource: extension
-        } : undefined
-      })
-    })).json();
-    const formattedFile = new File([formatted.data], formatted.fileName, { type: "text/plain" });
+    const formatted = await (await fetch(
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/data/format`, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        method: "POST",
+        body: Json.stringify({
+          data,
+          dataType: dataType.name,
+          title: name,
+          opts: dataType.name === "data-table" ? {
+            containsHeader: false,
+            tableSource: extension
+          } : undefined
+        })
+      })).json() as { data: string, fileName: string };
+    const formattedFile = new File([formatted.data],
+      formatted.fileName, { type: "text/plain" });
 
-    const url = await (await fetch(`${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${formatted.fileName}/presigned/put`, { headers: { Authorization: `Bearer ${token}` } })).json();
+    const url = await (await fetch(
+      // eslint-disable-next-line
+      `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/project/${projectId}/file/${formatted.fileName}/presigned/put`,
+      { headers: { Authorization: `Bearer ${token}` } })).json();
     if (isError(url)) throw new Error(url.oveError);
     await fetch(url as string, { method: "PUT", body: formattedFile });
   };
@@ -495,15 +517,20 @@ export const useFiles = (projectId: string, token: string) => {
   };
 
   const getLatest = (bucketName: string, name: string) => {
-    name = name.startsWith(`${bucketName}/`) ? assert(name.split("/").at(-1)) : name;
-    const file = files.find(file => file.name === name && file.bucketName === bucketName && file.isLatest);
+    name = name.startsWith(`${bucketName}/`) ?
+      assert(name.split("/").at(-1)) : name;
+    const file = files.find(file =>
+      file.name === name && file.bucketName === bucketName && file.isLatest);
     if (!file) throw new Error("File not found");
     return file;
   };
 
   const hasVersion = (bucketName: string, name: string, version: string) => {
-    name = name.startsWith(`${bucketName}/`) ? assert(name.split("/").at(-1)) : name;
-    return files.filter(file => file.name === name && file.bucketName === bucketName).map(f => f.version).includes(version);
+    name = name.startsWith(`${bucketName}/`) ?
+      assert(name.split("/").at(-1)) : name;
+    return files.filter(file => file.name === name &&
+      file.bucketName === bucketName)
+      .map(f => f.version).includes(version);
   };
 
   const toURL = (bucketName: string, name: string, version: string) =>
@@ -516,7 +543,8 @@ export const useFiles = (projectId: string, token: string) => {
       bucketName,
       name,
       version
-    }) => bucketName === parsed[1] && name === parsed[2] && version === parsed[3]) ?? null;
+    }) => bucketName === parsed[1] && name === parsed[2] &&
+      version === parsed[3]) ?? null;
   };
 
   return {

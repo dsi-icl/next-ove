@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 import { isError } from "@ove/ove-types";
 import { useProject, useSave } from "./hooks";
 
-const Loader = ({token}: {token: string}) => {
+const Loader = ({ token }: { token: string }) => {
   const query = useQuery();
   const user = trpc.getUserID.useQuery();
 

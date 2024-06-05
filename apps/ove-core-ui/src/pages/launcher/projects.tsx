@@ -17,11 +17,13 @@ type Action = "config" | "launch"
 
 const getDialogStyling = (action: Action | null) => {
   if (action === null) return {};
-  if (action === "config") return {
-    width: "20vw",
-    aspectRatio: "4/3.25",
-    borderRadius: "0.25rem"
-  };
+  if (action === "config") {
+    return {
+      width: "20vw",
+      aspectRatio: "4/3.25",
+      borderRadius: "0.25rem"
+    };
+  }
   return {
     width: "calc((90vh / 9) * 16)",
     aspectRatio: "unset",
@@ -30,7 +32,13 @@ const getDialogStyling = (action: Action | null) => {
   };
 };
 
-const getDialogContent = (project: Project | null, action: Action | null, observatories: string[], launch: (config: LaunchConfigT) => void, config: LaunchConfigT | null) => {
+const getDialogContent = (
+  project: Project | null,
+  action: Action | null,
+  observatories: string[],
+  launch: (config: LaunchConfigT) => void,
+  config: LaunchConfigT | null
+) => {
   if (action === null || project === null) return null;
   if (action === "config") {
     return <LaunchConfig observatories={observatories} launch={launch}
@@ -75,7 +83,11 @@ const Projects = () => {
         <h4 className={styles.heading}>Public</h4>
         <ul className={styles.projects}>
           {projects.data.filter(x => !isError(x) && x.isPublic).map(project => {
-            const formattedProject = {...project, created: new Date(project.created), updated: new Date(project.updated)};
+            const formattedProject = {
+              ...project,
+              created: new Date(project.created),
+              updated: new Date(project.updated)
+            };
             return <ProjectCard project={formattedProject} openDialog={() => {
               setProject(formattedProject);
               setAction("config");
@@ -87,7 +99,9 @@ const Projects = () => {
                 title="Launcher"
                 style={getDialogStyling(action)}
                 hiddenStyle={{ padding: action === "launch" ? 0 : "1rem" }}>
-          {getDialogContent(project, action, Object.keys(observatories), (config: LaunchConfigT) => setAction("launch", config), config)}
+          {getDialogContent(project, action, Object.keys(observatories),
+            (config: LaunchConfigT) => setAction("launch", config),
+            config)}
         </Dialog>
         {isOpen || action !== null ?
           <div id={styles["mask"]}></div> : null}

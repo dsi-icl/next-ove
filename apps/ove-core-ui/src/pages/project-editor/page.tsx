@@ -161,8 +161,10 @@ const ProjectEditor = ({
       case "metadata":
         return <Metadata project={project} updateProject={updateProject}
                          setAction={setAction}
-                         files={assets.filter(({ bucketName: bn }) => bucketName === bn)}
-                         toURL={(name, version) => toURL(bucketName, name, version)}
+                         files={assets.filter(({ bucketName: bn }) =>
+                           bucketName === bn)}
+                         toURL={(name, version) =>
+                           toURL(bucketName, name, version)}
                          fromURL={fromURL}
                          getLatest={name => getLatest(bucketName, name)}
                          allTags={tags} invited={invited} uninvited={uninvited}
@@ -179,9 +181,11 @@ const ProjectEditor = ({
           states={states.states.filter(state => state !== states.selected)} />;
       case "controller": {
         const controller = getLatest(bucketName, "control.html");
+        const fn = (data: string) =>
+          uploadFile(controller.name, new File([data],
+            controller.name, { type: "text/plain" }));
         return <ControllerEditor controller={controller} getData={getData}
-                                 update={data =>
-                                   uploadFile(controller.name, new File([data], controller.name, { type: "text/plain" }))} />;
+                                 update={fn} />;
       }
       case "upload":
         return <FileUpload files={assets} getLatest={getLatest}
@@ -191,13 +195,15 @@ const ProjectEditor = ({
       case "launch":
         return <LaunchConfig observatories={Object.keys(observatories)}
                              sections={sections.all}
-                             launch={(config: LaunchConfigT) => void setAction("live", config)}
+                             launch={(config: LaunchConfigT) =>
+                               void setAction("live", config)}
                              project={project} />;
       case "env": {
         const env = getLatest(bucketName, "env.json");
-        return <EnvEditor env={env} getData={getData}
-                          update={data =>
-                            uploadFile(env.name, new File([data], env.name, { type: "text/plain" }))} />;
+        const fn = (data: string) =>
+          uploadFile(env.name, new File([data],
+            env.name, { type: "text/plain" }));
+        return <EnvEditor env={env} getData={getData} update={fn} />;
       }
       case "live":
         return <Controller config={assert(config)} />;

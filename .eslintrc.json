@@ -29,6 +29,7 @@
             "caughtErrorsIgnorePattern": "^_"
           }
         ],
+        "no-unused-vars": "off",
         "@nx/enforce-module-boundaries": [
           "error",
           {

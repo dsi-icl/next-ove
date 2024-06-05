@@ -28,7 +28,9 @@ const generateProcedure =
     .input<TCoreAPI[Key]["args"]>(CoreAPI[k].args)
     .output<TCoreAPI[Key]["bridge"]>(CoreAPI[k].bridge);
 
-const handler = async <Key extends keyof TCoreAPI, T extends {bridgeId: string}>(k: Key, input: T | undefined): Promise<TCoreAPIOutput<Key>> => {
+const handler = async <Key extends keyof TCoreAPI, T extends {
+  bridgeId: string
+}>(k: Key, input: T | undefined): Promise<TCoreAPIOutput<Key>> => {
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   const { bridgeId, ...args } = input;
   logger.info(`Handling: ${k}`);
@@ -36,7 +38,7 @@ const handler = async <Key extends keyof TCoreAPI, T extends {bridgeId: string}>
     const socket = getSocket(bridgeId);
     if (socket === null) throw new Error(`${bridgeId} is not connected`);
     // @ts-expect-error arg spread
-    return socket.emitWithAck(k, args)
+    return socket.emitWithAck(k, args);
   });
   if (isError(res)) {
     return {
@@ -44,14 +46,15 @@ const handler = async <Key extends keyof TCoreAPI, T extends {bridgeId: string}>
         bridge: bridgeId
       },
       response: res
-    }
-  // @ts-expect-error
+    };
+    // @ts-expect-error - TODO: provide explanation
   } else return res;
 };
 
 const generateQuery =
   <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)
-    .query<TCoreAPIOutput<Key>>(({ input }): Promise<TCoreAPIOutput<Key>> => handler(k, input));
+    .query<TCoreAPIOutput<Key>>(({ input }): Promise<TCoreAPIOutput<Key>> =>
+      handler(k, input));
 
 const generateMutation =
   <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)

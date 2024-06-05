@@ -37,7 +37,7 @@ const sendCommand = (
   timeout: number,
   ...args: number[]
 ) => {
-  const socket = new Socket()
+  const socket = new Socket();
   socket.setTimeout(timeout);
 
   socket.on("timeout", () => {
@@ -80,9 +80,11 @@ export const getStatus = async (
   timeout: number,
   id: number,
   ip: string,
-  port?: number,
+  port?: number
 ): Promise<"on" | "off" | OVEException> => {
-  const status = await new Promise<Uint8Array | OVEException>(resolve => sendCommand(resolve, id, ip, port, 0x11, timeout));
+  const status =
+    await new Promise<Uint8Array | OVEException>(resolve =>
+      sendCommand(resolve, id, ip, port, 0x11, timeout));
   if (isError(status)) return status;
   return "on";
 };
@@ -92,7 +94,7 @@ export const setPower = async (
   timeout: number,
   id: number,
   ip: string,
-  port?: number,
+  port?: number
 ): Promise<boolean | OVEException> => {
   const powerState = state === "off" ? 0x00 : (state === "on" ? 0x01 : 0x02);
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
@@ -106,7 +108,7 @@ export const setVolume = async (
   timeout: number,
   id: number,
   ip: string,
-  port?: number,
+  port?: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, id, ip, port, 0x12, timeout, volume));
@@ -119,7 +121,7 @@ export const setIsMute = async (
   timeout: number,
   id: number,
   ip: string,
-  port?: number,
+  port?: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, id, ip, port, 0x13, timeout, state ? 0x01 : 0x00));
@@ -132,7 +134,7 @@ export const setSource = async (
   timeout: number,
   id: number,
   ip: string,
-  port?: number,
+  port?: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, id, ip, port, 0x14, timeout, source));
@@ -145,9 +147,14 @@ export const getInfo = async (
   id: number,
   ip: string,
   port?: number
-): Promise<{power: "off" | "on", volume: number, isMuted: boolean, source: MDCSource} | OVEException> => {
+): Promise<{
+  power: "off" | "on",
+  volume: number,
+  isMuted: boolean,
+  source: MDCSource
+} | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
-  sendCommand(resolve, id, ip, port, 0x00, timeout));
+    sendCommand(resolve, id, ip, port, 0x00, timeout));
   if (isError(res)) return res;
   if (res.length < 10) return raise("Incorrect result");
 

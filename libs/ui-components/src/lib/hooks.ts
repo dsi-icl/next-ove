@@ -5,6 +5,7 @@ import type { FieldErrors } from "react-hook-form";
 
 export const useFormErrorHandling = (errors: FieldErrors) => {
   useEffect(() => {
-    Object.values(errors).forEach(error => toast.error(Json.stringify(error?.message)));
+    Object.values(errors).forEach(error =>
+      toast.error(Json.stringify(error?.message)));
   }, [errors]);
 };

@@ -14,7 +14,13 @@ const ObservatoryBoundsSchema = z.record(z.string(), BoundsSchema);
 
 export const coreRouter = router({
   getObservatories: protectedProcedure
-    .meta({ openapi: { method: "GET", path: "/core/observatories", protect: true } })
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/core/observatories",
+        protect: true
+      }
+    })
     .input(z.void())
     .output(z.union([ObservatorySchema.array(), OVEExceptionSchema]))
     .query(async ({ ctx }) => {

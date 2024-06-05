@@ -169,7 +169,7 @@ const SectionConfig = ({
       setValue("fileName", `${file.bucketName}/${file.name}`);
       setValue("fileVersion", file.version.toString());
     }
-  }, [selected, sections, fromURL, resetField, setValue, space]);
+  }, [selected, sections, fromURL, resetField, setValue, space, resetFields]);
 
   const onSubmit = (section: SectionConfigForm) => {
     if (mode === "grid" && (space.space === null || space.cells === null)) {
@@ -207,8 +207,10 @@ const SectionConfig = ({
 
   const onAssetChange = useCallback((asset: string) => {
     const file = fromURL(asset ?? "");
-    setValue("fileVersion", file === null ? "-- select an option --" : file.version);
-    setValue("fileName", file === null ? "-- select an option --" : `${file.bucketName}/${file.name}`);
+    setValue("fileVersion", file === null ? "-- select an option --" :
+      file.version);
+    setValue("fileName", file === null ? "-- select an option --" :
+      `${file.bucketName}/${file.name}`);
     if (file !== null) {
       setValue("dataType", getDataTypeFromFile(file) ??
         "-- select an option --");
@@ -220,9 +222,12 @@ const SectionConfig = ({
   }, [url, onAssetChange]);
 
   useEffect(() => {
-    if (fileName === null || fileName === undefined || fileName === "-- select an option --") return;
+    if (fileName === null || fileName === undefined ||
+      fileName === "-- select an option --") return;
     const [bn, fn] = fileName.split("/");
-    const fv = fileVersion === null || fileVersion === undefined || fileVersion === "-- select an option --" || !hasVersion(bn, fn, fileVersion) ? getLatest(bn, fn).version : fileVersion;
+    const fv = fileVersion === null || fileVersion === undefined ||
+    fileVersion === "-- select an option --" ||
+    !hasVersion(bn, fn, fileVersion) ? getLatest(bn, fn).version : fileVersion;
     setValue("asset", toURL(bn, fn, fv));
   }, [fileName, setValue, toURL, fileVersion, getLatest, hasVersion]);
 

@@ -23,8 +23,8 @@ export const statusOptions = async (
 const getSyn = (ip: string): StatusOptions => {
   if (env.SYN_SCAN_COMMAND === undefined) return "off";
   try {
-    const res = execSync(
-      env.SYN_SCAN_COMMAND.replaceAll("%IP%", ip), { timeout: env.NODE_TIMEOUT }).toString();
+    const res = execSync(env.SYN_SCAN_COMMAND.replaceAll("%IP%", ip),
+      { timeout: env.NODE_TIMEOUT }).toString();
 
     if (res.includes("seems down")) {
       return getArp(ip);
@@ -40,8 +40,8 @@ const getSyn = (ip: string): StatusOptions => {
 const getArp = (ip: string): StatusOptions => {
   if (env.ARP_SCAN_COMMAND === undefined) return "off";
   try {
-    const res = execSync(
-      env.ARP_SCAN_COMMAND.replaceAll("%IP%", ip), { timeout: env.NODE_TIMEOUT }).toString();
+    const res = execSync(env.ARP_SCAN_COMMAND.replaceAll("%IP%", ip),
+      { timeout: env.NODE_TIMEOUT }).toString();
 
     if (res.includes("seems down")) {
       return "off";

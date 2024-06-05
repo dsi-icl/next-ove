@@ -23,7 +23,9 @@ const generateProcedure =
     .input<TAPIRoutes[Key]["input"]>(APIRoutes[k].input)
     .output<TAPIRoutes[Key]["output"]>(APIRoutes[k].output);
 
-const handler = async <Key extends keyof TBridgeService, T extends {bridgeId: string}>(k: Key, input: T | undefined) => {
+const handler = async <Key extends keyof TBridgeService, T extends {
+  bridgeId: string
+}>(k: Key, input: T | undefined) => {
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   if (k === "getPublicKey") throw new Error("ILLEGAL ROUTE");
   const { bridgeId, ...args } = input;
@@ -41,9 +43,9 @@ const handler = async <Key extends keyof TBridgeService, T extends {bridgeId: st
         bridge: bridgeId
       },
       response: res
-    }
+    };
   } else return res;
-}
+};
 
 const generateQuery =
   <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)

@@ -1,7 +1,7 @@
 import ace from "ace-builds";
 import AceEditor from "react-ace";
+import React, { useState } from "react";
 import { Button } from "@ove/ui-base-components";
-import React, { useEffect, useState } from "react";
 import tex from "ace-builds/src-noconflict/mode-tex";
 import css from "ace-builds/src-noconflict/mode-css";
 import svg from "ace-builds/src-noconflict/mode-svg";
@@ -23,7 +23,8 @@ ace.config.setModuleUrl("ace/mode/text", text);
 ace.config.setModuleUrl("ace/mode/css", css);
 ace.config.setModuleUrl("ace/mode/svg", svg);
 
-export type Language = "css" | "csv" | "html" | "json" | "latex" | "markdown" | "tsv"
+export type Language = "css" | "csv" | "html" | "json" | "latex" |
+  "markdown" | "tsv"
 
 export type CustomFile = {
   data: string

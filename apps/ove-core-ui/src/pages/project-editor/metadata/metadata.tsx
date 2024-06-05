@@ -55,7 +55,8 @@ const CustomDataSchema = z.strictObject({
   collaborator: z.string()
 });
 
-const MetadataFormSchema = ProjectMetadataSchema.merge(CustomDataSchema).strict();
+const MetadataFormSchema =
+  ProjectMetadataSchema.merge(CustomDataSchema).strict();
 
 type MetadataForm = z.infer<typeof MetadataFormSchema>
 
@@ -165,7 +166,9 @@ const Metadata = ({
       tags,
       collaboratorIds: [...project.collaboratorIds.filter(x =>
         removed.find(({ id }) => id === x) === undefined)],
-      thumbnail: fileName !== null && fileName !== undefined && fileName !== "-- select an option --" && fileVersion !== null && fileVersion !== undefined && fileVersion !== "-- select an option --" ?
+      thumbnail: fileName !== null && fileName !== undefined &&
+      fileName !== "-- select an option --" && fileVersion !== null &&
+      fileVersion !== undefined && fileVersion !== "-- select an option --" ?
         toURL(fileName, fileVersion) : null
     });
     setAction(null);
@@ -183,7 +186,8 @@ const Metadata = ({
   const fileName = watch("fileName");
 
   useEffect(() => {
-    if (fileName === null || fileName === undefined || fileName === "-- select an option --") return;
+    if (fileName === null || fileName === undefined ||
+      fileName === "-- select an option --") return;
     setValue("fileVersion", getLatest(fileName).version);
   }, [setValue, fileName, bucketName, getLatest]);
 

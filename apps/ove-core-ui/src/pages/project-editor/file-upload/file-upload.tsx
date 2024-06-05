@@ -49,9 +49,11 @@ const FileUpload = ({
 
   const onSubmit = ({ file }: FileUploadForm) => {
     if (customFile !== null) {
-      uploadFile(customFile.name, new File([customFile.data], customFile.name, {type: "text/plain"}));
+      uploadFile(customFile.name, new File([customFile.data],
+        customFile.name, { type: "text/plain" }));
     } else {
-      uploadFile(("length" in file ? file[0] : file).name, "length" in file ? file[0] : file);
+      uploadFile(("length" in file ? file[0] : file).name,
+        "length" in file ? file[0] : file);
     }
     resetField("file");
   };
@@ -71,7 +73,8 @@ const FileUpload = ({
   };
 
   return mode === "upload" ?
-    <Upload file={convertCustomFile(customFile) ?? (file !== undefined && "length" in file ? file : [file])} getLatest={getLatest}
+    <Upload file={convertCustomFile(customFile) ?? (file !== undefined &&
+    "length" in file ? file : [file])} getLatest={getLatest}
             names={names} files={files} onSubmit={onSubmit}
             handleSubmit={handleSubmit} setMode={setMode}
             register={register} closeDialog={closeDialog} /> :

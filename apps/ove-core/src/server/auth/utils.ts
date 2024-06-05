@@ -16,7 +16,10 @@ export const isAuthed = async (
 
   try {
     username = (jwt.verify(username,
-      env.TOKENS.ACCESS.SECRET, {issuer: env.TOKENS.ACCESS.ISSUER, audience: env.TOKENS.ACCESS.ISSUER}) as unknown as { username: string }).username;
+      env.TOKENS.ACCESS.SECRET, {
+        issuer: env.TOKENS.ACCESS.ISSUER,
+        audience: env.TOKENS.ACCESS.ISSUER
+      }) as unknown as { username: string }).username;
     const user = await prisma.user.findUniqueOrThrow({
       where: {
         username

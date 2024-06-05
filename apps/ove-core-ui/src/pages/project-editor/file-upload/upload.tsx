@@ -43,19 +43,21 @@ const Upload = ({
       <h2>Project Files</h2>
       <button onClick={closeDialog}><X size="1.25rem" /></button>
     </header>
-    <ul style={{color: "white"}}>
+    <ul style={{ color: "white" }}>
       {names.map((name, i) => {
         const [bucketName, fileName] = name.split("/");
         return <li key={name}
                    style={{ backgroundColor: colors[i % names.length] }}>
           {name}
-          {/* @ts-expect-error – readOnly is unknown */}
-          <select value={getLatest(bucketName, fileName).version} readOnly={true}
+          {/* @ts-expect-error - readOnly prop is not known on type */}
+          <select readOnly={true}
+                  value={getLatest(bucketName, fileName).version}
                   style={{ backgroundColor: colors[i % names.length] }}>
             {files.filter(file =>
-              file.name === fileName && bucketName === file.bucketName).map(({ version }) => version).map(version =>
-              <option disabled value={version}
-                      key={version}>{version}</option>)}
+              file.name === fileName && bucketName === file.bucketName)
+              .map(({ version }) => version).map(version =>
+                <option disabled value={version}
+                        key={version}>{version}</option>)}
           </select>
         </li>;
       })}

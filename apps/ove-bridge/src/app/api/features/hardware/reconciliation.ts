@@ -451,20 +451,24 @@ const reconcileMDC = async (
   };
 
   if (currentState !== desiredState.status) {
-    reconciliation.reconcileStatus = setInterval(() =>
-      reconcileStatus(desiredState.status, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileStatus = setInterval(
+      () => reconcileStatus(desiredState.status, device, MDCService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
   if (currentInfo.source !== desiredState.source) {
-    reconciliation.reconcileSource = setInterval(() =>
-      reconcileSource(desiredState.source, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileSource = setInterval(
+      () => reconcileSource(desiredState.source, device, MDCService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
   if (currentInfo.isMuted !== desiredState.isMuted) {
-    reconciliation.reconcileIsMuted = setInterval(() =>
-      reconcileIsMuted(desiredState.isMuted, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileIsMuted = setInterval(
+      () => reconcileIsMuted(desiredState.isMuted, device, MDCService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
   if (currentInfo.volume !== desiredState.volume) {
-    reconciliation.reconcileVolume = setInterval(() =>
-      reconcileVolume(desiredState.volume, device, MDCService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileVolume = setInterval(
+      () => reconcileVolume(desiredState.volume, device, MDCService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
 };
 
@@ -486,25 +490,29 @@ const reconcilePJLink = async (
     isVideoMuted: boolean
   };
   if (currentSource.source !== desiredState.source) {
-    reconciliation.reconcileSource = setInterval(() =>
-      reconcileSource(desiredState.source, device, PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileSource = setInterval(
+      () => reconcileSource(desiredState.source, device, PJLinkService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
   if (currentSource.isMuted !== desiredState.isMuted) {
-    reconciliation.reconcileIsMuted = setInterval(() =>
-      reconcileIsMuted(desiredState.isMuted, device, PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileIsMuted = setInterval(
+      () => reconcileIsMuted(desiredState.isMuted, device, PJLinkService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
   if (currentSource.isAudioMuted !== desiredState.isAudioMuted) {
-    reconciliation.reconcileIsAudioMuted = setInterval(() =>
-      reconcileIsAudioMuted(desiredState.isAudioMuted, device,
-        PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileIsAudioMuted = setInterval(
+      () => reconcileIsAudioMuted(desiredState.isAudioMuted, device,
+        PJLinkService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
 
   if (currentSource.isVideoMuted !== desiredState.isVideoMuted) {
-    reconciliation.reconcileIsVideoMuted = setInterval(() =>
-      reconcileIsVideoMuted(desiredState.isVideoMuted, device,
-        PJLinkService), env.RECONCILIATION_ERROR_TIMEOUT);
+    reconciliation.reconcileIsVideoMuted = setInterval(
+      () => reconcileIsVideoMuted(desiredState.isVideoMuted, device,
+        PJLinkService),
+      env.RECONCILIATION_ERROR_TIMEOUT);
   }
 };
 

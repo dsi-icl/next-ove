@@ -49,7 +49,10 @@ const ProjectSchema = z.strictObject({
   isPublic: z.boolean()
 });
 
-const ProjectSchemaOutput = ProjectSchema.omit({created: true, updated: true}).extend({created: z.date(), updated: z.date()})
+const ProjectSchemaOutput = ProjectSchema.omit({
+  created: true,
+  updated: true
+}).extend({ created: z.date(), updated: z.date() });
 
 const UserSchema = z.strictObject({
   id: z.string(),
@@ -71,10 +74,12 @@ const InviteSchema = z.strictObject({
 
 const DataFormatConfigOptionsSchema = z.strictObject({
   containsHeader: z.boolean().optional(),
-  tableSource: z.union([z.literal("csv"), z.literal("html"), z.literal("tsv")]).optional()
+  tableSource: z.union([z.literal("csv"), z.literal("html"),
+    z.literal("tsv")]).optional()
 });
 
-export type DataFormatConfigOptions = z.infer<typeof DataFormatConfigOptionsSchema>
+export type DataFormatConfigOptions =
+  z.infer<typeof DataFormatConfigOptionsSchema>
 
 export type Controller = {
   getProjectsForUser: (prisma: PrismaClient, user: string) => Promise<Project[]>
@@ -85,8 +90,8 @@ export type Controller = {
   getUsers: (prisma: PrismaClient) => Promise<User[]>
   getInvitesForProject: (prisma: PrismaClient, projectId: string) =>
     Promise<Invite[]>
-  getFiles: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string) =>
-    Promise<z.infer<typeof FileSchema>[]>
+  getFiles: (prisma: PrismaClient, s3: MinioClient | null, username: string,
+    projectId: string) => Promise<z.infer<typeof FileSchema>[]>
   createProject: (
     prisma: PrismaClient,
     s3: MinioClient | null,
@@ -105,8 +110,9 @@ export type Controller = {
     Promise<Section[]>
   getPresignedGetURL: (s3: MinioClient | null, bucketName: string,
     objectName: string, versionId: string) => Promise<string | OVEException>
-  getPresignedPutURL: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
-    objectName: string) => Promise<string | OVEException>
+  getPresignedPutURL: (prisma: PrismaClient, s3: MinioClient | null,
+    username: string, projectId: string, objectName: string) =>
+    Promise<string | OVEException>
   generateThumbnail: (prisma: PrismaClient, projectId: string) =>
     Promise<string | OVEException>
   inviteCollaborator: (prisma: PrismaClient, projectId: string,
@@ -115,11 +121,13 @@ export type Controller = {
     collaboratorId: string) => Promise<void | OVEException>
   getLayout: (prisma: PrismaClient, projectId: string) =>
     Promise<Section[] | OVEException>
-  getEnv: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string) =>
-    Promise<object | OVEException>
-  getController: (prisma: PrismaClient, s3: MinioClient | null, username: string, projectId: string,
-    observatory: string, layout?: Section[]) => Promise<string | OVEException>
-  formatData: (title: string, dataType: DataTypes, data: string, opts?: DataFormatConfigOptions) => Promise<{
+  getEnv: (prisma: PrismaClient, s3: MinioClient | null,
+    username: string, projectId: string) => Promise<object | OVEException>
+  getController: (prisma: PrismaClient, s3: MinioClient | null,
+    username: string, projectId: string, observatory: string,
+    layout?: Section[]) => Promise<string | OVEException>
+  formatData: (title: string, dataType: DataTypes, data: string,
+    opts?: DataFormatConfigOptions) => Promise<{
     data: string
     fileName: string
   } | OVEException>
@@ -249,7 +257,11 @@ export const projectsRouter = router({
     .mutation(async ({ ctx, input }) => {
       logger.info(`Saving project ${input.project.id}`);
       return safe(logger, () =>
-        controller.saveProject(ctx.prisma, ctx.user, { ...input.project, created: new Date(input.project.created), updated: new Date(input.project.updated) }, input.layout));
+        controller.saveProject(ctx.prisma, ctx.user, {
+          ...input.project,
+          created: new Date(input.project.created),
+          updated: new Date(input.project.updated)
+        }, input.layout));
     }),
   getFiles: protectedProcedure
     .meta({
@@ -263,7 +275,8 @@ export const projectsRouter = router({
     .output(z.union([FileSchema.array(), OVEExceptionSchema]))
     .query(async ({ ctx, input: { projectId } }) => {
       logger.info(`Getting files for ${projectId}`);
-      return await safe(logger, () => controller.getFiles(ctx.prisma, ctx.s3, ctx.user, projectId));
+      return await safe(logger, () =>
+        controller.getFiles(ctx.prisma, ctx.s3, ctx.user, projectId));
     }),
   getFileContents: protectedProcedure
     .meta({
@@ -288,7 +301,8 @@ export const projectsRouter = router({
     .meta({
       openapi: {
         method: "GET",
-        path: "/project/{bucketName}/file/{objectName}/{versionId}/presigned/get",
+        path:
+          "/project/{bucketName}/file/{objectName}/{versionId}/presigned/get",
         protect: true
       }
     })
@@ -408,7 +422,8 @@ export const projectsRouter = router({
     .output(z.union([z.custom(), OVEExceptionSchema]))
     .query(({ ctx, input: { projectId } }) => {
       logger.info(`Getting environment for ${projectId}`);
-      return safe(logger, () => controller.getEnv(ctx.prisma, ctx.s3, ctx.user, projectId));
+      return safe(logger, () =>
+        controller.getEnv(ctx.prisma, ctx.s3, ctx.user, projectId));
     }),
   getController: protectedProcedure
     .meta({
@@ -427,7 +442,9 @@ export const projectsRouter = router({
     .query(({ ctx, input: { projectId, observatory, layout } }) => {
       logger.info(`Getting controller for ${projectId}`);
       return safe(logger, () =>
-        controller.getController(ctx.prisma, ctx.s3, ctx.user, projectId, observatory, SectionSchema.array().optional().parse(layout === undefined ? undefined : Json.parse(layout))));
+        controller.getController(ctx.prisma, ctx.s3, ctx.user, projectId,
+          observatory, SectionSchema.array().optional()
+            .parse(layout === undefined ? undefined : Json.parse(layout))));
     }),
   formatData: protectedProcedure
     .meta({
@@ -437,10 +454,19 @@ export const projectsRouter = router({
         protect: true
       }
     })
-    .input(z.strictObject({ title: z.string(), dataType: DataTypesSchema, data: z.string(), opts: DataFormatConfigOptionsSchema.optional() }))
-    .output(z.union([z.strictObject({data: z.string(), fileName: z.string()}), OVEExceptionSchema]))
+    .input(z.strictObject({
+      title: z.string(),
+      dataType: DataTypesSchema,
+      data: z.string(),
+      opts: DataFormatConfigOptionsSchema.optional()
+    }))
+    .output(z.union([z.strictObject({
+      data: z.string(),
+      fileName: z.string()
+    }), OVEExceptionSchema]))
     .mutation(({ input: { title, dataType, data, opts } }) => {
       logger.info(`Formatting data of type ${dataType}`);
-      return safe(logger, () => controller.formatData(title, dataType, data, opts));
+      return safe(logger, () =>
+        controller.formatData(title, dataType, data, opts));
     })
 });

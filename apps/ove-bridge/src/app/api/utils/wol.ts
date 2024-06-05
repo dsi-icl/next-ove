@@ -1,4 +1,4 @@
-/* global Buffer */
+/* global Buffer, setTimeout */
 
 import * as net from "net";
 import * as udp from "dgram";
@@ -65,7 +65,7 @@ export const wake = async (
 
     setTimeout(() => {
       socket.close();
-      reject(`No response in ${timeout / 1_000}s`);
+      reject(new Error(`No response in ${timeout / 1_000}s`));
     }, timeout);
   });
 };

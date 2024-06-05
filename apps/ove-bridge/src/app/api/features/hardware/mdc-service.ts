@@ -1,5 +1,3 @@
-/* global setTimeout */
-
 import {
   type Device,
   type TBridgeHardwareService,
@@ -69,7 +67,8 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return statusOptions(async () => mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port), ip);
+  return statusOptions(async () =>
+    mdc.getStatus(env.MDC_TIMEOUT, 0x01, ip, port), ip);
 };
 
 const mute = async ({
@@ -120,8 +119,8 @@ const setSource = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc
-    .setSource(mdc.sources[parsedOpts.data.source], env.MDC_TIMEOUT, 0x01, ip, port);
+  return mdc.setSource(mdc.sources[parsedOpts.data.source],
+    env.MDC_TIMEOUT, 0x01, ip, port);
 };
 
 const MDCService: TBridgeHardwareService = {

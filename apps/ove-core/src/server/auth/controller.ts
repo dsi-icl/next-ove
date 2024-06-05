@@ -56,8 +56,11 @@ const login = async (ctx: Context): Promise<Tokens> => {
   }
 
   const accessToken = service.generateToken(
-    username, env.TOKENS.ACCESS.SECRET, env.TOKENS.ACCESS.ISSUER, env.TOKENS.ACCESS.EXPIRY, env.TOKENS.ACCESS.ISSUER);
-  const refreshToken = service.generateToken(username, env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER, undefined, env.TOKENS.REFRESH.ISSUER);
+    username, env.TOKENS.ACCESS.SECRET, env.TOKENS.ACCESS.ISSUER,
+    env.TOKENS.ACCESS.EXPIRY, env.TOKENS.ACCESS.ISSUER);
+  const refreshToken = service.generateToken(username,
+    env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER,
+    undefined, env.TOKENS.REFRESH.ISSUER);
 
   await ctx.prisma.refreshToken.upsert({
     where: {
@@ -111,8 +114,9 @@ const getToken = async (ctx: Context) => {
   }
 
   return {
-    token: service.generateToken(
-      user.username, env.TOKENS.ACCESS.SECRET, env.TOKENS.ACCESS.ISSUER, env.TOKENS.ACCESS.EXPIRY, env.TOKENS.ACCESS.ISSUER),
+    token: service.generateToken(user.username, env.TOKENS.ACCESS.SECRET,
+      env.TOKENS.ACCESS.ISSUER, env.TOKENS.ACCESS.EXPIRY,
+      env.TOKENS.ACCESS.ISSUER),
     expiry: new Date(Date.now() + ms(env.TOKENS.ACCESS.EXPIRY))
   };
 };
