@@ -1,17 +1,9 @@
 import { z } from "zod";
 import { logger } from "../../env";
+import { safe } from "@ove/ove-utils";
 import controller from "./controller";
 import { procedure, protectedProcedure, router } from "../trpc";
-import { type OVEException, OVEExceptionSchema } from "@ove/ove-types";
-
-const safe = async <T>(handler: () => T): Promise<T | OVEException> => {
-  try {
-    return handler();
-  } catch (e) {
-    logger.error(e);
-    return { oveError: (e as Error).message };
-  }
-};
+import { OVEExceptionSchema } from "@ove/ove-types";
 
 const UserSchema = z.strictObject({
   id: z.string(),
@@ -33,7 +25,15 @@ export const authRouter = router({
     })]))
     .mutation(async ({ ctx }) => {
       logger.info("Logging in user");
-      return safe(() => controller.login(ctx));
+      return safe(logger, () => controller.login(ctx.prisma, ctx.user));
+    }),
+  logout: protectedProcedure
+    .meta({ openapi: { method: "DELETE", path: "/logout" } })
+    .input(z.void())
+    .output(z.union([OVEExceptionSchema, z.void()]))
+    .mutation(async ({ ctx }) => {
+      logger.info("Logging out user");
+      return safe(logger, () => controller.logout(ctx.prisma, ctx.user));
     }),
   token: procedure
     .meta({ openapi: { method: "GET", path: "/token" } })
@@ -44,7 +44,7 @@ export const authRouter = router({
     })]))
     .query(async ({ ctx }) => {
       logger.info("Getting token for user");
-      return safe(() => controller.getToken(ctx));
+      return safe(logger, () => controller.getToken(ctx.prisma, ctx.user));
     }),
   getUserID: protectedProcedure
     .meta({ openapi: { method: "GET", path: "/user" } })
@@ -52,6 +52,6 @@ export const authRouter = router({
     .output(z.union([OVEExceptionSchema, UserSchema]))
     .query(async ({ ctx }) => {
       logger.info("Getting user");
-      return safe(() => controller.getUser(ctx.prisma, ctx.user));
+      return safe(logger, () => controller.getUser(ctx.prisma, ctx.user));
     })
 });

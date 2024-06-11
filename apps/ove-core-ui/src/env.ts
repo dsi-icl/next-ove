@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Logger } from "@ove/ove-logging";
+import { assert } from "@ove/ove-utils";
 
 interface ImportMeta {
   env: ImportMetaEnv;
@@ -18,6 +19,9 @@ interface ImportMetaEnv {
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
+
+const isConfigured = (key: string | undefined) =>
+  key !== undefined && !key.startsWith("NEXT_OVE");
 
 const schema = z.strictObject({
   BASE_URL: z.string(),
@@ -39,10 +43,12 @@ const parsedConfig = schema.parse({
   BASE_URL: env_.VITE_BASE_URL,
   CORE_URL: env_.VITE_CORE_URL,
   PROJECT_LAUNCHER: env_.VITE_PROJECT_LAUNCHER,
-  LOG_LEVEL: env_.VITE_LOG_LEVEL !== undefined ?
-    parseInt(env_.VITE_LOG_LEVEL) : undefined,
-  LOGGING_SERVER: env_.VITE_LOGGING_SERVER,
-  VIDEO_STREAM_URL: env_.VITE_VIDEO_STREAM_URL,
+  LOG_LEVEL: isConfigured(env_.VITE_LOG_LEVEL) ?
+    parseInt(assert(env_.VITE_LOG_LEVEL)) : undefined,
+  LOGGING_SERVER: isConfigured(env_.VITE_LOGGING_SERVER) ?
+    assert(env_.VITE_LOGGING_SERVER) : undefined,
+  VIDEO_STREAM_URL: isConfigured(env_.VITE_VIDEO_STREAM_URL) ?
+    assert(env_.VITE_VIDEO_STREAM_URL) : undefined,
   MODE: env_.VITE_MODE,
   DISABLE_AUTH: env_.VITE_DISABLE_AUTH === "true",
   LIVE_FEED_REFRESH: parseInt(env_.VITE_LIVE_FEED_REFRESH)

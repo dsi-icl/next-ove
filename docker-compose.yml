@@ -8,10 +8,5 @@ services:
     volumes:
       - ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro
       - ./tools/prisma/.env.production:/usr/src/app/.env:ro
-  ove-core-ui:
-    image: next-ove-ui:latest
-    ports:
-      - "80:80"
     env_file:
       apps/ove-core-ui/.env.docker
-    restart: "on-failure"

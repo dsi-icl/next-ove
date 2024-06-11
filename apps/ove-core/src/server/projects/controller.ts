@@ -436,7 +436,8 @@ const getController = async (
   }
 
   data = data.replaceAll("{{OBSERVATORY}}", observatory)
-    .replaceAll("{{PROJECT_ID}}", projectId);
+    .replaceAll("{{PROJECT_ID}}", projectId)
+    .replaceAll("{{SPACE}}", observatory);
 
   const user = await prisma.user.findUnique({
     where: {

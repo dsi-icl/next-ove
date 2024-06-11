@@ -12,6 +12,8 @@ bridgeSocket.auth = {
   password: process.env.SOCKET_PASSWORD
 };
 
+console.log(process.env.SOCKET_USERNAME, process.env.SOCKET_PASSWORD);
+
 bridgeSocket.on('connect', () => console.log('Connected'));
 bridgeSocket.on('connect_error', err => console.error(err.message));
 bridgeSocket.onAny((event, args) => console.log(`Received ${event}`, args));

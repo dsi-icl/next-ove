@@ -1,13 +1,13 @@
 import {
+  type DataTypes,
+  DataTypesSchema,
   FileSchema,
   type OVEException,
-  OVEExceptionSchema,
-  type DataTypes,
-  DataTypesSchema
+  OVEExceptionSchema
 } from "@ove/ove-types";
 import type {
-  PrismaClient,
   Invite,
+  PrismaClient,
   Project,
   Section,
   User
@@ -228,15 +228,9 @@ export const projectsRouter = router({
     })]))
     .mutation(async ({ ctx, input: { files, project, layout } }) => {
       logger.info("Creating new project");
-      const res = await safe(logger, () =>
+      return safe(logger, () =>
         controller.createProject(ctx.prisma, ctx.s3, ctx.user,
           project, layout, files));
-      z.strictObject({
-        project: ProjectSchemaOutput,
-        layout: SectionSchema.array(),
-        files: z.string().array().optional()
-      }).parse(res);
-      return res;
     }),
   saveProject: protectedProcedure
     .meta({

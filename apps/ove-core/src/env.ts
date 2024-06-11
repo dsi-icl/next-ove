@@ -54,14 +54,14 @@ const baseSchema = z.strictObject({
   CONTROLLER_FORMAT: z.strictObject({
     SERVER: z.string(),
     RENDERER: z.string(),
-    SPACE: z.string(),
     DATA_TYPE_MAP: z.record(z.string(), z.string())
   }).optional(),
   DISABLE_AUTH: z.boolean(),
   TEST_USER: z.string().optional(),
   SOCKET_DIST: z.string(),
   THUMBNAIL_GENERATOR: z.string().optional(),
-  DATA_FORMATTER: z.string().optional()
+  DATA_FORMATTER: z.string().optional(),
+  UI_URL: z.string()
 });
 
 const schema = baseSchema.refine(config =>
@@ -108,7 +108,8 @@ const defaultConfig: z.infer<typeof schema> = {
   },
   DISABLE_AUTH: false,
   SOCKET_DIST: path.join(__dirname, "..", "..", "..",
-    "node_modules", "@socket.io", "admin-ui", "ui", "dist")
+    "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
+  UI_URL: path.join(__dirname, "ui")
 };
 
 const configPath = path.join(__dirname, "config", "config.json");

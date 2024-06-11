@@ -6,7 +6,6 @@ import service from "./service";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import { TRPCError } from "@trpc/server";
-import type { Context } from "../context";
 import type { Tokens } from "@ove/ove-types";
 import type { PrismaClient } from "@prisma/client";
 
@@ -15,16 +14,19 @@ type RefreshToken = {
   tokenId: string
 }
 
-const login = async (ctx: Context): Promise<Tokens> => {
-  if (ctx.user === null) {
+const login = async (
+  prisma: PrismaClient,
+  credentials: string | null
+): Promise<Tokens> => {
+  if (credentials === null) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "No credentials provided"
     });
   }
   const [username, password] = decodeURIComponent(
-    Buffer.from(ctx.user, "base64url").toString()).split(":");
-  const user = await ctx.prisma.user.findUnique({
+    Buffer.from(credentials, "base64url").toString()).split(":");
+  const user = await prisma.user.findUnique({
     where: {
       username
     }
@@ -62,7 +64,7 @@ const login = async (ctx: Context): Promise<Tokens> => {
     env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER,
     undefined, env.TOKENS.REFRESH.ISSUER);
 
-  await ctx.prisma.refreshToken.upsert({
+  await prisma.refreshToken.upsert({
     where: {
       userId: user.id
     },
@@ -82,16 +84,16 @@ const login = async (ctx: Context): Promise<Tokens> => {
   };
 };
 
-const getToken = async (ctx: Context) => {
-  if (ctx.user === null) {
+const getToken = async (prisma: PrismaClient, credentials: string | null) => {
+  if (credentials === null) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "No credentials provided"
     });
   }
-  const tokenRecord = await ctx.prisma.refreshToken.findUnique({
+  const tokenRecord = await prisma.refreshToken.findUnique({
     where: {
-      token: ctx.user
+      token: credentials
     }
   });
 
@@ -105,7 +107,7 @@ const getToken = async (ctx: Context) => {
   let user: RefreshToken;
 
   try {
-    user = jwt.verify(ctx.user, env.TOKENS.REFRESH.SECRET, {
+    user = jwt.verify(credentials, env.TOKENS.REFRESH.SECRET, {
       issuer: env.TOKENS.REFRESH.ISSUER,
       audience: env.TOKENS.REFRESH.ISSUER
     }) as RefreshToken;
@@ -121,9 +123,14 @@ const getToken = async (ctx: Context) => {
   };
 };
 
+const logout = async (prisma: PrismaClient, username: string) => {
+  const user = await prisma.user.findUniqueOrThrow({ where: { username } });
+  await prisma.refreshToken.delete({ where: { userId: user.id } });
+};
+
 const getUser = (prisma: PrismaClient, username: string) =>
   prisma.user.findUniqueOrThrow({ where: { username } });
 
-const controller = { login, getToken, getUser };
+const controller = { login, getToken, getUser, logout };
 
 export default controller;

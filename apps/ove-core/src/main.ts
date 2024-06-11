@@ -1,5 +1,3 @@
-/* global __dirname */
-
 import cors from "cors";
 import { env } from "./env";
 import * as path from "path";
@@ -37,5 +35,16 @@ if (env.NODE_ENV === "development") {
     path.join(`v${env.API_VERSION}`, "core.swagger.json"), openApiDocument);
 }
 
-app.use("/assets", express.static(path.join(__dirname, "assets")));
-app.use("/", express.static(path.join(__dirname, "ui")));
+app.use((req, res) => {
+  const reqPath = req.path.endsWith("/") ?
+    req.path.substring(0, req.path.length - 1) : req.path;
+  if (/(.ico|.js|.css|.jpg|.png|.map|.svg|.woff|.woff2)$/i.test(reqPath)) {
+    const filePath = path.join(env.UI_URL, ...reqPath.split("/"));
+    res.sendFile(filePath);
+  } else {
+    res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
+    res.header("Expires", "-1");
+    res.header("Pragma", "no-cache");
+    res.sendFile(path.join(env.UI_URL, "index.html"));
+  }
+});

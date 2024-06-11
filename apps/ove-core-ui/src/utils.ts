@@ -12,6 +12,8 @@ const fixedEncodeURI = (str: string) =>
 
 export const createClient = (tokens: Tokens) =>
   createClient_(`Bearer ${tokens.refresh}`);
+export const createLogoutClient = (token: string) =>
+  createClient_(`Bearer ${token}`);
 export const createAuthClient = (username: string, password: string) => {
   const auth = fixedEncodeURI(window.btoa(`${username}:${password}`));
   return createClient_(`Basic ${auth}`);

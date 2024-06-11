@@ -46,8 +46,8 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV production
 
-COPY ../../apps/ove-core-ui/env.sh /docker-entrypoint.d/env.sh
-RUN chmod +x /docker-entrypoint.d/env.sh
+COPY ../../apps/ove-core-ui/env.sh ./
+RUN chmod +x ./env.sh
 
 COPY --from=build /usr/src/app/dist/apps/ove-core/package.json ./
 COPY --from=build /usr/src/app/dist/apps/ove-core/package-lock.json ./
@@ -61,4 +61,4 @@ COPY --from=build /usr/src/app/dist/apps/ove-core/ ./
 
 EXPOSE 8080
 
-CMD ["node", "main.js"]
+CMD ["/bin/sh", "-c", "./env.sh;node main.js"]

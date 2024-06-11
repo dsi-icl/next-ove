@@ -4,10 +4,10 @@ import { useStore } from "./store";
 import { Json } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import { useDialog } from "@ove/ui-components";
-import { createAuthClient, createClient } from "./utils";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { LaunchConfig } from "./pages/project-editor/hooks";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createAuthClient, createLogoutClient, createClient } from "./utils";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -15,17 +15,20 @@ export const useAuth = () => {
   const setTokens = useStore(state => state.setTokens);
   const [username, setUsername] = useState<string | null>(null);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    if (tokens !== null) {
+      await createLogoutClient(tokens.access).logout.mutate();
+    }
     setTokens(null);
     localStorage.removeItem("tokens");
     navigate("/", { replace: true });
-  }, [navigate, setTokens]);
+  }, [navigate, setTokens, tokens]);
 
   const login = useCallback(async (username: string, password: string) => {
     try {
       const res = await createAuthClient(username, password).login.mutate();
       if ("oveError" in res) {
-        logout();
+        await logout();
       } else {
         setTokens({ ...res, expiry: new Date(res.expiry) });
         setUsername(username);
@@ -33,7 +36,7 @@ export const useAuth = () => {
         navigate("/", { replace: true });
       }
     } catch (e) {
-      logout();
+      await logout();
     }
   }, [logout, navigate, setTokens]);
 
@@ -42,7 +45,7 @@ export const useAuth = () => {
     try {
       const res = await createClient(tokens).token.query();
       if (isError(res)) {
-        logout();
+        await logout();
         return;
       }
       const refreshedTokens = {
@@ -54,7 +57,7 @@ export const useAuth = () => {
       setTokens(refreshedTokens);
       return refreshedTokens;
     } catch (e) {
-      logout();
+      await logout();
     }
   }, [tokens, logout, setTokens]);
 
