@@ -1,23 +1,32 @@
 {
   "NODE_ENV": "production",
   "LOG_LEVEL": 2,
-  "LOGGING_SERVER": "",
+  "LOGGING_SERVER": "https://www.example-logging.com/ingest",
   "PORT": 8080,
-  "HOSTNAME": "127.0.0.1",
+  "HOSTNAME": "0.0.0.0",
   "PROTOCOL": "http",
   "SOCKET_PATH": "/socket.io",
   "SOCKET_ADMIN": {
     "USERNAME": "example",
     "PASSWORD": "salted+hashed"
   },
-  "ACCESS_TOKEN_SECRET": "",
-  "ACCESS_TOKEN_PASSPHRASE": "",
-  "REFRESH_TOKEN_SECRET": "",
-  "REFRESH_TOKEN_PASSPHRASE": "",
+  "TOKENS": {
+    "ACCESS": {
+      "SECRET": "",
+      "PASSPHRASE": "",
+      "EXPIRY": "24h",
+      "ISSUER": "ove-core"
+    },
+    "REFRESH": {
+      "SECRET": "",
+      "PASSPHRASE": "",
+      "ISSUER": "ove-core"
+    }
+  },
   "ASSET_STORE_CONFIG": {
     "ACCESS_KEY": "",
     "SECRET_KEY": "",
-    "END_POINT": "",
+    "END_POINT": "https://example-minio.com",
     "PORT": 9000,
     "USE_SSL": false,
     "GLOBAL_BUCKETS": []
@@ -27,17 +36,17 @@
   "TOKEN_EXPIRY": "24h",
   "TEST_USER": "",
   "CONTROLLER_FORMAT": {
-    "SERVER": "",
-    "RENDERER": "",
-    "SPACE": "",
+    "SERVER": "http://localhost:3333",
+    "RENDERER": "https://example-renderer.com",
     "DATA_TYPE_MAP": {
-      "videos": "",
-      "images": "",
-      "svg": "",
-      "audio": "",
-      "html": ""
+      "videos": "https://example-renderer.com/videos",
+      "images": "https://example-renderer.com/images",
+      "svg": "https://example-renderer.com/svg",
+      "audio": "https://example-renderer.com/audio",
+      "html": "https://example-renderer.com/html"
     }
   },
-  "THUMBNAIL_GENERATOR": "",
-  "DATA_FORMATTER": ""
+  "THUMBNAIL_GENERATOR": "https://example-thumbnails.com",
+  "DATA_FORMATTER": "https://example-formatter.com",
+  "UI_URL": "dist/apps/ove-core-ui"
 }

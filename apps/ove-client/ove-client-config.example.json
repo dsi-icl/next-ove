@@ -1,0 +1,19 @@
+{
+  "HOSTNAME": "0.0.0.0",
+  "PORT": 3334,
+  "PROTOCOL": "http",
+  "RENDER_CONFIG": {
+    "PORT": 4201,
+    "HOSTNAME": "127.0.0.1",
+    "PROTOCOL": "http"
+  },
+  "BROWSER_DELAY": 2000,
+  "LOG_LEVEL": 2,
+  "LOGGING_SERVER": "https://www.example-logging.com/ingest",
+  "AUTHORISED_CREDENTIALS": "OVE_BRIDGE_PUBLIC_KEY",
+  "AUTH_ERROR_LIMIT": 3,
+  "WINDOW_CONFIG": {
+    "1": "RENDERER_SCREEN_ONE",
+    "2": "RENDERER_SCREEN_TWO"
+  }
+}

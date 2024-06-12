@@ -12,6 +12,9 @@ core.
 **ove-client** is an Electron application used to manage the hardware of a
 rendering node and to display the content.
 
+Further documentation on this component can be found at
+the [ove-client README](./apps/ove-client/README.md).
+
 #### ove-client-ui
 
 **ove-client-ui** is a React application that is bundled with ove-client in
@@ -21,6 +24,9 @@ production for custom displays.
 
 **ove-bridge** is an Electron application that manages an entire Observatory and
 connects the individual constituent devices with the central cloud platform.
+
+Further documentation on this component can be found at
+the [ove-bridge README](./apps/ove-bridge/README.md).
 
 #### ove-bridge-ui
 
@@ -49,7 +55,8 @@ for the ove-core cloud platform and is bundled within it.
 
 ```npm run user:add``` - add user to DB
 
-```npm run start``` - serve all applications, including the UI as separate services
+```npm run start``` - serve all applications, including the UI as separate
+services
 
 ### Production
 
@@ -85,16 +92,33 @@ components help to enhance the functionality of the platform.
 This is the only additional component that is not optional. Connection to a
 Mongo database is used to manage authentication and user projects.
 
+For local development, a container can be created via the Docker Compose file
+provided under the dev directory. Additional commands are required to run it as
+a ReplicaSet, which are provided in the [README](./dev/README.md).
+
+For use in production systems, please follow the steps and guides on
+the [MongoDB website](https://www.mongodb.com/docs/manual/installation/).
+
 ### Minio/S3
 
 There is an optional integration with the S3 API compatible Minio storage
 system. This can be used for storing files for use in projects.
+
+For local development, a container can be created via the Docker Compose file
+provided under the dev directory.
+
+For use in production systems, please follow the steps and guides on
+the [Minio website](https://min.io/docs/minio/linux/operations/installation.html).
 
 ### Calendar
 
 Any JSON providing endpoint that matches the Microsoft Outlook schema can be
 ingested, allowing for the use of Eco Mode on the Observatory, where it is
 turned off and on automatically with a buffer time around events.
+
+For information on integrating a Microsoft calendar, please follow the
+instructions on
+the [Microsoft website](https://learn.microsoft.com/en-us/graph/outlook-mail-concept-overview).
 
 ### IP Cameras
 
@@ -106,9 +130,16 @@ providing a real-time view of what is being rendered on the displays.
 This can be found under the tools directory of this repository and uses an AI
 model to generate thumbnails for projects to be displayed on the launcher page.
 
+Information for configuring this service can be found in
+the [README](./tools/thumbnail-generator/README.md).
+
 ### Logging
 
-All logs can be sent to an API for ingestion, for integration with ELK etc.
+All logs can be sent to an API for storage/processing. A JSON receiving endpoint
+is required, i.e. the ingestion APIs of the ELK stack.
+
+For information on configuring the ELK stack, please refer to
+the [ELK documentation](https://www.elastic.co/guide/index.html).
 
 ### Rendering
 

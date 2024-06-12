@@ -29,7 +29,6 @@ const schema = z.strictObject({
   PROJECT_LAUNCHER: z.string(),
   LOG_LEVEL: z.number().optional(),
   LOGGING_SERVER: z.string().optional(),
-  VIDEO_STREAM_URL: z.string().optional(),
   MODE: z.union([
     z.literal("production"),
     z.literal("development"),
@@ -47,8 +46,6 @@ const parsedConfig = schema.parse({
     parseInt(assert(env_.VITE_LOG_LEVEL)) : undefined,
   LOGGING_SERVER: isConfigured(env_.VITE_LOGGING_SERVER) ?
     assert(env_.VITE_LOGGING_SERVER) : undefined,
-  VIDEO_STREAM_URL: isConfigured(env_.VITE_VIDEO_STREAM_URL) ?
-    assert(env_.VITE_VIDEO_STREAM_URL) : undefined,
   MODE: env_.VITE_MODE,
   DISABLE_AUTH: env_.VITE_DISABLE_AUTH === "true",
   LIVE_FEED_REFRESH: parseInt(env_.VITE_LIVE_FEED_REFRESH)
