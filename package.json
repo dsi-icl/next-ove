@@ -147,7 +147,6 @@
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
     "@hookform/resolvers": "^3.3.3",
-    "@nx/nx-darwin-arm64": "^19.2.3",
     "@prisma/client": "5.10.2",
     "@radix-ui/react-hover-card": "^1.0.7",
     "@radix-ui/react-navigation-menu": "^1.1.3",

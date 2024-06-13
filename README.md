@@ -38,6 +38,9 @@ of the Observatory and is bundled with ove-bridge.
 **ove-core** is the cloud platform for managing all the connected Observatories,
 as well as creating, updating and launching projects.
 
+Further documentation on this component can be found at
+the [ove-core README](./apps/ove-core/README.md).
+
 #### ove-core-ui
 
 **ove-core-ui** is a React application providing an easy to navigate frontend
@@ -70,16 +73,22 @@ Observatory's devices.
 Load the Docker images from the GitHub releases page using the following
 command:
 
-```docker load --input ove-core-{VERSION}.tar.gz```
+```shell
+docker load --input next-ove-core-{VERSION}.tar.gz
+```
 
 This image can be run using the docker-compose.yml file in the root of the
 repository:
 
-```docker compose up -d```
+```shell
+docker compose up -d
+```
 
 It can also be run as an individual container with the following command:
 
-```docker run --name ove-core --env-file apps/ove-core-ui/.env.docker -v ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro -v ./tools/prisma/.env.production:/usr/src/app/.env:ro -p 8080:8080 -d ove-core-{VERSION}```
+```shell
+docker run --name ove-core --env-file apps/ove-core-ui/.env.docker -v ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro -v ./tools/prisma/.env.production:/usr/src/app/.env:ro -p 8080:8080 -d ove-core-{VERSION}
+```
 
 ## Additional Components
 
