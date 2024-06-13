@@ -1,5 +1,5 @@
-const io = require('socket.io-client').io;
 const dotenv = require('dotenv');
+const io = require('socket.io-client').io;
 
 dotenv.config();
 

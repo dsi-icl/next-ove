@@ -1,5 +1,6 @@
 const prompt = require('prompt');
 const PrismaClient = require('@prisma/client').PrismaClient;
+
 const getDetails = () => {
   prompt.start();
   prompt.message = 'Enter username:\n';

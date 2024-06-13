@@ -87,7 +87,7 @@ docker compose up -d
 It can also be run as an individual container with the following command:
 
 ```shell
-docker run --name ove-core --env-file apps/ove-core-ui/.env.docker -v ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro -v ./tools/prisma/.env.production:/usr/src/app/.env:ro -p 8080:8080 -d ove-core-{VERSION}
+docker run --name ove-core --env-file apps/ove-core-ui/.env.docker -v ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro -v ./tools/db/.env.production:/usr/src/app/.env:ro -p 8080:8080 -d ove-core-{VERSION}
 ```
 
 ## Additional Components

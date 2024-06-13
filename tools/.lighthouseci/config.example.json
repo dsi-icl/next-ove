@@ -1,0 +1,9 @@
+{
+  "configFile": "",
+  "adminToken": "",
+  "buildToken": "",
+  "serverBaseURL": "",
+  "baseURL": "",
+  "tempDir": ".lighthouseci",
+  "outDir": "tools/.lighthouseci"
+}

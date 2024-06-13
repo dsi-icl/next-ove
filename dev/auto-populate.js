@@ -1,7 +1,3 @@
-const PrismaClient = require('@prisma/client').PrismaClient;
-const { readFileSync } = require('fs');
-const Minio = require('minio');
-const glob = require('glob').glob;
 const {
   rand, randAnimal, randBetweenDate, randBoolean,
   randEmail, randFloat, randNumber,
@@ -9,9 +5,13 @@ const {
   randRecentDate, randText, randUrl,
   randUserName, randUuid, randVehicleType
 } = require('@ngneat/falso');
+const Minio = require('minio');
+const glob = require('glob').glob;
 const dotenv = require('dotenv');
-const path = require('path');
 const { Readable } = require('stream');
+const { readFileSync } = require('fs');
+const path = require('path');
+const PrismaClient = require('@prisma/client').PrismaClient;
 
 dotenv.config();
 

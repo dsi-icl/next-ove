@@ -24,15 +24,15 @@
     "lint": "npx nx run-many --target=lint",
     "list": "npm ls --all --json --silent > tools/packages/packages.json && npm ls --all --silent > tools/packages/packages.txt",
     "package-audit": "npx sandworm-audit -o tools/sandworm",
-    "prisma": "cd tools/prisma && npx prisma generate",
-    "prisma:pull": "cd tools/prisma && npx prisma db pull",
-    "prisma:push": "cd tools/prisma && npx prisma db push",
+    "prisma": "cd tools/db && npx prisma generate",
+    "prisma:pull": "cd tools/db && npx prisma db pull",
+    "prisma:push": "cd tools/db && npx prisma db push",
     "start": "npx nx run-many --target=serve",
     "test:integration": "npx jest --config jest.integration.config.ts",
     "test": "npx nx run-many --target=test",
     "ts-coverage": "npx typescript-coverage-report -o tools/coverage-ts",
     "typedoc": "npx typedoc --options tools/typedoc/typedoc.json --tsconfig tsconfig.json",
-    "user:add": "node tools/prisma/add-user.js"
+    "user:add": "node tools/db/add-user.js"
   },
   "private": true,
   "devDependencies": {

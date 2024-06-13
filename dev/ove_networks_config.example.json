@@ -1,0 +1,40 @@
+{
+  "states": {
+    "Demo 1": {
+      "jsonURL": "",
+      "settings": {
+        "autoRescale": true,
+        "clone": false,
+        "defaultNodeColor": "#ec5148"
+      }
+    },
+    "Demo 2": {
+      "neo4j": {
+        "boundingBoxNodeSize": 1,
+        "x": { "min": -10.038, "max": 37.570 },
+        "y": { "min": 0, "max": 360 },
+        "db": { "url": "", "user": "", "password": "" },
+        "query": ""
+      },
+      "renderer": "canvas",
+      "settings": {
+        "defaultLabelColor": "#ec5148",
+        "labelThreshold": 1,
+        "autoRescale": true,
+        "clone": false,
+        "minNodeSize": 0,
+        "maxNodeSize": 0,
+        "rescaleIgnoreSize": true,
+        "skipErrors": true
+      }
+    },
+    "Demo 3": {
+      "gexfURL": "",
+      "settings": {
+        "autoRescale": true,
+        "clone": false,
+        "defaultNodeColor": "#ec5148"
+      }
+    }
+  }
+}

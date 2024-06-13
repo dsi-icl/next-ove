@@ -686,8 +686,8 @@ Temporary Items
 # Custom rules
 !dist/apps/ove-core/
 !dist/apps/ove-core-ui/
-/tools/prisma/*
-!/tools/prisma/schema.prisma
+/tools/db/*
+!/tools/db/schema.prisma
 /dist/apps/ove-core/config/config.json
 /dist/apps/ove-core/config/config.example.json
 

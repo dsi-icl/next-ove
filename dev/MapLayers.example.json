@@ -1,0 +1,396 @@
+[
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.BingMaps",
+      "config": {
+        "key": "",
+        "imagerySet": "Aerial",
+        "maxZoom": 19
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.XYZ",
+      "config": {
+        "crossOrigin": null,
+        "tileSize": [512,512],
+        "url": "http://heatmap-external-{a-c}.strava.com/tiles/ride/hot/{z}/{x}/{y}@2.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.XYZ",
+      "config": {
+        "crossOrigin": null,
+        "tileSize": [512,512],
+        "url": "http://heatmap-external-{a-c}.strava.com/tiles/run/hot/{z}/{x}/{y}@2.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://globalheat.strava.com/tiles/cycling/color7/{z}/{x}/{y}.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://globalheat.strava.com/tiles/running/color7/{z}/{x}/{y}.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://globalheat.strava.com/tiles/cycling/color2/{z}/{x}/{y}.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://globalheat.strava.com/tiles/running/color2/{z}/{x}/{y}.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.Stamen",
+      "config": { "layer": "toner" }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.Stamen",
+      "config": { "layer": "terrain" }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.Stamen",
+      "config": { "layer": "watercolor" }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.XYZ",
+      "config": { "layer": "http://s.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png" }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.XYZ",
+      "config": { "layer": "http://s.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png" }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://{a-d}.tiles.mapbox.com/v4/heyitsgarrett.kf2a2nb1/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiaGV5aXRzZ2FycmV0dCIsImEiOiIwdWt5ZlpjIn0.73b7Y47rgFnSD7QCNeS-zA"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://{a-d}.tiles.mapbox.com/v3/tmcw.map-j5fsp01s/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {}
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "url": "http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://{a-c}.tile.thunderforest.com/transport/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://{a-c}.tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://{a-d}.tiles.mapbox.com/v3/examples.bc17bb2a/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://map{1-3}.viamichelin.com/map/mapdirect?map=viamichelin&z={z}&x={x}&y={y}&format=png&version=201503191157&layer=background"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://alpha.map1.eu/tiles/{z}/{x}/{y}.jpg"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://{a-c}.tile.opentopomap.org/tiles/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://{a-c}.tile.geofabrik.de/15173cf79060ee4a66573954f6017ab0/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}.jpg"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}.jpg"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}.jpg"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://ec2.cdn.ecmaps.de/WmsGateway.ashx.jpg?TileX={x}&TileY={y}&ZoomLevel={z}&Experience=falk&MapStyle=Falk%20OSM"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": false,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://ec2.cdn.ecmaps.de/WmsGateway.ashx.jpg?TileX={x}&TileY={y}&ZoomLevel={z}&Experience=falk&MapStyle=Falk%20Base"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://korona.geog.uni-heidelberg.de/tiles/asterh/x={x}&y={y}&z={z}"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://pt.openmap.lt/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.XYZ",
+      "config": {
+        "crossOrigin": null,
+        "tileSize": [512,512],
+        "url": "http://{a-c}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.XYZ",
+      "config": {
+        "crossOrigin": null,
+        "tileSize": [512,512],
+        "url": "http://{a-c}.tiles.openrailwaymap.org/maxspeed/{z}/{x}/{y}.png"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://globalheat.strava.com/tiles/cycling/color1/{z}/{x}/{y}.png?v=19"
+      }
+    }
+  },
+  {
+    "type": "ol.layer.Tile",
+    "visible": false,
+    "wms": true,
+    "source": {
+      "type": "ol.source.OSM",
+      "config": {
+        "crossOrigin": null,
+        "url": "http://globalheat.strava.com/tiles/running/color1/{z}/{x}/{y}.png?v=19"
+      }
+    }
+  }
+]

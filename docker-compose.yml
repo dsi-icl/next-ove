@@ -7,6 +7,6 @@ services:
     restart: "on-failure"
     volumes:
       - ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro
-      - ./tools/prisma/.env.production:/usr/src/app/.env:ro
+      - ./tools/db/.env.production:/usr/src/app/.env:ro
     env_file:
       apps/ove-core-ui/.env.docker

@@ -366,12 +366,13 @@ cython_debug/
 
 # Sandworm
 tools/sandworm
+!tools/sandworm/.gitkeep
 
 # Development configuration
 /dev/database
 /dev/data
 /dev/mongo.keyfile
-/dev/public/*
+/dev/static/public/*
 /dev/credentials.json
 /dev/dev.conf
 /dev/global_buckets/*
@@ -381,7 +382,7 @@ tools/sandworm
 
 # Core environment config
 /apps/ove-core/src/config/config.json
-/tools/prisma/.env.production
+/tools/db/.env.production
 /apps/ove-core/config.production.json
 
 # Test environment config
@@ -392,6 +393,7 @@ tools/type-benchmarks/benchmarks.json
 
 # typescript-coverage-report
 /tools/coverage-ts
+!/tools/coverage-ts/.gitkeep
 
 # Lighthouse CLI
 /tools/.lighthouseci
@@ -400,6 +402,7 @@ tools/type-benchmarks/benchmarks.json
 
 # vite-bundle-visualizer
 /tools/bundle-analysis
+!/tools/bundle-analysis/.gitkeep
 
 # better-docs & jsdoc
 /docs/code
@@ -414,7 +417,12 @@ tools/type-benchmarks/benchmarks.json
 tools/doiuse/browser-usage.json
 
 # deployment config
-/dev/deployment
+/dev/deployment/config/*
+/dev/deployment/scripts/*
+!/dev/deployment/config/.env.release.example
+!/dev/deployment/scripts/build-client.sh
+!/dev/deployment/scripts/build-bridge.sh
+!/dev/deployment/scripts/build-core.sh
 
 # package deprecation analysis
 /tools/aqua-nautilus/analysis.txt
