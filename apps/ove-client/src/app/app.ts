@@ -25,10 +25,7 @@ const initWindow = (url: string, displayId?: number) => {
   let bounds;
 
   if (displayId !== undefined) {
-    bounds = screen
-      .getAllDisplays()
-      .find(monitor =>
-        monitor.id === displayId)?.bounds ?? { x: 0, y: 0 };
+    bounds = screen.getAllDisplays()[displayId - 1]?.bounds ?? { x: 0, y: 0 };
   } else {
     const primary = screen.getPrimaryDisplay();
     bounds = primary.bounds;

@@ -4,7 +4,8 @@ import {
   IDSchema,
   ImageSchema,
   ScreenshotMethodSchema,
-  SourceSchemas, StatusOptionsSchema,
+  SourceSchemas,
+  StatusOptionsSchema,
   StatusSchema
 } from "../hardware";
 import { ResponseSchema } from "../ove-types";

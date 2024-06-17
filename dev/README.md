@@ -147,3 +147,10 @@ to the core cloud platform.
 
 Example ove_networks_config.json file for configuring the presets to the OVE
 Networks App.
+
+### remove-optional-deps.sh
+
+tree-sitter is currently being installed as an optional dependency of
+swagger-ui. All functionality is separate from this library, and as it fails to
+locate the necessary native binaries for Electron packaging, this is a utility
+script for removing them.

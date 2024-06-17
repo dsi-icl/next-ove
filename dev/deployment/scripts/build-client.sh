@@ -102,3 +102,4 @@ fi
 echo "Cleaning Up"
 rm -rf node_modules/bcrypt
 npm install
+./../../remove-optional-deps.sh
