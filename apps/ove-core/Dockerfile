@@ -19,7 +19,7 @@ COPY ../../babel.config.json ./
 RUN npm ci --include=dev --maxsockets 1 --no-proxy registry.npmjs.org
 
 WORKDIR /usr/src/app/apps/ove-core
-RUN npx db generate
+RUN npx prisma generate
 WORKDIR /usr/src/app
 
 COPY ../../apps/ove-core ./apps/ove-core
@@ -54,7 +54,7 @@ COPY --from=build /usr/src/app/dist/apps/ove-core/package-lock.json ./
 COPY --from=build /usr/src/app/apps/ove-core/prisma/ ./
 
 RUN npm ci --omit=dev
-RUN npx db generate
+RUN npx prisma generate
 
 COPY --from=build /usr/src/app/dist/apps/ove-core-ui/ ./ui
 COPY --from=build /usr/src/app/dist/apps/ove-core/ ./

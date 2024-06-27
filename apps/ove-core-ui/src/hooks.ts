@@ -1,6 +1,6 @@
-import { env } from "./env";
 import { trpc } from "./utils/api";
 import { useStore } from "./store";
+import { env, logger } from "./env";
 import { Json } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import { useDialog } from "@ove/ui-components";
@@ -15,9 +15,13 @@ export const useAuth = () => {
   const setTokens = useStore(state => state.setTokens);
   const [username, setUsername] = useState<string | null>(null);
 
-  const logout = useCallback(async () => {
-    if (tokens !== null) {
-      await createLogoutClient(tokens.access).logout.mutate();
+  const logout = useCallback(async (force = false) => {
+    if (tokens !== null && !force) {
+      try {
+        await createLogoutClient(tokens.access).logout.mutate();
+      } catch (e) {
+        logger.error(e);
+      }
     }
     setTokens(null);
     localStorage.removeItem("tokens");
@@ -36,7 +40,7 @@ export const useAuth = () => {
         navigate("/", { replace: true });
       }
     } catch (e) {
-      await logout();
+      await logout(true);
     }
   }, [logout, navigate, setTokens]);
 

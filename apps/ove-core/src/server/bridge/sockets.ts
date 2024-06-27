@@ -6,6 +6,6 @@ import type { TSocketInEvents, TSocketOutEvents } from "@ove/ove-types";
 
 export const io: Namespace<
   TSocketInEvents, TSocketOutEvents
-> = SocketServer.of("/bridge");
+> = SocketServer.of("/socket/bridge");
 
 setupNamespace(io, state.bridgeClients);
