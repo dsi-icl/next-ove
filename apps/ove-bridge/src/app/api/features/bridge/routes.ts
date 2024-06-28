@@ -18,7 +18,7 @@ import { initHardware } from "../hardware/hardware-controller";
 
 export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  setSocket(io(`${env.CORE_URL}/bridge`, {
+  setSocket(io(`${env.CORE_URL}/socket/bridge`, {
     autoConnect: false,
     path: env.SOCKET_PATH
   }));

@@ -3,7 +3,7 @@ const io = require('socket.io-client').io;
 
 dotenv.config();
 
-const bridgeSocket = io(`${process.env.CORE_URL}/bridge`, {
+const bridgeSocket = io(`${process.env.CORE_URL}/socket/bridge`, {
   autoConnect: false
 });
 
@@ -11,8 +11,6 @@ bridgeSocket.auth = {
   username: process.env.SOCKET_USERNAME,
   password: process.env.SOCKET_PASSWORD
 };
-
-console.log(process.env.SOCKET_USERNAME, process.env.SOCKET_PASSWORD);
 
 bridgeSocket.on('connect', () => console.log('Connected'));
 bridgeSocket.on('connect_error', err => console.error(err.message));
@@ -50,7 +48,7 @@ bridgeSocket.on('getGeometry', (args, callback) => callback({
   }
 }));
 
-const hardwareSocket = io(`${process.env.CORE_URL}/hardware`, {
+const hardwareSocket = io(`${process.env.CORE_URL}/socket/hardware`, {
   autoConnect: false
 });
 

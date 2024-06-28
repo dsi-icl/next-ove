@@ -10,6 +10,6 @@ import { setupNamespace } from "../socket-setup";
 export const io: Namespace<
   THardwareClientToServerEvents,
   THardwareServerToClientEvents
-> = SocketServer.of("/hardware");
+> = SocketServer.of("/socket/hardware");
 
 setupNamespace(io, state.hardwareClients);

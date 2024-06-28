@@ -64,7 +64,7 @@ export const App = () => {
     {
       title: loggedIn ? "Logout" : "Login",
       item: loggedIn ?
-        <button onClick={logout} style={{
+        <button onClick={() => logout()} style={{
           color: "white",
           padding: "1rem",
           fontWeight: 700

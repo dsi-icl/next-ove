@@ -35,12 +35,15 @@ if (env.NODE_ENV === "development") {
     path.join(`v${env.API_VERSION}`, "core.swagger.json"), openApiDocument);
 }
 
-app.use((req, res) => {
+app.use((req, res, next) => {
   const reqPath = req.path.endsWith("/") ?
     req.path.substring(0, req.path.length - 1) : req.path;
   if (/(.ico|.js|.css|.jpg|.png|.map|.svg|.woff|.woff2)$/i.test(reqPath)) {
     const filePath = path.join(env.UI_URL, ...reqPath.split("/"));
     res.sendFile(filePath);
+  } else if (reqPath.includes("socket") && reqPath !== "/sockets") {
+    next();
+    return;
   } else {
     res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
     res.header("Expires", "-1");
