@@ -39,5 +39,19 @@ export const coreRouter = router({
     .query(async ({ ctx }) => {
       logger.info("Getting observatory bounds");
       return safe(logger, () => controller.getObservatoryBounds(ctx));
+    }),
+  getRenderer: protectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/core/renderer",
+        protect: true
+      }
+    })
+    .input(z.void())
+    .output(z.union([z.string().nullable(), OVEExceptionSchema]))
+    .query(async () => {
+      logger.info("Getting renderer");
+      return safe(logger, () => controller.getRenderer());
     })
 });

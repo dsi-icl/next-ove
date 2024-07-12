@@ -3,6 +3,7 @@ import { io } from "../bridge/sockets";
 import { assert } from "@ove/ove-utils";
 import type { Context } from "../context";
 import { type Bounds, isError } from "@ove/ove-types";
+import { env } from "../../env";
 
 const getObservatories = async (ctx: Context) => {
   const observatories = await ctx.prisma.user.findMany({
@@ -35,9 +36,12 @@ const getObservatoryBounds = async (ctx: Context) => {
     }, <Record<string, Bounds>>{});
 };
 
+const getRenderer = async () => env.CONTROLLER_FORMAT?.RENDERER ?? null;
+
 const controller = {
   getObservatories,
-  getObservatoryBounds
+  getObservatoryBounds,
+  getRenderer
 };
 
 export default controller;

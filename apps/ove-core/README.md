@@ -38,7 +38,8 @@ substituted using the env.sh script in the apps/ove-core-ui directory.
 
 ## Dockerizing
 
-To build ove-core as a Docker image, use the following commands, for Intel and Arm builds respectively:
+To build ove-core as a Docker image, use the following commands, for Intel and
+Arm builds respectively:
 
 ```shell
 docker build --no-cache --progress=plain -t next-ove-core:latest --platform linux/amd64 -f apps/ove-core/Dockerfile .
@@ -69,3 +70,7 @@ It can also be run as an individual container with the following command:
 ```shell
 docker run --name ove-core --env-file apps/ove-core-ui/.env.docker -v ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro -v ./tools/db/.env.production:/usr/src/app/.env:ro -p 8080:8080 -d next-ove-core:latest(-arm)
 ```
+
+> **WARNING**
+> API versions only change for breaking changes, i.e. updates and deletions
+> to/of existing routes.

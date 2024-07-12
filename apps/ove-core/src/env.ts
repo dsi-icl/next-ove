@@ -70,7 +70,7 @@ const schema = baseSchema.refine(config =>
 
 const staticConfig = {
   APP_NAME: "ove-core",
-  VERSION: "0.1.1",
+  VERSION: "0.2.0",
   API_VERSION: 1,
   TITLE: "next-ove core",
   DESCRIPTION: "The heart of next-ove."
