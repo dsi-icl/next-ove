@@ -1,0 +1,19 @@
+{
+  "name": "upload-file",
+  "version": "1.0.0",
+  "description": "Utility for uploading files to Minio asset storage",
+  "main": "upload-file.js",
+  "scripts": {
+    "start": "node upload-file.js"
+  },
+  "dependencies": {
+    "dotenv": "latest",
+    "minio": "latest",
+    "prompt": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dsi-icl/next-ove.git"
+  },
+  "private": true
+}

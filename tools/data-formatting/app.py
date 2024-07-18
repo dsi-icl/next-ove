@@ -19,5 +19,10 @@ def latex():
   return controllerV1.latex()
 
 
+@app.route("/v1/dzi", methods=["POST"])
+def dzi():
+  return controllerV1.dzi()
+
+
 if __name__ == "__main__":
   app.run()

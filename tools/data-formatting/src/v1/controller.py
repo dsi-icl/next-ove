@@ -25,3 +25,15 @@ def latex():
     if "$$" not in data:
       data = data.replace("$", "$$")
     return latex_to_html(data)
+
+
+def dzi():
+  data = request.get_json()
+  response = requests.get(data["get_url"])
+  if response.status_code != 200:
+    raise ConnectionError("Unable to get file")
+  with TemporaryDirectory() as folder:
+    with NamedTemporaryFile() as image_file:
+      image_file.write(response.content)
+      pyvips.Image.new_from_file(image_file.name).dzsave(folder + "/image", suffix=".png")
+      # TODO: return assets as zip file
