@@ -4,6 +4,7 @@ import path from "path";
 import fetch from "node-fetch";
 import { env } from "../../env";
 import { nanoid } from "nanoid";
+import unzip from "unzip-stream";
 import type { Client } from "minio";
 import service from "../auth/service";
 import { readFileSync } from "atomically";
@@ -14,6 +15,7 @@ import type { PrismaClient, Project, Section } from "@prisma/client";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
 
 import "@total-typescript/ts-reset";
+import http from "http";
 
 const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUnique({
@@ -221,12 +223,12 @@ const addLatest = <T extends {
   isLatest: boolean,
   lastModified: Date
 }>(files: T[]): T[] =>
-    files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
-      ...file,
-      versionId: "latest",
-      lastModified: new Date(),
-      isLatest: false
-    })));
+  files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
+    ...file,
+    versionId: "latest",
+    lastModified: new Date(),
+    isLatest: false
+  })));
 
 const getProjectFiles = async (s3: Client, bucketName: string) => {
   const files = await S3Controller.listObjects(s3, bucketName);
@@ -595,6 +597,45 @@ const formatData = async (
   }
 };
 
+const formatDZI = async (
+  s3: Client | null,
+  bucketName: string,
+  objectName: string,
+  versionId: string
+) => {
+  if (s3 === null) return raise("No S3 store configured");
+  const url = await getPresignedGetURL(s3, bucketName, objectName, versionId);
+  if (isError(url)) return url;
+  if (env.DATA_FORMATTER === undefined) return raise("No data formatter configured");
+  const data = Json.stringify({
+    "get_url": url
+  });
+  const formatter = new URL(env.DATA_FORMATTER);
+
+  const options = {
+    host: formatter.host,
+    port: formatter.port,
+    path: formatter.pathname,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(data)
+    }
+  };
+
+  const req = http.request(options, res => {
+    res.pipe(unzip.Parse())
+      .on("entry", async entry => {
+        const dziObjectName = `${objectName.replaceAll(/png|jpg$/, "dzi")}/${entry.path}`;
+        const entryURL = await S3Controller.getPresignedPutURL(s3, bucketName, dziObjectName);
+        await fetch(entryURL, {method: "PUT", body: entry});
+      });
+  });
+
+  req.write(data);
+  req.end();
+};
+
 const controller: Controller = {
   getProjectsForUser,
   getProject,
@@ -613,7 +654,8 @@ const controller: Controller = {
   getLayout,
   getEnv,
   getController,
-  formatData
+  formatData,
+  formatDZI
 };
 
 export default controller;

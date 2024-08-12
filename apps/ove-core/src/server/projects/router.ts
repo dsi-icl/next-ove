@@ -131,6 +131,8 @@ export type Controller = {
     data: string
     fileName: string
   } | OVEException>
+  formatDZI: (s3: MinioClient | null, bucketName: string, objectName: string,
+    versionId: string) => Promise<void | OVEException>
 }
 
 export const projectsRouter = router({
@@ -462,5 +464,24 @@ export const projectsRouter = router({
       logger.info(`Formatting data of type ${dataType}`);
       return safe(logger, () =>
         controller.formatData(title, dataType, data, opts));
+    }),
+  formatDZI: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/project/{bucketName}/file/{objectName}/{versionId}/format/dzi",
+        protect: true
+      }
+    })
+    .input(z.strictObject({
+      bucketName: z.string(),
+      objectName: z.string(),
+      versionId: z.string()
+    }))
+    .output(z.union([z.void(), OVEExceptionSchema]))
+    .mutation(({ input: { bucketName, objectName, versionId }, ctx }) => {
+      logger.info("Converting image file to DZI");
+      return safe(logger, () =>
+        controller.formatDZI(ctx.s3, bucketName, objectName, versionId));
     })
 });

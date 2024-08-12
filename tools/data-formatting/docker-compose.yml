@@ -1,0 +1,9 @@
+version: "3"
+services:
+  data-formatter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: data-formatter
+    ports:
+      - "7080:7080"
