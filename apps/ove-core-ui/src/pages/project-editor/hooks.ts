@@ -521,7 +521,10 @@ export const useFiles = (projectId: string, token: string) => {
       assert(name.split("/").at(-1)) : name;
     const file = files.find(file =>
       file.name === name && file.bucketName === bucketName && file.isLatest);
-    if (!file) throw new Error("File not found");
+    if (!file) {
+      console.log(bucketName, name);
+      throw new Error("File not found");
+    }
     return file;
   };
 

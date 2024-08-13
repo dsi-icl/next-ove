@@ -8,7 +8,7 @@ from flask import request
 from datetime import datetime
 from dotenv import load_dotenv
 from markdown import markdown as md
-from stream_zip import ZIP_64, stream_zip
+from stream_zip import ZIP_32, stream_zip
 from src.locks import LATEX_LOCK, MARKDOWN_LOCK
 from IPython.lib.latextools import latex_to_html
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -57,6 +57,6 @@ def dzi():
         continue
 
       with open(os.path.join(folder, filename), mode="rb") as f:
-        files.append((filename, datetime.now(), S_IFREG | 0o600, ZIP_64, (f.read(),)))
+        files.append((filename, datetime.now(), S_IFREG | 0o600, ZIP_32, (f.read(),)))
 
     return stream_zip(files)

@@ -5,8 +5,7 @@ RUN apt-get update && apt-get install -y \
         pkg-config \
         wget \
         build-essential \
-        ninja-build \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+        ninja-build
 
 RUN pip3 install meson
 
@@ -31,8 +30,7 @@ RUN apt-get install -y --no-install-recommends \
     libpango1.0-dev \
     libcgif-dev \
     libarchive-dev \
-    libjxl-dev \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    libjxl-dev
 
 ARG VIPS_VERSION=8.15.2
 ARG VIPS_URL=https://github.com/libvips/libvips/releases/download
@@ -42,8 +40,7 @@ WORKDIR /usr/local/src
 RUN wget ${VIPS_URL}/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.xz
 
 RUN apt-get install -y --no-install-recommends \
-    bc \
-    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    bc
 
 RUN tar xf vips-${VIPS_VERSION}.tar.xz \
     && cd vips-${VIPS_VERSION} \

@@ -1,10 +1,12 @@
 /* global __dirname */
 
+import http from "http";
 import path from "path";
+import { File } from "buffer";
 import fetch from "node-fetch";
 import { env } from "../../env";
 import { nanoid } from "nanoid";
-import unzip from "unzip-stream";
+import unzip, { Entry } from "unzip-stream";
 import type { Client } from "minio";
 import service from "../auth/service";
 import { readFileSync } from "atomically";
@@ -15,7 +17,6 @@ import type { PrismaClient, Project, Section } from "@prisma/client";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
 
 import "@total-typescript/ts-reset";
-import http from "http";
 
 const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUnique({
@@ -231,7 +232,9 @@ const addLatest = <T extends {
   })));
 
 const getProjectFiles = async (s3: Client, bucketName: string) => {
-  const files = await S3Controller.listObjects(s3, bucketName);
+  const files = (await S3Controller.listObjects(s3, bucketName))
+    .filter(obj => !obj.name.includes("/") || obj.name.endsWith("dzi"))
+    .map(obj => ({...obj, name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name}));
   return Object.values(groupBy(files, "name"))
     .map(group => group.sort((a, b) =>
       a.lastModified.getTime() - b.lastModified.getTime())
@@ -244,7 +247,9 @@ const getProjectFiles = async (s3: Client, bucketName: string) => {
 const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
   (await Promise.all(env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS
     .map(async bucket => {
-      const objects = await S3Controller.listObjects(s3, bucket);
+      const objects = (await S3Controller.listObjects(s3, bucket))
+        .filter(obj => !obj.name.includes("/") || obj.name.endsWith("dzi"))
+        .map(obj => ({...obj, name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name}));
       return Object.values(groupBy(objects, "name"))
         .map(group => group.sort((a, b) =>
           a.lastModified.getTime() - b.lastModified.getTime())
@@ -607,33 +612,50 @@ const formatDZI = async (
   const url = await getPresignedGetURL(s3, bucketName, objectName, versionId);
   if (isError(url)) return url;
   if (env.DATA_FORMATTER === undefined) return raise("No data formatter configured");
-  const data = Json.stringify({
-    "get_url": url
-  });
   const formatter = new URL(env.DATA_FORMATTER);
+  await new Promise(resolve => {
+    const data = Json.stringify({
+      "get_url": url
+    });
 
-  const options = {
-    host: formatter.host,
-    port: formatter.port,
-    path: formatter.pathname,
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(data)
-    }
-  };
+    const options = {
+      host: formatter.hostname,
+      port: formatter.port,
+      path: `${formatter.pathname}/dzi`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data)
+      }
+    };
 
-  const req = http.request(options, res => {
-    res.pipe(unzip.Parse())
-      .on("entry", async entry => {
-        const dziObjectName = `${objectName.replaceAll(/png|jpg$/, "dzi")}/${entry.path}`;
-        const entryURL = await S3Controller.getPresignedPutURL(s3, bucketName, dziObjectName);
-        await fetch(entryURL, {method: "PUT", body: entry});
-      });
+    const req = http.request(options, res => {
+      res.pipe(unzip.Parse())
+        .on("entry", async (entry: Entry) => {
+          const dziObjectName = `${objectName.replaceAll(/(?:png|jpg|jpeg|PNG|JPEG|JPG)$/g, "dzi")}/${entry.path}`;
+          const entryURL = await S3Controller.getPresignedPutURL(s3, bucketName, dziObjectName);
+
+          const [size, chunks] = await new Promise<[number, any[]]>(resolve => {
+            let size = 0;
+            const chunks: any[] = [];
+            entry.on("data", chunk => {
+              size += chunk.length;
+              chunks.push(chunk);
+            }).on("end", () => {
+              resolve([size, chunks]);
+            });
+          });
+          await fetch(entryURL, {
+            method: "PUT",
+            body: await (new File([Buffer.from(chunks)], entry.path)).arrayBuffer(),
+            headers: { "Content-Length": `${size}` }
+          });
+        }).on("finish", resolve);
+    });
+
+    req.write(data);
+    req.end();
   });
-
-  req.write(data);
-  req.end();
 };
 
 const controller: Controller = {
