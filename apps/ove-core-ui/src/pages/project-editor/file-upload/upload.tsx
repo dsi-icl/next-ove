@@ -3,7 +3,7 @@ import { actionColors } from "../utils";
 import { trpc } from "../../../utils/api";
 import type { FileUploadForm } from "./file-upload";
 import type { UseFormRegister } from "react-hook-form";
-import React, { FormEventHandler, useRef } from "react";
+import React, { FormEventHandler, useCallback, useRef } from "react";
 import { type File as FileT, dataTypes } from "@ove/ove-types";
 import { Brush, Gear, Upload as UploadButton, X } from "react-bootstrap-icons";
 
@@ -39,6 +39,15 @@ const Upload = ({
   const fileRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
   const processImage = trpc.projects.formatDZI.useMutation({ retry: false });
+  const process = useCallback(
+    (bucketName: string, fileName: string) => processImage.mutateAsync({
+      bucketName,
+      objectName: fileName,
+      versionId: getLatest(bucketName, fileName).version
+    })
+      .then(() => toast.info(`Converted ${fileName} to DZI`))
+      .catch(() => toast.error(`Error converting ${fileName} to DZI`)),
+    [processImage, getLatest]);
 
   return <section
     id={styles["upload"]}>
@@ -49,18 +58,13 @@ const Upload = ({
     <ul>
       {names.map((name, i) => {
         const [bucketName, fileName] = name.split("/");
-        const isImage = name.match(/.*(?:png|jpg|jpeg|PNG|JPG|JPEG)$/g) !== null;
+        const isImage = name
+          .match(/.*(?:png|jpg|jpeg|PNG|JPG|JPEG)$/g) !== null;
         return <li key={name}
                    style={{ backgroundColor: colors[i % names.length] }}>
           {name}
           {isImage ? <button className={styles.ml} title="process image"
-            onClick={() => processImage.mutateAsync({
-              bucketName,
-              objectName: fileName,
-              versionId: getLatest(bucketName, fileName).version
-            })
-              .then(() => toast.info(`Converted ${fileName} to DZI`))
-              .catch(() => toast.error(`Error converting ${fileName} to DZI`))}>
+                             onClick={() => process(bucketName, fileName)}>
             <Gear /></button> : null}
           {/* @ts-expect-error - readOnly prop is not known on type */}
           <select readOnly={true} className={isImage ? undefined : styles.ml}
