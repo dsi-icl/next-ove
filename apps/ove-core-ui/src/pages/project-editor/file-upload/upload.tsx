@@ -53,7 +53,7 @@ const Upload = ({
         return <li key={name}
                    style={{ backgroundColor: colors[i % names.length] }}>
           {name}
-          {isImage ? <button className={styles.ml}
+          {isImage ? <button className={styles.ml} title="process image"
             onClick={() => processImage.mutateAsync({
               bucketName,
               objectName: fileName,
