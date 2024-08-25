@@ -2,4 +2,7 @@ markdown==3.6
 jupyter==1.0.0
 Flask==3.0.3
 python-dotenv==1.0.1
-matplotlib==3.9.0
+matplotlib==3.9.1
+pyvips==2.2.3
+requests==2.32.3
+stream-zip==0.0.82

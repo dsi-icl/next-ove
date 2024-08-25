@@ -1,12 +1,15 @@
-/* global __dirname */
+/* global __dirname, URL, Buffer */
 
+import http from "http";
 import path from "path";
+import { File } from "buffer";
 import fetch from "node-fetch";
 import { env } from "../../env";
 import { nanoid } from "nanoid";
 import type { Client } from "minio";
 import service from "../auth/service";
 import { readFileSync } from "atomically";
+import unzip, { Entry } from "unzip-stream";
 import { S3Controller } from "./s3-controller";
 import { type DataTypes, isError } from "@ove/ove-types";
 import type { Controller, DataFormatConfigOptions } from "./router";
@@ -216,20 +219,27 @@ const groupBy = <T extends object>(xs: T[], key: keyof T) =>
     return rv;
   }, {} as { [_Key in keyof T]: T[] });
 
-const addLatest = <T extends {
-  versionId: string,
-  isLatest: boolean,
+type RawFile = {
+  versionId: string
+  isLatest: boolean
   lastModified: Date
-}>(files: T[]): T[] =>
-    files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
-      ...file,
-      versionId: "latest",
-      lastModified: new Date(),
-      isLatest: false
-    })));
+}
+
+const addLatest = <T extends RawFile>(files: T[]): T[] =>
+  files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
+    ...file,
+    versionId: "latest",
+    lastModified: new Date(),
+    isLatest: false
+  })));
 
 const getProjectFiles = async (s3: Client, bucketName: string) => {
-  const files = await S3Controller.listObjects(s3, bucketName);
+  const files = (await S3Controller.listObjects(s3, bucketName))
+    .filter(obj => !obj.name.includes("/") || obj.name.endsWith("dzi"))
+    .map(obj => ({
+      ...obj,
+      name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name
+    }));
   return Object.values(groupBy(files, "name"))
     .map(group => group.sort((a, b) =>
       a.lastModified.getTime() - b.lastModified.getTime())
@@ -242,7 +252,12 @@ const getProjectFiles = async (s3: Client, bucketName: string) => {
 const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
   (await Promise.all(env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS
     .map(async bucket => {
-      const objects = await S3Controller.listObjects(s3, bucket);
+      const objects = (await S3Controller.listObjects(s3, bucket))
+        .filter(obj => !obj.name.includes("/") || obj.name.endsWith("dzi"))
+        .map(obj => ({
+          ...obj,
+          name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name
+        }));
       return Object.values(groupBy(objects, "name"))
         .map(group => group.sort((a, b) =>
           a.lastModified.getTime() - b.lastModified.getTime())
@@ -595,6 +610,70 @@ const formatData = async (
   }
 };
 
+const formatDZI = async (
+  s3: Client | null,
+  bucketName: string,
+  objectName: string,
+  versionId: string
+) => {
+  if (s3 === null) return raise("No S3 store configured");
+  const url = await getPresignedGetURL(s3, bucketName, objectName, versionId);
+  if (isError(url)) return url;
+  if (env.DATA_FORMATTER === undefined) {
+    return raise("No data formatter configured");
+  }
+  const formatter = new URL(env.DATA_FORMATTER);
+  await new Promise(resolve => {
+    const data = Json.stringify({
+      "get_url": url
+    });
+
+    const options = {
+      host: formatter.hostname,
+      port: formatter.port,
+      path: `${formatter.pathname}/dzi`,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data)
+      }
+    };
+
+    const req = http.request(options, res => {
+      res.pipe(unzip.Parse())
+        .on("entry", async (entry: Entry) => {
+          const dziRootName =
+            objectName.replaceAll(/(?:png|jpg|jpeg|PNG|JPEG|JPG)$/g, "dzi");
+          const dziObjectName = `${dziRootName}/${entry.path}`;
+          const entryURL = await S3Controller
+            .getPresignedPutURL(s3, bucketName, dziObjectName);
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const [size, chunks] = await new Promise<[number, any[]]>(resolve => {
+            let size = 0;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const chunks: any[] = [];
+            entry.on("data", chunk => {
+              size += chunk.length;
+              chunks.push(chunk);
+            }).on("end", () => {
+              resolve([size, chunks]);
+            });
+          });
+          await fetch(entryURL, {
+            method: "PUT",
+            body: await (new File([Buffer.from(chunks)], entry.path))
+              .arrayBuffer(),
+            headers: { "Content-Length": `${size}` }
+          });
+        }).on("finish", resolve);
+    });
+
+    req.write(data);
+    req.end();
+  });
+};
+
 const controller: Controller = {
   getProjectsForUser,
   getProject,
@@ -613,7 +692,8 @@ const controller: Controller = {
   getLayout,
   getEnv,
   getController,
-  formatData
+  formatData,
+  formatDZI
 };
 
 export default controller;
