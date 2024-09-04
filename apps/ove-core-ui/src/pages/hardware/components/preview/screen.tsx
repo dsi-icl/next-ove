@@ -35,33 +35,27 @@ const ScreenHUD = ({
   return <ul className={styles.hud}>
     <li>
       <span>row</span>
-      <span>-</span>
       <span>{row}</span>
     </li>
     <li>
       <span>column</span>
-      <span>-</span>
       <span>{column}</span>
     </li>
     <li>
       <span>display id</span>
-      <span>-</span>
       <span>{displayId}</span>
     </li>
     <li>
       <span>renderer</span>
-      <span>-</span>
       <span>{renderer.deviceId}, {renderer.displayId}</span>
     </li>
     <li>
       <span>default url</span>
-      <span>-</span>
-      <span>{windowConfig}</span>
+      <span>{windowConfig.slice(0, 15)}{windowConfig !== "" ? "..." : ""}</span>
     </li>
     <li>
       <span>current url</span>
-      <span>-</span>
-      <span>{url}</span>
+      <span>{url.slice(0, 15)}{url !== "" ? "..." : ""}</span>
     </li>
   </ul>;
 };
@@ -150,8 +144,8 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
     aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
   }}>
     <HoverCard>
-      <HoverCardTrigger>
-        <button onClick={() => {
+      <HoverCardTrigger style={{width: "100%"}}>
+        <button style={{width: "100%"}} onClick={() => {
           if (selected?.[0] === display.displayId &&
             selected?.[1] === display.renderer.deviceId) {
             setSelected(null);

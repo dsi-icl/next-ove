@@ -5,10 +5,11 @@ type Env = {
   bridgeName?: string
   coreURL?: string
   calendarURL?: string
+  reconcile: boolean
 }
 
 export const useEnv = (
-  setValue: (k: keyof Env, v: string | undefined) => void
+  setValue: <K extends keyof Env>(k: K, v: Env[K]) => void
 ) => {
   useEffect(() => {
     window.bridge.getEnv({}).then(env => {
@@ -16,6 +17,7 @@ export const useEnv = (
       setValue("coreURL", env.coreURL);
       setValue("bridgeName", env.bridgeName);
       setValue("calendarURL", env.calendarURL);
+      setValue("reconcile", env.reconcile);
     });
   }, [setValue]);
 

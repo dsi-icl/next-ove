@@ -8,6 +8,7 @@ import type {
   OutboundAPIChannels
 } from "../../../ove-bridge/src/ipc-routes";
 import type { InboundAPI } from "@ove/ove-types";
+import { Toaster } from "@ove/ui-base-components";
 
 declare global {
   // noinspection JSUnusedGlobalSymbols
@@ -27,13 +28,10 @@ declare global {
  * OVE Bridge App
  * @constructor
  */
-const App = () => {
-  return (
-    <>
-      <Nav />
-      <Router />
-    </>
-  );
-};
+const App = () => <>
+  <Nav />
+  <Router />
+  <Toaster />
+</>;
 
 export default App;

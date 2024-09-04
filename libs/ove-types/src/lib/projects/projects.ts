@@ -49,13 +49,6 @@ export const dataTypes: DataType[] = [
     requiresFormatting: false
   },
   {
-    name: "svg",
-    displayName: "SVG",
-    color: "#689A9B",
-    extensions: [".svg"],
-    requiresFormatting: false
-  },
-  {
     name: "audio",
     displayName: "Audio",
     color: "#657373",
@@ -66,7 +59,7 @@ export const dataTypes: DataType[] = [
     name: "html",
     displayName: "HTML",
     color: "#CFD6D6",
-    extensions: [".html"],
+    extensions: [".html", ".gif", ".svg"],
     requiresFormatting: false
   },
   {

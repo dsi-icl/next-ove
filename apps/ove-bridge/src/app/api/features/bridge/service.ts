@@ -10,10 +10,12 @@ import {
 import { app } from "electron";
 import fetch from "node-fetch";
 import {
-  refreshReconciliation,
   startReconciliation,
   stopReconciliation
 } from "../hardware/reconciliation";
+import {
+  service as ReconciliationService
+} from "../hardware/reconciliation-service";
 import { raise } from "@ove/ove-utils";
 import { execSync } from "child_process";
 import { env, logger } from "../../../../env";
@@ -40,10 +42,12 @@ export const service: TBridgeService = {
     env.HARDWARE : env.HARDWARE.filter(({ tags }) => tags.includes(tag)),
   addDevice: ({ device }) => {
     env.HARDWARE.push(device);
+    ReconciliationService.update();
     return true;
   },
   removeDevice: ({ deviceId }) => {
     env.HARDWARE = env.HARDWARE.filter(({ id }) => id !== deviceId);
+    ReconciliationService.update();
     return true;
   },
   startStreams: () => {
@@ -101,13 +105,15 @@ export const service: TBridgeService = {
   getEnv: () => ({
     bridgeName: env.BRIDGE_NAME,
     coreURL: env.CORE_URL,
-    calendarURL: env.CALENDAR_URL
+    calendarURL: env.CALENDAR_URL,
+    reconcile: env.RECONCILE
   }),
-  updateEnv: ({ bridgeName, coreURL, calendarURL }) => {
+  updateEnv: ({ bridgeName, coreURL, calendarURL, reconcile }) => {
     if (initHardware_ === null || initBridge_ === null) return;
     env.CORE_URL = coreURL;
     env.BRIDGE_NAME = bridgeName;
     env.CALENDAR_URL = calendarURL;
+    env.RECONCILE = reconcile;
     closeHardwareSocket();
     closeSocket();
     initHardware_();
@@ -133,16 +139,21 @@ export const service: TBridgeService = {
   getPublicKey: () => env.PUBLIC_KEY,
   getAutoSchedule: () => env.AUTO_SCHEDULE,
   getGeometry: () => env.GEOMETRY,
+  getReconciliation: () => env.RECONCILE,
   refreshReconciliation: () => {
-    refreshReconciliation();
+    if (!env.RECONCILE) return false;
+    stopReconciliation();
+    startReconciliation();
     return true;
   },
   startReconciliation: () => {
     startReconciliation();
+    env.RECONCILE = true;
     return true;
   },
   stopReconciliation: () => {
     stopReconciliation();
+    env.RECONCILE = false;
     return true;
   }
 };
