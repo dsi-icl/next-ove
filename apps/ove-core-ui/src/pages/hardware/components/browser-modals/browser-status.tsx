@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import type { DeviceAction } from "../../types";
 import { skipMulti, skipSingle } from "../../utils";
@@ -21,7 +21,7 @@ const useBrowser = (
   }[]) => void
 ) => {
   const browserId = useStore(state => state.hardwareConfig.browserId);
-  trpc.hardware.getBrowsers.useQuery({ bridgeId, deviceId: deviceId ?? "" }, {
+  api.hardware.getBrowsers.useQuery({ bridgeId, deviceId: deviceId ?? "" }, {
     enabled: browserId === null && !skipSingle("browser", bridgeId, action),
     onSuccess: ({ response }) => {
       if (isError(response)) {
@@ -33,7 +33,7 @@ const useBrowser = (
     },
     onError: () => toast.error("Unable to get browsers")
   });
-  trpc.hardware.getBrowsersAll.useQuery({ bridgeId, tag }, {
+  api.hardware.getBrowsersAll.useQuery({ bridgeId, tag }, {
     enabled: browserId === null && !skipMulti("browser", bridgeId, action),
     onSuccess: ({ response }) => {
       if (isError(response)) {

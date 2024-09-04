@@ -41,7 +41,7 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
     coreURL,
     reconcile
   }: ConfigurationForm, e: BaseSyntheticEvent<object> | undefined) => {
-    console.log("SUBMITTING")
+    console.log("SUBMITTING");
     if ((e?.nativeEvent as unknown as NativeEvent)
       .submitter.name === "auto-mode") {
       openDialog();
@@ -57,7 +57,7 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
     <form
       method="post"
       onSubmit={handleSubmit(onSubmit)}
-      className={styles.form} style={{overflowY: "scroll"}}>
+      className={styles.form} style={{ overflowY: "scroll" }}>
       <label htmlFor="core-url">Core URL
         - {connected ? "connected" : "disconnected"}</label>
       <input {...register("coreURL")} type="text" />
@@ -68,9 +68,11 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
       <button id={styles["auto-mode"]} type="submit" name="auto-mode">
         Configure Auto Mode
       </button>
-      <div style={{display: "flex", alignItems: "center", marginTop: "2rem"}}>
-      <label htmlFor="reconcile" style={{height: "100%", marginTop: 0}}>Reconcile</label>
-      <input {...register("reconcile")} type="checkbox" style={{marginLeft: "auto"}} />
+      <div style={{ display: "flex", alignItems: "center", marginTop: "2rem" }}>
+        <label htmlFor="reconcile"
+               style={{ height: "100%", marginTop: 0 }}>Reconcile</label>
+        <input {...register("reconcile")} type="checkbox"
+               style={{ marginLeft: "auto" }} />
       </div>
       <button name="update" type="submit">Update / Reconnect</button>
     </form>

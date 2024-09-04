@@ -47,7 +47,8 @@ export const createClient = (
     ]
   });
 
-const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">, ac?: () => AbortController) => {
+const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">,
+  ac?: () => AbortController) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
@@ -89,7 +90,8 @@ const shutdown = async (
   }
 };
 
-const start = async (device: Device, args: TBridgeServiceArgs<"start">, ac?: () => AbortController) => {
+const start = async (device: Device, args: TBridgeServiceArgs<"start">,
+  ac?: () => AbortController) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
@@ -104,7 +106,8 @@ const start = async (device: Device, args: TBridgeServiceArgs<"start">, ac?: () 
   }
 };
 
-const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">, ac?: () => AbortController) => {
+const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">,
+  ac?: () => AbortController) => {
   const infoOptsSchema = z.object({ type: z.string().optional() }).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
 
@@ -146,7 +149,8 @@ const getStatus = async (
   }
 };
 
-const execute = async (device: Device, args: TBridgeServiceArgs<"execute">, ac?: () => AbortController) => {
+const execute = async (device: Device, args: TBridgeServiceArgs<"execute">,
+  ac?: () => AbortController) => {
   const executeOptsSchema = z.object({ command: z.string() }).strict();
   const parsedOpts = executeOptsSchema.safeParse(args);
 

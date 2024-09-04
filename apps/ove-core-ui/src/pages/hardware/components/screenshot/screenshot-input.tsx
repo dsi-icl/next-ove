@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFormErrorHandling } from "@ove/ui-components";
@@ -26,7 +26,7 @@ const useScreenshot = (
   const setScreenshots = useStore(state => state.hardwareConfig.setScreenshots);
   const setScreenshotConfig = useStore(state =>
     state.hardwareConfig.setScreenshotConfig);
-  const screenshot = trpc.hardware.screenshot.useMutation({
+  const screenshot = api.hardware.screenshot.useMutation({
     onSuccess: ({ response }) => {
       if (isError(response)) {
         toast.error(`Unable to take screenshot on ${deviceId}`);
@@ -42,7 +42,7 @@ const useScreenshot = (
     },
     onError: () => toast.error(`Unable to take screenshot on ${deviceId}`)
   });
-  const screenshotAll = trpc.hardware.screenshotAll.useMutation({
+  const screenshotAll = api.hardware.screenshotAll.useMutation({
     onSuccess: ({ response }) => {
       if (isError(response)) {
         toast.error("Unable to take screenshots");

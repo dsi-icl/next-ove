@@ -1,5 +1,5 @@
 import React from "react";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { ArrowRepeat } from "react-bootstrap-icons";
 
@@ -8,11 +8,11 @@ const useStatus = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const getStatus = trpc.hardware.getStatus.useQuery({
+  const getStatus = api.hardware.getStatus.useQuery({
     bridgeId,
     deviceId: deviceId ?? ""
   }, { enabled: false });
-  const getStatusAll = trpc.hardware.getStatusAll.useQuery(
+  const getStatusAll = api.hardware.getStatusAll.useQuery(
     { bridgeId, tag }, { enabled: false });
 
   return {

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { checkErrors } from "../../../utils";
 import { logger } from "../../../../../env";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { StopCircle } from "react-bootstrap-icons";
 
@@ -12,7 +12,7 @@ const useShutdown = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const shutdown = trpc.hardware.shutdown.useMutation({
+  const shutdown = api.hardware.shutdown.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to shutdown: ${deviceId}`);
@@ -24,7 +24,7 @@ const useShutdown = (
       toast.error(`Failed to shutdown: ${deviceId}`);
     }
   });
-  const shutdownAll = trpc.hardware.shutdownAll.useMutation({
+  const shutdownAll = api.hardware.shutdownAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to shutdown devices");

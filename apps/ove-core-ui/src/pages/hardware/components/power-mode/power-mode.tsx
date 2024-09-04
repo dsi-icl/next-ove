@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import type { CalendarEvent } from "@ove/ove-types";
 import { PowerMode as PowerModeDisplay } from "@ove/ui-components";
 
 const useFetchPowerMode = (bridgeId: string, calendar: CalendarEvent[]) => {
-  const setManual = trpc.bridge.setManualSchedule.useMutation();
-  const setAuto = trpc.bridge.setAutoSchedule.useMutation();
-  const setEco = trpc.bridge.setEcoSchedule.useMutation();
+  const setManual = api.bridge.setManualSchedule.useMutation();
+  const setAuto = api.bridge.setAutoSchedule.useMutation();
+  const setEco = api.bridge.setEcoSchedule.useMutation();
 
   return {
     setManualSchedule: async () =>
@@ -28,7 +28,7 @@ const PowerMode = () => {
   const setMode = useStore(state => state.hardwareConfig.setMode);
   const controller = useFetchPowerMode(deviceAction.bridgeId ??
     "", calendar ?? []);
-  const getMode = trpc.bridge.getMode
+  const getMode = api.bridge.getMode
     .useQuery({ bridgeId: deviceAction.bridgeId ?? "" });
 
   useEffect(() => {

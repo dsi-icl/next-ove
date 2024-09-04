@@ -6,7 +6,7 @@ import {
 } from "@ove/ove-types";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
-import { trpc } from "../../utils/api";
+import { api } from "../../utils/api";
 import { env, logger } from "../../env";
 import type { Rect, Space } from "./types";
 import { assert, Json } from "@ove/ove-utils";
@@ -89,7 +89,7 @@ const order = (sections: Section[]) =>
 export const useSections = (projectId: string) => {
   const [sections_, setSections_] = useState<Section[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const getSections = trpc.projects.getSectionsForProject.useQuery(
+  const getSections = api.projects.getSectionsForProject.useQuery(
     { projectId },
     {
       retry: false,
@@ -328,10 +328,10 @@ const loadNewProject = (username: string): Project | null => ({
 });
 
 export const useSave = (updateProject: (project: Project) => void) => {
-  const saveProject = trpc.projects.saveProject.useMutation({
+  const saveProject = api.projects.saveProject.useMutation({
     retry: false
   });
-  const createProject = trpc.projects.createProject.useMutation({
+  const createProject = api.projects.createProject.useMutation({
     retry: false
   });
 
@@ -377,8 +377,8 @@ export const useProject = (
   username: string | null,
   projectId: string | null
 ) => {
-  const tags_ = trpc.projects.getTags.useQuery();
-  const project_ = trpc.projects.getProject.useQuery(
+  const tags_ = api.projects.getTags.useQuery();
+  const project_ = api.projects.getProject.useQuery(
     { projectId: projectId ?? "__ERROR__" },
     { enabled: projectId !== null }
   );
@@ -417,8 +417,8 @@ export const useProject = (
 };
 
 export const useFiles = (projectId: string, token: string) => {
-  const files_ = trpc.projects.getFiles.useQuery({ projectId });
-  const thumbnail = trpc.projects.generateThumbnail
+  const files_ = api.projects.getFiles.useQuery({ projectId });
+  const thumbnail = api.projects.generateThumbnail
     .useMutation({ retry: false });
   const [files, setFiles] = useState<TFile[]>([]);
 
@@ -563,11 +563,11 @@ export const useFiles = (projectId: string, token: string) => {
 };
 
 export const useCollaboration = (project: Project) => {
-  const users_ = trpc.projects.getUsers.useQuery();
-  const invites_ = trpc.projects.getInvitesForProject
+  const users_ = api.projects.getUsers.useQuery();
+  const invites_ = api.projects.getInvitesForProject
     .useQuery({ projectId: project.id });
-  const inviteCollaborator_ = trpc.projects.inviteCollaborator.useMutation();
-  const removeCollaborator_ = trpc.projects.removeCollaborator.useMutation();
+  const inviteCollaborator_ = api.projects.inviteCollaborator.useMutation();
+  const removeCollaborator_ = api.projects.removeCollaborator.useMutation();
   const [users, setUsers] = useState<User[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
 

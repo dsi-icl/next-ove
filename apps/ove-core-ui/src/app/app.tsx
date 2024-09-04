@@ -3,7 +3,7 @@
 import { env } from "../env";
 import Router from "./router";
 import { useAuth } from "../hooks";
-import { trpc } from "../utils/api";
+import { api } from "../utils/api";
 import { httpLink } from "@trpc/client";
 import { Nav } from "@ove/ui-components";
 import { HddStack } from "react-bootstrap-icons";
@@ -79,7 +79,7 @@ export const App = () => {
     }
   ];
 
-  const createTrpcClient = useCallback(() => trpc.createClient({
+  const createTrpcClient = useCallback(() => api.createClient({
     links: [
       httpLink({
         url: `${env.CORE_URL}/api/v${env.CORE_API_VERSION}/trpc`,
@@ -132,14 +132,14 @@ export const App = () => {
     }
   }), []);
 
-  return <trpc.Provider client={trpcClient} queryClient={queryClient}>
+  return <api.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
       <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
            content={navContent} />
       <Router loggedIn={loggedIn} login={login} token={tokens?.access ?? ""} />
       <Toaster />
     </QueryClientProvider>
-  </trpc.Provider>;
+  </api.Provider>;
 };
 
 export default App;

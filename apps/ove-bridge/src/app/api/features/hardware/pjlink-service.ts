@@ -1,4 +1,4 @@
-/* global setTimeout */
+/* global AbortController, setTimeout */
 
 import {
   type Device,
@@ -13,7 +13,8 @@ import { raise } from "@ove/ove-utils";
 import * as PJLink from "@ove/pjlink-control";
 import { statusOptions } from "../../utils/status";
 
-const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">, ac?: () => AbortController) => {
+const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">,
+  ac?: () => AbortController) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
@@ -54,7 +55,8 @@ const shutdown = async (
   return true;
 };
 
-const start = async (device: Device, args: TBridgeServiceArgs<"start">, ac?: () => AbortController) => {
+const start = async (device: Device, args: TBridgeServiceArgs<"start">,
+  ac?: () => AbortController) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
@@ -232,7 +234,8 @@ const setSource = async (
   return true;
 };
 
-const mute = async (device: Device, args: TBridgeServiceArgs<"mute">, ac?: () => AbortController) => {
+const mute = async (device: Device, args: TBridgeServiceArgs<"mute">,
+  ac?: () => AbortController) => {
   const muteOptsSchema = z.object({}).strict();
   const parsedOpts = muteOptsSchema.safeParse(args);
 
@@ -249,7 +252,8 @@ const mute = async (device: Device, args: TBridgeServiceArgs<"mute">, ac?: () =>
   return true;
 };
 
-const unmute = async (device: Device, args: TBridgeServiceArgs<"unmute">, ac?: () => AbortController) => {
+const unmute = async (device: Device, args: TBridgeServiceArgs<"unmute">,
+  ac?: () => AbortController) => {
   const unmuteOptsSchema = z.object({}).strict();
   const parsedOpts = unmuteOptsSchema.safeParse(args);
 

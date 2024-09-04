@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import { WindowX } from "react-bootstrap-icons";
 import type { ActionProps } from "../../../types";
 
@@ -12,7 +12,7 @@ const useBrowsers = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const closeBrowsers = trpc.hardware.closeBrowsers.useMutation({
+  const closeBrowsers = api.hardware.closeBrowsers.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
       if (isError(response)) {
@@ -24,7 +24,7 @@ const useBrowsers = (
     },
     onError: () => toast.error("Unable to close browsers")
   });
-  const closeBrowsersAll = trpc.hardware.closeBrowsersAll.useMutation({
+  const closeBrowsersAll = api.hardware.closeBrowsersAll.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
       if (isError(response)) {

@@ -1,4 +1,6 @@
-import { env, logger } from "apps/ove-bridge/src/env";
+/* global clearInterval, NodeJS, setInterval */
+
+import { env, logger } from "../../../../env";
 import { service } from "./reconciliation-service";
 
 let interval: NodeJS.Timeout | null = null;

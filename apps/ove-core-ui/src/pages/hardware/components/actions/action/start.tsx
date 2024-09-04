@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { checkErrors } from "../../../utils";
 import { logger } from "../../../../../env";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { PlayCircle } from "react-bootstrap-icons";
 
@@ -12,7 +12,7 @@ const useStart = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const start = trpc.hardware.start.useMutation({
+  const start = api.hardware.start.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to start: ${deviceId}`);
@@ -24,7 +24,7 @@ const useStart = (
       toast.error(`Failed to start: ${deviceId}`);
     }
   });
-  const startAll = trpc.hardware.startAll.useMutation({
+  const startAll = api.hardware.startAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to start devices");

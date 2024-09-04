@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { Mic, VolumeMute } from "react-bootstrap-icons";
 
@@ -14,7 +14,7 @@ const useMuteAudio = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const muteAudio = trpc.hardware.muteAudio.useMutation({
+  const muteAudio = api.hardware.muteAudio.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to mute audio on: ${deviceId}`);
@@ -26,7 +26,7 @@ const useMuteAudio = (
       toast.error(`Failed to mute audio on: ${deviceId}`);
     }
   });
-  const muteAudioAll = trpc.hardware.muteAudioAll.useMutation({
+  const muteAudioAll = api.hardware.muteAudioAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to mute audio on devices");

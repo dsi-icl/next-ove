@@ -1,4 +1,4 @@
-/* global Buffer, setTimeout */
+/* global AbortController, Buffer, setTimeout */
 
 import * as net from "net";
 import * as udp from "dgram";
@@ -37,9 +37,10 @@ export const wake = async (
 
   // create magic packet
   const magicPacket = createMagicPacket(mac);
-  const abortListener = (socket: udp.Socket, reject: (reason?: any) => void) => () => {
+  const abortListener = (socket: udp.Socket,
+    reject: (reason?: Error) => void) => () => {
     socket.close();
-    reject(new Error(`Command aborted`));
+    reject(new Error("Command aborted"));
   };
 
   return new Promise((resolve, reject) => {
@@ -50,7 +51,8 @@ export const wake = async (
         reject(err);
       })
       .on("close", () => {
-        ac?.signal.removeEventListener("abort", abortListener.bind(null, socket, reject));
+        ac?.signal.removeEventListener("abort",
+          abortListener.bind(null, socket, reject));
       })
       .once("listening", () => {
         logger.trace("WOL socket listening");
@@ -72,7 +74,8 @@ export const wake = async (
       });
 
     if (ac !== undefined) {
-      ac.signal.addEventListener("abort", abortListener.bind(null, socket, reject));
+      ac.signal.addEventListener("abort",
+        abortListener.bind(null, socket, reject), { once: true });
     }
     setTimeout(() => {
       socket.close();

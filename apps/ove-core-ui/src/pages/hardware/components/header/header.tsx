@@ -9,7 +9,7 @@ import {
 import { Power, PowerOff } from "lucide-react";
 
 import styles from "./header.module.scss";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import {
   Popover,
   PopoverContent,
@@ -22,11 +22,15 @@ const Header = ({ name, isOnline }: {
   name: string,
   isOnline: boolean
 }) => {
-  const context = trpc.useContext();
-  const getReconciliation = trpc.bridge.getReconciliation.useQuery({ bridgeId: name });
-  const startReconciliation = trpc.bridge.startReconciliation.useMutation();
-  const stopReconciliation = trpc.bridge.stopReconciliation.useMutation();
-  const refreshReconciliation = trpc.bridge.refreshReconciliation.useMutation();
+  const apiUtils = api.useUtils();
+  const getReconciliation =
+    api.bridge.getReconciliation.useQuery({ bridgeId: name });
+  const startReconciliation =
+    api.bridge.startReconciliation.useMutation();
+  const stopReconciliation =
+    api.bridge.stopReconciliation.useMutation();
+  const refreshReconciliation =
+    api.bridge.refreshReconciliation.useMutation();
   const reconciliationState = useMemo(() => {
     if (getReconciliation.status !== "success") return "Unknown";
     if (isError(getReconciliation.data.response)) return "Error";
@@ -36,26 +40,36 @@ const Header = ({ name, isOnline }: {
     state.hardwareConfig.setDeviceAction);
 
   const start = useCallback(async () => {
-    await startReconciliation.mutateAsync({ bridgeId: name }).catch(logger.error);
-    context.bridge.getReconciliation.invalidate();
-  }, [startReconciliation, name, context.bridge.getReconciliation]);
+    await startReconciliation.mutateAsync({ bridgeId: name })
+      .catch(logger.error);
+    apiUtils.bridge.getReconciliation.invalidate();
+  }, [startReconciliation, name, apiUtils.bridge.getReconciliation]);
 
   const stop = useCallback(async () => {
-    await stopReconciliation.mutateAsync({ bridgeId: name }).catch(logger.error);
-    context.bridge.getReconciliation.invalidate();
-  }, [stopReconciliation, name, context.bridge.getReconciliation]);
+    await stopReconciliation.mutateAsync({ bridgeId: name })
+      .catch(logger.error);
+    apiUtils.bridge.getReconciliation.invalidate();
+  }, [stopReconciliation, name, apiUtils.bridge.getReconciliation]);
 
   const refresh = useCallback(async () => {
-    await refreshReconciliation.mutateAsync({ bridgeId: name }).catch(logger.error);
-    context.bridge.getReconciliation.invalidate();
-  }, [refreshReconciliation, name, context.bridge.getReconciliation]);
+    await refreshReconciliation.mutateAsync({ bridgeId: name })
+      .catch(logger.error);
+    apiUtils.bridge.getReconciliation.invalidate();
+  }, [refreshReconciliation, name, apiUtils.bridge.getReconciliation]);
+
+  const rotation = reconciliationState === "Running" ? styles.rotating :
+    undefined;
+  const refreshRotation = refreshReconciliation.status === "loading" ?
+    styles.rotating : undefined;
+  const hide = (shownState: "Stopped" | "Running") =>
+    reconciliationState === shownState ? "initial" : "none";
 
   return <div className={styles.header}>
     <h2>Observatory {name} - {isOnline ? "online" : "offline"}</h2>
     {isOnline ? <div className={styles.actions}>
       <Popover>
         <PopoverTrigger title="reconciliation"><ArrowClockwise
-          className={reconciliationState === "Running" ? styles.rotating : undefined} /></PopoverTrigger>
+          className={rotation} /></PopoverTrigger>
         <PopoverContent style={{
           alignItems: "center",
           padding: "1rem",
@@ -73,19 +87,19 @@ const Header = ({ name, isOnline }: {
           </div>
           <button title="Start"
                   onClick={start}
-                  style={{ display: reconciliationState === "Stopped" ? "initial" : "none" }}>
+                  style={{ display: hide("Stopped") }}>
             <Power size="16" />
           </button>
           <button title="Stop"
                   onClick={stop}
-                  style={{ display: reconciliationState === "Running" ? "initial" : "none" }}>
+                  style={{ display: hide("Running") }}>
             <PowerOff size="16" />
           </button>
           <button title="Refresh"
                   onClick={refresh}
-                  style={{ display: reconciliationState === "Running" ? "initial" : "none" }}>
+                  style={{ display: hide("Running") }}>
             <ArrowRepeat
-              className={refreshReconciliation.status === "loading" ? styles.rotating : undefined} />
+              className={refreshRotation} />
           </button>
         </PopoverContent>
       </Popover>

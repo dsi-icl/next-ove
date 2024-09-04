@@ -14,7 +14,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 /**
  * A set of typesafe react-query hooks for your tRPC API
  */
-export const trpc = createTRPCReact<AppRouter>();
+export const api = createTRPCReact<AppRouter>();
 
 /**
  * Inference helper for inputs

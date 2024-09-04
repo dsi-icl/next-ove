@@ -1,3 +1,5 @@
+/* global AbortController */
+
 import {
   type Device,
   type TBridgeHardwareService,

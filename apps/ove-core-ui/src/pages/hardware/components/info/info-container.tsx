@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { isError } from "@ove/ove-types";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import type { InfoTypes } from "../../../../utils";
 import { skipMulti, skipSingle } from "../../utils";
@@ -18,7 +18,7 @@ export const useInfo = () => {
     response: object | null
   }>>(new Map());
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  trpc.hardware.getInfo.useQuery({
+  api.hardware.getInfo.useQuery({
     bridgeId: assert(deviceAction.bridgeId),
     deviceId: deviceAction.deviceId ?? "",
     type: type
@@ -42,7 +42,7 @@ export const useInfo = () => {
     onError: () => toast.error(
       `Cannot get information for ${deviceAction.deviceId}`)
   });
-  trpc.hardware.getInfoAll.useQuery({
+  api.hardware.getInfoAll.useQuery({
     bridgeId: assert(deviceAction.bridgeId),
     type,
     tag: deviceAction.tag

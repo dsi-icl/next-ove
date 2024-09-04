@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { WindowPlus } from "react-bootstrap-icons";
 
@@ -12,7 +12,7 @@ const useOpenBrowsers = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const openBrowsers = trpc.hardware.openBrowsers.useMutation({
+  const openBrowsers = api.hardware.openBrowsers.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to open browsers on: ${deviceId}`);
@@ -24,7 +24,7 @@ const useOpenBrowsers = (
       toast.error(`Failed to open browsers on: ${deviceId}`);
     }
   });
-  const openBrowsersAll = trpc.hardware.openBrowsersAll.useMutation({
+  const openBrowsersAll = api.hardware.openBrowsersAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to open browsers on devices");
