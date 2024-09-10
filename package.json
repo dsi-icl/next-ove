@@ -5,7 +5,7 @@
     "email": "bc2918@ic.ac.uk"
   },
   "description": "The next generation of the Open Visualisation Environment.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "scripts": {
     "analyze-bundle": "npm run analyze-bundle:bridge && npm run analyze-bundle:client && npm run analyze-bundle:core",

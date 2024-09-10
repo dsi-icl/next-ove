@@ -1,9 +1,9 @@
 import { toast } from "sonner";
 import { actionColors } from "../utils";
-import { trpc } from "../../../utils/api";
+import { api } from "../../../utils/api";
 import type { FileUploadForm } from "./file-upload";
 import type { UseFormRegister } from "react-hook-form";
-import React, { FormEventHandler, useCallback, useRef } from "react";
+import React, { type FormEventHandler, useCallback, useRef } from "react";
 import { type File as FileT, dataTypes } from "@ove/ove-types";
 import { Brush, Gear, Upload as UploadButton, X } from "react-bootstrap-icons";
 
@@ -38,7 +38,7 @@ const Upload = ({
   const { ref, ...rest } = register("file", { required: true });
   const fileRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
-  const processImage = trpc.projects.formatDZI.useMutation({ retry: false });
+  const processImage = api.projects.formatDZI.useMutation({ retry: false });
   const process = useCallback(
     (bucketName: string, fileName: string) => processImage.mutateAsync({
       bucketName,
