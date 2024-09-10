@@ -7,7 +7,7 @@ import {
 import { env } from "../../../../env";
 import { assert } from "@ove/ove-utils";
 import { useEffect, useMemo } from "react";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { type Bounds, isError } from "@ove/ove-types";
 
 import styles from "./preview.module.scss";
@@ -35,33 +35,27 @@ const ScreenHUD = ({
   return <ul className={styles.hud}>
     <li>
       <span>row</span>
-      <span>-</span>
       <span>{row}</span>
     </li>
     <li>
       <span>column</span>
-      <span>-</span>
       <span>{column}</span>
     </li>
     <li>
       <span>display id</span>
-      <span>-</span>
       <span>{displayId}</span>
     </li>
     <li>
       <span>renderer</span>
-      <span>-</span>
       <span>{renderer.deviceId}, {renderer.displayId}</span>
     </li>
     <li>
       <span>default url</span>
-      <span>-</span>
-      <span>{windowConfig}</span>
+      <span>{windowConfig.slice(0, 15)}{windowConfig !== "" ? "..." : ""}</span>
     </li>
     <li>
       <span>current url</span>
-      <span>-</span>
-      <span>{url}</span>
+      <span>{url.slice(0, 15)}{url !== "" ? "..." : ""}</span>
     </li>
   </ul>;
 };
@@ -71,7 +65,7 @@ const useWindowConfig = (
   deviceId: string,
   displayId: string
 ) => {
-  const getWindowConfig = trpc.hardware.getWindowConfig.useQuery({
+  const getWindowConfig = api.hardware.getWindowConfig.useQuery({
     bridgeId,
     deviceId
   });
@@ -85,7 +79,7 @@ const useWindowConfig = (
 };
 
 const useBrowser = (bridgeId: string, deviceId: string, displayId: string) => {
-  const getBrowsers = trpc.hardware.getBrowsers.useQuery({
+  const getBrowsers = api.hardware.getBrowsers.useQuery({
     bridgeId,
     deviceId: deviceId
   });
@@ -100,7 +94,7 @@ const useBrowser = (bridgeId: string, deviceId: string, displayId: string) => {
 };
 
 const useLiveFeed = (bridgeId: string, deviceId: string, displayId: string) => {
-  const takeScreenshot = trpc.hardware.screenshot.useMutation({ retry: false });
+  const takeScreenshot = api.hardware.screenshot.useMutation({ retry: false });
   useEffect(() => {
     const interval = setInterval(() => {
       takeScreenshot.mutateAsync({
@@ -150,8 +144,8 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
     aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
   }}>
     <HoverCard>
-      <HoverCardTrigger>
-        <button onClick={() => {
+      <HoverCardTrigger style={{ width: "100%" }}>
+        <button style={{ width: "100%" }} onClick={() => {
           if (selected?.[0] === display.displayId &&
             selected?.[1] === display.renderer.deviceId) {
             setSelected(null);

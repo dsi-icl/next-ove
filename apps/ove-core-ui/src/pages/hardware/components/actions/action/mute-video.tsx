@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { CameraVideo, VolumeMute } from "react-bootstrap-icons";
 
@@ -14,7 +14,7 @@ const useMuteVideo = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const muteVideo = trpc.hardware.muteVideo.useMutation({
+  const muteVideo = api.hardware.muteVideo.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to mute video on: ${deviceId}`);
@@ -26,7 +26,7 @@ const useMuteVideo = (
       toast.error(`Failed to mute video on: ${deviceId}`);
     }
   });
-  const muteVideoAll = trpc.hardware.muteVideoAll.useMutation({
+  const muteVideoAll = api.hardware.muteVideoAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to mute video on devices");

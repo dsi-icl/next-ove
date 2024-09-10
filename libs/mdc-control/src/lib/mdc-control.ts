@@ -28,17 +28,22 @@ export const sources: MDCSources = {
 
 type MDCSource = MDCSources[keyof MDCSources];
 
+type CommandArgs = {
+  ac?: AbortController
+  id: number
+  ip: string
+  port?: number
+  timeout: number
+}
+
 const sendCommand = (
   resolve: (obj: Uint8Array | OVEException) => void,
-  id: number,
-  ip: string,
-  port: number | undefined,
   commandId: number,
-  timeout: number,
+  cmdArgs: CommandArgs,
   ...args: number[]
 ) => {
-  const socket = new Socket();
-  socket.setTimeout(timeout);
+  const socket = new Socket({signal: cmdArgs.ac?.signal});
+  socket.setTimeout(cmdArgs.timeout);
 
   socket.on("timeout", () => {
     socket.end(() => resolve(raise("Timeout")));
@@ -62,10 +67,10 @@ const sendCommand = (
 
   setTimeout(() => {
     socket.end(() => resolve(raise("TIMEOUT")));
-  }, timeout);
+  }, cmdArgs.timeout);
 
-  socket.connect(port ?? MDC_PORT, ip, () => {
-    const command = [0xAA, commandId, id, args.length].concat(args);
+  socket.connect(cmdArgs.port ?? MDC_PORT, cmdArgs.ip, () => {
+    const command = [0xAA, commandId, cmdArgs.id, args.length].concat(args);
     const checksum = command.slice(1).reduce((acc, x) => acc + x, 0) % 256;
     command.push(checksum);
     socket.write(new Uint8Array(command), err => {
@@ -76,77 +81,58 @@ const sendCommand = (
   });
 };
 
-export const getStatus = async (
-  timeout: number,
-  id: number,
-  ip: string,
-  port?: number
-): Promise<"on" | "off" | OVEException> => {
+export const getStatus = async (args: CommandArgs):
+  Promise<"on" | "off" | OVEException> => {
   const status =
     await new Promise<Uint8Array | OVEException>(resolve =>
-      sendCommand(resolve, id, ip, port, 0x11, timeout));
+      sendCommand(resolve, 0x11, args));
   if (isError(status)) return status;
   return "on";
 };
 
 export const setPower = async (
+  args: CommandArgs,
   state: "on" | "off" | "reboot",
-  timeout: number,
-  id: number,
-  ip: string,
-  port?: number
 ): Promise<boolean | OVEException> => {
   const powerState = state === "off" ? 0x00 : (state === "on" ? 0x01 : 0x02);
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, id, ip, port, 0x11, timeout, powerState));
+    sendCommand(resolve, 0x11, args, powerState));
   if (isError(res)) return res;
   return res.at(6) === powerState;
 };
 
 export const setVolume = async (
+  args: CommandArgs,
   volume: number,
-  timeout: number,
-  id: number,
-  ip: string,
-  port?: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, id, ip, port, 0x12, timeout, volume));
+    sendCommand(resolve, 0x12, args, volume));
   if (isError(res)) return res;
   return res.at(6) === volume;
 };
 
 export const setIsMute = async (
+  args: CommandArgs,
   state: boolean,
-  timeout: number,
-  id: number,
-  ip: string,
-  port?: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, id, ip, port, 0x13, timeout, state ? 0x01 : 0x00));
+    sendCommand(resolve, 0x13, args, state ? 0x01 : 0x00));
   if (isError(res)) return res;
   return res.at(6) === (state ? 0x01 : 0x00);
 };
 
 export const setSource = async (
+  args: CommandArgs,
   source: MDCSource,
-  timeout: number,
-  id: number,
-  ip: string,
-  port?: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, id, ip, port, 0x14, timeout, source));
+    sendCommand(resolve, 0x14, args, source));
   if (isError(res)) return res;
   return res.at(6) === source;
 };
 
 export const getInfo = async (
-  timeout: number,
-  id: number,
-  ip: string,
-  port?: number
+  args: CommandArgs
 ): Promise<{
   power: "off" | "on",
   volume: number,
@@ -154,7 +140,7 @@ export const getInfo = async (
   source: MDCSource
 } | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, id, ip, port, 0x00, timeout));
+    sendCommand(resolve, 0x00, args));
   if (isError(res)) return res;
   if (res.length < 10) return raise("Incorrect result");
 

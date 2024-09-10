@@ -22,6 +22,7 @@ export const inboundChannels: InboundAPIChannels = {
   startStreams: "start-videos",
   stopStreams: "stop-videos",
   getGeometry: "get-geometry",
+  getReconciliation: "get-reconciliation",
   refreshReconciliation: "refresh-reconciliation",
   startReconciliation: "start-reconciliation",
   stopReconciliation: "stop-reconciliation"

@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { ArrowClockwise } from "react-bootstrap-icons";
 
@@ -12,7 +12,7 @@ const useReboot = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const reboot = trpc.hardware.reboot.useMutation({
+  const reboot = api.hardware.reboot.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to reboot: ${deviceId}`);
@@ -24,7 +24,7 @@ const useReboot = (
       toast.error(`Failed to reboot: ${deviceId}`);
     }
   });
-  const rebootAll = trpc.hardware.rebootAll.useMutation({
+  const rebootAll = api.hardware.rebootAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to reboot devices");

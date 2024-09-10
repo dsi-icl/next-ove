@@ -1,6 +1,6 @@
 import React from "react";
 import { Json } from "@ove/ove-utils";
-import { trpc } from "../../utils/api";
+import { api } from "../../utils/api";
 import { isError } from "@ove/ove-types";
 import type { LaunchConfig } from "../../pages/project-editor/hooks";
 
@@ -11,7 +11,7 @@ type ControllerProps = {
 }
 
 const Controller = ({ config }: ControllerProps) => {
-  const controller = trpc.projects.getController.useQuery({
+  const controller = api.projects.getController.useQuery({
     ...config,
     layout: config.layout === null ? undefined : Json.stringify(config.layout)
   }, { cacheTime: 0 });

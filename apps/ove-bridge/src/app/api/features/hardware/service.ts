@@ -6,16 +6,13 @@ import {
   isAll,
   type Optional,
   OVEExceptionSchema,
-  type ServiceType,
   type TBridgeRoutesSchema
 } from "@ove/ove-types";
 import { z } from "zod";
-import MDCService from "./mdc-service";
-import NodeService from "./node-service";
-import PJLinkService from "./pjlink-service";
 import { env, logger } from "../../../../env";
-import { updateState } from "./reconciliation";
+import { service as ReconciliationService } from "./reconciliation-service";
 import { raise, assert, Json } from "@ove/ove-utils";
+import { getServiceForProtocol } from "./utils";
 
 export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
@@ -55,21 +52,6 @@ const filterUndefinedResponse = <T>(obj: {
   response: T | undefined;
 }): obj is { deviceId: string; response: T } => obj.response !== undefined;
 
-const getServiceForProtocol =
-  (protocol: ServiceType): TBridgeHardwareService => {
-    switch (protocol) {
-      case "node":
-        // throw new Error("disabled node");
-        return NodeService;
-      case "pjlink":
-        // throw new Error("disabled pjlink");
-        return PJLinkService;
-      case "mdc":
-        // throw new Error("disabled mdc");
-        return MDCService;
-    }
-  };
-
 const applyService = async <Key extends keyof TBridgeHardwareService>(
   service: TBridgeHardwareService,
   k: Key,
@@ -79,7 +61,7 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
   if ((Object.keys(service) as Array<keyof TBridgeHardwareService>)
     .includes(k)) {
     const res = await assert(service[k])(device, args);
-    await updateState(device, k, args);
+    await ReconciliationService.updateState(device, k, args);
     return res;
   } else return undefined;
 };

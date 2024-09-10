@@ -16,7 +16,8 @@ export type ConfigurationProps = {
 const ConfigurationFormSchema = z.strictObject({
   coreURL: z.string().optional(),
   bridgeName: z.string().optional(),
-  calendarURL: z.string().optional()
+  calendarURL: z.string().optional(),
+  reconcile: z.boolean()
 });
 
 type ConfigurationForm = z.infer<typeof ConfigurationFormSchema>
@@ -31,21 +32,23 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
     resolver: zodResolver(ConfigurationFormSchema)
   });
   useFormErrorHandling(errors);
-  const updateEnv = useEnv(setValue);
+  const updateEnv = useEnv(setValue as Parameters<typeof useEnv>[0]);
   const connected = useSocket();
 
   const onSubmit = async ({
     calendarURL,
     bridgeName,
-    coreURL
+    coreURL,
+    reconcile
   }: ConfigurationForm, e: BaseSyntheticEvent<object> | undefined) => {
+    console.log("SUBMITTING");
     if ((e?.nativeEvent as unknown as NativeEvent)
       .submitter.name === "auto-mode") {
       openDialog();
       return;
     }
 
-    await updateEnv({ coreURL, bridgeName, calendarURL });
+    await updateEnv({ coreURL, bridgeName, calendarURL, reconcile });
     refreshCalendar();
   };
 
@@ -54,7 +57,7 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
     <form
       method="post"
       onSubmit={handleSubmit(onSubmit)}
-      className={styles.form}>
+      className={styles.form} style={{ overflowY: "scroll" }}>
       <label htmlFor="core-url">Core URL
         - {connected ? "connected" : "disconnected"}</label>
       <input {...register("coreURL")} type="text" />
@@ -65,6 +68,12 @@ const Configuration = ({ refreshCalendar, openDialog }: ConfigurationProps) => {
       <button id={styles["auto-mode"]} type="submit" name="auto-mode">
         Configure Auto Mode
       </button>
+      <div style={{ display: "flex", alignItems: "center", marginTop: "2rem" }}>
+        <label htmlFor="reconcile"
+               style={{ height: "100%", marginTop: 0 }}>Reconcile</label>
+        <input {...register("reconcile")} type="checkbox"
+               style={{ marginLeft: "auto" }} />
+      </div>
       <button name="update" type="submit">Update / Reconnect</button>
     </form>
   </section>;

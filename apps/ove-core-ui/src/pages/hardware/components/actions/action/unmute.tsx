@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import { VolumeUp } from "react-bootstrap-icons";
 import type { ActionProps } from "../../../types";
 
@@ -12,7 +12,7 @@ const useUnmute = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const unmute = trpc.hardware.unmute.useMutation({
+  const unmute = api.hardware.unmute.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to unmute: ${deviceId}`);
@@ -24,7 +24,7 @@ const useUnmute = (
       toast.error(`Failed to unmute: ${deviceId}`);
     }
   });
-  const unmuteAll = trpc.hardware.unmuteAll.useMutation({
+  const unmuteAll = api.hardware.unmuteAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to unmute devices");

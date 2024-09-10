@@ -47,19 +47,20 @@ export const createClient = (
     ]
   });
 
-const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">) => {
+const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">,
+  ac?: () => AbortController) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).reboot.mutate(
+    return createClient(device).reboot.mutate(
       parsedOpts.data as z.infer<TClientAPI["reboot"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -68,52 +69,57 @@ const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">) => {
 
 const shutdown = async (
   device: Device,
-  args: TBridgeServiceArgs<"shutdown">
+  args: TBridgeServiceArgs<"shutdown">,
+  ac?: () => AbortController
 ) => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).shutdown.mutate(
+    return createClient(device).shutdown.mutate(
       parsedOpts.data as z.infer<TClientAPI["shutdown"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
   }
 };
 
-const start = async (device: Device, args: TBridgeServiceArgs<"start">) => {
+const start = async (device: Device, args: TBridgeServiceArgs<"start">,
+  ac?: () => AbortController) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
+  const controller = ac?.() ?? new AbortController();
+
   try {
-    return await wake(device.mac, env.NODE_TIMEOUT);
+    return wake(device.mac, env.NODE_TIMEOUT, undefined, controller);
   } catch (e) {
     return raise(Json.stringify(e));
   }
 };
 
-const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">) => {
+const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">,
+  ac?: () => AbortController) => {
   const infoOptsSchema = z.object({ type: z.string().optional() }).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).getInfo.query(
+    return createClient(device).getInfo.query(
       parsedOpts.data as z.infer<TClientAPI["getInfo"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -122,39 +128,41 @@ const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">) => {
 
 const getStatus = async (
   device: Device,
-  args: TBridgeServiceArgs<"getStatus">
+  args: TBridgeServiceArgs<"getStatus">,
+  ac?: () => AbortController
 ) => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
     return statusOptions(() => createClient(device).getStatus.query(
       parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     ), device.ip);
   } catch (e) {
     return raise(Json.stringify(e));
   }
 };
 
-const execute = async (device: Device, args: TBridgeServiceArgs<"execute">) => {
+const execute = async (device: Device, args: TBridgeServiceArgs<"execute">,
+  ac?: () => AbortController) => {
   const executeOptsSchema = z.object({ command: z.string() }).strict();
   const parsedOpts = executeOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).execute.mutate(
+    return createClient(device).execute.mutate(
       parsedOpts.data as z.infer<TClientAPI["execute"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -163,7 +171,8 @@ const execute = async (device: Device, args: TBridgeServiceArgs<"execute">) => {
 
 const screenshot = async (
   device: Device,
-  args: TBridgeServiceArgs<"screenshot">
+  args: TBridgeServiceArgs<"screenshot">,
+  ac?: () => AbortController
 ) => {
   const screenshotOptsSchema = z
     .strictObject({
@@ -174,13 +183,13 @@ const screenshot = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).screenshot.mutate(
+    return createClient(device).screenshot.mutate(
       parsedOpts.data as z.infer<TClientAPI["screenshot"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -189,7 +198,8 @@ const screenshot = async (
 
 const openBrowsers = async (
   device: Device,
-  args: TBridgeServiceArgs<"openBrowsers">
+  args: TBridgeServiceArgs<"openBrowsers">,
+  ac?: () => AbortController
 ) => {
   const openBrowserOptsSchema = z
     .strictObject({});
@@ -197,13 +207,13 @@ const openBrowsers = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).openBrowsers.mutate(
+    return createClient(device).openBrowsers.mutate(
       parsedOpts.data as z.infer<TClientAPI["openBrowsers"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -212,20 +222,21 @@ const openBrowsers = async (
 
 const closeBrowsers = async (
   device: Device,
-  args: TBridgeServiceArgs<"closeBrowsers">
+  args: TBridgeServiceArgs<"closeBrowsers">,
+  ac?: () => AbortController
 ) => {
   const closeBrowsersOptsSchema = z.strictObject({});
   const parsedOpts = closeBrowsersOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).closeBrowsers.mutate(
+    return createClient(device).closeBrowsers.mutate(
       parsedOpts.data as z.infer<TClientAPI["closeBrowsers"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -234,20 +245,21 @@ const closeBrowsers = async (
 
 const reloadBrowser = async (
   device: Device,
-  args: TBridgeServiceArgs<"reloadBrowser">
+  args: TBridgeServiceArgs<"reloadBrowser">,
+  ac?: () => AbortController
 ) => {
   const reloadBrowsersOptsSchema = z.strictObject({ browserId: z.number() });
   const parsedOpts = reloadBrowsersOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).reloadBrowser.mutate(
+    return createClient(device).reloadBrowser.mutate(
       parsedOpts.data as z.infer<TClientAPI["reloadBrowser"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -256,20 +268,21 @@ const reloadBrowser = async (
 
 const reloadBrowsers = async (
   device: Device,
-  args: TBridgeServiceArgs<"reloadBrowsers">
+  args: TBridgeServiceArgs<"reloadBrowsers">,
+  ac?: () => AbortController
 ) => {
   const reloadBrowsersOptsSchema = z.strictObject({});
   const parsedOpts = reloadBrowsersOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).reloadBrowsers.mutate(
+    return createClient(device).reloadBrowsers.mutate(
       parsedOpts.data as z.infer<TClientAPI["reloadBrowsers"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -278,7 +291,8 @@ const reloadBrowsers = async (
 
 const setWindowConfig = async (
   device: Device,
-  args: TBridgeServiceArgs<"setWindowConfig">
+  args: TBridgeServiceArgs<"setWindowConfig">,
+  ac?: () => AbortController
 ) => {
   const setConfigOptsSchema = z.strictObject({
     config: z.record(z.string(), z.string())
@@ -287,13 +301,13 @@ const setWindowConfig = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).setWindowConfig.mutate(
+    return createClient(device).setWindowConfig.mutate(
       parsedOpts.data as z.infer<TClientAPI["setWindowConfig"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -302,20 +316,21 @@ const setWindowConfig = async (
 
 const getWindowConfig = async (
   device: Device,
-  args: TBridgeServiceArgs<"getWindowConfig">
+  args: TBridgeServiceArgs<"getWindowConfig">,
+  ac?: () => AbortController
 ) => {
   const configOptsSchema = z.object({});
   const parsedOpts = configOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).getWindowConfig.query(
+    return createClient(device).getWindowConfig.query(
       parsedOpts.data as z.infer<TClientAPI["getWindowConfig"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -324,20 +339,21 @@ const getWindowConfig = async (
 
 const getBrowsers = async (
   device: Device,
-  args: TBridgeServiceArgs<"getBrowsers">
+  args: TBridgeServiceArgs<"getBrowsers">,
+  ac?: () => AbortController
 ) => {
   const getBrowsersOptsSchema = z.strictObject({});
   const parsedOpts = getBrowsersOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  const ac = new AbortController();
-  setTimeout(() => ac.abort(), env.NODE_TIMEOUT);
+  const controller = ac?.() ?? new AbortController();
+  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
 
   try {
-    return await createClient(device).getBrowsers.query(
+    return createClient(device).getBrowsers.query(
       parsedOpts.data as z.infer<TClientAPI["getBrowsers"]["args"]>,
-      { signal: ac.signal }
+      { signal: controller.signal }
     );
   } catch (e) {
     return raise(Json.stringify(e));

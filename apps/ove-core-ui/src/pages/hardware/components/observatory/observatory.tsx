@@ -4,7 +4,7 @@ import Actions from "../actions/actions";
 import { skipSingle } from "../../utils";
 import Preview from "../preview/preview";
 import Toolbar from "../toolbar/toolbar";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
 import type { HardwareInfo } from "../../types";
@@ -16,13 +16,13 @@ import styles from "./observatory.module.scss";
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const getHardware = trpc.bridge.getDevices
+  const getHardware = api.bridge.getDevices
     .useQuery({ bridgeId }, { enabled: isOnline });
-  const getStatus = trpc.hardware.getStatus.useQuery({
+  const getStatus = api.hardware.getStatus.useQuery({
     bridgeId,
     deviceId: deviceAction.deviceId ?? ""
   }, { enabled: false });
-  const getStatusAll = trpc.hardware.getStatusAll.useQuery({
+  const getStatusAll = api.hardware.getStatusAll.useQuery({
     bridgeId
   }, { enabled: isOnline });
 
@@ -84,7 +84,7 @@ const Observatory = ({ name, isOnline }: {
   const [filter, setFilter] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[] | null>(null);
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
-  const bounds = trpc.core.getObservatoryBounds.useQuery();
+  const bounds = api.core.getObservatoryBounds.useQuery();
 
   return <section className={styles.observatory}>
     <Header name={name} isOnline={isOnline} />

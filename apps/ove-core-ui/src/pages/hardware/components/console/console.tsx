@@ -5,7 +5,7 @@ import { assert } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../env";
 import { useForm } from "react-hook-form";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronRight, SendHorizontal } from "lucide-react";
@@ -18,7 +18,7 @@ const useConsole = (
   tag: string | undefined
 ) => {
   const addCommand = useStore(state => state.hardwareConfig.addCommandHistory);
-  const execute = trpc.hardware.execute.useMutation({
+  const execute = api.hardware.execute.useMutation({
     onSuccess: ({ response }) => {
       if (isError(response)) {
         addCommand(`${deviceId} > ERROR`);
@@ -29,7 +29,7 @@ const useConsole = (
     },
     onError: () => toast.error("Unable to execute command")
   });
-  const executeAll = trpc.hardware.executeAll.useMutation({
+  const executeAll = api.hardware.executeAll.useMutation({
     onSuccess: ({ response }) => {
       if (isError(response)) {
         addCommand(`${bridgeId} > ERROR`);

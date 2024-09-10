@@ -5,7 +5,7 @@ import { assert } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../env";
 import { checkErrors } from "../../utils";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import ValueModal from "../value-modal/value-modal";
 
@@ -14,7 +14,7 @@ const useVolume = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const setVolume = trpc.hardware.setVolume.useMutation({
+  const setVolume = api.hardware.setVolume.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
       if (isError(response)) {
@@ -26,7 +26,7 @@ const useVolume = (
     },
     onError: () => toast.error(`Unable to set volume on ${deviceId}`)
   });
-  const setVolumeAll = trpc.hardware.setVolumeAll.useMutation({
+  const setVolumeAll = api.hardware.setVolumeAll.useMutation({
     retry: false,
     onSuccess: ({ response }) => {
       if (isError(response)) {

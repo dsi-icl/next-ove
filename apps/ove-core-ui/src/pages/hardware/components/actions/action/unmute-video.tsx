@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../../env";
 import { checkErrors } from "../../../utils";
-import { trpc } from "../../../../../utils/api";
+import { api } from "../../../../../utils/api";
 import type { ActionProps } from "../../../types";
 import { CameraVideo, VolumeUp } from "react-bootstrap-icons";
 
@@ -14,7 +14,7 @@ const useUnmuteVideo = (
   deviceId: string | null,
   tag: string | undefined
 ) => {
-  const unmuteVideo = trpc.hardware.unmuteVideo.useMutation({
+  const unmuteVideo = api.hardware.unmuteVideo.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error(`Failed to unmute video on: ${deviceId}`);
@@ -26,7 +26,7 @@ const useUnmuteVideo = (
       toast.error(`Failed to unmute video on: ${deviceId}`);
     }
   });
-  const unmuteVideoAll = trpc.hardware.unmuteVideoAll.useMutation({
+  const unmuteVideoAll = api.hardware.unmuteVideoAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
         toast.error("Failed to unmute video on devices");

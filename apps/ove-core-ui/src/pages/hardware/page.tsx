@@ -1,4 +1,4 @@
-import { trpc } from "../../utils/api";
+import { api } from "../../utils/api";
 import { useStore } from "../../store";
 import type { DeviceAction } from "./types";
 import Popups from "./components/popups/popups";
@@ -34,7 +34,7 @@ const isSpecial = (action: DeviceAction["action"]) =>
   action === "power_mode" || action === "volume" || action === "browser";
 
 const Hardware = () => {
-  const getObservatories = trpc.core.getObservatories.useQuery();
+  const getObservatories = api.core.getObservatories.useQuery();
   const { ref, closeDialog, openDialog, isOpen } = useDialog();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const reset = useStore(state => state.hardwareConfig.reset);

@@ -12,6 +12,9 @@
   },
   "aliases": {
     "components": "libs/ui-base-components/src/lib",
+    "hooks": "libs/ui-base-components/src/lib/hooks",
+    "lib": "libs/ui-base-components/src/lib",
+    "ui": "libs/ui-base-components/src/lib",
     "utils": "libs/ui-base-components/src/lib/utils"
   }
 }

@@ -59,10 +59,11 @@ type TGet = "GET"
 export type TIsGet<Key extends keyof TBridgeService, T, U> =
   TAPIRoutes[Key]["meta"]["openapi"]["method"] extends TGet ? T : U
 
-const EnvSchema = z.strictObject({
+export const EnvSchema = z.strictObject({
   bridgeName: z.string().optional(),
   coreURL: z.string().optional(),
-  calendarURL: z.string().optional()
+  calendarURL: z.string().optional(),
+  reconcile: z.boolean()
 });
 
 export const APIRoutes = {
@@ -312,6 +313,17 @@ export const APIRoutes = {
     input: z.strictObject({ bridgeId: z.string() }),
     output: getBridgeResponseSchema(
       getDeviceResponseSchema(BoundsSchema.optional()))
+  },
+  getReconciliation: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/bridges/{bridgeId}/reconciliation" as const,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.boolean()))
   },
   refreshReconciliation: {
     meta: {

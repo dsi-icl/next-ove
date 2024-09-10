@@ -1,4 +1,4 @@
-import { trpc } from "./utils/api";
+import { api } from "./utils/api";
 import { useStore } from "./store";
 import { env, logger } from "./env";
 import { Json } from "@ove/ove-utils";
@@ -87,7 +87,7 @@ export const useQuery = () => {
 };
 
 export const useObservatories = () => {
-  const observatories_ = trpc.core.getObservatoryBounds.useQuery();
+  const observatories_ = api.core.getObservatoryBounds.useQuery();
   const [observatories, setObservatories] = useState<Record<string, {
     width: number,
     height: number,

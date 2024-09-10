@@ -26,7 +26,8 @@ export {
 export type TBridgeHardwareService = {
   [Key in keyof TClientRoutesSchema]?: (
     device: Device,
-    args: z.infer<TClientRoutesSchema[Key]["args"]>
+    args: z.infer<TClientRoutesSchema[Key]["args"]>,
+    ac?: () => AbortController
   ) => Promise<Optional<z.infer<TClientRoutesSchema[Key]["client"]>>>
 };
 

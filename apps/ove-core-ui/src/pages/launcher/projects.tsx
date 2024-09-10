@@ -1,4 +1,4 @@
-import { trpc } from "../../utils/api";
+import { api } from "../../utils/api";
 import { assert } from "@ove/ove-utils";
 import React, { useState } from "react";
 import { isError } from "@ove/ove-types";
@@ -56,8 +56,8 @@ const Projects = () => {
     isOpen
   } = useActions<Action | null>();
   const [project, setProject] = useState<Project | null>(null);
-  const projects = trpc.projects.getProjects.useQuery();
-  const user = trpc.getUserID.useQuery();
+  const projects = api.projects.getProjects.useQuery();
+  const user = api.getUserID.useQuery();
   const { observatories } = useObservatories();
 
   return projects.status === "success" && !isError(projects.data) &&

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { logger } from "../../../../env";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 
 export const useStreams = (bridgeId: string, isOpen: boolean) => {
-  const streams = trpc.bridge.getStreams.useQuery({ bridgeId });
-  const startStreams = trpc.bridge.startStreams.useMutation();
-  const stopStreams = trpc.bridge.stopStreams.useMutation();
+  const streams = api.bridge.getStreams.useQuery({ bridgeId });
+  const startStreams = api.bridge.startStreams.useMutation();
+  const stopStreams = api.bridge.stopStreams.useMutation();
 
   useEffect(() => () => {
     stopStreams.mutateAsync({ bridgeId }).catch(logger.error);

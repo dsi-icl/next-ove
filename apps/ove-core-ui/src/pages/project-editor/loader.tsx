@@ -1,13 +1,13 @@
 import ProjectEditor from "./page";
 import { useQuery } from "../../hooks";
-import { trpc } from "../../utils/api";
+import { api } from "../../utils/api";
 import React, { useMemo } from "react";
 import { isError } from "@ove/ove-types";
 import { useProject, useSave } from "./hooks";
 
 const Loader = ({ token }: { token: string }) => {
   const query = useQuery();
-  const user = trpc.getUserID.useQuery();
+  const user = api.getUserID.useQuery();
 
   const userId = useMemo(() => user.status === "success" &&
   !isError(user.data) ? user.data.id : null, [user.status, user.data]);

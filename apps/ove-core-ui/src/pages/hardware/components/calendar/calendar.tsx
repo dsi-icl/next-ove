@@ -3,12 +3,12 @@ import {
   Calendar as CalendarDisplay,
   useCalendar
 } from "@ove/ui-components";
-import { trpc } from "../../../../utils/api";
+import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 
 const Calendar = () => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const getCalendar = trpc.bridge.getCalendar
+  const getCalendar = api.bridge.getCalendar
     .useQuery({ bridgeId: deviceAction.bridgeId ?? "" });
   const { calendar, lastUpdated } = useCalendar(getCalendar.data?.response);
 

@@ -40,10 +40,10 @@ const schema = z.strictObject({
   PJLINK_TIMEOUT: z.number(),
   MDC_RESTART_TIMEOUT: z.number(),
   RECONCILIATION_TIMEOUT: z.number(),
-  RECONCILIATION_ERROR_TIMEOUT: z.number(),
   SYN_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
   ARP_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
-  WOL_ADDRESS: z.string().optional()
+  WOL_ADDRESS: z.string().optional(),
+  RECONCILE: z.boolean()
 });
 
 const staticConfig = {
@@ -78,8 +78,8 @@ const defaultConfig: z.infer<typeof schema> = {
   MDC_TIMEOUT: 5_000,
   MDC_RESTART_TIMEOUT: 1_000,
   PJLINK_TIMEOUT: 5_000,
-  RECONCILIATION_ERROR_TIMEOUT: 5_000,
-  RECONCILIATION_TIMEOUT: 60_000
+  RECONCILIATION_TIMEOUT: 60_000,
+  RECONCILE: true
 };
 
 const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");
