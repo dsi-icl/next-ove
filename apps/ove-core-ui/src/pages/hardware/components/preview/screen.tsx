@@ -22,6 +22,7 @@ type ScreenHUDProps = {
   }
   windowConfig: string
   url: string
+  isPopover: boolean
 }
 
 const ScreenHUD = ({
@@ -30,9 +31,10 @@ const ScreenHUD = ({
   displayId,
   renderer,
   windowConfig,
-  url
+  url,
+  isPopover
 }: ScreenHUDProps) => {
-  return <ul className={styles.hud}>
+  return <ul className={[styles.hud].concat(isPopover ? [styles.popover] : []).join(" ")}>
     <li>
       <span>row</span>
       <span>-</span>
@@ -87,7 +89,7 @@ const useWindowConfig = (
 const useBrowser = (bridgeId: string, deviceId: string, displayId: string) => {
   const getBrowsers = trpc.hardware.getBrowsers.useQuery({
     bridgeId,
-    deviceId: deviceId
+    deviceId
   });
 
   return useMemo((): string => {
@@ -101,6 +103,14 @@ const useBrowser = (bridgeId: string, deviceId: string, displayId: string) => {
 
 const useLiveFeed = (bridgeId: string, deviceId: string, displayId: string) => {
   const takeScreenshot = trpc.hardware.screenshot.useMutation({ retry: false });
+
+  const screenshot = useMemo(() => {
+    if (takeScreenshot.status !== "success") return takeScreenshot.status === "loading" ? "loading" as const : undefined;
+    const res = takeScreenshot.data.response;
+    if (isError(res)) return undefined;
+    return res[0];
+  }, [takeScreenshot.status, takeScreenshot.data?.response]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       takeScreenshot.mutateAsync({
@@ -116,12 +126,7 @@ const useLiveFeed = (bridgeId: string, deviceId: string, displayId: string) => {
     };
   }, [bridgeId, deviceId, displayId, takeScreenshot]);
 
-  return useMemo(() => {
-    if (takeScreenshot.status !== "success") return undefined;
-    const res = takeScreenshot.data.response;
-    if (isError(res)) return undefined;
-    return res[0];
-  }, [takeScreenshot.status, takeScreenshot.data?.response]);
+  return screenshot;
 };
 
 const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
@@ -145,6 +150,17 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
   const aspectRatio = [bounds.width / bounds.columns,
     bounds.height / bounds.rows];
 
+  const getScreenshotWithLoading = () => {
+    if (screenshot === undefined) {
+      return <ScreenHUD row={display.row} column={display.column}
+                        displayId={display.displayId}
+                        renderer={display.renderer} windowConfig={windowConfig}
+                        url={browser} isPopover={false} />;
+    } else if (screenshot === "loading") return null;
+    else return <img src={`data:image/png;base64,${screenshot}`}
+                     alt="screenshot" />;
+  };
+
   return <li key={colId} className={styles.screen} style={{
     width: `calc(100% / ${bounds.columns})`,
     aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
@@ -158,18 +174,12 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
           } else {
             setSelected([display.displayId, display.renderer.deviceId]);
           }
-        }}>
-          {screenshot === undefined ?
-            <ScreenHUD row={display.row} column={display.column}
-                       displayId={display.displayId} renderer={display.renderer}
-                       windowConfig={windowConfig}
-                       url={browser} /> :
-            <img src={screenshot} alt="screenshot" />}
-        </button>
+        }}>{getScreenshotWithLoading()}</button>
       </HoverCardTrigger>
       <HoverCardContent>
-        {screenshot !== undefined ?
-          <ScreenHUD row={display.row} column={display.column}
+        {/*TODO: improve popover HUD once v0.2.2 changes merged*/}
+        {screenshot !== undefined && screenshot !== "loading" ?
+          <ScreenHUD row={display.row} column={display.column} isPopover={true}
                      displayId={display.displayId} renderer={display.renderer}
                      windowConfig={windowConfig} url={browser} /> : null}
       </HoverCardContent>

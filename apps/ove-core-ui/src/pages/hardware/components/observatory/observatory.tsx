@@ -9,10 +9,11 @@ import { useStore } from "../../../../store";
 import { columns } from "../data-table/columns";
 import type { HardwareInfo } from "../../types";
 import DataTable from "../data-table/data-table";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { is, isError, OVEExceptionSchema } from "@ove/ove-types";
 
 import styles from "./observatory.module.scss";
+import { logger } from "../../../../env";
 
 export const useHardware = (isOnline: boolean, bridgeId: string) => {
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
@@ -80,16 +81,22 @@ const Observatory = ({ name, isOnline }: {
   name: string
   isOnline: boolean
 }) => {
+  const utils = trpc.useUtils();
   const { hardware } = useHardware(isOnline, name);
   const [filter, setFilter] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[] | null>(null);
   const [filterType, setFilterType] = useState<"id" | "tags">("id");
   const bounds = trpc.core.getObservatoryBounds.useQuery();
 
+  useEffect(() => {
+    utils.core.getObservatoryBounds.invalidate().catch(logger.error);
+  }, [isOnline]);
+
   return <section className={styles.observatory}>
     <Header name={name} isOnline={isOnline} />
     {isOnline ? <>
-      {bounds.status === "success" && !isError(bounds.data) ?
+      {isOnline && bounds.status === "success" && !isError(bounds.data)
+      && name in bounds.data ?
         <Preview bridgeId={name} bounds={bounds.data[name]}
                  setSelected={setSelected} selected={selected} /> : null}
       <Toolbar filterType={filterType} hardware={hardware} filter={filter}
