@@ -12,5 +12,5 @@ module.exports = {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/ove-client',
+  coverageDirectory: '../../out/coverage/apps/ove-client',
 };

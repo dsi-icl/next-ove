@@ -13,5 +13,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/ove-core',
+  coverageDirectory: '../../out/coverage/apps/ove-core',
 };
