@@ -69,7 +69,7 @@ export const exists = (path: string) => {
 
 export const saveSwagger = (filename: string, swagger: object) => {
   safeWriteFile(
-    path.join("docs", "api", filename),
+    path.join("out", "documentation", "api", filename),
     Json.stringify(swagger, undefined, 2),
     true
   );
