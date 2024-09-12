@@ -19,15 +19,13 @@ import { initHardware } from "../hardware/hardware-controller";
 export const initBridge = () => {
   if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
   setSocket(io(`${env.CORE_URL}/socket/bridge`, {
-    autoConnect: false,
-    path: env.SOCKET_PATH
+    auth: {
+      username: env.BRIDGE_NAME,
+      password: env.PUBLIC_KEY
+    },
+    path: `${env.SOCKET_PATH}/${env.CORE_API_VERSION}`
   }));
   if (socket === null) throw new Error("ILLEGAL");
-  socket.auth = {
-    username: env.BRIDGE_NAME,
-    password: env.PUBLIC_KEY
-  };
-  socket.connect();
 
   socket.on("connect", () => {
     logger.info(`${assert(socket).id} connected to /bridge`);
