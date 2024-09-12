@@ -7,13 +7,13 @@
   padding: 2rem;
 
   .wrapper {
-    aspect-ratio: 1/1;
-    max-height: calc(90vh - 4rem);
+    max-height: calc(90vh - 8rem);
 
     & iframe {
       width: 100%;
       height: 100%;
-      max-height: calc(90vh - 4rem);
+      aspect-ratio: 1/1;
+      max-height: calc(90vh - 8rem);
     }
   }
 }

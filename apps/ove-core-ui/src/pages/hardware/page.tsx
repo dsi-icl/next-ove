@@ -8,11 +8,22 @@ import React, { type CSSProperties, useEffect } from "react";
 import Observatory from "./components/observatory/observatory";
 
 import styles from "./page.module.scss";
+import { isError } from "@ove/ove-types";
+
+const getHiddenStyle = (
+  deviceAction: DeviceAction): CSSProperties | undefined => {
+  switch (deviceAction.action) {
+    case "monitoring":
+      return { width: "90vw", height: "90vh" };
+    default:
+      return undefined;
+  }
+};
 
 const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
   switch (deviceAction.action) {
     case "monitoring":
-      return { width: "90vw", height: "90vh" };
+      return { width: "90vw", height: "90vh", maxHeight: "unset" };
     case "browser": {
       if (deviceAction.pending) {
         return { width: "25vw", height: "30vh" };
@@ -54,10 +65,11 @@ const Hardware = () => {
       </Helmet>
       <h1>Hardware Manager</h1>
       {getObservatories.status === "success" &&
-      !("oveError" in getObservatories.data) ?
+      !isError(getObservatories.data) ?
         getObservatories.data?.map(({ name, isOnline }) =>
           <Observatory name={name} isOnline={isOnline} key={name} />) : null}
       <Dialog closeDialog={reset} ref={ref} style={getStyle(deviceAction)}
+              hiddenStyle={getHiddenStyle(deviceAction)}
               title={deviceAction.deviceId ?? deviceAction.bridgeId ?? ""}>
         <Popups isOpen={isOpen} />
       </Dialog>

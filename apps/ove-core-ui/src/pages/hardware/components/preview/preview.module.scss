@@ -1,5 +1,6 @@
 .hud {
   width: 100%;
+  background-color: #002147;
 
   li {
     display: flex;
@@ -15,9 +16,18 @@
   }
 }
 
+.popover {
+  width: 20vw;
+  z-index: 2;
+  position: relative;
+  margin: 1rem;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
 .screen {
   border: 1px solid white;
-  background-color: #1e293b;
+  background-color: #002147;
   color: white;
   display: flex;
   align-items: center;
