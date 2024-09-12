@@ -12,10 +12,10 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./database/db:/data/db
-      - ./database/dev.archive:/Databases/dev.archive
-      - ./database/production:/Databases/production
-      - ./mongo.keyfile:/data/mongo.keyfile
+      - ./data/mongo/database/db:/data/db
+      - ./data/mongo/database/dev.archive:/Databases/dev.archive
+      - ./data/mongo/database/production:/Databases/production
+      - ./data/mongo/mongo.keyfile:/data/mongo.keyfile
     command: mongod --replSet rs0 --keyFile /data/mongo.keyfile
   mongo-express:
     image: mongo-express:latest
@@ -38,7 +38,7 @@ services:
     image: minio/minio:latest
     container_name: minio
     volumes:
-      - ./data:/data
+      - ./data/minio/data:/data
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -62,7 +62,7 @@ services:
       - ove
       - ove-apps
     volumes:
-      - ./dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./config/dev.conf:/etc/nginx/conf.d/default.conf:ro
   ove:
     image: ovehub/ove:0.6.3-arm
     restart: unless-stopped
@@ -91,6 +91,6 @@ services:
       - MapLayers.json
 secrets:
   ove_networks_config.json:
-    file: ove_networks_config.json
+    file: config/ove_networks_config.json
   MapLayers.json:
-    file: MapLayers.json
+    file: config/MapLayers.json
