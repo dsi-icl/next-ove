@@ -21,13 +21,7 @@
         "production": {
           "optimization": true,
           "extractLicenses": true,
-          "inspect": false,
-          "fileReplacements": [
-            {
-              "replace": "apps/ove-bridge/src/environments/environment.ts",
-              "with": "apps/ove-bridge/src/environments/environment.prod.ts"
-            }
-          ]
+          "inspect": false
         }
       }
     },
