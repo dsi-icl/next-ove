@@ -39,14 +39,12 @@ export const initHardware = () => {
     }
   }
   socket = io(`${env.CORE_URL}/socket/hardware`, {
-    autoConnect: false,
-    path: env.SOCKET_PATH
+    auth: {
+      username: env.BRIDGE_NAME,
+      password: env.PUBLIC_KEY
+    },
+    path: `${env.SOCKET_PATH ?? ""}/${env.CORE_API_VERSION}`
   });
-  socket.auth = {
-    username: env.BRIDGE_NAME,
-    password: env.PUBLIC_KEY
-  };
-  socket.connect();
 
   socket.on("connect", () => {
     logger.info(`${assert(socket).id} connected to /hardware`);
