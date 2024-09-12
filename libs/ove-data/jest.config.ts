@@ -12,5 +12,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../coverage/libs/ove-data',
+  coverageDirectory: '../../out/coverage/libs/ove-data',
 };
