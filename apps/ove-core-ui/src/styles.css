@@ -4,46 +4,6 @@
 /* You can add global styles to this file, and also import other style files */
 /* Box sizing rules */
 
-@font-face {
-  font-family: 'DINPro';
-  src: url("/fonts/dinpro-900.woff2") format('woff2'),
-  url("/fonts/dinpro-900.woff") format('woff');
-  font-weight: 900;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'DINPro';
-  src: url("/fonts/dinpro.woff2") format('woff2'),
-  url("/fonts/dinpro.woff") format('woff');
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'DINPro';
-  src: url("/fonts/dinpro-300.woff2") format('woff2'),
-  url("/fonts/dinpro-300.woff") format('woff');
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'DINPro';
-  src: url("/fonts/dinpro-500.woff2") format('woff2'),
-  url("/fonts/dinpro-500.woff") format('woff');
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'DINPro';
-  src: url("/fonts/dinpro-bold.woff2") format('woff2'),
-  url("/fonts/dinpro-bold.woff") format('woff');
-  font-weight: bold;
-  font-style: normal;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -119,7 +79,7 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
-    font-family: 'DINPro', serif;
+    font-family: "Imperial Sans Display", sans-serif;
     font-weight: normal;
     font-style: normal;
   }
