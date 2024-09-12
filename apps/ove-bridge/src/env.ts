@@ -49,7 +49,8 @@ const schema = z.strictObject({
 const staticConfig = {
   APP_NAME: "ove-bridge",
   UI_ALIAS: "ove-bridge-ui",
-  CLIENT_VERSION: "1"
+  CLIENT_API_VERSION: "1",
+  CORE_API_VERSION: "1"
 } as const;
 
 const passPhrase = nanoid(16);

@@ -18,7 +18,8 @@ const baseSchema = z.strictObject({
   NODE_ENV: z.union([
     z.literal("development"),
     z.literal("production"),
-    z.literal("test")
+    z.literal("test"),
+    z.literal("api")
   ]),
   LOG_LEVEL: z.number().optional(),
   LOGGING_SERVER: z.string().optional(),
@@ -111,7 +112,8 @@ const defaultConfig: z.infer<typeof schema> = {
   UI_URL: path.join(__dirname, "ui")
 };
 
-const configPath = path.join(__dirname, "config", "config.json");
+const configFile = process.argv.slice(2).find(arg => arg.startsWith("--configFile="))?.split("=")?.at(-1);
+const configPath = path.join(__dirname, "config", configFile ?? "config.json");
 
 export const env = setupConfigWithRefinement(
   configPath,

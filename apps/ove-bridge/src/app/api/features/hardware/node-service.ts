@@ -37,7 +37,7 @@ export const createClient = (
   createTRPCProxyClient<AppRouter>({
     links: [
       httpLink({
-        url: `${device.protocol}://${device.ip}:${device.port}/api/v${env.CLIENT_VERSION}/trpc`,
+        url: `${device.protocol}://${device.ip}:${device.port}/api/v${env.CLIENT_API_VERSION}/trpc`,
         headers: () => {
           return {
             Authorization: fixedEncodeURIComponent(`Bearer ${env.PUBLIC_KEY}`)
