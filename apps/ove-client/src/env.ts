@@ -28,7 +28,7 @@ const staticConfig = {
   PIN_UPDATE_DELAY: 30_000,
   TITLE: "next-ove client",
   DESCRIPTION: "Control interface for observatory rendering nodes.",
-  CHECKSITE: "www.google.com",
+  CHECKSITE: "www.google.com"
 } as const;
 
 const defaultConfig: z.infer<typeof schema> = {
@@ -40,8 +40,9 @@ const defaultConfig: z.infer<typeof schema> = {
   BROWSER_DELAY: 2000
 };
 
-const configPath = path.join(app.getPath("userData"), "ove-client-config.json");
-
+const configPath = process.argv.slice(2).find(arg =>
+  arg.startsWith("--configFile="))?.split("=")?.at(-1) ?? path
+  .join(app.getPath("userData"), "ove-client-config.json");
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 
 export const logger = Logger(env.APP_NAME, env.LOG_LEVEL, env.LOGGING_SERVER);

@@ -9,7 +9,7 @@ const initObservatory = async (observatory: string, project: Project, layout: Se
     return raise("Missing observatory state");
   }
 
-  observatoryState.state = {project, layout};
+  observatoryState.state = {project, layout, state: ""}; // TODO: investigate state property
   observatoryState.sections = new Map();
 };
 
