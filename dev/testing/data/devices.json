@@ -1,0 +1,226 @@
+[
+  {
+    "id": "dev-01",
+    "description": "Dev Node 1",
+    "ip": "test-ip-01",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-01",
+    "tags": [
+      "dev-01",
+      "nodes",
+      "cluster-01"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-02",
+    "description": "Dev Node 2",
+    "ip": "test-ip-02",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-02",
+    "tags": [
+      "dev-02",
+      "nodes",
+      "cluster-02"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-03",
+    "description": "Dev Node 3",
+    "ip": "test-ip-03",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-03",
+    "tags": [
+      "dev-03",
+      "nodes",
+      "cluster-03"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-04",
+    "description": "Dev Node 4",
+    "ip": "test-ip-04",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-04",
+    "tags": [
+      "dev-04",
+      "nodes",
+      "cluster-04"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-05",
+    "description": "Dev Node 5",
+    "ip": "test-ip-05",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-05",
+    "tags": [
+      "dev-05",
+      "nodes",
+      "cluster-05"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-06",
+    "description": "Dev Node 6",
+    "ip": "test-ip-06",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-06",
+    "tags": [
+      "dev-06",
+      "nodes",
+      "cluster-06"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-07",
+    "description": "Dev Node 7",
+    "ip": "test-ip-07",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-07",
+    "tags": [
+      "dev-07",
+      "nodes",
+      "cluster-07"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-08",
+    "description": "Dev Node 8",
+    "ip": "test-ip-08",
+    "port": 3334,
+    "protocol": "http",
+    "type": "node",
+    "mac": "test-mac-08",
+    "tags": [
+      "dev-08",
+      "nodes",
+      "cluster-08"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-01",
+    "description": "Dev Screen 1",
+    "ip": "test-ip-sc-01",
+    "type": "mdc",
+    "mac": "test-mac-sc-01",
+    "tags": [
+      "dev-sc-01",
+      "screens",
+      "cluster-01"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-02",
+    "description": "Dev Screen 2",
+    "ip": "test-ip-sc-02",
+    "type": "mdc",
+    "mac": "test-mac-sc-02",
+    "tags": [
+      "dev-sc-02",
+      "screens",
+      "cluster-02"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-03",
+    "description": "Dev Screen 3",
+    "ip": "test-ip-sc-03",
+    "type": "mdc",
+    "mac": "test-mac-sc-03",
+    "tags": [
+      "dev-sc-03",
+      "screens",
+      "cluster-03"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-04",
+    "description": "Dev Screen 4",
+    "ip": "test-ip-sc-04",
+    "type": "mdc",
+    "mac": "test-mac-sc-04",
+    "tags": [
+      "dev-sc-04",
+      "screens",
+      "cluster-04"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-05",
+    "description": "Dev Screen 5",
+    "ip": "test-ip-sc-05",
+    "type": "mdc",
+    "mac": "test-mac-sc-05",
+    "tags": [
+      "dev-sc-05",
+      "screens",
+      "cluster-05"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-06",
+    "description": "Dev Screen 6",
+    "ip": "test-ip-sc-06",
+    "type": "mdc",
+    "mac": "test-mac-sc-06",
+    "tags": [
+      "dev-sc-06",
+      "screens",
+      "cluster-06"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-07",
+    "description": "Dev Screen 7",
+    "ip": "test-ip-sc-07",
+    "type": "mdc",
+    "mac": "test-mac-sc-07",
+    "tags": [
+      "dev-sc-07",
+      "screens",
+      "cluster-07"
+    ],
+    "auth": null
+  },
+  {
+    "id": "dev-sc-08",
+    "description": "Dev Screen 8",
+    "ip": "test-ip-sc-08",
+    "type": "mdc",
+    "mac": "test-mac-sc-08",
+    "tags": [
+      "dev-sc-08",
+      "screens",
+      "cluster-08"
+    ],
+    "auth": null
+  }
+]

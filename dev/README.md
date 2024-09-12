@@ -9,7 +9,7 @@
 
 ### Environment
 
-Please refer to the ```.env.example``` file for an example environment
+Please refer to the ```.env.example``` files for an example environment
 configuration.
 
 ### Mongo Setup
@@ -19,8 +19,8 @@ configuration.
 Please execute the following command on instantiation of the MongoDB ReplicaSet:
 
 ```shell
-openssl rand -base64 756 > mongo.keyfile
-chmod 400 mongo.keyfile
+openssl rand -base64 756 > services/config/mongo.keyfile
+chmod 400 services/config/mongo.keyfile
 ```
 
 ```shell
@@ -52,26 +52,26 @@ the ```static``` image is built.
 
 ## Files
 
-### static/Dockerfile
+### services/static/Dockerfile
 
 Dockerfile for basic Node HTTP server for dummying static files, i.e. calendar
 JSON, IP camera HTML feeds.
 
-### static/public/
+### services/static/public/
 
 Directory for storing static assets to be served. Gets mounted into Docker
 image.
 
-### global_buckets/
+### cli/auto-populate/data/global_buckets/
 
 Directory for storing test global assets for loading into Minio storage and
 available to all projects.
 
-### data/
+### services/data/minio/data/
 
 Mounted volume for Minio service.
 
-### database/
+### services/data/mongo/database/
 
 Mounted volume for MongoDB service.
 
@@ -104,51 +104,51 @@ the script's help option.
 Script for building and saving the ove-core Docker image. Accepts platform,
 version and no-cache as arguments, as described under the script's help option.
 
-### analyse.sh
+### cli/analyse.sh
 
 Script for running all analysis tooling, linting and tests, providing a
 comprehensive view of the state of the project, as well as generating additional
 documentation.
 
-### credentials.example.json
+### services/auto-populate/data/credentials.example.json
 
 Example credentials.json file to be auto-populated into the database by the
 auto-populate.js script. One admin user and the credentials of a bridge are
 recommended to be provided.
 
-### dev.example.conf
+### services/config/dev.example.conf
 
 Example nginx configuration for testing services behind a reverse proxy.
 
-### docker-compose.yml
+### services/docker-compose.yml
 
 Docker Compose file for managing development services.
 
-### generate-token.js
+### cli/generate-token.js
 
 Script for generating JWTs from next-ove for authenticating the REST API without
 using ove-core-ui.
 
-### MapLayer.example.json
+### services/config/MapLayer.example.json
 
 Example MapLayers.json file for configuring the available layers to the OVE Maps
 App.
 
-### mdc-control.js
+### cli/mdc-control.js
 
 Script for controlling MDC screens, based on next-ove implementation.
 
-### mock-bridge.js
+### testing/mock-bridge.js
 
 Script for creating a mock ove-bridge instance, allowing dummy data to be passed
 to the core cloud platform.
 
-### ove_networks_config.example.json
+### services/config/ove_networks_config.example.json
 
 Example ove_networks_config.json file for configuring the presets to the OVE
 Networks App.
 
-### remove-optional-deps.sh
+### cli/remove-optional-deps.sh
 
 tree-sitter is currently being installed as an optional dependency of
 swagger-ui. All functionality is separate from this library, and as it fails to

@@ -364,57 +364,34 @@ cython_debug/
 
 # Custom rules
 
-# Sandworm
-tools/sandworm
-!tools/sandworm/.gitkeep
-
 # Development configuration
-/dev/database
-/dev/data
-/dev/mongo.keyfile
-/dev/static/public/*
-/dev/credentials.json
-/dev/dev.conf
-/dev/global_buckets/*
-!/dev/global_buckets/.gitkeep
-/dev/MapLayers.json
-/dev/ove_networks_config.json
+/dev/services/data/mongo/database
+/dev/services/data/minio/data
+/dev/services/config/mongo.keyfile
+/dev/services/static/public/*
+/dev/tools/auto-populate/data/credentials.json
+/dev/services/config/dev.conf
+dev/tools/auto-populate/data/global_buckets/*
+!/dev/tools/auto-populate/data/global_buckets/.gitkeep
+/dev/services/config/MapLayers.json
+/dev/services/config/ove_networks_config.json
 
 # Core environment config
-/apps/ove-core/src/config/config.json
+/apps/ove-core/src/config/*.json
+!/apps/ove-core/src/config/*.example.json
 /tools/db/.env.production
 /apps/ove-core/config.production.json
 
 # Test environment config
 /tests/**/private.*
 
-# type benchmarks
-tools/type-benchmarks/benchmarks.json
-
-# typescript-coverage-report
-/tools/coverage-ts
-!/tools/coverage-ts/.gitkeep
-
 # Lighthouse CLI
-/tools/.lighthouseci
-!/tools/.lighthouseci/audit.js
-!/tools/.lighthouseci/config.example.json
-
-# vite-bundle-visualizer
-/tools/bundle-analysis
-!/tools/bundle-analysis/.gitkeep
-
-# better-docs & jsdoc
-/docs/code
-
-# typedoc
-/docs/types
+/tools/lighthouseci/db.sql
+/tools/lighthouseci/config.json
+/tools/lighthouseci/lighthouserc.json
 
 # @arktype/attest
 .attest
-
-# doiuse
-tools/doiuse/browser-usage.json
 
 # deployment config
 /dev/deployment/config/*
@@ -428,13 +405,6 @@ tools/doiuse/browser-usage.json
 /tools/aqua-nautilus/analysis.txt
 /tools/aqua-nautilus/package.json
 
-# package auditing
-/tools/package-audit/analysis.txt
-
-# packages
-/tools/packages/packages.txt
-/tools/packages/packages.json
-
 # million-lint
 /tools/million-lint/config.json
 /tools/million-lint/data/*.json
@@ -442,3 +412,8 @@ tools/doiuse/browser-usage.json
 # nx
 /.nx/
 
+# documentation
+/docs/api
+/docs/code
+/docs/coverage
+/docs/types

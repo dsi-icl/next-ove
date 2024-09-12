@@ -25,7 +25,7 @@ const s3 = new Minio.Client({
 
 const prisma = new PrismaClient();
 
-const credentials = JSON.parse(readFileSync('./credentials.json').toString());
+const credentials = JSON.parse(readFileSync(path.join(__dirname, 'data', 'credentials.json')).toString());
 
 /** @type {<T>(arr: T[]) => T[]} */
 const unique = arr => arr.filter((x, i, arr) => arr.indexOf(x) === i);
@@ -158,7 +158,7 @@ const load = async () => {
 
   const users = await prisma.user.findMany({});
 
-  for (const directory of (await glob('./global_buckets/*'))) {
+  for (const directory of (await glob(path.join(__dirname, 'data', 'global_buckets', '*')))) {
     const bucket = directory.split('/').at(-1);
     await createBucket(bucket);
 
@@ -176,7 +176,7 @@ const load = async () => {
       }
     });
 
-    let template = readFileSync(path.join('..', 'apps', 'ove-core', 'src', 'assets', 'control-template.html')).toString();
+    let template = readFileSync(path.join(__dirname, '..', '..', 'apps', 'ove-core', 'src', 'assets', 'control-template.html')).toString();
     await uploadData(project.title.replaceAll(' ', '-').toLowerCase(), 'control.html', template);
     await uploadData(project.title.replaceAll(' ', '-').toLowerCase(), 'env.json', '{}');
   }
