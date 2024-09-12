@@ -92,6 +92,10 @@ const Observatory = ({ name, isOnline }: {
     utils.core.getObservatoryBounds.invalidate().catch(logger.error);
   }, [isOnline]);
 
+  useEffect(() => {
+    utils.core.getObservatoryBounds.invalidate().catch(logger.error);
+  }, [isOnline]);
+
   return <section className={styles.observatory}>
     <Header name={name} isOnline={isOnline} />
     {isOnline ? <>
