@@ -5,5 +5,5 @@
   "serverBaseURL": "",
   "baseURL": "",
   "tempDir": ".lighthouseci",
-  "outDir": "tools/.lighthouseci"
+  "outDir": "out/lighthouse"
 }

@@ -37,7 +37,7 @@ writeFileSync(config.configFile, JSON.stringify({
   }
 }, undefined, 2));
 
-const server = spawn("npm", ["run", "lhci:server"]);
+const server = spawn("npm", ["run", "lighthouse", "server"]);
 
 try {
   console.log("Beginning Audit");
