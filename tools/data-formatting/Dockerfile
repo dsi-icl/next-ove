@@ -1,5 +1,5 @@
 FROM python:3.12.4-slim
-LABEL authors="Brython Caley-Davies <bc2918@ic.ac.uk>"
+LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
 
 RUN apt-get update && apt-get install -y \
         pkg-config \

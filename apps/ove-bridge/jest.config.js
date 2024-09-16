@@ -12,5 +12,5 @@ module.exports = {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../out/coverage/apps/ove-bridge',
+  coverageDirectory: '../../out/coverage/tests/apps/ove-bridge',
 };

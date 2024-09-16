@@ -1,5 +1,5 @@
 FROM python:3.9
-LABEL authors="bc2918"
+LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
 
 WORKDIR /usr/src/app
 

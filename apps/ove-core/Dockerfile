@@ -1,5 +1,5 @@
 FROM node:18.19-alpine AS build
-LABEL authors="bc2918"
+LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
 
 RUN apk add --no-cache --virtual .build-deps make gcc g++ python3
 
@@ -40,7 +40,7 @@ RUN npm exec nx run ove-core-ui:build
 RUN apk del .build-deps
 
 FROM node:18.19-alpine AS runtime
-LABEL authors="bc2918"
+LABEL org.opencontainers.image.authors="Brython Caley-Davies<ove@imperial.ac.uk>"
 
 WORKDIR /usr/src/app
 

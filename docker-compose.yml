@@ -10,3 +10,12 @@ services:
       - ./tools/db/.env.production:/usr/src/app/.env:ro
     env_file:
       apps/ove-core-ui/.env.docker
+  docs:
+    build:
+      context: .
+      dockerfile: tools/doc-viewer/Dockerfile
+    ports:
+      - "8081:8080"
+    restart: "on-failure"
+    volumes:
+      - ./tools/doc-viewer/.env.production:/usr/src/app/.env:ro

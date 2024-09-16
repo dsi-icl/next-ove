@@ -11,10 +11,19 @@ const help = 'Use "npm run dev [COMMAND] -- --help" for more information about a
 const descriptions = {};
 const description = 'DESCRIPTION\n\tDevelopment tools for next-ove.';
 
-const activePatches = { 'optional-deps': path.join(__dirname, '..', 'dev', 'cli', 'remove-optional-deps.sh') };
+const activePatches = {
+  'optional-deps': () => path.join(__dirname, '..', 'dev', 'patches', 'remove-optional-deps.sh'),
+  'sandworm-timeout': args => {
+    const src = path.join(__dirname, '..', 'dev', 'patches', 'sandworm-timeout.js');
+    const defaults = {
+      timeout: 30_000
+    };
+    return `node ${src} ${args.timeout ?? defaults.timeout}`
+  }
+};
 const supportedTools = {
-  'sign-in': path.join(__dirname, '..', 'dev', 'cli', 'generate-token.js'),
-  'screen-control': path.join(__dirname, '..', 'dev', 'cli', 'mdc-control.js')
+  'sign-in': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'generate-token.js')}`,
+  'screen-control': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'mdc-control.js')}`
 };
 
 const schemas = {
@@ -39,7 +48,8 @@ const schemas = {
   }),
   patch: z.strictObject({
     __cmd__: z.literal('patch'),
-    name: z.string().refine(x => Object.keys(activePatches).includes(x))
+    name: z.string().refine(x => Object.keys(activePatches).includes(x)),
+    timeout: z.coerce.number().optional()
   }),
   tools: z.strictObject({
     __cmd__: z.literal('tools'),
@@ -65,7 +75,8 @@ const refinements = {
         } else return false;
     }
   },
-  deploy: x => (x.component === 'client' && x.screens !== undefined) || x.screens === undefined
+  deploy: x => (x.component === 'client' && x.screens !== undefined) || x.screens === undefined,
+  patch: x => x.timeout !== undefined && x.name === 'sandworm-timeout'
 };
 
 const schema = makeSchema(schemas, refinements);
@@ -108,15 +119,9 @@ const services = args => {
   }
 };
 
-const tools = args => {
-  const tool = supportedTools[args.name];
-  run(tool.endsWith('.sh') ? tool : `node ${tool}`);
-};
+const tools = args => run(supportedTools[args.name](args));
 
-const patch = args => {
-  const patch = activePatches[args.name];
-  run(patch);
-};
+const patch = args => run(activePatches[args.name](args));
 
 const deploy = args => {
   let asset = '';
@@ -158,12 +163,12 @@ const runDev = args => {
 };
 
 const args = parseArgs(schema, true, defaultAlias, {
-  build: ["component"],
-  deploy: ["component", "version", "target"],
-  services: ["action"],
-  mock: ["component"],
-  tools: ["name"],
-  patch: ["name"]
+  build: ['component'],
+  deploy: ['component', 'version', 'target'],
+  services: ['action'],
+  mock: ['component'],
+  tools: ['name'],
+  patch: ['name']
 });
 
 if (args.__cmd__ === undefined && args.help) {

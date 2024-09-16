@@ -12,5 +12,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../out/coverage/libs/mdc-control',
+  coverageDirectory: '../../out/coverage/tests/libs/mdc-control',
 };

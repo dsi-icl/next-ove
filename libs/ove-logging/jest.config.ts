@@ -6,5 +6,5 @@ export default {
     '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../out/coverage/libs/ove-logging',
+  coverageDirectory: '../../out/coverage/tests/libs/ove-logging',
 };

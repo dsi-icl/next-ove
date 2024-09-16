@@ -417,3 +417,5 @@ dev/tools/auto-populate/data/global_buckets/*
 /docs/code
 /docs/coverage
 /docs/types
+/docs/features/public
+/docs/packages

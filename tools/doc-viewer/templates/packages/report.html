@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>next-ove Documentation</title>
+  <title>Security Report</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/jsoneditor.min.css" rel="stylesheet" type="text/css" />
   <style>
-
       /* Box sizing rules */
       *,
       *::before,
@@ -82,84 +82,18 @@
       :target {
           scroll-margin-block: 5ex;
       }
-
-      section {
-          padding-top: 2rem;
-      }
   </style>
 </head>
 <body>
-<h1 style="text-align: center;">next-ove Documentation</h1>
-<section id="api">
-  <h2>API</h2>
-  <ul role="list" id="api-list"></ul>
-</section>
-<section id="code">
-  <h2>Code</h2>
-  <ul>
-    <li><a href="/code">Documentation</a></li>
-  </ul>
-</section>
-<section id="specs">
-  <h2>Specifications</h2>
-  <ul id="spec-list"></ul>
-</section>
-<section id="tests">
-  <h2>Tests</h2>
-  <h3>Coverage</h3>
-  <ul role="list" id="coverage-list"></ul>
-</section>
-<section id="types">
-  <h2>Types</h2>
-  <ul>
-    <li><a href="/types">Documentation</a></li>
-  </ul>
-</section>
+<pre id="json-display"></pre>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.1.0/jsoneditor.min.js"></script>
 <script>
-  let apis = null;
-  let specs = null;
-  let coverage = null;
-
-  const buildDetails = (listId, arr) => {
-    const ul = document.getElementById(listId);
-    arr.forEach(({ header, files }) => {
-      const li = document.createElement('li');
-      li.role = 'list';
-      const details = document.createElement('details');
-      const summary = document.createElement('summary');
-      summary.textContent = header;
-      details.appendChild(summary);
-      const childList = document.createElement('ul');
-      details.appendChild(childList);
-      li.appendChild(details);
-      ul.appendChild(li);
-
-      childList.id = header;
-      buildLinks(header, files);
-    });
-  };
-
-  const buildLinks = (listId, arr) => {
-    const ul = document.getElementById(listId);
-    arr.forEach(({ href, label }) => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-
-      a.href = href;
-      a.textContent = label;
-
-      li.appendChild(a);
-      ul.appendChild(li);
-    });
-  };
-
-  window.onload = async () => {
-    apis = await (await fetch('/api/apis')).json();
-    specs = await (await fetch('/api/specs')).json();
-    coverage = await (await fetch('/api/coverage')).json();
-    buildDetails('api-list', apis);
-    buildLinks('spec-list', specs);
-    buildDetails('coverage-list', coverage);
+  const data = null;
+  window.onload = () => {
+    const elem = document.getElementById("json-display");
+    const editor = new JSONEditor(elem);
+    editor.set(data);
   };
 </script>
 </body>

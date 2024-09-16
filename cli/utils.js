@@ -1,9 +1,9 @@
-const path = require("path");
+const path = require('path');
 const { execSync } = require('child_process');
 const { ZodEffects, z } = require('zod');
 
 const version = require(path.join(__dirname, '..', 'package.json')).version;
-const tab = "  ";
+const tab = '  ';
 
 const formatSchema = schema => {
   const formatOption = (args, k) => args[k].isOptional() ? `[${k}]` : k;
@@ -35,7 +35,7 @@ module.exports.printSchemas = (schemas, tagline, description, descriptions, help
     console.log(`${tab}${pad(arr.map(x => x.split(': ')[0]), i)}  ${output.split(': ').at(1) ?? ''}`);
   });
   console.log('\nAvailable Commands');
-  Object.values(schemas).map(schema => getShape(schema).__cmd__?.value).filter(Boolean).forEach((cmd, i, arr) => console.log(`${tab}${pad(arr, i)}${tab}${descriptions[cmd] ?? ""}`));
+  Object.values(schemas).map(schema => getShape(schema).__cmd__?.value).filter(Boolean).forEach((cmd, i, arr) => console.log(`${tab}${pad(arr, i)}${tab}${descriptions[cmd] ?? ''}`));
   console.log('\nFlags');
   console.log(`${tab}-h, --help${tab} help for next-ove CLI`);
   console.log(`${help}`);
@@ -48,14 +48,14 @@ module.exports.handlePathname = (output, default_, suffix) => {
   if (output === undefined) {
     if (default_.startsWith('/')) {
       return path.join('/', ...default_.split('/'), suffix ?? '');
-    } else if (default_.startsWith("~")) {
+    } else if (default_.startsWith('~')) {
       return path.join(...default_.split('/'), suffix ?? '');
     } else {
       return path.join(__dirname, '..', ...default_.split('/'), suffix ?? '');
     }
   } else if (output.startsWith('/')) {
     return path.join('/', ...output.split('/'), suffix ?? '');
-  } else if (output.startsWith("~")) {
+  } else if (output.startsWith('~')) {
     return path.join(...output.split('/'), suffix ?? '');
   } else {
     return path.join(__dirname, '..', ...output.split('/'), suffix ?? '');
@@ -67,7 +67,7 @@ module.exports.run = command => {
     console.log(command);
   } else {
     try {
-      execSync(command, {stdio: 'inherit'});
+      execSync(command, { stdio: 'inherit' });
     } catch (_e) {
       console.error('Command failed:', command);
     }
@@ -100,7 +100,7 @@ module.exports.parseArgs = (schema, hasCommand, alias = {}, arguments = {}) => {
       args[alias[k.slice(1)] ?? k.slice(1)] = v ?? true;
       return args;
     } else {
-      if (hasFlag) throw new Error("Arguments out of order");
+      if (hasFlag) throw new Error('Arguments out of order');
       args._.push(arg);
       switch (i) {
         case 0:
@@ -138,7 +138,7 @@ const defaultSchema = z.strictObject({
 module.exports.defaultSchema = defaultSchema;
 
 module.exports.defaultAlias = {
-  h: "help"
+  h: 'help'
 };
 
 module.exports.makeSchema = (schemas, refinements = {}) => z.union(Object.entries(schemas).map(([k, schema]) => {

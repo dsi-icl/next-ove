@@ -7,5 +7,5 @@ export default {
     '^.+\\.[tj]sx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../out/coverage/libs/ove-server-utils',
+  coverageDirectory: '../../out/coverage/tests/libs/ove-server-utils',
 };

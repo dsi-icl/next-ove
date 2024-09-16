@@ -83,7 +83,11 @@ const packages = args => {
     `cp ${aquaNautilusOutput} ${deprecationOutput}`,
     `npm ls --all --json --silent > ${path.join(outDir, 'packages.json')}`,
     `npm ls --all --silent > ${path.join(outDir, 'packages.txt')}`,
-    `npx sandworm-audit -o ${sandwormOutput}`,
+    `tail -n +2 ${path.join(outDir, 'packages.txt')} > ${path.join(outDir, 'packages.txt')}`
+    `npx sandworm-audit -o ${sandwormOutput} --summary -d --max-depth=5`,
+    `find ${sandwormOutput} -name *-report.json | xargs -I '{}' mv {} report.json`,
+    `find ${sandwormOutput} -name *-dependencies.csv | xargs -I '{}' mv {} dependencies.csv`,
+    `find ${sandwormOutput} -name *-treemap.svg | xargs -I '{}' mv {} treemap.svg`
   ].forEach(run);
 };
 

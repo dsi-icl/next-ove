@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>next-ove Documentation</title>
+  <style>
+      /* Box sizing rules */
+      *,
+      *::before,
+      *::after {
+          box-sizing: border-box;
+          font-family: "Imperial Sans Display", sans-serif;
+      }
+
+      /* Prevent font size inflation */
+      html {
+          -moz-text-size-adjust: none;
+          -webkit-text-size-adjust: none;
+          text-size-adjust: none;
+      }
+
+      /* Remove default margin in favour of better control in authored CSS */
+      body, h1, h2, h3, h4, p,
+      figure, blockquote, dl, dd {
+          margin-block-end: 0;
+      }
+
+      /* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+      ul[role='list'],
+      ol[role='list'] {
+          list-style: none;
+      }
+
+      /* Set core body defaults */
+      body {
+          min-height: 100vh;
+          line-height: 1.5;
+          background-color: #002147;
+          color: white;
+          padding: 2rem;
+      }
+
+      /* Set shorter line heights on headings and interactive elements */
+      h1, h2, h3, h4,
+      button, input, label {
+          line-height: 1.1;
+      }
+
+      /* Balance text wrapping on headings */
+      h1, h2,
+      h3, h4 {
+          text-wrap: balance;
+      }
+
+      /* A elements that don't have a class get default styles */
+      a:not([class]) {
+          text-decoration-skip-ink: auto;
+          color: currentColor;
+      }
+
+      /* Make images easier to work with */
+      img,
+      picture {
+          max-width: 100%;
+          display: block;
+      }
+
+      /* Inherit fonts for inputs and buttons */
+      input, button,
+      textarea, select {
+          font-family: inherit;
+          font-size: inherit;
+      }
+
+      /* Make sure textareas without a rows attribute are not tiny */
+      textarea:not([rows]) {
+          min-height: 10em;
+      }
+
+      /* Anything that has been anchored to should have extra scroll margin */
+      :target {
+          scroll-margin-block: 5ex;
+      }
+
+      h1 {
+          text-align: center;
+      }
+
+      section {
+          padding-top: 2rem;
+      }
+  </style>
+</head>
+<body>
+<h1>next-ove Documentation</h1>
+<section id="api">
+  <h2>API</h2>
+  <ul role="list" id="api-list"></ul>
+</section>
+<section id="code">
+  <h2>Code</h2>
+  <ul>
+    <li><a href="/code">Documentation</a></li>
+  </ul>
+</section>
+<section id="compatibility">
+  <h2>Compatibility</h2>
+  <ul>
+    <li><a href="/compatibility/css/static/browser-usage.json">CSS</a></li>
+  </ul>
+</section>
+<section id="features">
+  <h2>Features</h2>
+  <ul id="feature-list"></ul>
+</section>
+<section id="packages">
+  <h2>Packages</h2>
+  <ul>
+    <li><a href="/packages/audit">Audit</a></li>
+    <li><a href="/packages/deprecated">Deprecated</a></li>
+    <li><a href="/packages/directory">Directory</a></li>
+    <li>
+      <details>
+        <summary>Security</summary>
+        <ul>
+          <li><a href="/packages/dependencies"
+                 id="security-dependencies">Dependencies</a></li>
+          <li><a href="/packages/report.json"
+                 id="security-report">Report</a></li>
+          <li><a href="/packages/treemap.svg"
+                 id="security-treemap">Treemap</a></li>
+        </ul>
+      </details>
+    </li>
+  </ul>
+</section>
+<section id="specs">
+  <h2>Specifications</h2>
+  <ul id="spec-list"></ul>
+</section>
+<section id="tests">
+  <h2>Tests</h2>
+  <h3>Coverage</h3>
+  <ul role="list" id="coverage-list"></ul>
+</section>
+<section id="types">
+  <h2>Types</h2>
+  <ul>
+    <li><a href="/types">Documentation</a></li>
+    <li><a href="/coverage/static/types/" id="type-coverage">Coverage</a></li>
+  </ul>
+</section>
+<script>
+  const buildDetails = (listId, arr) => {
+    const ul = document.getElementById(listId);
+    arr.forEach(({ header, files }) => {
+      const li = document.createElement('li');
+      li.role = 'list';
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = header;
+      details.appendChild(summary);
+      const childList = document.createElement('ul');
+      details.appendChild(childList);
+      li.appendChild(details);
+      ul.appendChild(li);
+
+      childList.id = header;
+      buildLinks(header, files);
+    });
+  };
+
+  const buildLinks = (listId, arr) => {
+    const ul = document.getElementById(listId);
+    arr.forEach(({ href, label }) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+
+      a.href = href;
+      a.textContent = label;
+
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+  };
+
+  window.onload = async () => {
+    const features = await (await fetch('/components')).json();
+
+    if (features.apis) {
+      const apis = await (await fetch('/api/available')).json();
+      buildDetails('api-list', apis);
+    } else {
+      document.getElementById('api').style.display = 'none';
+    }
+
+    if (features.specs) {
+      const specs = await (await fetch('/specs/available')).json();
+      buildLinks('spec-list', specs);
+    } else {
+      document.getElementById('specs').style.display = 'none';
+    }
+
+    if (features.coverage) {
+      const coverage = await (await fetch('/coverage/available')).json();
+      buildDetails('coverage-list', coverage);
+    } else {
+      document.getElementById('tests').style.display = 'none';
+      document.getElementById('type-coverage').style.display = 'none';
+    }
+
+    if (!features.code) {
+      document.getElementById('code').style.display = 'none';
+    }
+
+    if (!features.types) {
+      document.getElementById('types').style.display = 'none';
+    }
+
+    if (features.features) {
+      const featureSpecs = await (await fetch('/features/available')).json();
+      buildLinks('feature-list', featureSpecs);
+    } else {
+      document.getElementById('features').style.display = 'none';
+    }
+
+    if (!features.packages) {
+      document.getElementById('packages').style.display = 'none';
+    }
+
+    if (!features.compatibility) {
+      console.log('Disabling compatibility');
+      document.getElementById('compatibility').style.display = 'none';
+    }
+  };
+</script>
+</body>
+</html>

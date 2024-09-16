@@ -13,5 +13,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../out/coverage/libs/pjlink-control',
+  coverageDirectory: '../../out/coverage/tests/libs/pjlink-control',
 };
