@@ -7,7 +7,10 @@ const z = require('zod').z;
 
 const tagline = 'Test the next-ove system';
 const help = 'Use "npm run test [COMMAND] -- --help" for more information about a command';
-const descriptions = {};
+const descriptions = {
+  unit: 'Run unit tests',
+  integration: 'Run integration tests'
+};
 const description = 'DESCRIPTION\n\tRun unit and integration tests on the next-ove system.';
 
 const schemas = {

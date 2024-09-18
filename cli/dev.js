@@ -8,7 +8,14 @@ const z = require('zod').z;
 
 const tagline = 'Development tools for next-ove';
 const help = 'Use "npm run dev [COMMAND] -- --help" for more information about a command';
-const descriptions = {};
+const descriptions = {
+  build: 'Build next-ove components for publication',
+  deploy: 'Deploy next-ove components in production',
+  services: 'Manage local instances of support services for next-ove',
+  patch: 'Apply patches to libraries and features',
+  tools: 'Utilise development tools',
+  mock: 'Mock components within the system for integration & other testing'
+};
 const description = 'DESCRIPTION\n\tDevelopment tools for next-ove.';
 
 const activePatches = {

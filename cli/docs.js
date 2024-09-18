@@ -12,7 +12,13 @@ const execSync = require('child_process').execSync;
 
 const tagline = 'Document the next-ove system';
 const help = 'Use "npm run document [COMMAND] -- --help" for more information about a command';
-const descriptions = {};
+const descriptions = {
+  api: 'Document the next-ove APIs',
+  code: 'Document the next-ove codebase',
+  types: 'Document the next-ove codebase\'s types',
+  build: 'Compile documentation into \'docs\' directory',
+  show: 'Run doc-viewer to display documentation as web application'
+};
 const description = 'DESCRIPTION\n\tCode and type documentation for the next-ove system.';
 
 const schemas = {

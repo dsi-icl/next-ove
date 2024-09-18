@@ -9,7 +9,11 @@ const z = require('zod').z;
 
 const tagline = 'Lighthouse scoring for next-ove';
 const help = 'Use "npm run lighthouse [COMMAND] -- --help" for more information about a command';
-const descriptions = {};
+const descriptions = {
+  audit: 'Generate Lighthouse scores for UI components',
+  wizard: 'Run Lighthouse wizard',
+  server: 'Run Lighthouse server'
+};
 const description = 'DESCRIPTION\n\tGenerates Lighthouse scores for the next-ove UIs.';
 
 const schemas = {

@@ -8,7 +8,13 @@ const z = require('zod').z;
 
 const tagline = 'Manage the next-ove database';
 const help = 'Use "npm run db [COMMAND] -- --help" for more information about a command';
-const descriptions = {};
+const descriptions = {
+  sync: 'Generate type definitions from DB schema',
+  push: 'Push schema changes to the database',
+  pull: 'Pull schema changes from the database',
+  user: 'User management functionality. Currently supports adding users',
+  show: 'Open database viewer in browser'
+};
 const description = 'DESCRIPTION\n\tManage the next-ove database.';
 
 const schemas = {

@@ -12,8 +12,9 @@ const tagline = 'Analyse the next-ove system';
 const help = 'Use "npm run analyse [COMMAND] -- --help" for more information about a command';
 const descriptions = {
   bundle: 'Analyse the web bundle of the UI components',
-  packages: 'Audit and list dependencies',
-  css: 'Analyse CSS compatibility'
+  packages: 'Audit and list dependencies, identify security issues and deprecations',
+  css: 'Analyse CSS browser compatibility',
+  coverage: 'Determine the coverage of TypeScript types throughout the codebase'
 };
 const description = 'DESCRIPTION\n\tPackage & bundle analysis, css compatibility and type checking & coverage for the next-ove system.';
 
@@ -35,9 +36,6 @@ const schemas = {
   coverage: z.strictObject({
     __cmd__: z.literal('coverage'),
     outDir: z.string().optional()
-  }),
-  help: z.strictObject({
-    help: z.literal(true)
   })
 };
 
