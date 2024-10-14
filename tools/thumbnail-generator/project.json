@@ -1,0 +1,69 @@
+{
+  "name": "thumbnail-generator",
+  "metadata": {
+    "description": "Thumbnail generator for next-ove projects."
+  },
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tools/thumbnail-generator",
+  "projectType": "application",
+  "targets": {
+    "setup": {
+      "metadata": {
+        "description": "Create the Python virtual environment."
+      },
+      "options": {
+        "cwd": "tools/thumbnail-generator"
+      },
+      "command": "python3 -m venv .venv"
+    },
+    "install": {
+      "metadata": {
+        "description": "Install the dependencies."
+      },
+      "options": {
+        "cwd": "tools/thumbnail-generator",
+        "commands": [
+          "source .venv/bin/activate",
+          "pip install -r ${args.requirements}"
+        ]
+      },
+      "dependsOn": ["setup"]
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "metadata": {
+        "description": "Start the thumbnail generation server."
+      },
+      "options": {
+        "cwd": "tools/thumbnail-generator",
+        "commands": [
+          "source .venv",
+          "python3 -m flask run"
+        ]
+      },
+      "dependsOn": ["install"]
+    },
+    "clean": {
+      "metadata": {
+        "description": "Remove the Python virtual environment."
+      },
+      "options": {
+        "cwd": "tools/thumbnail-generator"
+      },
+      "outputs": ["{projectRoot}/.venv"],
+      "command": "rm -rf .venv"
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "metadata": {
+        "description": "Build the Docker image."
+      },
+      "options": {
+        "cwd": "tools/thumbnail-generator",
+        "commands": [
+          "docker build --no-cache --progress=plain -t next-ove/thumbnail-generator:latest --platform linux/amd64 -f Dockerfile ."
+        ]
+      }
+    }
+  }
+}
