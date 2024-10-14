@@ -118,6 +118,7 @@
     "sass": "1.55.0",
     "shadcn-ui": "^0.5.0",
     "sqlite3": "^5.1.6",
+    "taze": "^0.17.2",
     "ts-jest": "^29.1.2",
     "ts-node": "10.9.1",
     "tsconfig-paths": "^4.2.0",

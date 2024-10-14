@@ -53,4 +53,36 @@ router.get('/dependencies', async (_req, res) => {
   res.send(template);
 });
 
+router.get('/updates', async (_req, res) => {
+  let template = fs.readFileSync(path.join(__dirname, '..', '..', 'templates', 'packages', 'updates.html')).toString();
+  const data = fs.readFileSync(path.join(contentRoot, 'packages', 'updates.txt'), "utf8").toString().split("\n").map(line => line.trim());
+  const map = {};
+  let position = null;
+  let pkg = null;
+
+  for (const line of data) {
+    if (line === '') continue;
+    else if (line === 'dependencies') {
+      position = 'dependencies';
+    }
+    else if (line === 'devDependencies') {
+      position = 'devDependencies';
+    }
+    else if (/.* - .*/.test(line)) {
+      pkg = line.split(' - ').at(0)
+      map[pkg] = {dependencies: [], devDependencies: []};
+    }
+    else if (line.includes('→')) {
+      console.log(pkg, position, line);
+      map[pkg][position].push(line);
+    }
+  }
+
+  // console.log(JSON.stringify(data));
+
+  template = template.replace('const data = null;', `const data = ${JSON.stringify(map, undefined, 2)};`);
+
+  res.send(template);
+});
+
 module.exports = router;

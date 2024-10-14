@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security Analysis - Dependencies</title>
+  <style>
+      /* Box sizing rules */
+      *,
+      *::before,
+      *::after {
+          box-sizing: border-box;
+          font-family: "Imperial Sans Display", sans-serif;
+      }
+
+      /* Prevent font size inflation */
+      html {
+          -moz-text-size-adjust: none;
+          -webkit-text-size-adjust: none;
+          text-size-adjust: none;
+      }
+
+      /* Remove default margin in favour of better control in authored CSS */
+      body, h1, h2, h3, h4, p,
+      figure, blockquote, dl, dd {
+          margin-block-end: 0;
+      }
+
+      /* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+      ul[role='list'],
+      ol[role='list'] {
+          list-style: none;
+      }
+
+      /* Set core body defaults */
+      body {
+          min-height: 100vh;
+          line-height: 1.5;
+          background-color: #002147;
+          padding: 2rem;
+      }
+
+      /* Set shorter line heights on headings and interactive elements */
+      h1, h2, h3, h4,
+      button, input, label {
+          line-height: 1.1;
+      }
+
+      /* Balance text wrapping on headings */
+      h1, h2,
+      h3, h4 {
+          text-wrap: balance;
+          color: white;
+      }
+
+      /* A elements that don't have a class get default styles */
+      a:not([class]) {
+          text-decoration-skip-ink: auto;
+          color: currentColor;
+      }
+
+      /* Make images easier to work with */
+      img,
+      picture {
+          max-width: 100%;
+          display: block;
+      }
+
+      /* Inherit fonts for inputs and buttons */
+      input, button,
+      textarea, select {
+          font-family: inherit;
+          font-size: inherit;
+      }
+
+      /* Make sure textareas without a rows attribute are not tiny */
+      textarea:not([rows]) {
+          min-height: 10em;
+      }
+
+      /* Anything that has been anchored to should have extra scroll margin */
+      :target {
+          scroll-margin-block: 5ex;
+      }
+
+      .dataframe {
+          border-collapse: collapse;
+      }
+
+      .dataframe td, th {
+          border: 1px solid #ddd;
+          padding: 8px;
+      }
+
+      .dataframe tr:nth-child(even) {
+          background-color: #f2f2f2;
+      }
+
+      .dataframe tr:nth-child(odd) {
+          background-color: #ffffff
+      }
+
+      .dataframe tr:hover {
+          background-color: #ddd;
+      }
+
+      .dataframe th {
+          padding-top: 12px;
+          padding-bottom: 12px;
+          background-color: #002147;
+          color: white;
+      }
+
+      .dataframe th, td, tr {
+          text-align: center;
+      }
+
+      #package-list {
+          padding: 1rem;
+          list-style: none;
+
+          li {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              row-gap: 2rem;
+          }
+      }
+  </style>
+</head>
+<body>
+<h1>Package Updates</h1>
+<ul id="package-list"></ul>
+<script>
+  const data = null;
+
+  const buildUpdates = (title, updates, parent) => {
+    const h3 = document.createElement("h3");
+    h3.textContent = title;
+    parent.appendChild(h3);
+    const table = document.createElement("table");
+    table.classList.add("dataframe");
+    const thead = document.createElement("thead");
+    const headRow = document.createElement("tr");
+    ["name", "current version", "current age", "new version", "new age", "major"].forEach(col => {
+      const th = document.createElement("th");
+      th.textContent = col;
+      headRow.appendChild(th);
+    })
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    for (const update of updates) {
+      const row = document.createElement("tr");
+      const cells = {};
+
+      update.split(/ +/).forEach((x, i) => {
+        const col = document.createElement("td");
+        col.textContent = x;
+
+        switch (i) {
+          case 0: {
+            cells.name = col;
+            break;
+          }
+          case 1: {
+            cells.currentAge = col;
+            break;
+          }
+          case 2: {
+            cells.currentVersion = col;
+            break;
+          }
+          case 4: {
+            cells.newVersion = col;
+            break;
+          }
+          case 5: {
+            cells.newAge = col;
+            break;
+          }
+          case 6: {
+            col.textContent = col.textContent.slice(1);
+            cells.major = col;
+            break;
+          }
+        }
+      });
+
+      row.appendChild(cells.name);
+      row.appendChild(cells.currentVersion);
+      row.appendChild(cells.currentAge);
+      row.appendChild(cells.newVersion);
+      row.appendChild(cells.newAge);
+      row.appendChild(cells.major ?? document.createElement("td"));
+
+      tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+    parent.appendChild(table);
+  };
+
+  window.onload = () => {
+    const ul = document.getElementById("package-list");
+    Object.entries(data).forEach(([pkg, {dependencies, devDependencies}]) => {
+      const li = document.createElement("li");
+
+      const h2 = document.createElement("h2");
+      h2.textContent = pkg;
+      li.appendChild(h2);
+
+      buildUpdates('Dependencies', dependencies, li);
+      buildUpdates('Dev Dependencies', devDependencies, li);
+
+      ul.appendChild(li);
+    });
+  };
+</script>
+</body>
+</html>

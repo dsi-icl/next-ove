@@ -73,19 +73,23 @@ const packages = args => {
   const aquaNautilusOutput = path.join(aquaNautilusDir, 'analysis.txt');
   const deprecationOutput = path.join(outDir, 'deprecated.txt');
   const sandwormOutput = path.join(outDir, 'security');
+  const packagesTxt = path.join(outDir, 'packages.txt');
+  const packagesJSON = path.join(outDir, 'packages.json');
+  const updates = path.join(outDir, 'updates.txt');
 
   [
     `mkdir -p ${sandwormOutput}`,
     `npm audit > ${auditOutput}`,
     `${aquaNautilus}`,
     `cp ${aquaNautilusOutput} ${deprecationOutput}`,
-    `npm ls --all --json --silent > ${path.join(outDir, 'packages.json')}`,
-    `npm ls --all --silent > ${path.join(outDir, 'packages.txt')}`,
-    `tail -n +2 ${path.join(outDir, 'packages.txt')} > ${path.join(outDir, 'packages.txt')}`
+    `npm ls --all --json --silent > ${packagesJSON}`,
+    `npm ls --all --silent > ${packagesTxt}`,
+    `tail -n +2 ${packagesTxt} > ${packagesTxt}`,
     `npx sandworm-audit -o ${sandwormOutput} --summary -d --max-depth=5`,
     `find ${sandwormOutput} -name *-report.json | xargs -I '{}' mv {} report.json`,
     `find ${sandwormOutput} -name *-dependencies.csv | xargs -I '{}' mv {} dependencies.csv`,
-    `find ${sandwormOutput} -name *-treemap.svg | xargs -I '{}' mv {} treemap.svg`
+    `find ${sandwormOutput} -name *-treemap.svg | xargs -I '{}' mv {} treemap.svg`,
+    `npx taze -l -r --ignore-paths node_modules major --sort time-desc > ${updates}`
   ].forEach(run);
 };
 
