@@ -68,10 +68,10 @@ const bundle = args => {
 const packages = args => {
   const outDir = handlePathname(args.outDir, 'out/analysis/packages');
   const auditOutput = path.join(outDir, 'audit.txt');
-  const aquaNautilusDir = path.join(__dirname, '..', 'tools', 'aqua-nautilus');
-  const aquaNautilus = path.join(aquaNautilusDir, 'analyze.sh');
-  const aquaNautilusOutput = path.join(aquaNautilusDir, 'analysis.txt');
-  const deprecationOutput = path.join(outDir, 'deprecated.txt');
+  const deprecationDir = path.join(__dirname, '..', 'tools', 'deprecation');
+  const deprecation = path.join(deprecationDir, 'analyze.sh');
+  const deprecationOutput = path.join(deprecationDir, 'analysis.txt');
+  const deprecationOutputDest = path.join(outDir, 'deprecated.txt');
   const sandwormOutput = path.join(outDir, 'security');
   const packagesTxt = path.join(outDir, 'packages.txt');
   const packagesJSON = path.join(outDir, 'packages.json');
@@ -80,8 +80,8 @@ const packages = args => {
   [
     `mkdir -p ${sandwormOutput}`,
     `npm audit > ${auditOutput}`,
-    `${aquaNautilus}`,
-    `cp ${aquaNautilusOutput} ${deprecationOutput}`,
+    `${deprecation}`,
+    `cp ${deprecationOutput} ${deprecationOutputDest}`,
     `npm ls --all --json --silent > ${packagesJSON}`,
     `npm ls --all --silent > ${packagesTxt}`,
     `tail -n +2 ${packagesTxt} > ${packagesTxt}`,
