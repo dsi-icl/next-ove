@@ -1,10 +1,10 @@
 {
-  "name": "thumbnail-generator",
+  "name": "ove-thumbnail-generator",
   "metadata": {
     "description": "Thumbnail generator for next-ove projects."
   },
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "tools/thumbnail-generator",
+  "sourceRoot": "apps/ove-thumbnail-generator",
   "projectType": "application",
   "targets": {
     "setup": {
@@ -12,7 +12,7 @@
         "description": "Create the Python virtual environment."
       },
       "options": {
-        "cwd": "tools/thumbnail-generator"
+        "cwd": "apps/ove-thumbnail-generator"
       },
       "command": "python3 -m venv .venv"
     },
@@ -21,7 +21,7 @@
         "description": "Install the dependencies."
       },
       "options": {
-        "cwd": "tools/thumbnail-generator",
+        "cwd": "apps/ove-thumbnail-generator",
         "commands": [
           "source .venv/bin/activate",
           "pip install -r ${args.requirements}"
@@ -35,7 +35,7 @@
         "description": "Start the thumbnail generation server."
       },
       "options": {
-        "cwd": "tools/thumbnail-generator",
+        "cwd": "apps/ove-thumbnail-generator",
         "commands": [
           "source .venv",
           "python3 -m flask run"
@@ -48,7 +48,7 @@
         "description": "Remove the Python virtual environment."
       },
       "options": {
-        "cwd": "tools/thumbnail-generator"
+        "cwd": "apps/ove-thumbnail-generator"
       },
       "outputs": ["{projectRoot}/.venv"],
       "command": "rm -rf .venv"
@@ -59,9 +59,9 @@
         "description": "Build the Docker image."
       },
       "options": {
-        "cwd": "tools/thumbnail-generator",
+        "cwd": "apps/ove-thumbnail-generator",
         "commands": [
-          "docker build --no-cache --progress=plain -t next-ove/thumbnail-generator:latest --platform linux/amd64 -f Dockerfile ."
+          "docker build --no-cache --progress=plain -t next-ove/ove-thumbnail-generator:latest --platform linux/amd64 -f Dockerfile ."
         ]
       }
     }

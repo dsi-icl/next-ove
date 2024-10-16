@@ -14,6 +14,7 @@
     "db": "node cli/db.js",
     "dev": "node cli/dev.js",
     "docs": "node cli/docs.js",
+    "files": "node cli/files.js",
     "help": "node cli/help.js",
     "lighthouse": "node cli/lighthouse.js",
     "lint": "npx nx run-many --target=lint",

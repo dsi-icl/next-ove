@@ -1,8 +1,9 @@
 const prompt = require('prompt');
 const dotenv = require('dotenv');
 const Minio = require('minio');
+const path = require('path');
 
-dotenv.config();
+dotenv.config({path: path.join(__dirname, '.env')});
 
 const s3 = new Minio.Client({
   endPoint: process.env.ASSET_STORE_END_POINT,

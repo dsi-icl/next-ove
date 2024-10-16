@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "ove-docs",
+  "sourceRoot": "apps/ove-docs",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "command": "node server.js",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-docs/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  }
+}

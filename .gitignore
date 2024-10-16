@@ -402,12 +402,8 @@ dev/tools/auto-populate/data/global_buckets/*
 !/dev/deployment/scripts/build-core.sh
 
 # package deprecation analysis
-/tools/aqua-nautilus/analysis.txt
-/tools/aqua-nautilus/package.json
-
-# million-lint
-/tools/million-lint/config.json
-/tools/million-lint/data/*.json
+/tools/deprecation/analysis.txt
+/tools/deprecation/package.json
 
 # nx
 /.nx/

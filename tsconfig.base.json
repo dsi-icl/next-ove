@@ -18,7 +18,6 @@
     "baseUrl": ".",
     "paths": {
       "@ove/mdc-control": ["libs/mdc-control/src/index.ts"],
-      "@ove/ove-client-display": ["libs/ove-client-display/src/index.ts"],
       "@ove/ove-data": ["libs/ove-data/src/index.ts"],
       "@ove/ove-logging": ["libs/ove-logging/src/index.ts"],
       "@ove/ove-server-utils": ["libs/ove-server-utils/src/index.ts"],

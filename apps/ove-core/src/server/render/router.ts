@@ -63,9 +63,9 @@ export const renderRouter = router({
     .meta({ openapi: { path: "/render", method: "DELETE", protect: true } })
     .input(z.strictObject({ observatory: z.string() }))
     .output(z.union([z.void(), OVEExceptionSchema]))
-    .mutation(async ({ input: { observatory } }) => {
+    .mutation(({ input: { observatory } }) => {
       logger.info(`Clearing render on ${observatory}`);
-      return await safe(logger, async () =>
+      return safe(logger, async () =>
         controller.clearObservatory(observatory));
     })
 });

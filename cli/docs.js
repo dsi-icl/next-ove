@@ -208,7 +208,7 @@ const api = args => {
 };
 
 const show = () => {
-  const docsDir = path.join(__dirname, '..', 'tools', 'doc-viewer');
+  const docsDir = path.join(__dirname, '..', 'apps', 'ove-docs');
   run(`cd ${docsDir} && node server.js`);
 };
 

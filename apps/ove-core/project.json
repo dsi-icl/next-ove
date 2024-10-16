@@ -4,6 +4,17 @@
   "sourceRoot": "apps/ove-core/src",
   "projectType": "application",
   "targets": {
+    "db": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "export NODE_ENV=production",
+          "npm run db push",
+          "npm run db sync"
+        ]
+      }
+    },
     "build": {
       "executor": "@nx/webpack:webpack",
       "outputs": ["{options.outputPath}"],
@@ -17,6 +28,7 @@
         "assets": ["apps/ove-core/src/assets", "apps/ove-core/src/config"],
         "webpackConfig": "apps/ove-core/webpack.config.js"
       },
+      "dependsOn": ["db"],
       "configurations": {
         "production": {
           "optimization": true,
@@ -34,7 +46,8 @@
         "production": {
           "buildTarget": "ove-core:build:production"
         }
-      }
+      },
+      "dependsOn": ["db"]
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
@@ -46,6 +59,7 @@
     "test": {
       "executor": "@nrwl/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "dependsOn": ["db"],
       "options": {
         "jestConfig": "apps/ove-core/jest.config.ts",
         "passWithNoTests": true

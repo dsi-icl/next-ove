@@ -4,6 +4,6 @@ services:
     build:
       context: ../../
       dockerfile: Dockerfile
-    container_name: docs
+    container_name: ove-docs
     ports:
       - "8080:8080"
