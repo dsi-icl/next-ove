@@ -375,6 +375,7 @@ dev/tools/auto-populate/data/global_buckets/*
 !/dev/tools/auto-populate/data/global_buckets/.gitkeep
 /dev/services/config/MapLayers.json
 /dev/services/config/ove_networks_config.json
+apps/ove-logs/data/logs.db
 
 # Core environment config
 /apps/ove-core/src/config/*.json

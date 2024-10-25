@@ -1,0 +1,34 @@
+{
+  "name": "ove-logs",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-logs",
+  "projectType": "application",
+  "targets": {
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-docs/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "build": {
+      "command": "npx esbuild server.js --bundle --platform=node --target=node22 --outdir=../../dist/apps/ove-logs",
+      "options": {
+        "cwd": "apps/ove-logs"
+      }
+    },
+    "start": {
+      "command": "node server.js",
+      "options": {
+        "cwd": "apps/ove-logs"
+      }
+    },
+    "make": {
+      "command": "docker build ../../",
+      "options": {
+        "args": ["--progress=plain", "-t next-ove/logs:latest", "--platform linux/amd64", "-f Dockerfile"],
+        "cwd": "apps/ove-logs"
+      }
+    }
+  }
+}

@@ -19,43 +19,48 @@ const description = 'DESCRIPTION\n\tManage the next-ove database.';
 
 const schemas = {
   sync: z.strictObject({
-    __cmd__: z.literal('sync')
+    __cmd__: z.literal('sync'),
+    component: z.union([z.literal('core'), z.literal('logging')]).optional()
   }),
   push: z.strictObject({
-    __cmd__: z.literal('push')
+    __cmd__: z.literal('push'),
+    component: z.union([z.literal('core'), z.literal('logging')]).optional()
   }),
   pull: z.strictObject({
-    __cmd__: z.literal('pull')
+    __cmd__: z.literal('pull'),
+    component: z.union([z.literal('core'), z.literal('logging')]).optional()
   }),
   user: z.strictObject({
     __cmd__: z.literal('user'),
     action: z.union([z.literal('add')])
   }),
   show: z.strictObject({
-    __cmd__: z.literal('show')
+    __cmd__: z.literal('show'),
+    component: z.union([z.literal('core'), z.literal('logging')]).optional()
   })
 };
 
 const schema = makeSchema(schemas);
 
-const show = () => {
+const show = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma studio`);
+
+  run(`cd ${dbDir} && npx prisma studio --schema=${schema}`);
 };
 
-const sync = () => {
+const sync = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma generate`);
+  run(`cd ${dbDir} && npx prisma generate --schema=${schema}`);
 };
 
-const push = () => {
+const push = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma db push`);
+  run(`cd ${dbDir} && npx prisma db push --schema=${schema}`);
 };
 
-const pull = () => {
+const pull = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma db pull`);
+  run(`cd ${dbDir} && npx prisma db pull --schema=${schema}`);
 };
 
 const user = args => {
@@ -73,21 +78,22 @@ const user = args => {
 };
 
 const runDB = args => {
+  const schema = args.component === 'logging' ? 'logging-schema.prisma' : 'schema.prisma';
   switch (args.__cmd__) {
     case 'sync':
-      sync();
+      sync(schema);
       break;
     case 'push':
-      push();
+      push(schema);
       break;
     case 'pull':
-      pull();
+      pull(schema);
       break;
     case 'user':
       user(args);
       break;
     case 'show':
-      show();
+      show(schema);
       break;
     default:
       throw new Error('Unknown command');
@@ -95,7 +101,7 @@ const runDB = args => {
 };
 
 const args = parseArgs(schema, true, defaultAlias, {
-  user: ["action"]
+  user: ['action']
 });
 
 if (args.__cmd__ === undefined && args.help) {

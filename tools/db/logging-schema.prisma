@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = env("LOGGING_CLIENT_OUTPUT")
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("LOGGING_DATABASE_URL")
+}
+
+model Log {
+  id      String   @id @unique @default(uuid())
+  level   String
+  date    DateTime
+  appId   String
+  message String
+}
