@@ -81,7 +81,7 @@ const Observatory = ({ name, isOnline }: {
   name: string
   isOnline: boolean
 }) => {
-  const utils = trpc.useUtils();
+  const utils = api.useUtils();
   const { hardware } = useHardware(isOnline, name);
   const [filter, setFilter] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[] | null>(null);

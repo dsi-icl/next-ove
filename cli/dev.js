@@ -30,7 +30,8 @@ const activePatches = {
 };
 const supportedTools = {
   'sign-in': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'generate-token.js')}`,
-  'screen-control': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'mdc-control.js')}`
+  'screen-control': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'mdc-control.js')}`,
+  'generate-geometry': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'generate-geometry.js')}`
 };
 
 const schemas = {
