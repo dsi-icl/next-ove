@@ -1,3 +1,5 @@
+/* global process */
+
 import { z } from "zod";
 import * as path from "path";
 import { app } from "electron";

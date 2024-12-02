@@ -8,32 +8,48 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
-        "commands": [
-          "export NODE_ENV=production",
-          "npm run db push",
-          "npm run db sync"
-        ]
+        "commands": ["export NODE_ENV=production", "npm run db sync"]
       }
     },
-    "build": {
-      "executor": "@nx/webpack:webpack",
-      "outputs": ["{options.outputPath}"],
+    "make": {
+      "executor": "nx:run-commands",
       "options": {
-        "target": "node",
-        "compiler": "tsc",
-        "outputPath": "dist/apps/ove-core",
-        "main": "apps/ove-core/src/main.ts",
-        "tsConfig": "apps/ove-core/tsconfig.app.json",
-        "generatePackageJson": true,
-        "assets": ["apps/ove-core/src/assets", "apps/ove-core/src/config"],
-        "webpackConfig": "apps/ove-core/webpack.config.js"
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "docker build --progress=plain --rm -t next-ove/core:latest --platform linux/amd64 -f apps/ove-core/Dockerfile ."
+        ]
       },
-      "dependsOn": ["db"],
       "configurations": {
+        "arm": {
+          "commands": [
+            "docker build --progress=plain --rm -t next-ove/core:latest --platform linux/arm64 -f apps/ove-core/Dockerfile ."
+          ]
+        }
+      },
+      "dependsOn": ["^build"]
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "main": "apps/ove-core/src/main.ts",
+        "outputPath": "dist/apps/ove-core",
+        "outputFileName": "main.js",
+        "tsConfig": "apps/ove-core/tsconfig.app.json",
+        "thirdParty": true,
+        "format": ["cjs"],
+        "external": [
+          "bcrypt"
+        ],
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
         "production": {
-          "optimization": true,
-          "extractLicenses": true,
-          "inspect": false
+          "minify": true
         }
       }
     },

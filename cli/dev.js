@@ -84,7 +84,7 @@ const refinements = {
     }
   },
   deploy: x => (x.component === 'client' && x.screens !== undefined) || x.screens === undefined,
-  patch: x => x.timeout !== undefined && x.name === 'sandworm-timeout'
+  parse: x => x.name === 'sandworm-timeout' || x.timeout !== undefined
 };
 
 const schema = makeSchema(schemas, refinements);

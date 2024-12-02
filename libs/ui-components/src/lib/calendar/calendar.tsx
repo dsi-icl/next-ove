@@ -3,11 +3,11 @@ import {
   dateFnsLocalizer,
   Calendar as CalendarDisplay
 } from "react-big-calendar";
-import parse from "date-fns/parse";
-import format from "date-fns/format";
-import getDay from "date-fns/getDay";
-import enGB from "date-fns/locale/en-GB";
-import startOfWeek from "date-fns/startOfWeek";
+import { parse } from "date-fns/parse";
+import { format } from "date-fns/format";
+import { getDay } from "date-fns/getDay";
+import { enGB } from "date-fns/locale/en-GB";
+import { startOfWeek } from "date-fns/startOfWeek";
 import { type CalendarEvent } from "@ove/ove-types";
 
 import styles from "./calendar.module.scss";

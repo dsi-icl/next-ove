@@ -29,7 +29,7 @@ export default (() => {
       spawn(updateExe, args, { detached: true }).on("close", () =>
         setTimeout(app.quit, 1000)
       );
-    } catch (error) {
+    } catch (_error) {
       setTimeout(app.quit, 1000);
     }
   };

@@ -1,3 +1,4 @@
+const os = require('os');
 const path = require('path');
 const { execSync } = require('child_process');
 const { ZodEffects, z } = require('zod');
@@ -46,10 +47,10 @@ module.exports.zodBooleanPreprocess = zodBooleanPreprocess;
 
 module.exports.handlePathname = (output, default_, suffix) => {
   if (output === undefined) {
-    if (default_.startsWith('/')) {
+    if (path.isAbsolute(default_)) {
       return path.join('/', ...default_.split('/'), suffix ?? '');
     } else if (default_.startsWith('~')) {
-      return path.join(...default_.split('/'), suffix ?? '');
+      return path.join(...default_.replace('~', os.homedir()).split('/'), suffix ?? '');
     } else {
       return path.join(__dirname, '..', ...default_.split('/'), suffix ?? '');
     }

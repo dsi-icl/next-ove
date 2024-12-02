@@ -38,7 +38,7 @@ export const state = {
 
 const initSectionSockets = (observatory: string, id: string) => {
 
-}
+};
 
 const initObservatorySockets = (observatory: string) => {
   const observatoryState = state.rendering.get(observatory);
@@ -88,7 +88,7 @@ const initObservatorySockets = (observatory: string) => {
           const sectionIO = SocketServer.of(`/socket/render/${observatory}/${section.id}`);
           observatoryState.clients.io.emit("createSection", section);
           observatoryState.sections.set(section.id, {
-            state: {layout: section},
+            state: { layout: section },
             clients: {
               state: new Map(),
               io: sectionIO

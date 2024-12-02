@@ -51,20 +51,18 @@ const update = () => {
   const cur = new Set(state.status.keys());
   const next = new Set(env.HARDWARE.map(({ id }) => id));
 
-  // @ts-expect-error TS2339 - missing new Set APIs
-  for (const device of cur.difference(next)) {
+  for (const deviceId of cur.difference(next)) {
     for (const key of Object.keys(state)) {
-      assert(state[key as keyof ReconciliationState].get(device)).ac.abort();
-      state[key as keyof ReconciliationState].delete(device);
+      assert(state[key as keyof ReconciliationState].get(deviceId)).ac.abort();
+      state[key as keyof ReconciliationState].delete(deviceId);
     }
   }
 
-  // @ts-expect-error TS2339 - missing new Set APIs
-  for (const device of next.difference(cur)) {
+  for (const deviceId of next.difference(cur)) {
     for (const key of Object.keys(state)) {
-      state[key as keyof ReconciliationState].set(device, {
+      state[key as keyof ReconciliationState].set(deviceId, {
         state: null,
-        ac: getAC(device, state[key as keyof ReconciliationState])
+        ac: getACByID(deviceId, state[key as keyof ReconciliationState])
       });
     }
   }
@@ -211,7 +209,12 @@ type StateType<T> = T extends Map<string, {
 const getAC = <T extends Map<string, {
   state: StateType<T>,
   ac: AbortController
-}>>(device: Device, map: T) => assert(map.get(device.id)).ac;
+}>>(device: Device, map: T) => getACByID(device.id, map);
+
+const getACByID = <T extends Map<string, {
+  state: StateType<T>,
+  ac: AbortController
+}>>(deviceId: string, map: T) => assert(map.get(deviceId)).ac;
 
 const reconcileBrowsers = async (device: Device) => {
   const currentState = assert(state.browsers.get(device.id));

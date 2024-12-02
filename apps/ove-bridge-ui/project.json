@@ -3,13 +3,15 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/ove-bridge-ui/src",
   "projectType": "application",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/ove-bridge-ui"
+        "outputPath": "dist/apps/ove-bridge-ui",
+        "emptyOutDir": true
       },
       "configurations": {
         "development": {
@@ -18,9 +20,6 @@
         "production": {
           "mode": "production",
           "baseHref": "./"
-        },
-        "linting": {
-          "mode": "linting"
         }
       }
     },
@@ -61,7 +60,8 @@
         "linting": {
           "buildTarget": "ove-bridge-ui:build:linting"
         }
-      }
+      },
+      "dependsOn": ["build"]
     },
     "test": {
       "executor": "@nx/vite:test",
@@ -78,6 +78,5 @@
         "lintFilePatterns": ["apps/ove-bridge-ui/**/*.{ts,tsx,js,jsx}"]
       }
     }
-  },
-  "tags": []
+  }
 }

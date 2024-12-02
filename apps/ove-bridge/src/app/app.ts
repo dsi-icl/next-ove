@@ -108,8 +108,8 @@ const init = (app: App, browserWindow: typeof BW, sc: Screen) => {
 
 const triggerIPC: OutboundAPI = Object.entries(outboundChannels)
   .reduce((acc, [k, channel]) => {
-    const key = k as keyof OutboundAPI;
-    acc[k] = (args: Parameters<OutboundAPI[typeof key]>) => {
+    const _key = k as keyof OutboundAPI;
+    acc[k] = (args: Parameters<OutboundAPI[typeof _key]>) => {
       if (mainWindow === null) return;
       mainWindow.webContents.send(channel, args);
     };

@@ -22,7 +22,7 @@ const listObjects = (
 
 const createBucket = async (s3: Minio.Client, bucketName: string) => {
   await s3.makeBucket(bucketName);
-  const versioningConfig = { Status: "Enabled" };
+  const versioningConfig = { Status: "Enabled" as const };
   await s3.setBucketVersioning(bucketName, versioningConfig);
 };
 

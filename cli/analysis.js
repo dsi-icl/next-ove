@@ -72,7 +72,7 @@ const packages = args => {
   const deprecation = path.join(deprecationDir, 'analyze.sh');
   const deprecationOutput = path.join(deprecationDir, 'analysis.txt');
   const deprecationOutputDest = path.join(outDir, 'deprecated.txt');
-  const sandwormOutput = path.join(outDir, 'security');
+  const sandwormOutput = path.join(path.relative(__dirname, outDir), 'security').replace("../", "");
   const packagesTxt = path.join(outDir, 'packages.txt');
   const packagesJSON = path.join(outDir, 'packages.json');
   const updates = path.join(outDir, 'updates.txt');
@@ -85,10 +85,7 @@ const packages = args => {
     `npm ls --all --json --silent > ${packagesJSON}`,
     `npm ls --all --silent > ${packagesTxt}`,
     `tail -n +2 ${packagesTxt} > ${packagesTxt}`,
-    `npx sandworm-audit -o ${sandwormOutput} --summary -d --max-depth=5`,
-    `find ${sandwormOutput} -name *-report.json | xargs -I '{}' mv {} report.json`,
-    `find ${sandwormOutput} -name *-dependencies.csv | xargs -I '{}' mv {} dependencies.csv`,
-    `find ${sandwormOutput} -name *-treemap.svg | xargs -I '{}' mv {} treemap.svg`,
+    `npx sandworm-audit --summary -d --max-depth=3 -o ${sandwormOutput}`,
     `npx taze -l -r --ignore-paths node_modules major --sort time-desc > ${updates}`
   ].forEach(run);
 };

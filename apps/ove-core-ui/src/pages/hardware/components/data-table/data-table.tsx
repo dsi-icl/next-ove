@@ -91,7 +91,7 @@ const DataTable = <TData, TValue>({
         </tr>)}
       </thead>
       <tbody>
-        {table.getRowModel().rows?.length ? table.getRowModel().rows.map(row =>
+        {table.getRowModel()?.rows?.length > 0 ? table.getRowModel().rows.map(row =>
           <tr key={row.id} data-state={row.getIsSelected() && "selected"}>
             {row.getVisibleCells().map(cell => <td key={cell.id}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}

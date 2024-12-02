@@ -6,6 +6,7 @@
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
         "react/jsx-indent-props": ["error", "first"],
+        "react/prop-types": "off",
         "indent": [
           "error",
           2,

@@ -1,4 +1,4 @@
-/* global setTimeout */
+/* global AbortController, setTimeout */
 
 import { Socket } from "net";
 import { raise } from "@ove/ove-utils";
@@ -42,7 +42,7 @@ const sendCommand = (
   cmdArgs: CommandArgs,
   ...args: number[]
 ) => {
-  const socket = new Socket({signal: cmdArgs.ac?.signal});
+  const socket = new Socket({ signal: cmdArgs.ac?.signal });
   socket.setTimeout(cmdArgs.timeout);
 
   socket.on("timeout", () => {
@@ -92,7 +92,7 @@ export const getStatus = async (args: CommandArgs):
 
 export const setPower = async (
   args: CommandArgs,
-  state: "on" | "off" | "reboot",
+  state: "on" | "off" | "reboot"
 ): Promise<boolean | OVEException> => {
   const powerState = state === "off" ? 0x00 : (state === "on" ? 0x01 : 0x02);
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
@@ -103,7 +103,7 @@ export const setPower = async (
 
 export const setVolume = async (
   args: CommandArgs,
-  volume: number,
+  volume: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x12, args, volume));
@@ -113,7 +113,7 @@ export const setVolume = async (
 
 export const setIsMute = async (
   args: CommandArgs,
-  state: boolean,
+  state: boolean
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x13, args, state ? 0x01 : 0x00));
@@ -123,7 +123,7 @@ export const setIsMute = async (
 
 export const setSource = async (
   args: CommandArgs,
-  source: MDCSource,
+  source: MDCSource
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x14, args, source));

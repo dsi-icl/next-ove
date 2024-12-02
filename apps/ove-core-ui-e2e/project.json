@@ -5,17 +5,7 @@
   "projectType": "application",
   "targets": {
     "e2e": {
-      "executor": "@mands/nx-playwright:playwright-executor",
-      "options": {
-        "e2eFolder": "apps/ove-core-ui-e2e",
-        "devServerTarget": "ove-core-ui:serve",
-        "packageRunner": "yarn"
-      },
-      "configurations": {
-        "production": {
-          "devServerTarget": "ove-core-ui:serve:production"
-        }
-      }
+      "executor": "@nx/playwright:playwright"
     },
     "ts-check": {
       "executor": "@nx/workspace:run-commands",

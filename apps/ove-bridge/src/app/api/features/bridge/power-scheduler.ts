@@ -1,10 +1,10 @@
 /* global process */
 
-import max from "date-fns/max";
-import min from "date-fns/min";
+import { max } from "date-fns/max";
+import { min } from "date-fns/min";
 import { Json } from "@ove/ove-utils";
-import addHours from "date-fns/addHours";
-import subHours from "date-fns/subHours";
+import { addHours } from "date-fns/addHours";
+import { subHours } from "date-fns/subHours";
 import * as schedule from "node-schedule";
 import { env, logger } from "../../../../env";
 import { multiDeviceHandler } from "../hardware/service";

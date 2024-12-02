@@ -3,12 +3,14 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/ove-core-ui/src",
   "projectType": "application",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
+        "emptyOutDir": true,
         "generatePackageJson": true,
         "outputPath": "dist/apps/ove-core-ui"
       },
@@ -18,9 +20,6 @@
         },
         "production": {
           "mode": "production"
-        },
-        "linting": {
-          "mode": "linting"
         }
       }
     },
@@ -61,7 +60,8 @@
         "linting": {
           "buildTarget": "ove-core-ui:build:linting"
         }
-      }
+      },
+      "dependsOn": ["build"]
     },
     "test": {
       "executor": "@nx/vite:test",
@@ -84,6 +84,5 @@
         "buildTarget": "ove-core-ui:build"
       }
     }
-  },
-  "tags": []
+  }
 }
