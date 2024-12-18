@@ -18,7 +18,7 @@ export const useAuth = () => {
   const logout = useCallback(async (force = false) => {
     if (tokens !== null && !force) {
       try {
-        await createLogoutClient(tokens.access).logout.mutate();
+        await createLogoutClient(tokens.access).logout.mutate({});
       } catch (e) {
         logger.error(e);
       }
@@ -30,7 +30,7 @@ export const useAuth = () => {
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      const res = await createAuthClient(username, password).login.mutate();
+      const res = await createAuthClient(username, password).login.mutate({});
       if ("oveError" in res) {
         await logout();
       } else {
@@ -47,7 +47,7 @@ export const useAuth = () => {
   const refresh = useCallback(async () => {
     if (tokens === null) return;
     try {
-      const res = await createClient(tokens).token.query();
+      const res = await createClient(tokens).token.query({});
       if (isError(res)) {
         await logout();
         return;

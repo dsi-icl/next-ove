@@ -6,8 +6,10 @@ export type HardwareInfo = {
 }
 
 export type ActionController = {
-  device: Device
+  device: Device | null
+  tag: string | undefined
   bridgeId: string
+  status: StatusOptions | null
 }
 
 export type Action =

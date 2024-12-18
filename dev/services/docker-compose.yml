@@ -13,7 +13,7 @@ services:
       - ./data/mongo/database/db:/data/db
       - ./data/mongo/database/dev.archive:/Databases/dev.archive
       - ./data/mongo/database/production:/Databases/production
-      - ./data/mongo/mongo.keyfile:/data/mongo.keyfile
+      - ./config/mongo.keyfile:/data/mongo.keyfile:ro
     command: mongod --replSet rs0 --keyFile /data/mongo.keyfile
   mongo-express:
     image: mongo-express:latest

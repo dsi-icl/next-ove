@@ -189,7 +189,7 @@ export const APIRoutes = {
       }
     },
     input: z.strictObject({ bridgeId: z.string() }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined()))
   },
   setEcoSchedule: {
     meta: {
@@ -203,7 +203,7 @@ export const APIRoutes = {
       bridgeId: z.string(),
       ecoSchedule: z.array(CalendarEventSchema)
     }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined()))
   },
   setAutoSchedule: {
     meta: {
@@ -217,7 +217,7 @@ export const APIRoutes = {
       bridgeId: z.string(),
       autoSchedule: AutoScheduleSchema.optional()
     }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined()))
   },
   getEnv: {
     meta: {
@@ -239,7 +239,7 @@ export const APIRoutes = {
       }
     },
     input: z.strictObject({ bridgeId: z.string() }).merge(EnvSchema),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void()))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined()))
   },
   registerAuth: {
     meta: {
@@ -254,7 +254,7 @@ export const APIRoutes = {
       id: z.string(),
       pin: z.string()
     }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.void().promise()))
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined()))
   },
   getDevicesToAuth: {
     meta: {

@@ -9,7 +9,7 @@ import * as swaggerUi from "swagger-ui-express";
 import { createContext } from "./server/context";
 import { openApiDocument } from "./server/open-api";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { createOpenApiExpressMiddleware } from "trpc-openapi";
+import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
 
 
 // noinspection DuplicatedCode

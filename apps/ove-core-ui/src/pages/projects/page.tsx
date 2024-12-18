@@ -11,7 +11,7 @@ import Controller from "../../components/controller/controller";
 import LaunchConfig from "../../components/launch-config/launch-config";
 import type { LaunchConfig as LaunchConfigT } from "../project-editor/hooks";
 
-import styles from "./launcher.module.scss";
+import styles from "./projects.module.scss";
 
 type Action = "config" | "launch"
 
@@ -57,12 +57,12 @@ const Projects = () => {
   } = useActions<Action | null>();
   const [project, setProject] = useState<Project | null>(null);
   const projects = api.projects.getProjects.useQuery();
-  const user = api.getUserID.useQuery();
+  const user = api.getUserID.useQuery({});
   const { observatories } = useObservatories();
 
   return projects.status === "success" && !isError(projects.data) &&
   user.status === "success" && !isError(user.data) ?
-    <div style={{ position: "relative" }}>
+    <div className={styles["main"]} style={{ position: "relative" }}>
       <section className={styles["project-container"]}>
         <h4 className={styles.heading}>Projects</h4>
         <ul className={styles.projects}>

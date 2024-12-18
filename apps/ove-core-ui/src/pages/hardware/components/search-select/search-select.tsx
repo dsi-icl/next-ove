@@ -1,60 +1,67 @@
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
-import React, { useCallback, useEffect, useRef } from "react";
-
-import styles from "./search-select.module.scss";
+import React, { useMemo, useState } from "react";
+import {
+  Button, cn,
+  Command, CommandEmpty, CommandGroup,
+  CommandInput, CommandItem, CommandList,
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@ove/ui-base-components";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 type SearchSelectProps = {
   values: string[]
   setFilter: (filter: string | null) => void
   filter: string | null
+  filterType: "id" | "tags"
 }
 
-const SearchSelectFormSchema = z.strictObject({
-  filter: z.string()
-});
-
-type SearchSelectForm = z.infer<typeof SearchSelectFormSchema>
-
-const SearchSelect = ({ values, setFilter, filter }: SearchSelectProps) => {
-  const ref = useRef<HTMLFormElement | null>(null);
-  const {
-    handleSubmit,
-    watch,
-    setValue,
-    register,
-    formState: { errors }
-  } = useForm<SearchSelectForm>({
-    resolver: zodResolver(SearchSelectFormSchema)
-  });
-  useFormErrorHandling(errors);
-
-  const onSubmit = useCallback(({ filter }: { filter: string }) => {
-    setFilter(filter === "" ? null : filter);
-  }, [setFilter]);
-
-  useEffect(() => {
-    const data = watch(() => handleSubmit(onSubmit)());
-    return () => data.unsubscribe();
-  }, [handleSubmit, onSubmit, watch]);
-
-  return <form ref={ref} className={styles.selector}
-               onSubmit={handleSubmit(onSubmit)}>
-    <input className={styles.input} {...register("filter", { required: true })}
-           type="text"
-           autoComplete="off" />
-    <button type="submit" className={styles.hidden} />
-    <div className={styles.dropdown}>
-      <ul>
-        {values.filter(v => v.startsWith(filter ?? "")).map(v => <li key={v}>
-          <button onClick={() => setValue("filter", v)}
-                  type="submit">{v}</button>
-        </li>)}
-      </ul>
-    </div>
-  </form>;
+const SearchSelect = ({ values, setFilter, filter, filterType }: SearchSelectProps) => {
+  const [open, setOpen] = useState(false);
+  const filterLabel = useMemo(() => filterType === "id" ? "ID" : "tag", [filterType]);
+  return <Popover open={open} onOpenChange={setOpen}>
+    <PopoverTrigger asChild>
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className="w-[200px] justify-between mr-2"
+      >
+        {filter
+          ? values.find(value => filter === value) ?? ""
+          : `Select ${filterLabel}...`}
+        <ChevronsUpDown className="opacity-50" />
+      </Button>
+    </PopoverTrigger>
+    <PopoverContent className="w-[200px] p-0">
+      <Command>
+        <CommandInput placeholder={`Search ${filterLabel}...`} className="h-9" />
+        <CommandList>
+          <CommandEmpty>No {filterLabel} found.</CommandEmpty>
+          <CommandGroup>
+            {values.map(value => (
+              <CommandItem
+                key={value}
+                value={value}
+                onSelect={(currentValue) => {
+                  setFilter(currentValue === filter ? null : currentValue)
+                  setOpen(false)
+                }}
+              >
+                {value}
+                <Check
+                  className={cn(
+                    "ml-auto",
+                    value === filter ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+    </PopoverContent>
+  </Popover>
 };
 
 export default SearchSelect;

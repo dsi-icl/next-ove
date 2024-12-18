@@ -13,6 +13,7 @@ export const setupNamespace = <T extends Namespace>(
         username
       }
     }).then(user => {
+      console.log(password, user?.password);
       if (user?.role === "bridge" && password.trim() === user.password.trim()) {
         next();
       } else {

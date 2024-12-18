@@ -380,6 +380,7 @@ const inviteCollaborator = async (
       recipientId
     }
   });
+  return undefined;
 };
 
 const removeCollaborator = async (
@@ -393,6 +394,7 @@ const removeCollaborator = async (
       projectId
     }
   });
+  return undefined;
 };
 
 const getLayout = (prisma: PrismaClient, projectId: string) => {
@@ -672,6 +674,7 @@ const formatDZI = async (
     req.write(data);
     req.end();
   });
+  return undefined;
 };
 
 const controller: Controller = {

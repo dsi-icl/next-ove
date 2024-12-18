@@ -54,6 +54,13 @@ bridgeSocket.on('getStreams', (args, callback) => callback({
   response: [`http://localhost:${process.env.PORT}/CAMERA1.html`, `http://localhost:${process.env.PORT}/CAMERA2.html`]
 }));
 
+bridgeSocket.on('getReconciliation', (args, callback) => callback({
+  meta: {
+    bridge: process.env.SOCKET_USERNAME
+  },
+  response: true
+}));
+
 const hardwareSocket = io(`${process.env.CORE_URL}/socket/hardware`, {
   auth: {
     username: env.SOCKET_USERNAME,
@@ -70,7 +77,10 @@ hardwareSocket.on('getWindowConfig', (args, callback) => callback({
   meta: {
     bridge: process.env.SOCKET_USERNAME
   },
-  response: {}
+  response: {
+    "0": "https://www.google.com",
+    "1": "https://www.google.com"
+  }
 }));
 
 hardwareSocket.on('getBrowsers', (args, callback) => callback({
@@ -95,7 +105,25 @@ hardwareSocket.on('screenshot', (args, callback) => {
     meta: {
       bridge: process.env.SOCKET_USERNAME
     },
-    response: [screenshots[screenshotId - 1]]
+    response: [screenshots[screenshotId % 2]]
+  });
+});
+
+hardwareSocket.on('startAll', (args, callback) => {
+  callback({
+    meta: {
+      bridge: process.env.SOCKET_USERNAME
+    },
+    response: []
+  });
+});
+
+hardwareSocket.on('shutdownAll', (args, callback) => {
+  callback({
+    meta: {
+      bridge: process.env.SOCKET_USERNAME
+    },
+    response: []
   });
 });
 
@@ -109,5 +137,5 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '..', 'services', 'static', 'public')));
 
 app.listen(port, () => {
-  console.log(`Mock renderer listening on port ${port}`);
+  console.log(`Mock bridge listening on port ${port}`);
 });

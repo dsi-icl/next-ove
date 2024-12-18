@@ -53,13 +53,13 @@ const handler = async <Key extends keyof TCoreAPI, T extends {
 
 const generateQuery =
   <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)
-    .query<TCoreAPIOutput<Key>>(({ input }): Promise<TCoreAPIOutput<Key>> =>
-      handler(k, input));
+    .query<TCoreAPIOutput<Key>>(({ input }) =>
+      handler(k, input) as any);
 
 const generateMutation =
   <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)
     .mutation<TCoreAPIOutput<Key>>(
-      ({ input }): Promise<TCoreAPIOutput<Key>> => handler(k, input));
+      ({ input }) => handler(k, input) as any);
 
 export type CoreRouter = {
   [Key in keyof TCoreAPI]:

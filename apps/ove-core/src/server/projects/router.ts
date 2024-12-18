@@ -116,9 +116,9 @@ export type Controller = {
   generateThumbnail: (prisma: PrismaClient, projectId: string) =>
     Promise<string | OVEException>
   inviteCollaborator: (prisma: PrismaClient, projectId: string,
-    senderId: string, recipientId: string) => Promise<void | OVEException>
+    senderId: string, recipientId: string) => Promise<undefined | OVEException>
   removeCollaborator: (prisma: PrismaClient, projectId: string,
-    collaboratorId: string) => Promise<void | OVEException>
+    collaboratorId: string) => Promise<undefined | OVEException>
   getLayout: (prisma: PrismaClient, projectId: string) =>
     Promise<Section[] | OVEException>
   getEnv: (prisma: PrismaClient, s3: MinioClient | null,
@@ -132,7 +132,7 @@ export type Controller = {
     fileName: string
   } | OVEException>
   formatDZI: (s3: MinioClient | null, bucketName: string, objectName: string,
-    versionId: string) => Promise<void | OVEException>
+    versionId: string) => Promise<undefined | OVEException>
 }
 
 export const projectsRouter = router({
@@ -364,7 +364,7 @@ export const projectsRouter = router({
       projectId: z.string(),
       collaboratorId: z.string()
     }))
-    .output(z.union([z.void(), OVEExceptionSchema]))
+    .output(z.union([z.undefined(), OVEExceptionSchema]))
     .mutation(({ ctx, input }) => {
       // eslint-disable-next-line max-len
       logger.info(`Inviting collaborator ${input.collaboratorId} to ${input.projectId}`);
@@ -384,7 +384,7 @@ export const projectsRouter = router({
       projectId: z.string(),
       collaboratorId: z.string()
     }))
-    .output(z.union([z.void(), OVEExceptionSchema]))
+    .output(z.union([z.undefined(), OVEExceptionSchema]))
     .mutation(({ ctx, input }) => {
       // eslint-disable-next-line max-len
       logger.info(`Removing collaborator ${input.collaboratorId} from ${input.projectId}`);
@@ -478,7 +478,7 @@ export const projectsRouter = router({
       objectName: z.string(),
       versionId: z.string()
     }))
-    .output(z.union([z.void(), OVEExceptionSchema]))
+    .output(z.union([z.undefined(), OVEExceptionSchema]))
     .mutation(({ input: { bucketName, objectName, versionId }, ctx }) => {
       logger.info("Converting image file to DZI");
       return safe(logger, () =>

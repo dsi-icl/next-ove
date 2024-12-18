@@ -1,7 +1,7 @@
 import Info from "./info";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { isError } from "@ove/ove-types";
 import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
@@ -13,61 +13,65 @@ import styles from "./info.module.scss";
 
 export const useInfo = () => {
   const [type, setType] = useState<InfoTypes | undefined>();
-  const [info, setInfo] = useState<Map<number, {
-    deviceId: string,
-    response: object | null
-  }>>(new Map());
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  api.hardware.getInfo.useQuery({
+  const getInfo = api.hardware.getInfo.useQuery({
     bridgeId: assert(deviceAction.bridgeId),
     deviceId: deviceAction.deviceId ?? "",
     type: type
   }, {
-    enabled: !skipSingle(
-      "info", deviceAction.bridgeId ?? "", deviceAction),
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error(`Cannot get information for ${deviceAction.deviceId}`);
-      }
-
-      const map: typeof info = new Map();
-
-      map.set(0, {
-        deviceId: deviceAction.deviceId ?? "",
-        response: isError(response) ? null : response as object
-      });
-
-      setInfo(map);
-    },
-    onError: () => toast.error(
-      `Cannot get information for ${deviceAction.deviceId}`)
+    enabled: !skipSingle("info", deviceAction.bridgeId ?? "", deviceAction)
   });
-  api.hardware.getInfoAll.useQuery({
+  const getInfoAll = api.hardware.getInfoAll.useQuery({
     bridgeId: assert(deviceAction.bridgeId),
     type,
     tag: deviceAction.tag
   }, {
-    enabled: !skipMulti(
-      "info", deviceAction.bridgeId ?? "", deviceAction),
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Cannot get information for devices");
-        return;
-      }
-
-      const map: typeof info = new Map();
-
-      response.forEach(({ deviceId, response }, i) => {
-        map.set(i, {
-          deviceId,
-          response: isError(response) ? null : response as object
-        });
-      });
-
-      setInfo(map);
-    },
-    onError: () => toast.error("Cannot get information for devices")
+    enabled: !skipMulti("info", deviceAction.bridgeId ?? "", deviceAction)
   });
+
+  const info: Map<number, {
+    deviceId: string,
+    response: object | null
+  }> = useMemo(() => {
+    if (!skipSingle("info", deviceAction.bridgeId ?? "", deviceAction)) {
+      switch (getInfo.status) {
+        case "success":
+          return new Map([
+            [0, {
+              deviceId: deviceAction.deviceId ?? "",
+              response: isError(getInfo.data.response) ? null :
+                getInfo.data.response as object
+            }]
+          ]);
+        case "error":
+          toast.error(`Cannot get information for ${deviceAction.deviceId}`);
+          return new Map();
+        default:
+          return new Map();
+      }
+    } else {
+      switch (getInfoAll.status) {
+        case "success": {
+          if (isError(getInfoAll.data.response)) {
+            toast.error("Cannot get information for devices");
+            return new Map();
+          }
+          return new Map(getInfoAll.data.response.map(({
+            deviceId,
+            response
+          }, i) => [i, {
+            deviceId,
+            response: isError(response) ? null : response as object
+          }]));
+        }
+        case "error":
+          toast.error("Cannot get information for devices");
+          return new Map();
+        default:
+          return new Map();
+      }
+    }
+  }, [deviceAction, getInfo.status, getInfo.data?.response, getInfoAll.status, getInfoAll.data?.response]);
 
   return {
     info,

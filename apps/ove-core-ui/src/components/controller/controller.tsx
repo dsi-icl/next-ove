@@ -14,7 +14,7 @@ const Controller = ({ config }: ControllerProps) => {
   const controller = api.projects.getController.useQuery({
     ...config,
     layout: config.layout === null ? undefined : Json.stringify(config.layout)
-  }, { cacheTime: 0 });
+  });
   return <section id={styles["controller"]}>
     {controller.status === "success" && !isError(controller.data) ?
       <iframe title="controller" srcDoc={controller.data}></iframe> : null}

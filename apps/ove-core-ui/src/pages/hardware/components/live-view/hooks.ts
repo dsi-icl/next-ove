@@ -17,7 +17,7 @@ export const useStreams = (bridgeId: string, isOpen: boolean) => {
     } else {
       stopStreams.mutateAsync({ bridgeId }).catch(logger.error);
     }
-  }, [isOpen, bridgeId, startStreams.mutateAsync, stopStreams.mutateAsync]);
+  }, [isOpen, bridgeId, startStreams, stopStreams]);
 
   return streams;
 };

@@ -17,7 +17,7 @@ const UserSchema = z.strictObject({
 export const authRouter = router({
   login: procedure
     .meta({ openapi: { method: "POST", path: "/login" } })
-    .input(z.void())
+    .input(z.strictObject({}))
     .output(z.union([OVEExceptionSchema, z.strictObject({
       access: z.string(),
       refresh: z.string(),
@@ -29,15 +29,15 @@ export const authRouter = router({
     }),
   logout: protectedProcedure
     .meta({ openapi: { method: "DELETE", path: "/logout" } })
-    .input(z.void())
-    .output(z.union([OVEExceptionSchema, z.void()]))
+    .input(z.strictObject({}))
+    .output(z.union([OVEExceptionSchema, z.undefined()]))
     .mutation(async ({ ctx }) => {
       logger.info("Logging out user");
       return safe(logger, () => controller.logout(ctx.prisma, ctx.user));
     }),
   token: procedure
     .meta({ openapi: { method: "GET", path: "/token" } })
-    .input(z.void())
+    .input(z.strictObject({}))
     .output(z.union([OVEExceptionSchema, z.strictObject({
       token: z.string(),
       expiry: z.date()
@@ -48,7 +48,7 @@ export const authRouter = router({
     }),
   getUserID: protectedProcedure
     .meta({ openapi: { method: "GET", path: "/user" } })
-    .input(z.void())
+    .input(z.strictObject({}))
     .output(z.union([OVEExceptionSchema, UserSchema]))
     .query(async ({ ctx }) => {
       logger.info("Getting user");

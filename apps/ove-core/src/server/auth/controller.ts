@@ -18,6 +18,7 @@ const login = async (
   prisma: PrismaClient,
   credentials: string | null
 ): Promise<Tokens> => {
+  console.log(credentials);
   if (credentials === null) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -26,11 +27,13 @@ const login = async (
   }
   const [username, password] = decodeURIComponent(
     Buffer.from(credentials, "base64url").toString()).split(":");
+  console.log(username, password);
   const user = await prisma.user.findUnique({
     where: {
       username
     }
   });
+  console.log(user);
 
   if (user === null) {
     throw new TRPCError({
@@ -126,6 +129,7 @@ const getToken = async (prisma: PrismaClient, credentials: string | null) => {
 const logout = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUniqueOrThrow({ where: { username } });
   await prisma.refreshToken.delete({ where: { userId: user.id } });
+  return undefined;
 };
 
 const getUser = (prisma: PrismaClient, username: string) =>

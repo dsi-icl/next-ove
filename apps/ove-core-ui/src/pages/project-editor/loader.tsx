@@ -7,7 +7,7 @@ import { useProject, useSave } from "./hooks";
 
 const Loader = ({ token }: { token: string }) => {
   const query = useQuery();
-  const user = api.getUserID.useQuery();
+  const user = api.getUserID.useQuery({});
 
   const userId = useMemo(() => user.status === "success" &&
   !isError(user.data) ? user.data.id : null, [user.status, user.data]);

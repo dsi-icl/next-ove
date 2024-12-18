@@ -8,7 +8,7 @@ const Preview = ({ bounds, bridgeId, setSelected, selected }: {
   setSelected: (v: string[] | null) => void
   selected: string[] | null
 }) => {
-  return <section>
+  return <section className="mb-2">
     <ul>
       {Array.from({ length: bounds.rows }).map((_, rowId) =>
         <ul key={rowId}

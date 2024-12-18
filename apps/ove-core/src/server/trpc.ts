@@ -1,7 +1,7 @@
 import { env } from "../env";
 import { isAuthed } from "./auth/utils";
 import type { Context } from "./context";
-import type { OpenApiMeta } from "trpc-openapi";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
 
 const trpc = initTRPC

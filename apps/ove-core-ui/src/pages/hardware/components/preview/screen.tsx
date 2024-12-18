@@ -11,6 +11,7 @@ import { api } from "../../../../utils/api";
 import { type Bounds, isError } from "@ove/ove-types";
 
 import styles from "./preview.module.scss";
+import { AspectRatio } from "@ove/ui-base-components";
 
 type ScreenHUDProps = {
   row: number
@@ -33,8 +34,10 @@ const ScreenHUD = ({
   windowConfig,
   url,
   isPopover
-}: ScreenHUDProps) => {
-  return <ul className={[styles.hud].concat(isPopover ? [styles.popover] : []).join(" ")}>
+}: ScreenHUDProps) => <div
+  className={[styles.hud].concat(isPopover ? [styles.popover] : []).join(" ")}>
+  <h2 className="text-center font-bold">Display Details</h2>
+  <ul>
     <li>
       <span>row</span>
       <span>{row}</span>
@@ -53,14 +56,14 @@ const ScreenHUD = ({
     </li>
     <li>
       <span>default url</span>
-      <span>{windowConfig.slice(0, 15)}{windowConfig !== "" ? "..." : ""}</span>
+      <span>{windowConfig?.slice(0, 15)}{windowConfig !== "" ? "..." : ""}</span>
     </li>
     <li>
       <span>current url</span>
       <span>{url.slice(0, 15)}{url !== "" ? "..." : ""}</span>
     </li>
-  </ul>;
-};
+  </ul>
+</div>;
 
 const useWindowConfig = (
   bridgeId: string,
@@ -99,7 +102,7 @@ const useLiveFeed = (bridgeId: string, deviceId: string, displayId: string) => {
   const takeScreenshot = api.hardware.screenshot.useMutation({ retry: false });
 
   const screenshot = useMemo(() => {
-    if (takeScreenshot.status !== "success") return takeScreenshot.status === "loading" ? "loading" as const : undefined;
+    if (takeScreenshot.status !== "success") return takeScreenshot.status === "pending" ? "loading" as const : undefined;
     const res = takeScreenshot.data.response;
     if (isError(res)) return undefined;
     return res[0];
@@ -145,18 +148,15 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
     bounds.height / bounds.rows];
 
   const getScreenshotWithLoading = () => {
-    if (screenshot === undefined) {
-      return <ScreenHUD row={display.row} column={display.column}
-                        displayId={display.displayId}
-                        renderer={display.renderer} windowConfig={windowConfig}
-                        url={browser} isPopover={false} />;
-    } else if (screenshot === "loading") return null;
-    else return <img src={`data:image/png;base64,${screenshot}`}
+    if (screenshot === undefined || screenshot === "loading") {
+      return <div className="w-full h-full" />;
+    }
+    return <img className="w-full h-full" src={`data:image/png;base64,${screenshot}`}
                      alt="screenshot" />;
   };
 
   return <li key={colId} className={styles.screen} style={{
-    width: `calc(100% / ${bounds.columns})`,
+    width: "100%",
     aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
   }}>
     <HoverCard>
@@ -172,10 +172,13 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
       </HoverCardTrigger>
       <HoverCardContent>
         {/*TODO: improve popover HUD once v0.2.2 changes merged*/}
-        {screenshot !== undefined && screenshot !== "loading" ?
-          <ScreenHUD row={display.row} column={display.column} isPopover={true}
-                     displayId={display.displayId} renderer={display.renderer}
-                     windowConfig={windowConfig} url={browser} /> : null}
+        <AspectRatio ratio={16 / 9}><ScreenHUD row={display.row}
+                                               column={display.column}
+                                               isPopover={true}
+                                               displayId={display.displayId}
+                                               renderer={display.renderer}
+                                               windowConfig={windowConfig}
+                                               url={browser} /></AspectRatio>
       </HoverCardContent>
     </HoverCard>
   </li>;

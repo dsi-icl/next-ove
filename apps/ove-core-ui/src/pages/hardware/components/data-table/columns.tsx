@@ -1,7 +1,7 @@
 import { ArrowUpDown } from "lucide-react";
 import React, { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { ServiceType, StatusOptions } from "@ove/ove-types";
+import type { ServiceType } from "@ove/ove-types";
 import { Display, HddNetwork, Projector } from "react-bootstrap-icons";
 
 import styles from "../observatory/observatory.module.scss";
@@ -12,7 +12,7 @@ export type HardwareRow = {
   hostname: string
   mac: string
   tags: string[]
-  status: StatusOptions
+  status: ReactNode
   actions: ReactNode
 }
 
@@ -64,10 +64,8 @@ export const columns: ColumnDef<HardwareRow>[] = [
         if (filterType === "tags" || filter === null) return true;
         return filter === v;
       } else {
-        if (filterType === "tags" || filter === null) {
-          return selected.includes(v);
-        }
-        return selected.includes(v) && v.startsWith(filter);
+        if (filterType === "tags") return true;
+        return selected.includes(v) && (filter === null || v.startsWith(filter));
       }
     }
   },
@@ -101,10 +99,10 @@ export const columns: ColumnDef<HardwareRow>[] = [
       <ArrowUpDown className="ml-2 h-4 w-4" />
     </button>,
     filterFn: (row, columnId, filterValue) => {
-      const { filterType, filter } = filterValue as FilterValue;
+      const { filterType, filter, selected } = filterValue as FilterValue;
       const v = row.getValue(columnId) as string[];
-      if (filterType === "id" || filter === null) return true;
-      return v.find(tag => tag.startsWith(filter)) !== undefined;
+      if (filterType === "id") return true;
+      return (filter === null || v.some(tag => tag.startsWith(filter))) && (selected === null || v.some(tag => selected.includes(tag)));
     }
   },
   {
@@ -115,7 +113,8 @@ export const columns: ColumnDef<HardwareRow>[] = [
     >
       Status
       <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>
+    </button>,
+    cell: ({ row }) => row.getValue("status")
   },
   {
     accessorKey: "actions",

@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { api } from "../../../../utils/api";
 import { useStore } from "../../../../store";
 import type { DeviceAction } from "../../types";
@@ -10,66 +10,77 @@ import PaginatedDialog from "../paginated-dialog/paginated-dialog";
 
 import styles from "./browsers.module.scss";
 
+type SingleBrowserResponse = Record<string, Browser>
+type MultiBrowserResponse = {
+  response: Record<string, Browser>,
+  deviceId: string
+}[]
+
 const useBrowser = (
   bridgeId: string,
   deviceId: string | null,
   tag: string | undefined,
-  action: DeviceAction,
-  setBrowsers: (browsers: Record<string, Browser> | {
-    response: Record<string, Browser>,
-    deviceId: string
-  }[]) => void
+  action: DeviceAction
 ) => {
   const browserId = useStore(state => state.hardwareConfig.browserId);
-  api.hardware.getBrowsers.useQuery({ bridgeId, deviceId: deviceId ?? "" }, {
-    enabled: browserId === null && !skipSingle("browser", bridgeId, action),
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to get browsers");
-        return;
-      }
-
-      setBrowsers(response as Record<string, Browser>);
-    },
-    onError: () => toast.error("Unable to get browsers")
+  const getBrowsers = api.hardware.getBrowsers.useQuery({ bridgeId, deviceId: deviceId ?? "" }, {
+    enabled: browserId === null && !skipSingle("browser", bridgeId, action)
   });
-  api.hardware.getBrowsersAll.useQuery({ bridgeId, tag }, {
+  const getBrowsersAll = api.hardware.getBrowsersAll.useQuery({ bridgeId, tag }, {
     enabled: browserId === null && !skipMulti("browser", bridgeId, action),
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to get browsers");
-        return;
-      }
-
-      response.filter(({ response }) =>
-        "oveError" in response).forEach(({ deviceId }) =>
-        toast.error(`Failed to get browsers on ${deviceId}`));
-      setBrowsers(response
-        .filter(({ response }) => !("oveError" in response)) as {
-        deviceId: string,
-        response: Record<string, Browser>
-      }[]);
-    },
-    onError: () => toast.error("Unable to get browsers")
   });
+  const browsers: SingleBrowserResponse | MultiBrowserResponse = useMemo(() => {
+    if (browserId === null && !skipSingle("browser", bridgeId, action)) {
+      switch (getBrowsers.status) {
+        case "success": {
+          if (isError(getBrowsers.data.response)) {
+            toast.error("Unable to get browsers");
+            return {};
+          }
+
+          return getBrowsers.data.response;
+        }
+        case "error":
+          toast.error("Unable to get browsers");
+          return {};
+        default:
+          return {};
+      }
+    } else {
+      switch (getBrowsersAll.status) {
+        case "success": {
+          if (isError(getBrowsersAll.data.response)) {
+            toast.error("Unable to get browsers");
+            return [];
+          }
+          return getBrowsersAll.data.response.filter(({ response }) => {
+            if (isError(response)) {
+              toast.error(`Failed to get browsers on ${deviceId}`);
+              return false;
+            }
+            return true;
+          }) as MultiBrowserResponse;
+        }
+        case "error":
+          toast.error("Unable to get browsers");
+          return [];
+        default:
+          return [];
+      }
+    }
+  }, [getBrowsersAll.status, getBrowsersAll.data?.response, deviceId, browserId, bridgeId, action, getBrowsers.status, getBrowsers.data?.response]);
+  return browsers;
 };
 
 const BrowserStatus = () => {
-  const [browsers, setBrowsers] = useState<Record<string, Browser> | {
-    response: Record<string, Browser>,
-    deviceId: string
-  }[] | null>(null);
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const [idx, setIdx] = useState(0);
-  useBrowser(
+  const browsers = useBrowser(
     assert(deviceAction.bridgeId),
     deviceAction.deviceId,
     deviceAction.tag,
-    deviceAction,
-    setBrowsers
+    deviceAction
   );
-
-  if (browsers === null) return <div></div>;
 
   const getMaxLen = (browsers_: typeof browsers) => {
     if (Array.isArray(browsers_)) return browsers_.length;

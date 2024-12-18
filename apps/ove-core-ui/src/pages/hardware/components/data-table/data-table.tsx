@@ -26,17 +26,17 @@ const getSize = (id: string) => {
     case "protocol":
       return "5%";
     case "id":
-      return "10%";
+      return "18%";
     case "hostname":
-      return "15%";
+      return "18%";
     case "mac":
-      return "10%";
+      return "18%";
     case "tags":
-      return "20%";
+      return "36%";
     case "status":
       return "5%";
     case "actions":
-      return "40%";
+      return "18%";
     default:
       return "100%";
   }
@@ -68,11 +68,20 @@ const DataTable = <TData, TValue>({
   });
 
   useEffect(() => {
+    console.log(filter, filterType, selected);
     table.getColumn(filterType)?.setFilterValue({
       filterType,
       filter,
       selected
     });
+
+    return () => {
+      table.getColumn(filterType)?.setFilterValue({
+        filterType,
+        filter: null,
+        selected: null
+      });
+    };
   }, [filter, filterType, table, selected]);
 
   return <div>

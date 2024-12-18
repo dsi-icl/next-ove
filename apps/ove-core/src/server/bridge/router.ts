@@ -49,11 +49,11 @@ const handler = async <Key extends keyof TBridgeService, T extends {
 
 const generateQuery =
   <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-    .query(({ input }) => handler(k, input));
+    .query<TAPIRoutes[Key]["output"]>(({ input }) => handler(k, input) as any);
 
 const generateMutation =
   <Key extends keyof TBridgeService>(k: Key) => generateProcedure(k)
-    .mutation(({ input }) => handler(k, input));
+    .mutation<TAPIRoutes[Key]["output"]>(({ input }) => handler(k, input) as any);
 
 type Router = {
   [Key in keyof TAPIRoutes]:
