@@ -1,50 +1,74 @@
-import Info from "./info";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import React, { useMemo, useState } from "react";
 import { isError } from "@ove/ove-types";
 import { api } from "../../../../utils/api";
-import { useStore } from "../../../../store";
 import type { InfoTypes } from "../../../../utils";
-import { skipMulti, skipSingle } from "../../utils";
-import PaginatedDialog from "../paginated-dialog/paginated-dialog";
+import GeneralInfo from "./general-info";
+import SystemInfo from "./system-info";
+import CPUInfo from "./cpu-info";
+import MemoryInfo from "./memory-info";
+import BatteryInfo from "./battery-info";
+import GraphicsInfo from "./graphics-info";
+import OSInfo from "./os-info";
+import ProcessInfo from "./process-info";
+import FSInfo from "./fs-info";
+import USBInfo from "./usb-info";
+import PrinterInfo from "./printer-info";
+import AudioInfo from "./audio-info";
+import NetworkInfo from "./network-info";
+import WifiInfo from "./wifi-info";
+import BluetoothInfo from "./bluetooth-info";
+import DockerInfo from "./docker-info";
+import VboxInfo from "./vbox-info";
+import {
+  DialogContent, DialogFooter,
+  DialogHeader, DialogTitle,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  Select,
+  SelectContent, SelectGroup, SelectItem, SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from "@ove/ui-base-components";
 
-import styles from "./info.module.scss";
-
-export const useInfo = () => {
-  const [type, setType] = useState<InfoTypes | undefined>();
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
+export const useInfo = (deviceId: string | null, bridgeId: string, tag?: string) => {
+  const [type, setType] = useState<InfoTypes>("general");
   const getInfo = api.hardware.getInfo.useQuery({
-    bridgeId: assert(deviceAction.bridgeId),
-    deviceId: deviceAction.deviceId ?? "",
-    type: type
+    bridgeId,
+    deviceId: deviceId ?? "",
+    type
   }, {
-    enabled: !skipSingle("info", deviceAction.bridgeId ?? "", deviceAction)
+    enabled: deviceId !== null
   });
   const getInfoAll = api.hardware.getInfoAll.useQuery({
-    bridgeId: assert(deviceAction.bridgeId),
+    bridgeId,
     type,
-    tag: deviceAction.tag
+    tag
   }, {
-    enabled: !skipMulti("info", deviceAction.bridgeId ?? "", deviceAction)
+    enabled: deviceId === null
   });
 
   const info: Map<number, {
     deviceId: string,
     response: object | null
   }> = useMemo(() => {
-    if (!skipSingle("info", deviceAction.bridgeId ?? "", deviceAction)) {
+    if (deviceId !== null) {
       switch (getInfo.status) {
         case "success":
           return new Map([
             [0, {
-              deviceId: deviceAction.deviceId ?? "",
+              deviceId,
               response: isError(getInfo.data.response) ? null :
                 getInfo.data.response as object
             }]
           ]);
         case "error":
-          toast.error(`Cannot get information for ${deviceAction.deviceId}`);
+          toast.error(`Cannot get information for ${deviceId}`);
           return new Map();
         default:
           return new Map();
@@ -71,7 +95,7 @@ export const useInfo = () => {
           return new Map();
       }
     }
-  }, [deviceAction, getInfo.status, getInfo.data?.response, getInfoAll.status, getInfoAll.data?.response]);
+  }, [deviceId, getInfo.status, getInfo.data?.response, getInfoAll.status, getInfoAll.data?.response]);
 
   return {
     info,
@@ -80,41 +104,120 @@ export const useInfo = () => {
   };
 };
 
-const InfoContainer = () => {
-  const [idx, setIdx] = useState(0);
-  const { info, type, setType } = useInfo();
+const getInfo = (data: any, type: string | undefined) => {
+  switch (type) {
+    case "system":
+      return <SystemInfo info={data} />;
+    case "cpu":
+      return <CPUInfo info={data} />;
+    case "memory":
+      return <MemoryInfo info={data} />;
+    case "battery":
+      return <BatteryInfo info={data} />;
+    case "graphics":
+      return <GraphicsInfo info={data} />;
+    case "os":
+      return <OSInfo info={data} />;
+    case "processes":
+      return <ProcessInfo info={data} />;
+    case "fs":
+      return <FSInfo info={data} />;
+    case "usb":
+      return <USBInfo info={data} />;
+    case "printer":
+      return <PrinterInfo info={data} />;
+    case "audio":
+      return <AudioInfo info={data} />;
+    case "network":
+      return <NetworkInfo info={data} />;
+    case "wifi":
+      return <WifiInfo info={data} />;
+    case "bluetooth":
+      return <BluetoothInfo info={data} />;
+    case "docker":
+      return <DockerInfo info={data} />;
+    case "vbox":
+      return <VboxInfo info={data} />;
+    default:
+      return <GeneralInfo info={data} />;
+  }
+};
 
-  return <PaginatedDialog maxLen={info.size} idx={idx} setIdx={setIdx}>
-    {info.size > 0 ?
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <h4>Info - {assert(info.get(idx)).deviceId}</h4>
-          <label htmlFor="type">INFO TYPE:</label>
-          <select id="type" name="type" defaultValue={type ?? "general"}
-                  onChange={e => setType(e.currentTarget.value as InfoTypes)}>
-            <option value="general">General</option>
-            <option value="system">System</option>
-            <option value="cpu">CPU</option>
-            <option value="memory">Memory</option>
-            <option value="battery">Battery</option>
-            <option value="graphics">Graphics</option>
-            <option value="os">OS</option>
-            <option value="processes">Processes</option>
-            <option value="fs">FS</option>
-            <option value="usb">USB</option>
-            <option value="printer">Printer</option>
-            <option value="audio">Audio</option>
-            <option value="network">Network</option>
-            <option value="wifi">Wifi</option>
-            <option value="bluetooth">Bluetooth</option>
-            <option value="docker">Docker</option>
-            <option value="vbox">Vbox</option>
-          </select>
-        </div>
-        {assert(info.get(idx)).response !== null ?
-          <Info info={assert(info.get(idx)?.response)}
-                size={info.size} /> : null}
-      </div> : null}</PaginatedDialog>;
+const getPages = (idx: number, max: number) => {
+  if (idx === 0) {
+    return [0, 1, 2].filter(v => v < max);
+  } else if (idx === max) {
+    return [max - 3, max - 2, max - 1].filter(v => v >= 0);
+  }
+  return [idx - 1, idx, idx + 1].filter(v => v < max && v >= 0);
+};
+
+type InfoProps = {
+  deviceId: string | null
+  bridgeId: string
+  tag?: string
+}
+
+const InfoContainer = ({ deviceId, bridgeId, tag }: InfoProps) => {
+  const [idx, setIdx] = useState(0);
+  const { info, type, setType } = useInfo(deviceId, bridgeId, tag);
+  const [selectParent, setSelectParent] = useState<HTMLDivElement | null>(null);
+
+  return <DialogContent className="flex flex-col w-[70%]">
+    <DialogHeader className="flex w-full flex-row pr-6 items-center"
+                  ref={ref => setSelectParent(ref)}>
+      <DialogTitle className="font-bold text-2xl">Info
+        - {info.get(idx)?.deviceId ?? ""}</DialogTitle>
+      <Select onValueChange={value => setType(value as InfoTypes)} value={type}>
+        <SelectTrigger className="w-[180px] ml-auto">
+          <SelectValue placeholder="Enter info type" />
+        </SelectTrigger>
+        <SelectContent container={selectParent} className="overflow-y-scroll max-h-[65vh]" position="popper">
+          <SelectGroup>
+            <SelectLabel>Info Type</SelectLabel>
+            <SelectItem value="general">General</SelectItem>
+            <SelectItem value="system">System</SelectItem>
+            <SelectItem value="cpu">CPU</SelectItem>
+            <SelectItem value="memory">Memory</SelectItem>
+            <SelectItem value="battery">Battery</SelectItem>
+            <SelectItem value="graphics">Graphics</SelectItem>
+            <SelectItem value="os">OS</SelectItem>
+            <SelectItem value="processes">Processes</SelectItem>
+            <SelectItem value="fs">FS</SelectItem>
+            <SelectItem value="usb">USB</SelectItem>
+            <SelectItem value="printer">Printer</SelectItem>
+            <SelectItem value="audio">Audio</SelectItem>
+            <SelectItem value="network">Network</SelectItem>
+            <SelectItem value="wifi">Wifi</SelectItem>
+            <SelectItem value="bluetooth">Bluetooth</SelectItem>
+            <SelectItem value="docker">Docker</SelectItem>
+            <SelectItem value="vbox">Vbox</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </DialogHeader>
+    <div
+      className="h-[40vh] overflow-y-scroll">{info.size > 0 && assert(info.get(idx)).response !== null ?
+      getInfo(assert(info.get(idx)).response, type) : null}</div>
+    <DialogFooter>
+      {deviceId === null ? <Pagination className="mt-auto mb-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => setIdx(cur => Math.max(cur - 1, 0))} />
+          </PaginationItem>
+          {getPages(idx, info.size).map(ix => <PaginationItem key={ix}>
+            <PaginationLink isActive={idx === ix}
+                            onClick={() => setIdx(ix)}>{ix}</PaginationLink>
+          </PaginationItem>)}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => setIdx(cur => Math.min(cur + 1, info.size - 1))} />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination> : null}
+    </DialogFooter>
+  </DialogContent>;
 };
 
 export default InfoContainer;

@@ -1,4 +1,3 @@
-import Header from "../header/header";
 import { assert } from "@ove/ove-utils";
 import Actions from "../actions/actions";
 import { skipSingle } from "../../utils";
@@ -150,7 +149,7 @@ const Observatory = ({ name, isOnline }: {
                  setSelected={selected => filtersReducer({command: "selected", selected})} selected={filters.selected} /> : null}
       <Toolbar filterType={filters.type} hardware={hardware} filter={filters.filter}
                setFilterType={type => filtersReducer({command: "type", type})} setFilter={filter => filtersReducer({command: "filter", filter})}
-               name={name} selected={filters.selected} />
+               bridgeId={name} selected={filters.selected} />
       <div className={styles["table-container"]}>
         <DataTable columns={columns} filterType={filters.type} filter={filters.filter}
                    data={getData(name, hardware)} selected={filters.selected} />

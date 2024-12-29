@@ -19,7 +19,7 @@ export type RouteMethod = "GET" | "POST" | "DELETE";
 
 /**
  * Where functionality is exposed, allowing for hardware calls available on
- * bridge, i.e. mute/unmute that aren't available on ove-client
+ * bridge, i.e. mute/unmute that aren't available on ove-client.
  */
 export type ExposureLevel = "client" | "bridge";
 

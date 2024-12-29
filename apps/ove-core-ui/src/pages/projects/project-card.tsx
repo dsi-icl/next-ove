@@ -27,10 +27,12 @@ const ProjectCard = ({
     <h4>{project.title}</h4>
     <div className={styles.actions}>
       {canEdit ? <Button
+        className="rounded-r-none"
+        variant="outline"
         onClick={() => navigate(`/project-editor?project=${project.id}`)}>
         EDIT
       </Button> : null}
-      <Button onClick={openDialog}>
+      <Button onClick={openDialog} className="rounded-l-none">
         LAUNCH
       </Button>
     </div>

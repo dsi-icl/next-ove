@@ -13,6 +13,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 
 const devices = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'devices.json')).toString());
 const geometry = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'geometry.json')).toString());
+const systemInfo = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'system-info.json')).toString());
 
 const env = z.object({
   CORE_URL: z.string(),
@@ -78,8 +79,8 @@ hardwareSocket.on('getWindowConfig', (args, callback) => callback({
     bridge: process.env.SOCKET_USERNAME
   },
   response: {
-    "0": "https://www.google.com",
-    "1": "https://www.google.com"
+    '0': 'https://www.google.com',
+    '1': 'https://www.google.com'
   }
 }));
 
@@ -94,18 +95,66 @@ hardwareSocket.on('getStatusAll', (args, callback) => callback({
   meta: {
     bridge: process.env.SOCKET_USERNAME
   },
-  response: devices.map(({id}) => ({deviceId: id, response: "on"}))
+  response: devices.map(({ id }) => ({ deviceId: id, response: 'on' }))
 }));
 
-const screenshots = Array.from({length: 8}).slice(0, 2).map((_x, i) => Buffer.from(fs.readFileSync(path.join(__dirname, 'data', 'screens', `screen-${i + 1}.png`)), 'binary').toString('base64'));
+const screenshots = Array.from({ length: 8 }).slice(0, 2).map((_x, i) => Buffer.from(fs.readFileSync(path.join(__dirname, 'data', 'screens', `screen-${i + 1}.png`)), 'binary').toString('base64'));
 
 hardwareSocket.on('screenshot', (args, callback) => {
-  const screenshotId = parseInt(geometry.displays.find(({renderer: {deviceId}}) => deviceId === args.deviceId).displayId.slice(-1));
+  const screenshotId = parseInt(geometry.displays.find(({ renderer: { deviceId } }) => deviceId === args.deviceId).displayId.slice(-1));
   callback({
     meta: {
       bridge: process.env.SOCKET_USERNAME
     },
     response: [screenshots[screenshotId % 2]]
+  });
+});
+
+hardwareSocket.on('getInfo', (args, callback) => {
+  if (!args.type) {
+    args.type = 'general';
+  }
+  callback({
+    meta: {
+      bridge: process.env.SOCKET_USERNAME
+    },
+    response: systemInfo[args.type]
+  });
+});
+
+hardwareSocket.on('getInfoAll', (args, callback) => {
+  if (!args.type) {
+    args.type = 'general';
+  }
+  callback({
+    meta: {
+      bridge: process.env.SOCKET_USERNAME
+    },
+    response: devices.map(({ id }) => ({
+      deviceId: id,
+      response: systemInfo[args.type]
+    }))
+  });
+});
+
+hardwareSocket.on('execute', (args, callback) => {
+  callback({
+    meta: {
+      bridge: process.env.SOCKET_USERNAME
+    },
+    response: { response: 'hello world' }
+  });
+});
+
+hardwareSocket.on('executeAll', (args, callback) => {
+  callback({
+    meta: {
+      bridge: process.env.SOCKET_USERNAME
+    },
+    response: devices.map(({ id }) => ({
+      deviceId: id,
+      response: { response: 'hello world' }
+    }))
   });
 });
 

@@ -4,12 +4,9 @@ import {
   useCalendar
 } from "@ove/ui-components";
 import { api } from "../../../../utils/api";
-import { useStore } from "../../../../store";
 
-const Calendar = () => {
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const getCalendar = api.bridge.getCalendar
-    .useQuery({ bridgeId: deviceAction.bridgeId ?? "" });
+const Calendar = ({bridgeId}: {bridgeId: string}) => {
+  const getCalendar = api.bridge.getCalendar.useQuery({ bridgeId });
   const { calendar, lastUpdated } = useCalendar(getCalendar.data?.response);
 
   return <div style={{

@@ -12,6 +12,11 @@ import {
 import React, { useEffect, useState } from "react";
 
 import styles from "./data-table.module.scss";
+import {
+  Pagination,
+  PaginationContent, PaginationItem, PaginationLink, PaginationNext,
+  PaginationPrevious
+} from "@ove/ui-base-components";
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
@@ -40,6 +45,15 @@ const getSize = (id: string) => {
     default:
       return "100%";
   }
+};
+
+const getPages = (idx: number, max: number) => {
+  if (idx === 0) {
+    return [0, 1, 2].filter(v => v < max);
+  } else if (idx === max) {
+    return [max - 3, max - 2, max - 1].filter(v => v >= 0);
+  }
+  return [idx - 1, idx, idx + 1].filter(v => v < max && v >= 0);
 };
 
 const DataTable = <TData, TValue>({
@@ -112,14 +126,20 @@ const DataTable = <TData, TValue>({
         </tr>}
       </tbody>
     </table>
-    <div className="flex items-center justify-end space-x-2 py-4">
-      <button onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}>Previous
-      </button>
-      <button onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}>Next
-      </button>
-    </div>
+    <Pagination className="mt-6 mb-6">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} />
+        </PaginationItem>
+        {getPages(table.getState()?.pagination?.pageIndex ?? 0, table.getPageCount()).map(ix => <PaginationItem key={ix}>
+          <PaginationLink isActive={(table.getState()?.pagination?.pageIndex ?? 0) === ix}
+                          onClick={() => table.setPageIndex(ix)}>{ix}</PaginationLink>
+        </PaginationItem>)}
+        <PaginationItem>
+          <PaginationNext onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   </div>;
 };
 

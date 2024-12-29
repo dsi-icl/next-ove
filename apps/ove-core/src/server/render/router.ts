@@ -7,8 +7,8 @@ import type { Project, Section } from "@prisma/client";
 import { type OVEException, OVEExceptionSchema } from "@ove/ove-types";
 
 export type Controller = {
-  initObservatory: (observatory: string, project: Project, layout: Section[]) => Promise<void | OVEException>
-  clearObservatory: (observatory: string) => Promise<void | OVEException>
+  initObservatory: (observatory: string, project: Project, layout: Section[]) => Promise<undefined | OVEException>
+  clearObservatory: (observatory: string) => Promise<undefined | OVEException>
 }
 
 const SectionSchema = z.strictObject({
@@ -49,7 +49,7 @@ export const renderRouter = router({
       project: ProjectSchema,
       layout: SectionSchema.array()
     }))
-    .output(z.union([z.void(), OVEExceptionSchema]))
+    .output(z.union([z.undefined(), OVEExceptionSchema]))
     .mutation(async ({ input: { observatory, project, layout } }) => {
       logger.info(`Initialising render on ${observatory}`);
       return await safe(logger, async () =>
@@ -62,7 +62,7 @@ export const renderRouter = router({
   clear: protectedProcedure
     .meta({ openapi: { path: "/render", method: "DELETE", protect: true } })
     .input(z.strictObject({ observatory: z.string() }))
-    .output(z.union([z.void(), OVEExceptionSchema]))
+    .output(z.union([z.undefined(), OVEExceptionSchema]))
     .mutation(({ input: { observatory } }) => {
       logger.info(`Clearing render on ${observatory}`);
       return safe(logger, async () =>

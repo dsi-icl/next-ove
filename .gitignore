@@ -365,6 +365,7 @@ cython_debug/
 # Custom rules
 
 # Development configuration
+/dev/testing/data/system-info.json
 /dev/services/data/mongo/database
 /dev/services/data/minio/data
 /dev/services/config/mongo.keyfile

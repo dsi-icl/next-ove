@@ -17,6 +17,7 @@ import { type File, dataTypes, type DataType } from "@ove/ove-types";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 
 import styles from "./section-config.module.scss";
+import { Button } from "@ove/ui-base-components";
 
 type SectionConfigProps = {
   sections: Section[]
@@ -277,22 +278,18 @@ const Geometry = ({ mode, register, setMode, setValue, space }: {
     setValue("rowTo", space?.rows ?? 0);
   };
 
-  const backgroundColor = mode === "custom" ? "#dadedf" : undefined;
-
   return <div id={styles["geometry"]}>
     <div className={styles.actions}>
       <div className={styles.mode}>
-        <button className={styles.action} type="button"
-                onClick={() => setMode("custom")}
-                style={{ backgroundColor }}>
-          <Brush color="black" /></button>
-        <button className={styles.action} type="button"
-                onClick={() => setMode("grid")}
-                style={{ backgroundColor }}>
-          <Grid color="black" /></button>
+        <Button className="rounded-r-none" type="button" variant={mode === "custom" ? "default" : "outline"}
+                onClick={() => setMode("custom")}>
+          <Brush className="mr-1" /> Custom</Button>
+        <Button className="rounded-l-none" variant={mode === "grid" ? "default" : "outline"} type="button"
+                onClick={() => setMode("grid")}>
+          <Grid className="mr-1" /> Grid</Button>
       </div>
-      <button className={styles.action} id={styles["fullscreen"]}
-              type="button" onClick={fullscreen}><Fullscreen /></button>
+      <Button className="mt-6"
+              type="button" onClick={fullscreen}><Fullscreen className="mr-1" /> Maximise</Button>
     </div>
     <fieldset style={mode === "custom" ? undefined : { display: "none" }}>
       <div className={styles.column}>

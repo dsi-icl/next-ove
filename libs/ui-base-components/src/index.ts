@@ -12,3 +12,5 @@ export * from "./lib/dialog";
 export * from "./lib/command";
 export * from "./lib/dropdown-menu";
 export * from "./lib/aspect-ratio";
+export * from "./lib/table";
+export * from "./lib/pagination";

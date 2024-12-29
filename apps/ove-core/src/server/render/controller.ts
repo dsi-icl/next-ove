@@ -11,6 +11,7 @@ const initObservatory = async (observatory: string, project: Project, layout: Se
 
   observatoryState.state = {project, layout, state: ""}; // TODO: investigate state property
   observatoryState.sections = new Map();
+  return undefined;
 };
 
 const clearObservatory = async (observatory: string) => {
@@ -21,6 +22,7 @@ const clearObservatory = async (observatory: string) => {
 
   observatoryState.state = null;
   observatoryState.sections = new Map();
+  return undefined;
 };
 
 export const controller: Controller = {

@@ -21,6 +21,15 @@ const baseSchema = z.strictObject({
     z.literal("test"),
     z.literal("api")
   ]),
+  SOCKETS: z.strictObject({
+    PATH: z.string().optional(),
+    ADMIN: z.strictObject({
+      USERNAME: z.string(),
+      PASSWORD: z.string()
+    }).optional(),
+    MAX_HTTP_BUFFER_SIZE: z.number(),
+    DIST_DIR: z.string()
+  }),
   LOG_LEVEL: z.number().optional(),
   LOGGING_SERVER: z.string().optional(),
   PORT: z.number(),
@@ -39,11 +48,6 @@ const baseSchema = z.strictObject({
       ISSUER: z.string()
     })
   }),
-  SOCKET_PATH: z.string().optional(),
-  SOCKET_ADMIN: z.strictObject({
-    USERNAME: z.string(),
-    PASSWORD: z.string()
-  }).optional(),
   ASSET_STORE_CONFIG: z.strictObject({
     ACCESS_KEY: z.string(),
     SECRET_KEY: z.string(),
@@ -59,7 +63,6 @@ const baseSchema = z.strictObject({
   }).optional(),
   DISABLE_AUTH: z.boolean(),
   TEST_USER: z.string().optional(),
-  SOCKET_DIST: z.string(),
   THUMBNAIL_GENERATOR: z.string().optional(),
   DATA_FORMATTER: z.string().optional(),
   UI_URL: z.string()
@@ -93,6 +96,11 @@ const defaultConfig: z.infer<typeof schema> = {
   PORT: 3333,
   HOSTNAME: "127.0.0.1",
   PROTOCOL: "http",
+  SOCKETS: {
+    MAX_HTTP_BUFFER_SIZE: 1e8,
+    DIST_DIR: path.join(__dirname, "..", "..", "..",
+      "node_modules", "@socket.io", "admin-ui", "ui", "dist")
+  },
   TOKENS: {
     ACCESS: {
       SECRET: accessTokenSecret,
@@ -107,8 +115,6 @@ const defaultConfig: z.infer<typeof schema> = {
     }
   },
   DISABLE_AUTH: false,
-  SOCKET_DIST: path.join(__dirname, "..", "..", "..",
-    "node_modules", "@socket.io", "admin-ui", "ui", "dist"),
   UI_URL: path.join(__dirname, "ui")
 };
 

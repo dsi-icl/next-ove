@@ -9,13 +9,14 @@ export const io: Server = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST", "DELETE"]
-  }, path: `${env.SOCKET_PATH ?? ""}/${env.API_VERSION}`
+  }, path: `${env.SOCKETS.PATH ?? ""}/${env.API_VERSION}`,
+  maxHttpBufferSize: env.SOCKETS.MAX_HTTP_BUFFER_SIZE
 } as Partial<ServerOptions>);
 
-const auth = env.SOCKET_ADMIN === undefined ? false : {
+const auth = env.SOCKETS.ADMIN === undefined ? false : {
   type: "basic" as const,
-  username: env.SOCKET_ADMIN.USERNAME,
-  password: env.SOCKET_ADMIN.PASSWORD
+  username: env.SOCKETS.ADMIN.USERNAME,
+  password: env.SOCKETS.ADMIN.PASSWORD
 };
 instrument(io, {
   auth,

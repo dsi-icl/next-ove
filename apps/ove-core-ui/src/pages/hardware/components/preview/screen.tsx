@@ -56,11 +56,11 @@ const ScreenHUD = ({
     </li>
     <li>
       <span>default url</span>
-      <span>{windowConfig?.slice(0, 15)}{windowConfig !== "" ? "..." : ""}</span>
+      <span>{windowConfig?.slice(0, 15)}{!windowConfig ? "-" : "..."}</span>
     </li>
     <li>
       <span>current url</span>
-      <span>{url.slice(0, 15)}{url !== "" ? "..." : ""}</span>
+      <span>{url.slice(0, 15)}{url !== "" ? "..." : "-"}</span>
     </li>
   </ul>
 </div>;
@@ -160,8 +160,8 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
     aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
   }}>
     <HoverCard>
-      <HoverCardTrigger style={{ width: "100%" }}>
-        <button style={{ width: "100%" }} onClick={() => {
+      <HoverCardTrigger className="w-full h-full">
+        <button className="w-full h-full" onClick={() => {
           if (selected?.[0] === display.displayId &&
             selected?.[1] === display.renderer.deviceId) {
             setSelected(null);
@@ -171,7 +171,6 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
         }}>{getScreenshotWithLoading()}</button>
       </HoverCardTrigger>
       <HoverCardContent>
-        {/*TODO: improve popover HUD once v0.2.2 changes merged*/}
         <AspectRatio ratio={16 / 9}><ScreenHUD row={display.row}
                                                column={display.column}
                                                isPopover={true}

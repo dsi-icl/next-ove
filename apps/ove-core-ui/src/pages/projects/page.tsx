@@ -1,10 +1,10 @@
 import { api } from "../../utils/api";
 import { assert } from "@ove/ove-utils";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { isError } from "@ove/ove-types";
+import { PlusCircle } from "lucide-react";
 import ProjectCard from "./project-card";
 import { Dialog } from "@ove/ui-components";
-import { Plus } from "react-bootstrap-icons";
 import type { Project, User } from "@prisma/client";
 import { useActions, useObservatories } from "../../hooks";
 import Controller from "../../components/controller/controller";
@@ -47,6 +47,15 @@ const getDialogContent = (
   return <Controller config={assert(config)} />;
 };
 
+const formatProject = (project: Omit<Project, "created" | "updated"> & {
+  created: string,
+  updated: string
+}) => ({
+  ...project,
+  created: new Date(project.created),
+  updated: new Date(project.updated)
+});
+
 const Projects = () => {
   const {
     action,
@@ -59,55 +68,48 @@ const Projects = () => {
   const projects = api.projects.getProjects.useQuery();
   const user = api.getUserID.useQuery({});
   const { observatories } = useObservatories();
+  const projectsLoaded = useMemo(() => projects.status === "success" && !isError(projects.data) && user.status === "success" && !isError(user.data), [user.status, user.data, projects.status, projects.data]);
+  const privateProjects = useMemo(() => projects.data !== undefined && !isError(projects.data) ? projects.data.filter(x => !isError(x) && !x.isPublic).map(formatProject) : [], [projects.data]);
+  const publicProjects = useMemo(() => projects.data !== undefined && !isError(projects.data) ? projects.data.filter(x => !isError(x) && x.isPublic).map(formatProject) : [], [projects.data]);
 
-  return projects.status === "success" && !isError(projects.data) &&
-  user.status === "success" && !isError(user.data) ?
-    <div className={styles["main"]} style={{ position: "relative" }}>
-      <section className={styles["project-container"]}>
-        <h4 className={styles.heading}>Projects</h4>
-        <ul className={styles.projects}>
-          {projects.data.filter(x => !isError(x) && !x.isPublic)
-            .map(project => {
-              const formattedProject = {
-                ...project,
-                created: new Date(project.created),
-                updated: new Date(project.updated)
-              };
-              return <ProjectCard key={project.id} project={formattedProject}
-                                  openDialog={() => {
-                                    setProject(formattedProject);
-                                    setAction("config");
-                                  }} user={user.data as User} />;
-            })}
-        </ul>
-        <h4 className={styles.heading}>Public</h4>
-        <ul className={styles.projects}>
-          {projects.data.filter(x => !isError(x) && x.isPublic).map(project => {
-            const formattedProject = {
-              ...project,
-              created: new Date(project.created),
-              updated: new Date(project.updated)
-            };
-            return <ProjectCard project={formattedProject} openDialog={() => {
-              setProject(formattedProject);
-              setAction("config");
-            }}
-                                key={project.id} user={user.data as User} />;
-          })}
-        </ul>
-        <Dialog ref={dialog} closeDialog={() => setAction(null)}
-                title="Launcher"
-                style={getDialogStyling(action)}
-                hiddenStyle={{ padding: action === "launch" ? 0 : "1rem" }}>
-          {getDialogContent(project, action, Object.keys(observatories),
-            (config: LaunchConfigT) => setAction("launch", config),
-            config)}
-        </Dialog>
-        {isOpen || action !== null ?
-          <div id={styles["mask"]}></div> : null}
-      </section>
-      <a href="/project-editor" id={styles["new"]}><Plus size={"2rem"} /></a>
-    </div> : null;
+  return <main>
+    <h1 className="width-full text-center font-bold text-2xl mt-2">Projects</h1>
+    {projectsLoaded ?
+      <div className={styles["main"]} style={{ position: "relative" }}>
+        <section className={styles["project-container"]}>
+          <h4 className={styles.heading}>Private</h4>
+          <ul className={styles.projects}>
+            {privateProjects.map(project =>
+              <ProjectCard key={project.id} project={project}
+                           openDialog={() => {
+                             setProject(project);
+                             setAction("config");
+                           }} user={user.data as User} />)}
+          </ul>
+          <h4 className={styles.heading}>Public</h4>
+          <ul className={styles.projects}>
+            {publicProjects.map(project =>
+              <ProjectCard project={project} openDialog={() => {
+                setProject(project);
+                setAction("config");
+              }}
+                           key={project.id} user={user.data as User} />)}
+          </ul>
+          <Dialog ref={dialog} closeDialog={() => setAction(null)}
+                  title="Launcher"
+                  style={getDialogStyling(action)}
+                  hiddenStyle={{ padding: action === "launch" ? 0 : "1rem" }}>
+            {getDialogContent(project, action, Object.keys(observatories),
+              (config: LaunchConfigT) => setAction("launch", config),
+              config)}
+          </Dialog>
+          {isOpen || action !== null ?
+            <div id={styles["mask"]}></div> : null}
+        </section>
+        <a href="/project-editor"
+           className="fixed ml-auto bottom-8 right-8 p-2 rounded-[50%] text-white z-[100] bg-[#002147]"><PlusCircle /></a>
+      </div> : null}
+  </main>;
 };
 
 export default Projects;

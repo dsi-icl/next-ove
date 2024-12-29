@@ -22,8 +22,6 @@ const getHiddenStyle = (
 
 const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
   switch (deviceAction.action) {
-    case "monitoring":
-      return { width: "90vw", height: "90vh", maxHeight: "unset" };
     case "browser": {
       if (deviceAction.pending) {
         return { width: "25vw", height: "30vh" };
@@ -32,8 +30,6 @@ const getStyle = (deviceAction: DeviceAction): CSSProperties | undefined => {
     }
     case "volume":
       return { width: "25vw", height: "30vh" };
-    case "calendar":
-      return { width: "65vw", height: "80svh" };
     default:
       return undefined;
   }
@@ -46,7 +42,7 @@ const isSpecial = (action: DeviceAction["action"]) =>
 
 const Hardware = () => {
   const getObservatories = api.core.getObservatories.useQuery();
-  const { ref, closeDialog, openDialog, isOpen } = useDialog();
+  const { ref, closeDialog, openDialog } = useDialog();
   const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
   const reset = useStore(state => state.hardwareConfig.reset);
 
@@ -71,7 +67,7 @@ const Hardware = () => {
       <Dialog closeDialog={reset} ref={ref} style={getStyle(deviceAction)}
               hiddenStyle={getHiddenStyle(deviceAction)}
               title={deviceAction.deviceId ?? deviceAction.bridgeId ?? ""}>
-        <Popups isOpen={isOpen} />
+        <Popups />
       </Dialog>
     </main>
   </HelmetProvider>;
