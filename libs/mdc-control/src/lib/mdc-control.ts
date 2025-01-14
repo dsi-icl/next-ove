@@ -2,11 +2,11 @@
 
 import { Socket } from "net";
 import { raise } from "@ove/ove-utils";
-import { isError, MDCSources, OVEException } from "@ove/ove-types";
+import { isError, MDCSource, OVEException } from "@ove/ove-types";
 
 const MDC_PORT = 1515;
 
-export const sources: MDCSources = {
+export const sources: MDCSource = {
   UNKNOWN: 0x00,
   PC: 0x14,
   DVI: 0x18,
@@ -26,7 +26,7 @@ export const sources: MDCSources = {
   DP3: 0x27
 } as const;
 
-type MDCSource = MDCSources[keyof MDCSources];
+type MDCSource = MDCSource[keyof MDCSource];
 
 type CommandArgs = {
   ac?: AbortController

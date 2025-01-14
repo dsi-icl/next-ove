@@ -2,18 +2,27 @@ import React, { useCallback, useState } from "react";
 import type { ActionController } from "../../types";
 import {
   useCloseBrowsers, useMute, useMuteAudio, useMuteVideo, useOpenBrowsers,
-  useReboot,
+  useReboot, useReloadBrowsers, useSetSource,
   useShutdown,
   useStart,
   useUnmute, useUnmuteAudio, useUnmuteVideo
 } from "./hooks";
 import { useStore } from "../../../../store";
 import {
-  Button, Dialog,
+  Button,
+  Dialog,
   DialogContent,
   DialogTrigger,
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuTrigger,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuGroup
 } from "@ove/ui-base-components";
 import {
   MoreVertical,
@@ -33,7 +42,7 @@ import {
   Mic,
   MicOff,
   Video,
-  VideoOff
+  VideoOff, Globe, HdmiPort, Monitor, Projector
 } from "lucide-react";
 import { Device } from "@ove/ove-types";
 import { api } from "../../../../utils/api";
@@ -48,9 +57,11 @@ type Actions = "info" | "terminal" | null
 const getActionDialog = (action: Actions, deviceId: string | null, bridgeId: string, tag?: string) => {
   switch (action) {
     case "info":
-      return <InfoContainer deviceId={deviceId} bridgeId={bridgeId} tag={tag} />;
+      return <InfoContainer deviceId={deviceId} bridgeId={bridgeId}
+                            tag={tag} />;
     case "terminal":
-      return <TerminalDialog deviceId={deviceId} bridgeId={bridgeId} tag={tag} />;
+      return <TerminalDialog deviceId={deviceId} bridgeId={bridgeId}
+                             tag={tag} />;
     default:
       return <DialogContent></DialogContent>;
   }
@@ -64,8 +75,10 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
   const { start } = useStart(bridgeId, device?.id ?? null, tag);
   const { shutdown } = useShutdown(bridgeId, device?.id ?? null, tag);
   const { reboot } = useReboot(bridgeId, device?.id ?? null, tag);
+  const { reloadBrowsers } = useReloadBrowsers(bridgeId, device?.id ?? null, tag);
   const { closeBrowsers } = useCloseBrowsers(bridgeId, device?.id ?? null, tag);
   const { openBrowsers } = useOpenBrowsers(bridgeId, device?.id ?? null, tag);
+  const { setSource } = useSetSource(bridgeId, device?.id ?? null, tag);
   const { mute } = useMute(bridgeId, device?.id ?? null, tag);
   const { unmute } = useUnmute(bridgeId, device?.id ?? null, tag);
   const { muteAudio } = useMuteAudio(bridgeId, device?.id ?? null, tag);
@@ -95,119 +108,296 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end"
                            className="overflow-y-scroll max-h-[45vh]">
-        <DropdownMenuItem className="cursor-pointer" onClick={updateState}>
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          <span>Status</span>
-        </DropdownMenuItem>
-        <DialogTrigger asChild onClick={() => setAction("info")}>
-          <DropdownMenuItem className="cursor-pointer">
-            <Info className="mr-2 h-4 w-4" />
-            Info
+        <DropdownMenuGroup>
+          <DropdownMenuItem className="cursor-pointer" onClick={updateState}>
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            <span>Status</span>
           </DropdownMenuItem>
-        </DialogTrigger>
-        {status !== null ? <DropdownMenuItem className="cursor-pointer"
-                                             onClick={status === "on" ? shutdown : start}>
-          {status === "on" ? <>
-            <Power className="mr-2 h-4 w-4" />
-            Power On
-          </> : <>
-            <PowerOff className="mr-2 h-4 w-4" />
-            Power Off
+          <DialogTrigger asChild onClick={() => setAction("info")}>
+            <DropdownMenuItem className="cursor-pointer">
+              <Info className="mr-2 h-4 w-4" />
+              Info
+            </DropdownMenuItem>
+          </DialogTrigger>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          {status !== null ? <DropdownMenuItem className="cursor-pointer"
+                                               onClick={status === "on" ? shutdown : start}>
+            {status === "on" ? <>
+              <Power className="mr-2 h-4 w-4" />
+              Power On
+            </> : <>
+              <PowerOff className="mr-2 h-4 w-4" />
+              Power Off
+            </>}
+          </DropdownMenuItem> : <>
+            <DropdownMenuItem className="cursor-pointer" onClick={start}>
+              <Power className="mr-2 h-4 w-4" />
+              Power On
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={shutdown}>
+              <PowerOff className="mr-2 h-4 w-4" />
+              Power Off
+            </DropdownMenuItem>
           </>}
-        </DropdownMenuItem> : <>
-          <DropdownMenuItem className="cursor-pointer" onClick={start}>
-            <Power className="mr-2 h-4 w-4" />
-            Power On
+          <DropdownMenuItem className="cursor-pointer" onClick={reboot}>
+            <RotateCw className="mr-2 h-4 w-4" />
+            Reboot
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" onClick={shutdown}>
-            <PowerOff className="mr-2 h-4 w-4" />
-            Power Off
-          </DropdownMenuItem>
-        </>}
-        <DropdownMenuItem className="cursor-pointer" onClick={reboot}>
-          <RotateCw className="mr-2 h-4 w-4" />
-          Reboot
-        </DropdownMenuItem>
-        {getType(device, "node") ? <DialogTrigger className="w-full" onClick={() => setAction("terminal")}>
-          <DropdownMenuItem className="cursor-pointer w-full">
-          <Terminal className="mr-2 h-4 w-4" />
-          Execute
-        </DropdownMenuItem>
-        </DialogTrigger> : null}
-        {getType(device, "node") ? <DropdownMenuItem className="cursor-pointer"
-                                                     onClick={() => setDeviceAction({
-                                                       bridgeId,
-                                                       action: "screenshot",
-                                                       deviceId: device?.id ?? null,
-                                                       tag: undefined,
-                                                       pending: true
-                                                     })}>
-          <Camera className="mr-2 h-4 w-4" />
-          Take Screenshot
-        </DropdownMenuItem> : null}
-        {getType(device, "node") ? <DropdownMenuItem className="cursor-pointer"
-                                                     onClick={() => setDeviceAction({
-                                                       bridgeId,
-                                                       action: "browser",
-                                                       deviceId: device?.id ?? null,
-                                                       tag: undefined,
-                                                       pending: false
-                                                     })}>
-          <Library className="mr-2 h-4 w-4" />
-          Window Info
-        </DropdownMenuItem> : null}
-        {getType(device, "node") ?
-          <DropdownMenuItem className="cursor-pointer" onClick={openBrowsers}>
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Open Windows
-          </DropdownMenuItem> : null}
-        {getType(device, "node") ?
-          <DropdownMenuItem className="cursor-pointer" onClick={closeBrowsers}>
-            <X className="mr-2 h-4 w-4" />
-            Close Windows
-          </DropdownMenuItem> : null}
-        {getType(device, "node", true) ?
-          <DropdownMenuItem className="cursor-pointer"
-                            onClick={() => setDeviceAction({
-                              bridgeId,
-                              action: "volume",
-                              deviceId: device?.id ?? null,
-                              tag: undefined,
-                              pending: true
-                            })}>
-            <Volume1 className="mr-2 h-4 w-4" />
-            Set Volume
-          </DropdownMenuItem> : null}
-        {getType(device, "node", true) ?
-          <DropdownMenuItem className="cursor-pointer" onClick={mute}>
-            <VolumeOff className="mr-2 h-4 w-4" />
-            Mute
-          </DropdownMenuItem> : null}
-        {getType(device, "node", true) ?
-          <DropdownMenuItem className="cursor-pointer" onClick={unmute}>
-            <Volume2 className="mr-2 h-4 w-4" />
-            Unmute
-          </DropdownMenuItem> : null}
-        {getType(device, "pjlink") ?
-          <DropdownMenuItem className="cursor-pointer" onClick={muteAudio}>
-            <MicOff className="mr-2 h-4 w-4" />
-            Mute Audio
-          </DropdownMenuItem> : null}
-        {getType(device, "pjlink") ?
-          <DropdownMenuItem className="cursor-pointer" onClick={unmuteAudio}>
-            <Mic className="mr-2 h-4 w-4" />
-            Unmute Audio
-          </DropdownMenuItem> : null}
-        {getType(device, "pjlink") ?
-          <DropdownMenuItem className="cursor-pointer" onClick={muteVideo}>
-            <VideoOff className="mr-2 h-4 w-4" />
-            Mute Video
-          </DropdownMenuItem> : null}
-        {getType(device, "pjlink") ?
-          <DropdownMenuItem className="cursor-pointer" onClick={unmuteVideo}>
-            <Video className="mr-2 h-4 w-4" />
-            Unmute Video
-          </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+        {getType(device, "node") ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          {getType(device, "node") ? <DialogTrigger className="w-full"
+                                                    onClick={() => setAction("terminal")}>
+            <DropdownMenuItem className="cursor-pointer w-full">
+              <Terminal className="mr-2 h-4 w-4" />
+              Execute
+            </DropdownMenuItem>
+          </DialogTrigger> : null}
+          {getType(device, "node") ?
+            <DropdownMenuItem className="cursor-pointer"
+                              onClick={() => setDeviceAction({
+                                bridgeId,
+                                action: "screenshot",
+                                deviceId: device?.id ?? null,
+                                tag: undefined,
+                                pending: true
+                              })}>
+              <Camera className="mr-2 h-4 w-4" />
+              Take Screenshot
+            </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+        {getType(device, "node") ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          {getType(device, "node") ?
+            <DropdownMenuItem className="cursor-pointer"
+                              onClick={() => setDeviceAction({
+                                bridgeId,
+                                action: "browser",
+                                deviceId: device?.id ?? null,
+                                tag: undefined,
+                                pending: false
+                              })}>
+              <Library className="mr-2 h-4 w-4" />
+              Window Info
+            </DropdownMenuItem> : null}
+          {getType(device, "node") ?
+            <DropdownMenuItem className="cursor-pointer"
+                              onClick={reloadBrowsers}>
+              <Globe className="mr-2 h-4 w-4" />
+              Reload Windows
+            </DropdownMenuItem> : null}
+          {getType(device, "node") ?
+            <DropdownMenuItem className="cursor-pointer" onClick={openBrowsers}>
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Open Windows
+            </DropdownMenuItem> : null}
+          {getType(device, "node") ?
+            <DropdownMenuItem className="cursor-pointer"
+                              onClick={closeBrowsers}>
+              <X className="mr-2 h-4 w-4" />
+              Close Windows
+            </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+        {getType(device, "node", true) ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          {getType(device, "node", true) ?
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <HdmiPort className="mr-2 h-4 w-4" />
+                Change Input
+              </DropdownMenuSubTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuSubContent
+                  className="overflow-y-scroll max-h-[45vh]">
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("AV")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      AV
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("COMPONENT")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      Component
+                    </DropdownMenuItem> : null}
+                  {getType(device, "pjlink") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DIGITAL")}>
+                      <Projector className="mr-2 h-4 w-4" />
+                      Digital
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DP")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      DP
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DP2")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      DP 2
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DP3")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      DP 3
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DTV")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      DTV
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DVI")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      DVI
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DVI_VIDEO")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      DVI Video
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("HDMI1")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      HDMI 1
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("DVI")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      HDMI 2
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("HDMI1_PC")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      HDMI PC 1
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("HDMI2_PC")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      HDMI PC 2
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("MAGICNET")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      MagicNet
+                    </DropdownMenuItem> : null}
+                  {getType(device, "pjlink") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("NETWORK")}>
+                      <Projector className="mr-2 h-4 w-4" />
+                      Network
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("PC")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      PC
+                    </DropdownMenuItem> : null}
+                  {getType(device, "pjlink") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("RGB")}>
+                      <Projector className="mr-2 h-4 w-4" />
+                      RGB
+                    </DropdownMenuItem> : null}
+                  {getType(device, "pjlink") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("STORAGE")}>
+                      <Projector className="mr-2 h-4 w-4" />
+                      Storage
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("SVIDEO")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      S Video
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("TV")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      TV
+                    </DropdownMenuItem> : null}
+                  {getType(device, "mdc") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("UNKNOWN")}>
+                      <Monitor className="mr-2 h-4 w-4" />
+                      UNKNOWN
+                    </DropdownMenuItem> : null}
+                  {getType(device, "pjlink") ?
+                    <DropdownMenuItem className="cursor-pointer"
+                                      onClick={() => setSource("VIDEO")}>
+                      <Projector className="mr-2 h-4 w-4" />
+                      Video
+                    </DropdownMenuItem> : null}
+                </DropdownMenuSubContent>
+              </DropdownMenuPortal>
+            </DropdownMenuSub> : null}
+          {getType(device, "node", true) ?
+            <DropdownMenuItem className="cursor-pointer"
+                              onClick={() => setDeviceAction({
+                                bridgeId,
+                                action: "volume",
+                                deviceId: device?.id ?? null,
+                                tag: undefined,
+                                pending: true
+                              })}>
+              <Volume1 className="mr-2 h-4 w-4" />
+              Set Volume
+            </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+        {getType(device, "node", true) ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          {getType(device, "node", true) ?
+            <DropdownMenuItem className="cursor-pointer" onClick={mute}>
+              <VolumeOff className="mr-2 h-4 w-4" />
+              Mute
+            </DropdownMenuItem> : null}
+          {getType(device, "node", true) ?
+            <DropdownMenuItem className="cursor-pointer" onClick={unmute}>
+              <Volume2 className="mr-2 h-4 w-4" />
+              Unmute
+            </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+        {getType(device, "pjlink") ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          {getType(device, "pjlink") ?
+            <DropdownMenuItem className="cursor-pointer" onClick={muteAudio}>
+              <MicOff className="mr-2 h-4 w-4" />
+              Mute Audio
+            </DropdownMenuItem> : null}
+          {getType(device, "pjlink") ?
+            <DropdownMenuItem className="cursor-pointer" onClick={unmuteAudio}>
+              <Mic className="mr-2 h-4 w-4" />
+              Unmute Audio
+            </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
+        {getType(device, "pjlink") ? <DropdownMenuSeparator /> : null}
+        <DropdownMenuGroup>
+          {getType(device, "pjlink") ?
+            <DropdownMenuItem className="cursor-pointer" onClick={muteVideo}>
+              <VideoOff className="mr-2 h-4 w-4" />
+              Mute Video
+            </DropdownMenuItem> : null}
+          {getType(device, "pjlink") ?
+            <DropdownMenuItem className="cursor-pointer" onClick={unmuteVideo}>
+              <Video className="mr-2 h-4 w-4" />
+              Unmute Video
+            </DropdownMenuItem> : null}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
     {open ? getActionDialog(action, device?.id ?? null, bridgeId, tag) : null}

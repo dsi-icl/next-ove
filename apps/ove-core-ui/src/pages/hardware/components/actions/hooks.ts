@@ -1,5 +1,5 @@
 import { api } from "../../../../utils/api";
-import { isError } from "@ove/ove-types";
+import { isError, MDCSource, PJLinkSource, Source } from "@ove/ove-types";
 import { toast } from "sonner";
 import { checkErrors } from "../../utils";
 import { logger } from "../../../../env";
@@ -146,6 +146,55 @@ export const useReboot = (
   };
 };
 
+export const useReloadBrowsers = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
+  const reloadBrowsers = api.hardware.reloadBrowsers.useMutation({
+    retry: false,
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error("Unable to reload browsers");
+        return;
+      }
+
+      toast.info("Reloaded browsers");
+    },
+    onError: () => toast.error("Unable to reload browsers")
+  });
+  const reloadBrowsersAll = api.hardware.reloadBrowsersAll.useMutation({
+    retry: false,
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error("Unable to reload browsers");
+        return;
+      }
+
+      checkErrors({
+        data: response,
+        onSuccess: () => toast.info("Reloaded browsers"),
+        onError: ({ deviceId }) =>
+          toast.error(`Unable to reload browsers on ${deviceId}`)
+      });
+    },
+    onError: () => toast.error("Unable to reload browsers")
+  });
+
+  if (deviceId === null) {
+    return {
+      reloadBrowsers: () =>
+        void reloadBrowsersAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+    };
+  }
+  return {
+    reloadBrowsers: () => void reloadBrowsers.mutateAsync({
+      bridgeId,
+      deviceId
+    }).catch(logger.error)
+  };
+};
+
 export const useCloseBrowsers = (
   bridgeId: string,
   deviceId: string | null,
@@ -239,6 +288,56 @@ export const useOpenBrowsers = (
     openBrowsers: () => void openBrowsers.mutateAsync({
       bridgeId,
       deviceId
+    }).catch(logger.error)
+  };
+};
+
+export const useSetSource = (
+  bridgeId: string,
+  deviceId: string | null,
+  tag: string | undefined
+) => {
+  const setSource = api.hardware.setSource.useMutation({
+    retry: false,
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error("Unable to set source");
+        return;
+      }
+
+      toast.info("Set source successfully");
+    },
+    onError: () => toast.error("Unable to set source")
+  });
+  const setSourceAll = api.hardware.setSourceAll.useMutation({
+    retry: false,
+    onSuccess: ({ response }) => {
+      if (isError(response)) {
+        toast.error("Unable to set source");
+        return;
+      }
+
+      checkErrors({
+        data: response,
+        onSuccess: () => toast.info("Set source successfully"),
+        onError: ({ deviceId }) =>
+          toast.error(`Unable to set source on ${deviceId}`)
+      });
+    },
+    onError: () => toast.error("Unable to set source")
+  });
+
+  if (deviceId === null) {
+    return {
+      setSource: (source: Source) =>
+        void setSourceAll.mutateAsync({ bridgeId, tag, source }).catch(logger.error)
+    };
+  }
+  return {
+    setSource: (source: Source) => void setSource.mutateAsync({
+      bridgeId,
+      deviceId,
+      source
     }).catch(logger.error)
   };
 };

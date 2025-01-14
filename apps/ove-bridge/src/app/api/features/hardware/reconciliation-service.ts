@@ -1,7 +1,7 @@
 /* global AbortController */
 
 import {
-  Device, isError, MDCSources, PJLinkSource,
+  Device, isError, MDCSource, PJLinkSource,
   StatusOptions,
   TBridgeHardwareService
 } from "@ove/ove-types";
@@ -20,7 +20,7 @@ export type ReconciliationState = {
   audio: ReconciliationStateMember<boolean>
   video: ReconciliationStateMember<boolean>
   volume: ReconciliationStateMember<number>
-  source: ReconciliationStateMember<keyof PJLinkSource | keyof MDCSources>
+  source: ReconciliationStateMember<keyof PJLinkSource | keyof MDCSource>
 }
 
 const state: ReconciliationState = {
@@ -133,7 +133,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
     case "setSource": {
       assert(state.source.get(device.id)).ac.abort();
       state.source.set(device.id, {
-        state: (args as keyof PJLinkSource | keyof MDCSources),
+        state: (args as keyof PJLinkSource | keyof MDCSource),
         ac: getAC(device, state.source)
       });
       break;
@@ -284,7 +284,7 @@ const reconcileSource = async (device: Device) => {
   const service = getServiceForProtocol(device.type);
   const currentSource = await service.getInfo?.(device, {},
     getAC.bind(null, device, state.source)) as {
-    source: keyof MDCSources | keyof PJLinkSource
+    source: keyof MDCSource | keyof PJLinkSource
   };
   if (currentSource.source === currentState.state ||
     currentState.state === null) return;

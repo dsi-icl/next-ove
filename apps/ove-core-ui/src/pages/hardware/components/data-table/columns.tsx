@@ -1,8 +1,7 @@
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, HardDrive, Monitor, Projector } from "lucide-react";
 import React, { type ReactNode } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ServiceType } from "@ove/ove-types";
-import { Display, HddNetwork, Projector } from "react-bootstrap-icons";
 
 import styles from "../observatory/observatory.module.scss";
 
@@ -25,9 +24,9 @@ type FilterValue = {
 const ProtocolIcon = ({ protocol }: { protocol: ServiceType }) => {
   switch (protocol) {
     case "node":
-      return <HddNetwork className={styles["protocol-icon"]} />;
+      return <HardDrive className={styles["protocol-icon"]} />;
     case "mdc":
-      return <Display className={styles["protocol-icon"]} />;
+      return <Monitor className={styles["protocol-icon"]} />;
     case "pjlink":
       return <Projector className={styles["protocol-icon"]} />;
   }
