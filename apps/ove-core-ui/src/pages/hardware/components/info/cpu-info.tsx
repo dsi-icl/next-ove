@@ -1,7 +1,7 @@
-import Header from "./header";
+import TableHeader from "../table-header";
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import { format } from "./utils";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const CPUInfo = ({ info }: {
   info: {
@@ -14,7 +14,7 @@ const CPUInfo = ({ info }: {
 }) => <div>
   <h4 className="font-bold mt-6">General</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>flags</TableCell>
@@ -24,7 +24,7 @@ const CPUInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">CPU</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>manufacturer</TableCell>
@@ -114,7 +114,7 @@ const CPUInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Cache</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       {Object.entries(info?.cpu?.cache).map(([k, v]) => <TableRow key={k}>
         <TableCell>{k}</TableCell>
@@ -124,7 +124,7 @@ const CPUInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Speed</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>minimum</TableCell>
@@ -147,7 +147,7 @@ const CPUInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Temperature</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>main</TableCell>

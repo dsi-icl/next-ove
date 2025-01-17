@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const ProcessInfo = ({ info }: {
   info: {
@@ -14,7 +14,7 @@ const ProcessInfo = ({ info }: {
 }) => <div>
   <h4 className="font-bold mt-6">General</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>average load</TableCell>
@@ -105,7 +105,7 @@ const ProcessInfo = ({ info }: {
   {info.currentLoad?.cpus?.map((cpu, i) => <div key={i}>
     <h4 className="font-bold mt-6">CPU Core - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>load</TableCell>
@@ -178,7 +178,7 @@ const ProcessInfo = ({ info }: {
     key={process?.pid}>
     <h4 className="font-bold mt-6">PID - {process?.pid}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>parent pid</TableCell>
@@ -254,7 +254,7 @@ const ProcessInfo = ({ info }: {
   {info.services?.map((service, i) => <div key={i}>
     <h4 className="font-bold mt-6">Service - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>name</TableCell>

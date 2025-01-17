@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const VboxInfo = ({ info }: {
   info: { vbox: Systeminformation.VboxInfoData[] }
@@ -9,7 +9,7 @@ const VboxInfo = ({ info }: {
   {info?.vbox?.map((vbox, i) => <div key={i}>
     <h4 className="font-bold mt-6">Vbox - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>id</TableCell>

@@ -3,14 +3,14 @@ import {
   TableCell,
   TableRow
 } from "@ove/ui-base-components";
-import { format } from "./utils";
-import Header from "./header";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const GeneralInfo = ({ info }: {
   info: { version: string, time: Systeminformation.TimeData }
 }) => <Table className="mt-6">
-  <Header />
+  <TableHeader />
   <TableBody>
     <TableRow>
       <TableCell>version</TableCell>

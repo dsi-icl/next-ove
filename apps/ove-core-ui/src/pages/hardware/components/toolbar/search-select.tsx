@@ -1,22 +1,31 @@
-import React, { useMemo, useState } from "react";
 import {
-  Button, cn,
-  Command, CommandEmpty, CommandGroup,
-  CommandInput, CommandItem, CommandList,
+  Button,
+  cn,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
   Popover,
   PopoverContent,
   PopoverTrigger
 } from "@ove/ui-base-components";
+import React, { useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+import type { FilterValue } from "../data-table/columns";
 
-type SearchSelectProps = {
+export type SearchSelectProps = {
   values: string[]
   setFilter: (filter: string | null) => void
-  filter: string | null
-  filterType: "id" | "tags"
-}
+} & Omit<FilterValue, "selected">
 
-const SearchSelect = ({ values, setFilter, filter, filterType }: SearchSelectProps) => {
+const SearchSelect = ({
+  values,
+  setFilter,
+  filter,
+  filterType
+}: SearchSelectProps) => {
   const [open, setOpen] = useState(false);
   const filterLabel = useMemo(() => filterType === "id" ? "ID" : "tag", [filterType]);
   return <Popover open={open} onOpenChange={setOpen}>
@@ -35,7 +44,8 @@ const SearchSelect = ({ values, setFilter, filter, filterType }: SearchSelectPro
     </PopoverTrigger>
     <PopoverContent className="w-[200px] p-0">
       <Command>
-        <CommandInput placeholder={`Search ${filterLabel}...`} className="h-9" />
+        <CommandInput placeholder={`Search ${filterLabel}...`}
+                      className="h-9" />
         <CommandList>
           <CommandEmpty>No {filterLabel} found.</CommandEmpty>
           <CommandGroup>
@@ -44,8 +54,8 @@ const SearchSelect = ({ values, setFilter, filter, filterType }: SearchSelectPro
                 key={value}
                 value={value}
                 onSelect={(currentValue) => {
-                  setFilter(currentValue === filter ? null : currentValue)
-                  setOpen(false)
+                  setFilter(currentValue === filter ? null : currentValue);
+                  setOpen(false);
                 }}
               >
                 {value}
@@ -61,7 +71,7 @@ const SearchSelect = ({ values, setFilter, filter, filterType }: SearchSelectPro
         </CommandList>
       </Command>
     </PopoverContent>
-  </Popover>
+  </Popover>;
 };
 
 export default SearchSelect;

@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const DockerInfo = ({ info }: {
   info: {
@@ -17,7 +17,7 @@ const DockerInfo = ({ info }: {
 }) => <div>
   <h4 className="font-bold mt-6">General</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>id</TableCell>
@@ -208,7 +208,7 @@ const DockerInfo = ({ info }: {
   {info.images?.map((image, i) => <div key={image.id}>
     <h4 className="font-bold mt-6">Image - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>id</TableCell>
@@ -288,7 +288,7 @@ const DockerInfo = ({ info }: {
   {info.containers?.map((container, i) => <div key={container.id}>
     <h4 className="font-bold mt-6">Container - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>id</TableCell>
@@ -361,7 +361,7 @@ const DockerInfo = ({ info }: {
     <div key={mount.id}>
       <h4 className="font-bold mt-6">Container Mount - {i}</h4>
       <Table>
-        <Header />
+        <TableHeader />
         <TableBody>
           <TableRow>
             <TableCell>container id</TableCell>
@@ -397,7 +397,7 @@ const DockerInfo = ({ info }: {
   {info.containerStats?.map((stats, i) => <div key={stats.id}>
     <h4 className="font-bold mt-6">Container Stats - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>id</TableCell>
@@ -465,7 +465,7 @@ const DockerInfo = ({ info }: {
   {info.containerProcesses?.map((process, i) => <div key={i}>
     <h4 className="font-bold mt-6">Container Processes - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>container id</TableCell>
@@ -533,7 +533,7 @@ const DockerInfo = ({ info }: {
   {info.volumes?.map((volume, i) => <div key={i}>
     <h4 className="font-bold mt-6">Volume - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>name</TableCell>

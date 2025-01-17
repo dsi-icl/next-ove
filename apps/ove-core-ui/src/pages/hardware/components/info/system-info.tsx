@@ -3,9 +3,9 @@ import {
   TableCell,
   TableRow
 } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const SystemInfo = ({ info }: {
   info: {
@@ -17,7 +17,7 @@ const SystemInfo = ({ info }: {
 }) => <div>
   <h4 className="font-bold mt-6">System</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>manufacturer</TableCell>
@@ -51,7 +51,7 @@ const SystemInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">BIOS</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>vendor</TableCell>
@@ -77,7 +77,7 @@ const SystemInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Baseboard</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>manufacturer</TableCell>
@@ -111,7 +111,7 @@ const SystemInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Chassis</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>manufacturer</TableCell>

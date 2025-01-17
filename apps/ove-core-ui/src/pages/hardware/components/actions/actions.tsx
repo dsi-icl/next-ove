@@ -1,29 +1,18 @@
-import React, { useCallback, useState } from "react";
-import type { ActionController } from "../../types";
 import {
-  useCloseBrowsers, useMute, useMuteAudio, useMuteVideo, useOpenBrowsers,
-  useReboot, useReloadBrowsers, useSetSource,
+  useCloseBrowsers,
+  useMute,
+  useMuteAudio,
+  useMuteVideo,
+  useOpenBrowsers,
+  useReboot,
+  useReloadBrowsers,
+  useSetSource,
   useShutdown,
   useStart,
-  useUnmute, useUnmuteAudio, useUnmuteVideo
+  useUnmute,
+  useUnmuteAudio,
+  useUnmuteVideo
 } from "./hooks";
-import { useStore } from "../../../../store";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuTrigger,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuGroup
-} from "@ove/ui-base-components";
 import {
   MoreVertical,
   Power,
@@ -42,36 +31,89 @@ import {
   Mic,
   MicOff,
   Video,
-  VideoOff, Globe, HdmiPort, Monitor, Projector
+  VideoOff,
+  Globe,
+  HdmiPort,
+  Monitor,
+  Projector
 } from "lucide-react";
-import { Device } from "@ove/ove-types";
-import { api } from "../../../../utils/api";
-import InfoContainer from "../info/info-container";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuTrigger,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuGroup
+} from "@ove/ui-base-components";
+import Volume from "../volume";
+import { useStatus } from "../hooks";
 import { flushSync } from "react-dom";
+import WindowInfo from "../window-info";
+import { Device } from "@ove/ove-types";
 import TerminalDialog from "../terminal";
+import { logger } from "../../../../env";
+import { api } from "../../../../utils/api";
+import Screenshot from "../screenshot/screenshot";
+import InfoContainer from "../info/info-container";
+import React, { useCallback, useState } from "react";
 
 const getType = (device: Device | null, type: Device["type"], negate = false) => device === null || (negate ? device.type !== type : device.type === type);
 
-type Actions = "info" | "terminal" | null
+type Actions =
+  "info"
+  | "terminal"
+  | "screenshot"
+  | "window-info"
+  | "volume"
+  | null
 
-const getActionDialog = (action: Actions, deviceId: string | null, bridgeId: string, tag?: string) => {
+const getActionDialog = (action: Actions, closeDialog: () => void, devices: Device[], device: Device | null, bridgeId: string, tag?: string) => {
   switch (action) {
     case "info":
-      return <InfoContainer deviceId={deviceId} bridgeId={bridgeId}
+      return <InfoContainer devices={devices} device={device}
+                            bridgeId={bridgeId}
                             tag={tag} />;
     case "terminal":
-      return <TerminalDialog deviceId={deviceId} bridgeId={bridgeId}
+      return <TerminalDialog deviceId={device?.id ?? null} bridgeId={bridgeId}
                              tag={tag} />;
+    case "screenshot":
+      return <Screenshot deviceId={device?.id ?? null} bridgeId={bridgeId}
+                         tag={tag} closeDialog={closeDialog} />;
+    case "window-info":
+      return <WindowInfo deviceId={device?.id ?? null} bridgeId={bridgeId}
+                         tag={tag} />;
+    case "volume":
+      return <Volume deviceId={device?.id ?? null} bridgeId={bridgeId} tag={tag}
+                     closeDialog={closeDialog} />;
     default:
       return <DialogContent></DialogContent>;
   }
 };
 
-const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
+type ActionProps = {
+  device: Device | null
+  tag?: string
+  bridgeId: string
+  devices: Device[]
+}
+
+const Actions = ({
+  device,
+  devices,
+  tag,
+  bridgeId,
+}: ActionProps) => {
+  const status = useStatus(device?.id ?? null, bridgeId);
   const utils = api.useUtils();
   const [action, setAction] = useState<Actions>(null);
-  const setDeviceAction =
-    useStore(state => state.hardwareConfig.setDeviceAction);
   const { start } = useStart(bridgeId, device?.id ?? null, tag);
   const { shutdown } = useShutdown(bridgeId, device?.id ?? null, tag);
   const { reboot } = useReboot(bridgeId, device?.id ?? null, tag);
@@ -89,11 +131,13 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const updateState = useCallback(() => {
     if (device !== null) {
-      utils.hardware.getStatus.invalidate({ bridgeId, deviceId: device.id });
+      utils.hardware.getStatus.invalidate({ bridgeId, deviceId: device.id }).catch(logger.error);
     } else {
-      utils.hardware.getStatusAll.invalidate({ bridgeId, tag });
+      devices.forEach(({id}) => {
+        utils.hardware.getStatus.invalidate({ bridgeId, deviceId: id }).catch(logger.error);
+      });
     }
-  }, [utils.hardware.getStatus, device, bridgeId, tag]);
+  }, [utils.hardware.getStatus, device, bridgeId]);
   return <Dialog open={open} onOpenChange={async (newIsOpen) => {
     flushSync(() => {
       setOpen(newIsOpen);
@@ -124,7 +168,7 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
         <DropdownMenuGroup>
           {status !== null ? <DropdownMenuItem className="cursor-pointer"
                                                onClick={status === "on" ? shutdown : start}>
-            {status === "on" ? <>
+            {status === "off" ? <>
               <Power className="mr-2 h-4 w-4" />
               Power On
             </> : <>
@@ -156,32 +200,23 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
             </DropdownMenuItem>
           </DialogTrigger> : null}
           {getType(device, "node") ?
-            <DropdownMenuItem className="cursor-pointer"
-                              onClick={() => setDeviceAction({
-                                bridgeId,
-                                action: "screenshot",
-                                deviceId: device?.id ?? null,
-                                tag: undefined,
-                                pending: true
-                              })}>
+            <DialogTrigger className="w-full"
+                           onClick={() => setAction("screenshot")}><DropdownMenuItem
+              className="cursor-pointer w-full">
               <Camera className="mr-2 h-4 w-4" />
               Take Screenshot
-            </DropdownMenuItem> : null}
+            </DropdownMenuItem></DialogTrigger> : null}
         </DropdownMenuGroup>
         {getType(device, "node") ? <DropdownMenuSeparator /> : null}
         <DropdownMenuGroup>
           {getType(device, "node") ?
-            <DropdownMenuItem className="cursor-pointer"
-                              onClick={() => setDeviceAction({
-                                bridgeId,
-                                action: "browser",
-                                deviceId: device?.id ?? null,
-                                tag: undefined,
-                                pending: false
-                              })}>
-              <Library className="mr-2 h-4 w-4" />
-              Window Info
-            </DropdownMenuItem> : null}
+            <DialogTrigger className="w-full"
+                           onClick={() => setAction("window-info")}>
+              <DropdownMenuItem className="cursor-pointer w-full">
+                <Library className="mr-2 h-4 w-4" />
+                Window Info
+              </DropdownMenuItem>
+            </DialogTrigger> : null}
           {getType(device, "node") ?
             <DropdownMenuItem className="cursor-pointer"
                               onClick={reloadBrowsers}>
@@ -347,17 +382,13 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
               </DropdownMenuPortal>
             </DropdownMenuSub> : null}
           {getType(device, "node", true) ?
-            <DropdownMenuItem className="cursor-pointer"
-                              onClick={() => setDeviceAction({
-                                bridgeId,
-                                action: "volume",
-                                deviceId: device?.id ?? null,
-                                tag: undefined,
-                                pending: true
-                              })}>
-              <Volume1 className="mr-2 h-4 w-4" />
-              Set Volume
-            </DropdownMenuItem> : null}
+            <DialogTrigger className="w-full"
+                           onClick={() => setAction("volume")}>
+              <DropdownMenuItem className="cursor-pointer w-full">
+                <Volume1 className="mr-2 h-4 w-4" />
+                Set Volume
+              </DropdownMenuItem>
+            </DialogTrigger> : null}
         </DropdownMenuGroup>
         {getType(device, "node", true) ? <DropdownMenuSeparator /> : null}
         <DropdownMenuGroup>
@@ -400,7 +431,7 @@ const Actions = ({ device, tag, bridgeId, status }: ActionController) => {
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-    {open ? getActionDialog(action, device?.id ?? null, bridgeId, tag) : null}
+    {open ? getActionDialog(action, () => setOpen(false), devices, device, bridgeId, tag) : null}
   </Dialog>;
 };
 

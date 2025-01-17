@@ -1,19 +1,23 @@
+import { z } from "zod";
+import { toast } from "sonner";
 import {
   DialogClose,
-  DialogContent, DialogFooter,
-  DialogHeader, Input
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  Input
 } from "@ove/ui-base-components";
-import { DialogTitle } from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useFormErrorHandling } from "@ove/ui-components";
+import { logger } from "../../../env";
 import { api } from "../../../utils/api";
 import { isError } from "@ove/ove-types";
-import { toast } from "sonner";
-import { logger } from "../../../env";
+import { useForm } from "react-hook-form";
+import { DialogTitle } from "@radix-ui/react-dialog";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 const useConsole = (
   bridgeId: string,
@@ -118,10 +122,15 @@ const Terminal = ({ deviceId, bridgeId, tag }: TerminalProps) => {
     fetching,
     commandHistory
   } = useConsole(bridgeId, deviceId, tag);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const addCommand = ({ command }: z.infer<typeof TerminalSchema>) => {
     execute({ command, reset });
   };
+
+  useEffect(() => {
+    historyRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [commandHistory]);
 
   return <DialogContent className="p-0 rounded" hasClose={false}>
     <DialogHeader
@@ -130,6 +139,9 @@ const Terminal = ({ deviceId, bridgeId, tag }: TerminalProps) => {
       <DialogClose className="ml-auto flex flex-row items-center h-full mt-0">
         <X className="h-4 w-4 mt-0" />
       </DialogClose>
+      <VisuallyHidden asChild>
+        <DialogDescription>Terminal for remote control</DialogDescription>
+      </VisuallyHidden>
     </DialogHeader>
     <div className="h-[40vh] overflow-y-scroll">
       {commandHistory.map(([prefix, separator, command]) =>
@@ -143,6 +155,7 @@ const Terminal = ({ deviceId, bridgeId, tag }: TerminalProps) => {
         <p className="h-full font-semibold">{deviceId ?? bridgeId}:~$</p>
         <p className="bg-gray-400 w-2 h-5 ml-2">&nbsp;</p>
       </div> : null}
+      <div ref={historyRef}></div>
     </div>
     <DialogFooter className="bg-gray-100 border-t border-gray-200">
       <form onSubmit={handleSubmit(addCommand)} className="w-full m-2">

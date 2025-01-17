@@ -1,14 +1,14 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const USBInfo = ({ info }: { info: { usb: Systeminformation.UsbData[] } }) =>
   <div>
     {info.usb?.map((usb, i) => <div key={i}>
       <h4 className="font-bold mt-6">USB - {i}</h4>
       <Table>
-        <Header />
+        <TableHeader />
         <TableBody>
           <TableRow>
             <TableCell>bus</TableCell>

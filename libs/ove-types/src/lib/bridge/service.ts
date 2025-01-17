@@ -33,18 +33,20 @@ export const excludeKeys: readonly (keyof TAPIRoutes)[] = ["getPublicKey"];
 export type TBridgeService = {
   [Key in keyof TAPIRoutes]: (
     args: Omit<z.infer<TAPIRoutes[Key]["input"]>, "bridgeId">
-  ) => z.infer<TAPIRoutes[Key]["output"]>["response"]
+  ) => Promise<z.infer<TAPIRoutes[Key]["output"]>["response"]>
 }
+
+export type TBridgeServiceReturn<Key extends keyof TAPIRoutes> = z.infer<TAPIRoutes[Key]["output"]>["response"]
 
 export type TParameters<Key extends keyof TBridgeService> =
   Parameters<TBridgeService[Key]>[0]
 export type TCallback<Key extends keyof TBridgeService> = (
-  response: TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>
+  response: TBridgeResponse<TDeviceResponse<TBridgeServiceReturn<Key>>>
 ) => void
 
 export type TBridgeController = {
   [Key in keyof APIController]: (args: TParameters<Key>) =>
-    Promise<TBridgeResponse<TDeviceResponse<ReturnType<TBridgeService[Key]>>>>
+    Promise<TBridgeResponse<TDeviceResponse<TBridgeServiceReturn<Key>>>>
 }
 
 export type TSocketOutEvents = {
@@ -179,6 +181,17 @@ export const APIRoutes = {
     },
     input: z.strictObject({ bridgeId: z.string() }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(PowerModeSchema))
+  },
+  setMode: {
+    meta: {
+      openapi: {
+        method: "POST" as const,
+        path: "/bridges/{bridgeId}/mode" as `/${string}`,
+        protect: true
+      }
+    },
+    input: z.strictObject({ bridgeId: z.string(), mode: PowerModeSchema }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema))
   },
   setManualSchedule: {
     meta: {

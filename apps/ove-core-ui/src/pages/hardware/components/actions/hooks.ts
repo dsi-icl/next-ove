@@ -1,8 +1,8 @@
-import { api } from "../../../../utils/api";
-import { isError, MDCSource, PJLinkSource, Source } from "@ove/ove-types";
 import { toast } from "sonner";
-import { checkErrors } from "../../utils";
 import { logger } from "../../../../env";
+import { api } from "../../../../utils/api";
+import { checkErrors, formatIds } from "../../utils";
+import { isError, type Source } from "@ove/ove-types";
 
 export const useStart = (
   bridgeId: string,
@@ -15,7 +15,7 @@ export const useStart = (
         toast.error(`Failed to start: ${deviceId}`);
         return;
       }
-      toast.message(`Started: ${deviceId}`);
+      toast.success(`Successfully started: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to start: ${deviceId}`);
@@ -30,8 +30,8 @@ export const useStart = (
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) => toast.error(`Failed to start: ${deviceId}`),
-        onSuccess: () => toast.info("Started devices")
+        onError: responses => toast.error(`Failed to start: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully started devices")
       });
     },
     onError: () => toast.error("Failed to start devices")
@@ -62,7 +62,7 @@ export const useShutdown = (
         toast.error(`Failed to shutdown: ${deviceId}`);
         return;
       }
-      toast.message(`Shutdown: ${deviceId}`);
+      toast.success(`Successfully shutdown: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to shutdown: ${deviceId}`);
@@ -77,9 +77,9 @@ export const useShutdown = (
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) =>
-          toast.error(`Failed to shutdown: ${deviceId}`),
-        onSuccess: () => toast.info("Shutdown devices")
+        onError: responses =>
+          toast.error(`Failed to shutdown: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully shutdown devices")
       });
     },
     onError: () => toast.error("Failed to shutdown devices")
@@ -110,7 +110,7 @@ export const useReboot = (
         toast.error(`Failed to reboot: ${deviceId}`);
         return;
       }
-      toast.message(`Rebooted: ${deviceId}`);
+      toast.success(`Successfully rebooted: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to reboot: ${deviceId}`);
@@ -125,8 +125,8 @@ export const useReboot = (
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) => toast.error(`Failed to reboot: ${deviceId}`),
-        onSuccess: () => toast.info("Rebooted devices")
+        onError: responses => toast.error(`Failed to reboot: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully rebooted devices")
       });
     },
     onError: () => toast.error("Failed to reboot devices")
@@ -159,7 +159,7 @@ export const useReloadBrowsers = (
         return;
       }
 
-      toast.info("Reloaded browsers");
+      toast.success("Successfully reloaded browsers");
     },
     onError: () => toast.error("Unable to reload browsers")
   });
@@ -173,9 +173,9 @@ export const useReloadBrowsers = (
 
       checkErrors({
         data: response,
-        onSuccess: () => toast.info("Reloaded browsers"),
-        onError: ({ deviceId }) =>
-          toast.error(`Unable to reload browsers on ${deviceId}`)
+        onSuccess: () => toast.success("Successfully reloaded browsers"),
+        onError: responses =>
+          toast.error(`Unable to reload browsers on ${formatIds(responses)}`)
       });
     },
     onError: () => toast.error("Unable to reload browsers")
@@ -208,7 +208,7 @@ export const useCloseBrowsers = (
         return;
       }
 
-      toast.info("Closed browsers");
+      toast.success("Successfully closed browsers");
     },
     onError: () => toast.error("Unable to close browsers")
   });
@@ -222,9 +222,9 @@ export const useCloseBrowsers = (
 
       checkErrors({
         data: response,
-        onSuccess: () => toast.info("Closed browsers"),
-        onError: ({ deviceId }) =>
-          toast.error(`Unable to close browsers on ${deviceId}`)
+        onSuccess: () => toast.success("Successfully closed browsers"),
+        onError: responses =>
+          toast.error(`Unable to close browsers on ${formatIds(responses)}`)
       });
     },
     onError: () => toast.error("Unable to close browsers")
@@ -255,7 +255,7 @@ export const useOpenBrowsers = (
         toast.error(`Failed to open browsers on: ${deviceId}`);
         return;
       }
-      toast.message(`Open browsers on: ${deviceId}`);
+      toast.success(`Successfully opened browsers on: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to open browsers on: ${deviceId}`);
@@ -270,9 +270,9 @@ export const useOpenBrowsers = (
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) =>
-          toast.error(`Failed to open browsers on: ${deviceId}`),
-        onSuccess: () => toast.info("Opened browsers")
+        onError: responses =>
+          toast.error(`Failed to open browsers on: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully opened browsers")
       });
     },
     onError: () => toast.error("Failed to open browsers on devices")
@@ -305,7 +305,7 @@ export const useSetSource = (
         return;
       }
 
-      toast.info("Set source successfully");
+      toast.success("Successfully set source");
     },
     onError: () => toast.error("Unable to set source")
   });
@@ -319,9 +319,9 @@ export const useSetSource = (
 
       checkErrors({
         data: response,
-        onSuccess: () => toast.info("Set source successfully"),
-        onError: ({ deviceId }) =>
-          toast.error(`Unable to set source on ${deviceId}`)
+        onSuccess: () => toast.success("Successfully set source"),
+        onError: responses =>
+          toast.error(`Unable to set source on ${formatIds(responses)}`)
       });
     },
     onError: () => toast.error("Unable to set source")
@@ -353,7 +353,7 @@ export const useMute = (
         toast.error(`Failed to mute: ${deviceId}`);
         return;
       }
-      toast.message(`Muted: ${deviceId}`);
+      toast.success(`Successfully muted: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to mute: ${deviceId}`);
@@ -368,8 +368,8 @@ export const useMute = (
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) => toast.error(`Failed to mute: ${deviceId}`),
-        onSuccess: () => toast.info("Muted devices")
+        onError: responses => toast.error(`Failed to mute: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully muted devices")
       });
     },
     onError: () => toast.error("Failed to mute devices")
@@ -400,7 +400,7 @@ export const useUnmute = (
         toast.error(`Failed to unmute: ${deviceId}`);
         return;
       }
-      toast.message(`Unmuted: ${deviceId}`);
+      toast.success(`Successfully unmuted: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to unmute: ${deviceId}`);
@@ -415,8 +415,8 @@ export const useUnmute = (
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) => toast.error(`Failed to unmute: ${deviceId}`),
-        onSuccess: () => toast.info("Unmuted devices")
+        onError: responses => toast.error(`Failed to unmute: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully unmuted devices")
       });
     },
     onError: () => toast.error("Failed to unmute devices")
@@ -447,7 +447,7 @@ export const useMuteAudio = (
         toast.error(`Failed to mute audio on: ${deviceId}`);
         return;
       }
-      toast.message(`Muted audio on: ${deviceId}`);
+      toast.success(`Successfully muted audio on: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to mute audio on: ${deviceId}`);
@@ -456,18 +456,18 @@ export const useMuteAudio = (
   const muteAudioAll = api.hardware.muteAudioAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
-        toast.error("Failed to mute audio on devices");
+        toast.error("Failed to mute audio");
         return;
       }
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) =>
-          toast.error(`Failed to mute audio on: ${deviceId}`),
-        onSuccess: () => toast.info("Muted audio on devices")
+        onError: responses =>
+          toast.error(`Failed to mute audio on: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Muted audio")
       });
     },
-    onError: () => toast.error("Failed to mute audio on devices")
+    onError: () => toast.error("Failed to mute audio")
   });
 
   if (deviceId === null) {
@@ -495,7 +495,7 @@ export const useUnmuteAudio = (
         toast.error(`Failed to unmute audio on: ${deviceId}`);
         return;
       }
-      toast.message(`Unmuted audio on: ${deviceId}`);
+      toast.success(`Successfully unmuted audio on: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to unmute audio on: ${deviceId}`);
@@ -504,18 +504,18 @@ export const useUnmuteAudio = (
   const unmuteAudioAll = api.hardware.unmuteAudioAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
-        toast.error("Failed to unmute audio on devices");
+        toast.error("Failed to unmute audio");
         return;
       }
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) =>
-          toast.error(`Failed to unmute audio on: ${deviceId}`),
-        onSuccess: () => toast.info("Unmuted audio on devices")
+        onError: responses =>
+          toast.error(`Failed to unmute audio on: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully unmuted audio")
       });
     },
-    onError: () => toast.error("Failed to unmute audio on devices")
+    onError: () => toast.error("Failed to unmute audio")
   });
 
   if (deviceId === null) {
@@ -543,7 +543,7 @@ export const useMuteVideo = (
         toast.error(`Failed to mute video on: ${deviceId}`);
         return;
       }
-      toast.message(`Muted video on: ${deviceId}`);
+      toast.success(`Successfully muted video on: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to mute video on: ${deviceId}`);
@@ -552,18 +552,18 @@ export const useMuteVideo = (
   const muteVideoAll = api.hardware.muteVideoAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
-        toast.error("Failed to mute video on devices");
+        toast.error("Failed to mute video");
         return;
       }
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) =>
-          toast.error(`Failed to mute video on: ${deviceId}`),
-        onSuccess: () => toast.info("Muted video on devices")
+        onError: responses =>
+          toast.error(`Failed to mute video on: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully muted video")
       });
     },
-    onError: () => toast.error("Failed to mute video on devices")
+    onError: () => toast.error("Failed to mute video")
   });
 
   if (deviceId === null) {
@@ -591,7 +591,7 @@ export const useUnmuteVideo = (
         toast.error(`Failed to unmute video on: ${deviceId}`);
         return;
       }
-      toast.message(`Unmuted video on: ${deviceId}`);
+      toast.success(`Successfully unmuted video on: ${deviceId}`);
     },
     onError: () => {
       toast.error(`Failed to unmute video on: ${deviceId}`);
@@ -600,18 +600,18 @@ export const useUnmuteVideo = (
   const unmuteVideoAll = api.hardware.unmuteVideoAll.useMutation({
     onSuccess: data => {
       if (isError(data.response)) {
-        toast.error("Failed to unmute video on devices");
+        toast.error("Failed to unmute video");
         return;
       }
 
       checkErrors({
         data: data.response,
-        onError: ({ deviceId }) =>
-          toast.error(`Failed to unmute video on: ${deviceId}`),
-        onSuccess: () => toast.info("Unmuted video on devices")
+        onError: responses =>
+          toast.error(`Failed to unmute video on: ${formatIds(responses)}`),
+        onSuccess: () => toast.success("Successfully unmuted video")
       });
     },
-    onError: () => toast.error("Failed to unmute video on devices")
+    onError: () => toast.error("Failed to unmute video")
   });
 
   if (deviceId === null) {

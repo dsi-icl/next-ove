@@ -62,6 +62,29 @@ export const SourceSchemas = z.union([
 
 export type Source = z.infer<typeof SourceSchemas>
 
+export type MDCInfo = {
+  power: "off" | "on",
+  volume: number,
+  isMuted: boolean,
+  source: keyof MDCSource
+}
+
+export type PJLinkInfo = {
+  product: string;
+  sources: string;
+  isVideoMuted: boolean;
+  lamp: string;
+  source: string;
+  manufacturer: string;
+  isAudioMuted: boolean;
+  name: string;
+  power: string;
+  pjlinkClass: string;
+  isMuted: boolean;
+  errors: string;
+  info: string
+}
+
 export const DeviceSchema = z.object({
   id: z.string(),
   description: z.string(),

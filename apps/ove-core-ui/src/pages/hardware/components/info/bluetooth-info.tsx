@@ -1,13 +1,13 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const BluetoothInfo = ({ info }: { info: { devices: Systeminformation.BluetoothDeviceData[] } }) => <div>
   {info.devices?.map((device, i) => <div key={i}>
     <h4>Bluetooth Device - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>device</TableCell>

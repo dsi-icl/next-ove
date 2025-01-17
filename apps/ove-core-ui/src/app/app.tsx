@@ -137,7 +137,7 @@ export const App = () => {
       <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
            content={navContent} />
       <Router loggedIn={loggedIn} login={login} token={tokens?.access ?? ""} />
-      <Toaster />
+      <Toaster closeButton richColors />
     </QueryClientProvider>
   </api.Provider>;
 };

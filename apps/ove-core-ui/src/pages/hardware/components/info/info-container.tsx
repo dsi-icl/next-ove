@@ -1,29 +1,17 @@
-import { toast } from "sonner";
-import { assert } from "@ove/ove-utils";
-import React, { useMemo, useState } from "react";
-import { isError } from "@ove/ove-types";
-import { api } from "../../../../utils/api";
-import type { InfoTypes } from "../../../../utils";
-import GeneralInfo from "./general-info";
-import SystemInfo from "./system-info";
-import CPUInfo from "./cpu-info";
-import MemoryInfo from "./memory-info";
-import BatteryInfo from "./battery-info";
-import GraphicsInfo from "./graphics-info";
-import OSInfo from "./os-info";
-import ProcessInfo from "./process-info";
-import FSInfo from "./fs-info";
-import USBInfo from "./usb-info";
-import PrinterInfo from "./printer-info";
-import AudioInfo from "./audio-info";
-import NetworkInfo from "./network-info";
-import WifiInfo from "./wifi-info";
-import BluetoothInfo from "./bluetooth-info";
-import DockerInfo from "./docker-info";
-import VboxInfo from "./vbox-info";
 import {
-  DialogContent, DialogFooter,
-  DialogHeader, DialogTitle,
+  type Device,
+  isError,
+  type MDCInfo as TMDCInfo,
+  type PJLinkInfo as TPJLinkInfo
+} from "@ove/ove-types";
+import FSInfo from "./fs-info";
+import OSInfo from "./os-info";
+import { toast } from "sonner";
+import {
+  DialogContent, DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -31,10 +19,35 @@ import {
   PaginationNext,
   PaginationPrevious,
   Select,
-  SelectContent, SelectGroup, SelectItem, SelectLabel,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue
 } from "@ove/ui-base-components";
+import CPUInfo from "./cpu-info";
+import MDCInfo from "./mdc-info";
+import USBInfo from "./usb-info";
+import VboxInfo from "./vbox-info";
+import WifiInfo from "./wifi-info";
+import AudioInfo from "./audio-info";
+import DockerInfo from "./docker-info";
+import MemoryInfo from "./memory-info";
+import PJLinkInfo from "./pjlink-info";
+import SystemInfo from "./system-info";
+import { getPages } from "../../utils";
+import { assert } from "@ove/ove-utils";
+import GeneralInfo from "./general-info";
+import BatteryInfo from "./battery-info";
+import NetworkInfo from "./network-info";
+import PrinterInfo from "./printer-info";
+import ProcessInfo from "./process-info";
+import GraphicsInfo from "./graphics-info";
+import { api } from "../../../../utils/api";
+import BluetoothInfo from "./bluetooth-info";
+import React, { useMemo, useState } from "react";
+import type { InfoTypes } from "../../../../utils";
 
 export const useInfo = (deviceId: string | null, bridgeId: string, tag?: string) => {
   const [type, setType] = useState<InfoTypes>("general");
@@ -104,7 +117,9 @@ export const useInfo = (deviceId: string | null, bridgeId: string, tag?: string)
   };
 };
 
-const getInfo = (data: any, type: string | undefined) => {
+const getInfo = (device: Device, data: any, type: string | undefined) => {
+  if (device.type === "mdc") return <MDCInfo info={data as TMDCInfo} />;
+  if (device.type === "pjlink") return <PJLinkInfo info={data as TPJLinkInfo} />;
   switch (type) {
     case "system":
       return <SystemInfo info={data} />;
@@ -143,36 +158,31 @@ const getInfo = (data: any, type: string | undefined) => {
   }
 };
 
-const getPages = (idx: number, max: number) => {
-  if (idx === 0) {
-    return [0, 1, 2].filter(v => v < max);
-  } else if (idx === max) {
-    return [max - 3, max - 2, max - 1].filter(v => v >= 0);
-  }
-  return [idx - 1, idx, idx + 1].filter(v => v < max && v >= 0);
-};
-
 type InfoProps = {
-  deviceId: string | null
+  device: Device | null
   bridgeId: string
   tag?: string
+  devices: Device[]
 }
 
-const InfoContainer = ({ deviceId, bridgeId, tag }: InfoProps) => {
+const InfoContainer = ({ device, devices, bridgeId, tag }: InfoProps) => {
   const [idx, setIdx] = useState(0);
-  const { info, type, setType } = useInfo(deviceId, bridgeId, tag);
+  const { info, type, setType } = useInfo(device?.id ?? null, bridgeId, tag);
   const [selectParent, setSelectParent] = useState<HTMLDivElement | null>(null);
 
   return <DialogContent className="flex flex-col w-[70%]">
-    <DialogHeader className="flex w-full flex-row pr-6 items-center"
+    <DialogHeader
                   ref={ref => setSelectParent(ref)}>
+      <div className="flex w-full flex-row pr-6 items-center">
       <DialogTitle className="font-bold text-2xl">Info
         - {info.get(idx)?.deviceId ?? ""}</DialogTitle>
       <Select onValueChange={value => setType(value as InfoTypes)} value={type}>
         <SelectTrigger className="w-[180px] ml-auto">
           <SelectValue placeholder="Enter info type" />
         </SelectTrigger>
-        <SelectContent container={selectParent} className="overflow-y-scroll max-h-[65vh]" position="popper">
+        <SelectContent container={selectParent}
+                       className="overflow-y-scroll max-h-[65vh]"
+                       position="popper">
           <SelectGroup>
             <SelectLabel>Info Type</SelectLabel>
             <SelectItem value="general">General</SelectItem>
@@ -195,12 +205,14 @@ const InfoContainer = ({ deviceId, bridgeId, tag }: InfoProps) => {
           </SelectGroup>
         </SelectContent>
       </Select>
+      </div>
+      <DialogDescription>Device system information</DialogDescription>
     </DialogHeader>
     <div
       className="h-[40vh] overflow-y-scroll">{info.size > 0 && assert(info.get(idx)).response !== null ?
-      getInfo(assert(info.get(idx)).response, type) : null}</div>
+      getInfo(device ?? assert(devices.find(dv => dv.id === assert(info.get(idx)).deviceId)), assert(info.get(idx)).response, type) : null}</div>
     <DialogFooter>
-      {deviceId === null ? <Pagination className="mt-auto mb-6">
+      {(device?.id ?? null) === null ? <Pagination className="mt-auto mb-6">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious

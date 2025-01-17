@@ -35,22 +35,22 @@ export const initService = (
 };
 
 export const service: TBridgeService = {
-  getDevice: ({ deviceId }) =>
+  getDevice: async ({ deviceId }) =>
     env.HARDWARE.find(({ id }) => id === deviceId) ??
     raise(`No device with id: ${deviceId}`),
-  getDevices: ({ tag }) => tag === undefined ?
+  getDevices: async ({ tag }) => tag === undefined ?
     env.HARDWARE : env.HARDWARE.filter(({ tags }) => tags.includes(tag)),
-  addDevice: ({ device }) => {
+  addDevice: async ({ device }) => {
     env.HARDWARE.push(device);
     ReconciliationService.update();
     return true;
   },
-  removeDevice: ({ deviceId }) => {
+  removeDevice: async ({ deviceId }) => {
     env.HARDWARE = env.HARDWARE.filter(({ id }) => id !== deviceId);
     ReconciliationService.update();
     return true;
   },
-  startStreams: () => {
+  startStreams: async () => {
     if (env.START_VIDEO_SCRIPT === undefined) return true;
     try {
       execSync(env.START_VIDEO_SCRIPT);
@@ -60,7 +60,7 @@ export const service: TBridgeService = {
       return false;
     }
   },
-  stopStreams: () => {
+  stopStreams: async () => {
     if (env.STOP_VIDEO_SCRIPT === undefined) return true;
     try {
       execSync(env.STOP_VIDEO_SCRIPT);
@@ -70,8 +70,7 @@ export const service: TBridgeService = {
       return false;
     }
   },
-  getStreams: () => env.VIDEO_STREAMS,
-  // @ts-expect-error - TODO: fix typing
+  getStreams: async () => env.VIDEO_STREAMS,
   getCalendar: async () => {
     // TODO: add full production integration with email service, Azure auth etc.
     if (env.CALENDAR_URL === undefined) return undefined;
@@ -95,20 +94,24 @@ export const service: TBridgeService = {
       return undefined;
     }
   },
-  getSocketStatus: getSocketStatus,
-  getMode: () => env.POWER_MODE,
-  setManualSchedule: () => setManualSchedule(),
-  setEcoSchedule: ({ ecoSchedule }) =>
+  getSocketStatus: async () => getSocketStatus(),
+  getMode: async () => env.POWER_MODE,
+  setMode: async ({ mode }) => {
+    env.POWER_MODE = mode;
+    return true;
+  },
+  setManualSchedule: async () => void setManualSchedule(),
+  setEcoSchedule: async ({ ecoSchedule }) =>
     void setEcoSchedule(ecoSchedule).catch(logger.error),
-  setAutoSchedule: ({ autoSchedule }) =>
+  setAutoSchedule: async ({ autoSchedule }) =>
     void setAutoSchedule(autoSchedule).catch(logger.error),
-  getEnv: () => ({
+  getEnv: async () => ({
     bridgeName: env.BRIDGE_NAME,
     coreURL: env.CORE_URL,
     calendarURL: env.CALENDAR_URL,
     reconcile: env.RECONCILE
   }),
-  updateEnv: ({ bridgeName, coreURL, calendarURL, reconcile }) => {
+  updateEnv: async ({ bridgeName, coreURL, calendarURL, reconcile }) => {
     if (initHardware_ === null || initBridge_ === null) return;
     env.CORE_URL = coreURL;
     env.BRIDGE_NAME = bridgeName;
@@ -118,6 +121,7 @@ export const service: TBridgeService = {
     closeSocket();
     initHardware_();
     initBridge_();
+    return undefined;
   },
   registerAuth: async ({ id, pin }) => {
     const idx = env.HARDWARE.findIndex(device => device.id == id);
@@ -133,25 +137,26 @@ export const service: TBridgeService = {
     }
 
     env.HARDWARE[idx].auth = true;
+    return undefined;
   },
-  getDevicesToAuth: () => env.HARDWARE.filter(device => device.auth === null),
-  getAppVersion: () => app.getVersion(),
-  getPublicKey: () => env.PUBLIC_KEY,
-  getAutoSchedule: () => env.AUTO_SCHEDULE,
-  getGeometry: () => env.GEOMETRY,
-  getReconciliation: () => env.RECONCILE,
-  refreshReconciliation: () => {
+  getDevicesToAuth: async () => env.HARDWARE.filter(device => device.auth === null),
+  getAppVersion: async () => app.getVersion(),
+  getPublicKey: async () => env.PUBLIC_KEY,
+  getAutoSchedule: async () => env.AUTO_SCHEDULE,
+  getGeometry: async () => env.GEOMETRY,
+  getReconciliation: async () => env.RECONCILE,
+  refreshReconciliation: async () => {
     if (!env.RECONCILE) return false;
     stopReconciliation();
     startReconciliation();
     return true;
   },
-  startReconciliation: () => {
+  startReconciliation: async () => {
     startReconciliation();
     env.RECONCILE = true;
     return true;
   },
-  stopReconciliation: () => {
+  stopReconciliation: async () => {
     stopReconciliation();
     env.RECONCILE = false;
     return true;

@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const OSInfo = ({ info }: {
   info: {
@@ -14,7 +14,7 @@ const OSInfo = ({ info }: {
 }) => <div>
   <h4 className="font-bold mt-6">General</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>platform</TableCell>
@@ -88,7 +88,7 @@ const OSInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">UUIDs</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>os</TableCell>
@@ -107,7 +107,7 @@ const OSInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Versions</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       {Object.entries(info.versions ?? {}).map(([k, v]) => <TableRow key={k.toLowerCase()}>
         <TableCell>{k.toLowerCase()}</TableCell>
@@ -118,7 +118,7 @@ const OSInfo = ({ info }: {
   {info.users?.map((user, i) => <div key={i}>
     <h4 className="font-bold mt-6">User - {user?.user}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>tty</TableCell>

@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const PrinterInfo = ({ info }: {
   info: { printer: Systeminformation.PrinterData[] }
@@ -9,7 +9,7 @@ const PrinterInfo = ({ info }: {
   {info.printer?.map((printer, i) => <div key={i}>
     <h4 className="font-bold mt-6">Printer - {printer?.name}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>id</TableCell>

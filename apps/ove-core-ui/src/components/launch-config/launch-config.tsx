@@ -1,13 +1,28 @@
 import { z } from "zod";
 import React from "react";
+import {
+  Button, Checkbox,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import type {
   LaunchConfig as LaunchConfigT
 } from "../../pages/project-editor/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Project, Section } from "@prisma/client";
-
-import styles from "./launch-config.module.scss";
 
 type LaunchConfigProps = {
   observatories: string[]
@@ -29,7 +44,7 @@ const LaunchConfig = ({
   launch,
   sections
 }: LaunchConfigProps) => {
-  const { register, handleSubmit } = useForm<LaunchConfigForm>({
+  const form = useForm<LaunchConfigForm>({
     resolver: zodResolver(LaunchConfigFormSchema)
   });
 
@@ -38,24 +53,47 @@ const LaunchConfig = ({
     launch({ projectId: project.id, observatory, layout: sections });
   };
 
-  return <section id={styles["launch"]}>
-    <h2>Launch Config</h2>
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <label htmlFor="presets">Presets:</label>
-      <select {...register("observatory", { required: true })}>
-        {observatories.map(k => <option key={k} value={k}>{k}</option>)}
-      </select>
-      <div className={styles.confirmation}>
-        <div>
-          <label htmlFor="confirmation">This observatory may be in use, please
-            confirm:</label>
-          <input {...register("confirmation", { required: true })}
-                 type="checkbox" />
-        </div>
-        <button>LAUNCH</button>
-      </div>
-    </form>
-  </section>;
+  return <DialogContent className="w-[25vw]">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-bold">Launch Config</DialogTitle>
+      <DialogDescription>Select the observatory to launch into and confirm your
+        intent</DialogDescription>
+    </DialogHeader>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col">
+        <FormField control={form.control} name="observatory"
+                   render={({ field }) => <FormItem>
+                     <FormLabel
+                       className="font-semibold">Observatory:</FormLabel>
+                     <Select onValueChange={field.onChange}
+                             defaultValue={field.value}>
+                       <FormControl>
+                         <SelectTrigger>
+                           <SelectValue placeholder="Select an observatory" />
+                         </SelectTrigger>
+                       </FormControl>
+                       <SelectContent position="popper">
+                         {observatories.map(k => <SelectItem className="cursor-pointer" key={k}
+                                                             value={k}>{k}</SelectItem>)}
+                       </SelectContent>
+                     </Select>
+                   </FormItem>} />
+        <FormField control={form.control} name="confirmation"
+                   render={({ field }) => <FormItem className="space-y-0 mt-4 items-center flex">
+                     <FormLabel>This observatory may be in use, please
+                       confirm:</FormLabel>
+                     <FormControl className="ml-1 mt-0">
+                       <Checkbox
+                         required={true}
+                         checked={field.value}
+                         onCheckedChange={field.onChange}
+                       />
+                     </FormControl>
+                   </FormItem>} />
+        <Button variant="default" className="mt-4 ml-auto">LAUNCH</Button>
+      </form>
+    </Form>
+  </DialogContent>;
 };
 
 export default LaunchConfig;

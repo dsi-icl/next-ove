@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const NetworkInfo = ({ info }: {
   info: {
@@ -16,7 +16,7 @@ const NetworkInfo = ({ info }: {
 }) => <div>
   <h4 className="font-bold mt-6">General</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>default interface</TableCell>
@@ -31,7 +31,7 @@ const NetworkInfo = ({ info }: {
   {info.interfaces?.map(iface => <div key={iface?.iface}>
     <h4 className="font-bold mt-6">Interface - {iface?.iface}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>interface name</TableCell>
@@ -115,7 +115,7 @@ const NetworkInfo = ({ info }: {
   {info.stats?.map(stats => <div key={stats?.iface}>
     <h4>Interface Stats - {stats?.iface}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>operation state</TableCell>
@@ -163,7 +163,7 @@ const NetworkInfo = ({ info }: {
   {info.connections?.map((connection, i) => <div key={i}>
     <h4 className="font-bold mt-6">Connection - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>protocol</TableCell>
@@ -202,7 +202,7 @@ const NetworkInfo = ({ info }: {
   </div>) ?? null}
   <h4 className="font-bold mt-6">INET Checksite</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>url</TableCell>

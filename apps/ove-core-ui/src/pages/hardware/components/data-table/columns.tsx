@@ -1,9 +1,9 @@
-import { ArrowUpDown, HardDrive, Monitor, Projector } from "lucide-react";
-import React, { type ReactNode } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
 import type { ServiceType } from "@ove/ove-types";
+import React, { type ReactNode, useCallback } from "react";
+import type { Column, ColumnDef, Row } from "@tanstack/react-table";
+import { ArrowUpDown, HardDrive, Monitor, Projector } from "lucide-react";
 
-import styles from "../observatory/observatory.module.scss";
+export type FilterType = "id" | "tags"
 
 export type HardwareRow = {
   protocol: string
@@ -15,8 +15,8 @@ export type HardwareRow = {
   actions: ReactNode
 }
 
-type FilterValue = {
-  filterType: "tags" | "id"
+export type FilterValue = {
+  filterType: FilterType
   filter: string | null
   selected: string[] | null
 }
@@ -24,95 +24,83 @@ type FilterValue = {
 const ProtocolIcon = ({ protocol }: { protocol: ServiceType }) => {
   switch (protocol) {
     case "node":
-      return <HardDrive className={styles["protocol-icon"]} />;
+      return <HardDrive className="w-4 h-4" />;
     case "mdc":
-      return <Monitor className={styles["protocol-icon"]} />;
+      return <Monitor className="w-4 h-4" />;
     case "pjlink":
-      return <Projector className={styles["protocol-icon"]} />;
+      return <Projector className="w-4 h-4" />;
   }
+};
+
+const filterById = (row: Row<HardwareRow>, columnId: string, {
+  filterType,
+  filter,
+  selected
+}: FilterValue) => {
+  const v = row.getValue(columnId) as string;
+  if (selected === null) {
+    if (filterType === "tags" || filter === null) return true;
+    return filter === v;
+  } else {
+    if (filterType === "tags") return true;
+    return selected.includes(v) && (filter === null || v.startsWith(filter));
+  }
+};
+
+const filterByTags = (row: Row<HardwareRow>, columnId: string, {
+  filterType,
+  filter,
+  selected
+}: FilterValue) => {
+  const v = row.getValue(columnId) as string[];
+  if (filterType === "id") return true;
+  return (filter === null || v.some(tag => tag.startsWith(filter))) && (selected === null || v.some(tag => selected.includes(tag)));
+};
+
+const ToggleSort = ({ column, name }: {
+  column: Column<HardwareRow>,
+  name: string
+}) => {
+  const toggle = useCallback(() => {
+    column.toggleSorting(column.getIsSorted() === "asc");
+  }, [column]);
+  return <button
+    className="flex w-full justify-center" onClick={toggle}>
+    {name}
+    <ArrowUpDown className="ml-2 w-4 h-4" />
+  </button>;
 };
 
 export const columns: ColumnDef<HardwareRow>[] = [
   {
     accessorKey: "protocol",
-    header: ({ column }) => <button
-      style={{ display: "flex", width: "100%", justifyContent: "center" }}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      Protocol
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>,
+    header: ({ column }) => <ToggleSort column={column} name="Protocol" />,
     cell: ({ row }) => <div
-      style={{ display: "flex", justifyContent: "center" }}>
+      className="flex justify-center">
       <ProtocolIcon protocol={row.getValue("protocol")} />
     </div>
   },
   {
     accessorKey: "id",
-    header: ({ column }) => <button
-      style={{ display: "flex", width: "100%", justifyContent: "center" }}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      ID
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>,
-    filterFn: (row, columnId, filterValue) => {
-      const { filterType, filter, selected } = filterValue as FilterValue;
-      const v = row.getValue(columnId) as string;
-      if (selected === null) {
-        if (filterType === "tags" || filter === null) return true;
-        return filter === v;
-      } else {
-        if (filterType === "tags") return true;
-        return selected.includes(v) && (filter === null || v.startsWith(filter));
-      }
-    }
+    header: ({ column }) => <ToggleSort column={column} name="ID" />,
+    filterFn: filterById
   },
   {
     accessorKey: "hostname",
-    header: ({ column }) => <button
-      style={{ display: "flex", width: "100%", justifyContent: "center" }}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      Hostname
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>
+    header: ({ column }) => <ToggleSort column={column} name={"Hostname"} />
   },
   {
     accessorKey: "mac",
-    header: ({ column }) => <button
-      style={{ display: "flex", width: "100%", justifyContent: "center" }}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      MAC
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>
+    header: ({ column }) => <ToggleSort column={column} name="MAC" />
   },
   {
     accessorKey: "tags",
-    header: ({ column }) => <button
-      style={{ display: "flex", width: "100%", justifyContent: "center" }}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      Tags
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>,
-    filterFn: (row, columnId, filterValue) => {
-      const { filterType, filter, selected } = filterValue as FilterValue;
-      const v = row.getValue(columnId) as string[];
-      if (filterType === "id") return true;
-      return (filter === null || v.some(tag => tag.startsWith(filter))) && (selected === null || v.some(tag => selected.includes(tag)));
-    }
+    header: ({ column }) => <ToggleSort column={column} name="Tags" />,
+    filterFn: filterByTags
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <button
-      style={{ display: "flex", width: "100%", justifyContent: "center" }}
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    >
-      Status
-      <ArrowUpDown className="ml-2 h-4 w-4" />
-    </button>,
+    header: ({ column }) => <ToggleSort column={column} name="Status" />,
     cell: ({ row }) => row.getValue("status")
   },
   {

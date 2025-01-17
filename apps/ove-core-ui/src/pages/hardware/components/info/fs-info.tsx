@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const FSInfo = ({ info }: {
   info: {
@@ -16,7 +16,7 @@ const FSInfo = ({ info }: {
   {info.diskLayout?.map((layout, i) => <div key={i}>
     <h4 className="font-bold mt-6">Disk Layout - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>device</TableCell>
@@ -92,7 +92,7 @@ const FSInfo = ({ info }: {
   {info.blockDevices?.map((device, i) => <div key={i}>
     <h4 className="font-bold mt-6">Block Device - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>name</TableCell>
@@ -159,7 +159,7 @@ const FSInfo = ({ info }: {
   </div>) ?? null}
   <h4 className="font-bold mt-6">Disk IO</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>read io</TableCell>
@@ -218,7 +218,7 @@ const FSInfo = ({ info }: {
   {info.fsSize?.map((fs, i) => <div key={i}>
     <h4 className="font-bold mt-6">FS Size - {fs?.fs}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>type</TableCell>
@@ -253,7 +253,7 @@ const FSInfo = ({ info }: {
   </div>) ?? null}
   <h4 className="font-bold mt-6">Open Files</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>maximum</TableCell>
@@ -271,7 +271,7 @@ const FSInfo = ({ info }: {
   </Table>
   <h4 className="font-bold mt-6">Statistics</h4>
   <Table>
-    <Header />
+    <TableHeader />
     <TableBody>
       <TableRow>
         <TableCell>bytes read</TableCell>

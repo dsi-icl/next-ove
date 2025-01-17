@@ -1,18 +1,18 @@
 import { z } from "zod";
 import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
-
 import {
   Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle, Input,
+  CardTitle,
+  Input,
   Label
 } from "@ove/ui-base-components";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useFormErrorHandling } from "@ove/ui-components";
 
 const LoginFormSchema = z.strictObject({
   username: z.string(),
@@ -33,18 +33,6 @@ const Login = ({ login }: {
     password
   }) => login(username, password));
 
-  // return <main className={styles.main}>
-  //   <form method="post" spellCheck="false" onSubmit={onSubmit}>
-  //     <h1>Sign in</h1>
-  //     <label id={styles["username"]} htmlFor="username">Username</label>
-  //     <input {...register("username", { required: true })} type="text"
-  //            name="username" />
-  //     <label id={styles["password"]} htmlFor="password">Password</label>
-  //     <input {...register("password", { required: true })} id="password"
-  //            type="password" name="password" />
-  //     <button type="submit">Sign In</button>
-  //   </form>
-  // </main>;
   return <main
     className="min-h-[90vh] flex items-center justify-center bg-gray-100">
     <Card className="w-full max-w-md">
@@ -61,6 +49,7 @@ const Login = ({ login }: {
               <Input
                 id="username"
                 placeholder="Enter your username"
+                autoCorrect="off"
                 {...register("username", { required: "Username is required" })}
               />
               {errors.username && <p
@@ -71,6 +60,7 @@ const Login = ({ login }: {
               <Input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 {...register("password", {
                   required: "Password is required",
@@ -90,7 +80,7 @@ const Login = ({ login }: {
         </form>
       </CardContent>
     </Card>
-  </main>
+  </main>;
 };
 
 export default Login;

@@ -38,7 +38,7 @@ const handler = async <Key extends keyof TCoreAPI, T extends {
     const socket = getSocket(bridgeId);
     if (socket === null) throw new Error(`${bridgeId} is not connected`);
     // @ts-expect-error arg spread
-    return socket.emitWithAck(k, args);
+    return socket.timeout(5000).emitWithAck(k, args);
   });
   if (isError(res)) {
     return {
@@ -47,7 +47,6 @@ const handler = async <Key extends keyof TCoreAPI, T extends {
       },
       response: res
     };
-    // @ts-expect-error - TODO: provide explanation
   } else return res;
 };
 

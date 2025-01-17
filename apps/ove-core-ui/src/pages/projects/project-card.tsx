@@ -1,12 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@ove/ui-base-components";
 import type { Project, User } from "@prisma/client";
+import { Button, DialogTrigger } from "@ove/ui-base-components";
 
 type ProjectCardProps = {
   user: User
   project: Project
-  openDialog: () => void
+  openConfig: (project: Project) => void
 }
 
 const limitText = (text: string, limit: number) => text.length > limit ? `${text.slice(0, limit)}…` : text;
@@ -14,7 +14,7 @@ const limitText = (text: string, limit: number) => text.length > limit ? `${text
 const ProjectCard = ({
   user,
   project,
-  openDialog
+  openConfig
 }: ProjectCardProps) => {
   const navigate = useNavigate();
   const canEdit = user.role === "admin" ||
@@ -33,9 +33,9 @@ const ProjectCard = ({
         onClick={() => navigate(`/project-editor?project=${project.id}`)}>
         EDIT
       </Button> : null}
-      <Button onClick={openDialog} className="rounded-l-none w-full">
+      <DialogTrigger onClick={() => openConfig(project)} className="bg-[#002147] text-white rounded rounded-l-none w-full">
         LAUNCH
-      </Button>
+      </DialogTrigger>
     </div>
   </li>;
 };

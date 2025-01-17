@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const WifiInfo = ({ info }: {
   info: {
@@ -14,7 +14,7 @@ const WifiInfo = ({ info }: {
     <div key={network?.["ssid"]}>
       <h4 className="font-bold mt-6">Network - {i}</h4>
       <Table>
-        <Header />
+        <TableHeader />
         <TableBody>
           <TableRow>
             <TableCell>ssid</TableCell>
@@ -63,7 +63,7 @@ const WifiInfo = ({ info }: {
     <div key={i}>
       <h4 className="font-bold mt-6">Interface - {i}</h4>
       <Table>
-        <Header />
+        <TableHeader />
         <TableBody>
           <TableRow>
             <TableCell>id</TableCell>
@@ -92,7 +92,7 @@ const WifiInfo = ({ info }: {
     <div key={i}>
       <h4 className="font-bold mt-6">Connection - {i}</h4>
       <Table>
-        <Header />
+        <TableHeader />
         <TableBody>
           <TableRow>
             <TableCell>id</TableCell>

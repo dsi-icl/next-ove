@@ -9,22 +9,28 @@ import {
   getSortedRowModel,
   useReactTable
 } from "@tanstack/react-table";
-import React, { useEffect, useState } from "react";
-
-import styles from "./data-table.module.scss";
 import {
   Pagination,
-  PaginationContent, PaginationItem, PaginationLink, PaginationNext,
-  PaginationPrevious
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@ove/ui-base-components";
+import { getPages } from "../../utils";
+import type { FilterValue } from "./columns";
+import React, { useEffect, useState } from "react";
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  filter: string | null
-  filterType: "id" | "tags"
-  selected: string[] | null
-}
+} & FilterValue
 
 const getSize = (id: string) => {
   switch (id) {
@@ -45,15 +51,6 @@ const getSize = (id: string) => {
     default:
       return "100%";
   }
-};
-
-const getPages = (idx: number, max: number) => {
-  if (idx === 0) {
-    return [0, 1, 2].filter(v => v < max);
-  } else if (idx === max) {
-    return [max - 3, max - 2, max - 1].filter(v => v >= 0);
-  }
-  return [idx - 1, idx, idx + 1].filter(v => v < max && v >= 0);
 };
 
 const DataTable = <TData, TValue>({
@@ -82,7 +79,6 @@ const DataTable = <TData, TValue>({
   });
 
   useEffect(() => {
-    console.log(filter, filterType, selected);
     table.getColumn(filterType)?.setFilterValue({
       filterType,
       filter,
@@ -98,34 +94,34 @@ const DataTable = <TData, TValue>({
     };
   }, [filter, filterType, table, selected]);
 
-  return <div>
-    <table className={styles.table}>
-      <thead>
-        {table.getHeaderGroups().map(group => <tr key={group.id}>
-          {group.headers.map(header => <th key={header.id}
+  return <>
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map(group => <TableRow key={group.id}>
+          {group.headers.map(header => <TableHead key={header.id}
                                            style={{
                                              width: getSize(header.id),
                                              maxWidth: getSize(header.id),
                                              minWidth: getSize(header.id)
-                                           }}>
+                                           }} className="bg-[#002147] text-white text-center">
             {header.isPlaceholder ? null :
               flexRender(header.column.columnDef.header, header.getContext())}
-          </th>)}
-        </tr>)}
-      </thead>
-      <tbody>
+          </TableHead>)}
+        </TableRow>)}
+      </TableHeader>
+      <TableBody>
         {table.getRowModel()?.rows?.length > 0 ? table.getRowModel().rows.map(row =>
-          <tr key={row.id} data-state={row.getIsSelected() && "selected"}>
-            {row.getVisibleCells().map(cell => <td key={cell.id}>
+          <TableRow className="even:bg-[#f2f2f2] odd:bg-[#fff] hover:bg-[#ddd]" key={row.id} data-state={row.getIsSelected() && "selected"}>
+            {row.getVisibleCells().map(cell => <TableCell className="text-center" key={cell.id}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </td>)}
-          </tr>) : <tr>
-          <td colSpan={columns.length}>
+            </TableCell>)}
+          </TableRow>) : <TableRow className="even:bg-[#f2f2f2] odd:bg-[#fff] hover:bg-[#ddd]">
+          <TableCell className="text-center" colSpan={columns.length}>
             No results.
-          </td>
-        </tr>}
-      </tbody>
-    </table>
+          </TableCell>
+        </TableRow>}
+      </TableBody>
+    </Table>
     <Pagination className="mt-6 mb-6">
       <PaginationContent>
         <PaginationItem>
@@ -140,7 +136,7 @@ const DataTable = <TData, TValue>({
         </PaginationItem>
       </PaginationContent>
     </Pagination>
-  </div>;
+  </>;
 };
 
 export default DataTable;

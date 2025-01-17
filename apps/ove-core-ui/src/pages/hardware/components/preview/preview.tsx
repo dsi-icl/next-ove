@@ -7,21 +7,15 @@ const Preview = ({ bounds, bridgeId, setSelected, selected }: {
   bridgeId: string
   setSelected: (v: string[] | null) => void
   selected: string[] | null
-}) => {
-  return <section className="mb-2">
-    <ul>
-      {Array.from({ length: bounds.rows }).map((_, rowId) =>
-        <ul key={rowId}
-            style={{
-              maxWidth: "100%",
-              display: "flex"
-            }}>
-          {Array.from({ length: bounds.columns }).map((_, colId) => <Screen
-            bridgeId={bridgeId} key={colId} setSelected={setSelected}
-            colId={colId} rowId={rowId} bounds={bounds} selected={selected} />)}
-        </ul>)}
-    </ul>
-  </section>;
-};
+}) => <section className="mb-2">
+  <ul>
+    {Array.from({ length: bounds.rows }).map((_, rowId) =>
+      <ul key={rowId} className="max-w-full flex">
+        {Array.from({ length: bounds.columns }).map((_, colId) => <Screen
+          bridgeId={bridgeId} key={colId} setSelected={setSelected}
+          colId={colId} rowId={rowId} bounds={bounds} selected={selected} />)}
+      </ul>)}
+  </ul>
+</section>;
 
 export default Preview;

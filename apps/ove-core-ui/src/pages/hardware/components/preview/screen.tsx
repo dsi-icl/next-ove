@@ -2,129 +2,16 @@ import React from "react";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger
-} from "@radix-ui/react-hover-card";
-import { env } from "../../../../env";
+  HoverCardTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow
+} from "@ove/ui-base-components";
 import { assert } from "@ove/ove-utils";
-import { useEffect, useMemo } from "react";
-import { api } from "../../../../utils/api";
-import { type Bounds, isError } from "@ove/ove-types";
-
-import styles from "./preview.module.scss";
-import { AspectRatio } from "@ove/ui-base-components";
-
-type ScreenHUDProps = {
-  row: number
-  column: number
-  displayId: string
-  renderer: {
-    deviceId: string
-    displayId: string
-  }
-  windowConfig: string
-  url: string
-  isPopover: boolean
-}
-
-const ScreenHUD = ({
-  row,
-  column,
-  displayId,
-  renderer,
-  windowConfig,
-  url,
-  isPopover
-}: ScreenHUDProps) => <div
-  className={[styles.hud].concat(isPopover ? [styles.popover] : []).join(" ")}>
-  <h2 className="text-center font-bold">Display Details</h2>
-  <ul>
-    <li>
-      <span>row</span>
-      <span>{row}</span>
-    </li>
-    <li>
-      <span>column</span>
-      <span>{column}</span>
-    </li>
-    <li>
-      <span>display id</span>
-      <span>{displayId}</span>
-    </li>
-    <li>
-      <span>renderer</span>
-      <span>{renderer.deviceId}, {renderer.displayId}</span>
-    </li>
-    <li>
-      <span>default url</span>
-      <span>{windowConfig?.slice(0, 15)}{!windowConfig ? "-" : "..."}</span>
-    </li>
-    <li>
-      <span>current url</span>
-      <span>{url.slice(0, 15)}{url !== "" ? "..." : "-"}</span>
-    </li>
-  </ul>
-</div>;
-
-const useWindowConfig = (
-  bridgeId: string,
-  deviceId: string,
-  displayId: string
-) => {
-  const getWindowConfig = api.hardware.getWindowConfig.useQuery({
-    bridgeId,
-    deviceId
-  });
-
-  return useMemo((): string => {
-    if (getWindowConfig.status !== "success") return "";
-    const res = getWindowConfig.data.response;
-    if (isError(res)) return "";
-    return res[displayId];
-  }, [getWindowConfig.status, getWindowConfig.data?.response, displayId]);
-};
-
-const useBrowser = (bridgeId: string, deviceId: string, displayId: string) => {
-  const getBrowsers = api.hardware.getBrowsers.useQuery({
-    bridgeId,
-    deviceId
-  });
-
-  return useMemo((): string => {
-    if (getBrowsers.status !== "success") return "";
-    const res = getBrowsers.data.response;
-    if (isError(res)) return "";
-    return Array.from(Object.values(res))
-      .find(({ displayId: id }) => id === parseInt(displayId))?.url ?? "";
-  }, [getBrowsers.status, getBrowsers.data?.response, displayId]);
-};
-
-const useLiveFeed = (bridgeId: string, deviceId: string, displayId: string) => {
-  const takeScreenshot = api.hardware.screenshot.useMutation({ retry: false });
-
-  const screenshot = useMemo(() => {
-    if (takeScreenshot.status !== "success") return takeScreenshot.status === "pending" ? "loading" as const : undefined;
-    const res = takeScreenshot.data.response;
-    if (isError(res)) return undefined;
-    return res[0];
-  }, [takeScreenshot.status, takeScreenshot.data?.response]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      takeScreenshot.mutateAsync({
-        bridgeId,
-        deviceId: deviceId,
-        method: "response",
-        screens: [parseInt(displayId)]
-      });
-    }, env.LIVE_FEED_REFRESH);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [bridgeId, deviceId, displayId, takeScreenshot]);
-
-  return screenshot;
-};
+import TableHeader from "../table-header";
+import type { Bounds } from "@ove/ove-types";
+import { useBrowser, useLiveFeed, useWindowConfig } from "./hooks";
 
 const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
   bridgeId: string,
@@ -147,18 +34,12 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
   const aspectRatio = [bounds.width / bounds.columns,
     bounds.height / bounds.rows];
 
-  const getScreenshotWithLoading = () => {
-    if (screenshot === undefined || screenshot === "loading") {
-      return <div className="w-full h-full" />;
-    }
-    return <img className="w-full h-full" src={`data:image/png;base64,${screenshot}`}
-                     alt="screenshot" />;
-  };
-
-  return <li key={colId} className={styles.screen} style={{
-    width: "100%",
-    aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
-  }}>
+  return <li key={colId}
+             className="border-white border-[1px] border-solid bg-[#002147] text-white flex items-center justify-center"
+             style={{
+               width: "100%",
+               aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`
+             }}>
     <HoverCard>
       <HoverCardTrigger className="w-full h-full">
         <button className="w-full h-full" onClick={() => {
@@ -168,16 +49,45 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
           } else {
             setSelected([display.displayId, display.renderer.deviceId]);
           }
-        }}>{getScreenshotWithLoading()}</button>
+        }}>{screenshot === undefined || screenshot === "loading" ?
+          <div className="w-full h-full" /> :
+          <img className="w-full h-full"
+               src={`data:image/png;base64,${screenshot}`}
+               alt="screenshot" />}</button>
       </HoverCardTrigger>
       <HoverCardContent>
-        <AspectRatio ratio={16 / 9}><ScreenHUD row={display.row}
-                                               column={display.column}
-                                               isPopover={true}
-                                               displayId={display.displayId}
-                                               renderer={display.renderer}
-                                               windowConfig={windowConfig}
-                                               url={browser} /></AspectRatio>
+        <h2 className="text-center font-bold">Display Details</h2>
+        <Table>
+          <TableHeader />
+          <TableBody>
+            <TableRow>
+              <TableCell>row</TableCell>
+              <TableCell>{display.row}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>column</TableCell>
+              <TableCell>{display.column}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>display id</TableCell>
+              <TableCell>{display.displayId}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>renderer</TableCell>
+              <TableCell>{display.renderer.deviceId}, {display.renderer.displayId}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>default url</TableCell>
+              <TableCell
+                className="text-wrap break-words break-all">{windowConfig}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>current url</TableCell>
+              <TableCell
+                className="text-wrap break-words break-all">{browser}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </HoverCardContent>
     </HoverCard>
   </li>;

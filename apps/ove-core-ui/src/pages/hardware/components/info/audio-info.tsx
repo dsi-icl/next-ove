@@ -1,13 +1,13 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const AudioInfo = ({ info }: { info: { audio: Systeminformation.AudioData[] } }) => <div>
   {info["audio"]?.map((audio, i) => <div key={i}>
     <h4 className="font-bold mt-6">Audio Device - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>id</TableCell>

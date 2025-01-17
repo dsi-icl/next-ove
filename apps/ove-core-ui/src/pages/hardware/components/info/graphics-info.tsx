@@ -1,13 +1,13 @@
 import { Table, TableBody, TableCell, TableRow } from "@ove/ui-base-components";
-import Header from "./header";
-import { format } from "./utils";
+import TableHeader from "../table-header";
 import type { Systeminformation } from "systeminformation";
+import { format } from "../../utils";
 
 const GraphicsInfo = ({ info }: { info: {graphics: Systeminformation.GraphicsData} }) => <div>
   {info.graphics?.controllers?.map((controller, i) => <div key={i}>
     <h4 className="font-bold mt-6">Controller - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>vendor</TableCell>
@@ -91,7 +91,7 @@ const GraphicsInfo = ({ info }: { info: {graphics: Systeminformation.GraphicsDat
   {info.graphics?.displays?.map((display, i) => <div key={i}>
     <h4 className="font-bold mt-6">Display - {i}</h4>
     <Table>
-      <Header />
+      <TableHeader />
       <TableBody>
         <TableRow>
           <TableCell>vendor</TableCell>

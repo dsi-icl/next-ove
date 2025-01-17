@@ -15,7 +15,8 @@ interface ImportMetaEnv {
   VITE_PROJECT_LAUNCHER: string;
   VITE_MODE: string;
   VITE_DISABLE_AUTH: string;
-  VITE_LIVE_FEED_REFRESH: string;
+  VITE_LIVE_FEED_REFRESH_INTERVAL: string;
+  VITE_STATUS_REFRESH_INTERVAL: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -35,7 +36,8 @@ const schema = z.strictObject({
     z.literal("test")
   ]),
   DISABLE_AUTH: z.boolean(), // only disable auth if under test
-  LIVE_FEED_REFRESH: z.number()
+  LIVE_FEED_REFRESH_INTERVAL: z.number(),
+  STATUS_REFRESH_INTERVAL: z.number()
 }).refine(x => x.MODE === "test" || !x.DISABLE_AUTH);
 
 const parsedConfig = schema.parse({
@@ -48,7 +50,8 @@ const parsedConfig = schema.parse({
     assert(env_.VITE_LOGGING_SERVER) : undefined,
   MODE: env_.VITE_MODE,
   DISABLE_AUTH: env_.VITE_DISABLE_AUTH === "true",
-  LIVE_FEED_REFRESH: parseInt(env_.VITE_LIVE_FEED_REFRESH)
+  LIVE_FEED_REFRESH_INTERVAL: parseInt(env_.VITE_LIVE_FEED_REFRESH_INTERVAL),
+  STATUS_REFRESH_INTERVAL: parseInt(env_.VITE_STATUS_REFRESH_INTERVAL)
 });
 
 const staticConfig = {

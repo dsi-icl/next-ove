@@ -6,7 +6,7 @@ const Login = React.lazy(() => import("../pages/login/page"));
 const Sockets = React.lazy(() => import("../pages/sockets/page"));
 const Projects = React.lazy(() => import("../pages/projects/page"));
 const Landing = React.lazy(() => import("../pages/landing/page"));
-const Hardware = React.lazy(() => import("../pages/hardware/page"));
+const HardwareManager = React.lazy(() => import("../pages/hardware/page"));
 const ProjectEditorLoader = React.lazy(() => import("../pages/project-editor/loader"));
 
 type RouterProps = {
@@ -16,7 +16,7 @@ type RouterProps = {
 }
 
 const Router = ({ loggedIn, login, token }: RouterProps) => {
-  return <Suspense fallback={<div>Loading...</div>}>
+  return <Suspense fallback={<div></div>}>
     <Routes>
       <Route
         path="/"
@@ -25,7 +25,7 @@ const Router = ({ loggedIn, login, token }: RouterProps) => {
       <Route
         path="/hardware"
         element={<ProtectedRoute condition={loggedIn} redirectTo={"/login"}>
-          <Hardware /></ProtectedRoute>}
+          <HardwareManager /></ProtectedRoute>}
       />
       <Route
         path="/login"

@@ -3,6 +3,8 @@
 import {
   type Device,
   isError,
+  type OVEException,
+  type PJLinkInfo,
   PJLinkSourceSchema,
   type TBridgeHardwareService,
   type TBridgeServiceArgs
@@ -80,7 +82,7 @@ const getInfo = async (
   device: Device,
   args: TBridgeServiceArgs<"getInfo">,
   ac?: () => AbortController
-) => {
+): Promise<OVEException | undefined | PJLinkInfo> => {
   const infoOptsSchema =
     z.object({ type: z.literal("general").optional() }).strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
