@@ -13,14 +13,15 @@ import TableHeader from "../table-header";
 import type { Bounds } from "@ove/ove-types";
 import { useBrowser, useLiveFeed, useWindowConfig } from "./hooks";
 
-const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
-  bridgeId: string,
-  colId: number,
-  rowId: number,
+export type ScreenProps = {
+  bridgeId: string
+  colId: number
+  rowId: number
   bounds: Bounds
-  setSelected: (v: string[] | null) => void
-  selected: string[] | null
-}) => {
+  setSelected: (display: Bounds["displays"][0]) => void
+}
+
+const Screen = ({ colId, bounds, rowId, bridgeId, setSelected }: ScreenProps) => {
   const display = assert(bounds.displays.find(({
     row,
     column
@@ -43,12 +44,7 @@ const Screen = ({ colId, bounds, rowId, bridgeId, setSelected, selected }: {
     <HoverCard>
       <HoverCardTrigger className="w-full h-full">
         <button className="w-full h-full" onClick={() => {
-          if (selected?.[0] === display.displayId &&
-            selected?.[1] === display.renderer.deviceId) {
-            setSelected(null);
-          } else {
-            setSelected([display.displayId, display.renderer.deviceId]);
-          }
+          setSelected(display);
         }}>{screenshot === undefined || screenshot === "loading" ?
           <div className="w-full h-full" /> :
           <img className="w-full h-full"

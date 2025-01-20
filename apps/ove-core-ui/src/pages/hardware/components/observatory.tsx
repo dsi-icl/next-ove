@@ -1,4 +1,5 @@
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useReducer
@@ -6,7 +7,7 @@ import React, {
 import {
   type Device,
   type StatusOptions,
-  isError
+  isError, Bounds
 } from "@ove/ove-types";
 import { useStatus } from "./hooks";
 import { logger } from "../../../env";
@@ -16,7 +17,7 @@ import Toolbar from "./toolbar/toolbar";
 import { assert } from "@ove/ove-utils";
 import { api } from "../../../utils/api";
 import DataTable from "./data-table/data-table";
-import { columns, FilterValue } from "./data-table/columns";
+import { columns, type FilterValue } from "./data-table/columns";
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T
@@ -114,6 +115,21 @@ const Observatory = ({ name, isOnline }: {
     utils.core.getObservatoryBounds.invalidate().catch(logger.error);
   }, [isOnline, utils.core.getObservatoryBounds]);
 
+  const selectPreview = useCallback((display: Bounds["displays"][0]) => {
+    if (filters.selected?.[0] === display.displayId &&
+      filters.selected?.[1] === display.renderer.deviceId) {
+      filtersReducer({
+        command: "selected",
+        selected: null
+      });
+    } else {
+      filtersReducer({
+        command: "selected",
+        selected: [display.displayId, display.renderer.deviceId]
+      });
+    }
+  }, [filtersReducer, filters.selected]);
+
   return <section className="mt-8 mb-0 ml-8 mr-8 relative">
     <h2
       className="font-bold mb-2">Observatory {name} - {isOnline ? "online" : "offline"}</h2>
@@ -121,10 +137,7 @@ const Observatory = ({ name, isOnline }: {
       {isOnline && bounds.status === "success" && !isError(bounds.data)
       && name in bounds.data ?
         <Preview bridgeId={name} bounds={bounds.data[name]}
-                 setSelected={selected => filtersReducer({
-                   command: "selected",
-                   selected
-                 })} selected={filters.selected} /> : null}
+                 setSelected={selectPreview} /> : null}
       <Toolbar filterType={filters.filterType} devices={devices}
                filter={filters.filter}
                setFilterType={filterType => filtersReducer({

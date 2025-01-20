@@ -1,21 +1,18 @@
-import React from "react";
-import Screen from "./screen";
-import type { Bounds } from "@ove/ove-types";
+import React, { memo } from "react";
+import Screen, { type ScreenProps } from "./screen";
 
-const Preview = ({ bounds, bridgeId, setSelected, selected }: {
-  bounds: Bounds,
-  bridgeId: string
-  setSelected: (v: string[] | null) => void
-  selected: string[] | null
-}) => <section className="mb-2">
-  <ul>
-    {Array.from({ length: bounds.rows }).map((_, rowId) =>
-      <ul key={rowId} className="max-w-full flex">
-        {Array.from({ length: bounds.columns }).map((_, colId) => <Screen
-          bridgeId={bridgeId} key={colId} setSelected={setSelected}
-          colId={colId} rowId={rowId} bounds={bounds} selected={selected} />)}
-      </ul>)}
-  </ul>
-</section>;
+type PreviewProps = Omit<ScreenProps, "colId" | "rowId">
+
+const Preview = memo(({ bounds, bridgeId, setSelected }: PreviewProps) =>
+  <section className="mb-2">
+    <ul>
+      {Array.from({ length: bounds.rows }).map((_, rowId) =>
+        <ul key={rowId} className="max-w-full flex">
+          {Array.from({ length: bounds.columns }).map((_, colId) => <Screen
+            bridgeId={bridgeId} key={colId} setSelected={setSelected}
+            colId={colId} rowId={rowId} bounds={bounds} />)}
+        </ul>)}
+    </ul>
+  </section>);
 
 export default Preview;
