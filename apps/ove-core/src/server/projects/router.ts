@@ -6,7 +6,6 @@ import {
   OVEExceptionSchema
 } from "@ove/ove-types";
 import type {
-  Invite,
   PrismaClient,
   Project,
   Section,
@@ -36,7 +35,6 @@ const SectionSchema = z.strictObject({
 const ProjectSchema = z.strictObject({
   id: z.string(),
   creatorId: z.string(),
-  collaboratorIds: z.string().array(),
   created: z.string(),
   updated: z.string(),
   title: z.string(),
@@ -46,7 +44,8 @@ const ProjectSchema = z.strictObject({
   presenterNotes: z.string(),
   notes: z.string(),
   tags: z.string().array(),
-  isPublic: z.boolean()
+  isPublic: z.boolean(),
+  bucket: z.string().nullable()
 });
 
 const ProjectSchemaOutput = ProjectSchema.omit({
@@ -54,23 +53,36 @@ const ProjectSchemaOutput = ProjectSchema.omit({
   updated: true
 }).extend({ created: z.date(), updated: z.date() });
 
-const UserSchema = z.strictObject({
-  id: z.string(),
-  username: z.string(),
-  password: z.string(),
-  email: z.string().nullable(),
-  role: z.string(),
-  projectIds: z.string().array()
-});
-
 const InviteSchema = z.strictObject({
   id: z.string(),
   sent: z.date(),
   status: z.string(),
   projectId: z.string(),
+  project: ProjectSchemaOutput,
   senderId: z.string(),
   recipientId: z.string()
 });
+
+const UserSchema = z.strictObject({
+  id: z.string(),
+  username: z.string(),
+  email: z.string().nullable(),
+  role: z.string(),
+  icon: z.string().nullable(),
+  name: z.string().nullable()
+});
+
+const InviteStatusSchema = z.union([z.literal("pending"), z.literal("accepted"), z.literal("declined"), z.literal("creator")]);
+export type InviteStatus = z.infer<typeof InviteStatusSchema>
+
+const CollaboratorSchema = z.strictObject({
+  status: InviteStatusSchema,
+  id: z.string(),
+  name: z.string().nullable(),
+  icon: z.string().nullable(),
+  email: z.string().nullable()
+});
+export type Collaborator = z.infer<typeof CollaboratorSchema>
 
 const DataFormatConfigOptionsSchema = z.strictObject({
   containsHeader: z.boolean().optional(),
@@ -83,13 +95,17 @@ export type DataFormatConfigOptions =
 
 export type Controller = {
   getProjectsForUser: (prisma: PrismaClient, user: string) => Promise<Project[]>
+  getCollaborationInvites: (prisma: PrismaClient, username: string) => Promise<z.infer<typeof InviteSchema>[]>
+  acceptInvite: (prisma: PrismaClient, inviteId: string) => Promise<void>
+  declineInvite: (prisma: PrismaClient, inviteId: string) => Promise<void>
+  getPendingInviteCount: (prisma: PrismaClient, username: string) => Promise<number>
   getProject: (prisma: PrismaClient, user: string, id: string) =>
     Promise<Project | null>
-  getTagsForUser: (prisma: PrismaClient, user: string) =>
-    Promise<string[]>
-  getUsers: (prisma: PrismaClient) => Promise<User[]>
-  getInvitesForProject: (prisma: PrismaClient, projectId: string) =>
-    Promise<Invite[]>
+  getTags: (prisma: PrismaClient) => Promise<string[]>
+  getPublications: (prisma: PrismaClient) => Promise<string[]>
+  getUsers: (prisma: PrismaClient) => Promise<Omit<User, "password">[]>
+  getCollaboratorsForProject: (prisma: PrismaClient, projectId: string) =>
+    Promise<Collaborator[]>
   getFiles: (prisma: PrismaClient, s3: MinioClient | null, username: string,
     projectId: string) => Promise<z.infer<typeof FileSchema>[]>
   createProject: (
@@ -113,7 +129,7 @@ export type Controller = {
   getPresignedPutURL: (prisma: PrismaClient, s3: MinioClient | null,
     username: string, projectId: string, objectName: string) =>
     Promise<string | OVEException>
-  generateThumbnail: (prisma: PrismaClient, projectId: string) =>
+  generateThumbnail: (prisma: PrismaClient, projectId: string, tags: string[]) =>
     Promise<string | OVEException>
   inviteCollaborator: (prisma: PrismaClient, projectId: string,
     senderId: string, recipientId: string) => Promise<undefined | OVEException>
@@ -142,8 +158,7 @@ export const projectsRouter = router({
     .output(z.union([OVEExceptionSchema, ProjectSchemaOutput.array()]))
     .query(async ({ ctx }) => {
       logger.info(`Getting projects for user ${ctx.user}`);
-      return await safe(logger, () =>
-        controller.getProjectsForUser(ctx.prisma, ctx.user));
+      return await safe(logger, async () => controller.getProjectsForUser(ctx.prisma, ctx.user));
     }),
   getProject: protectedProcedure
     .meta({
@@ -165,9 +180,16 @@ export const projectsRouter = router({
     .input(z.void())
     .output(z.union([OVEExceptionSchema, z.string().array()]))
     .query(async ({ ctx }) => {
-      logger.info("Getting tags for projects");
-      return await safe(logger, () =>
-        controller.getTagsForUser(ctx.prisma, ctx.user));
+      logger.info("Getting tags");
+      return await safe(logger, () => controller.getTags(ctx.prisma));
+    }),
+  getPublications: protectedProcedure
+    .meta({openapi: {method: "GET", path: "/projects/publications", protect: true}})
+    .input(z.void())
+    .output(z.union([OVEExceptionSchema, z.string().array()]))
+    .query(async ({ctx}) => {
+      logger.info("Getting publications");
+      return await safe(logger, () => controller.getPublications(ctx.prisma));
     }),
   getUsers: protectedProcedure
     .meta({ openapi: { method: "GET", path: "/users", protect: true } })
@@ -177,20 +199,19 @@ export const projectsRouter = router({
       logger.info("Getting users");
       return await safe(logger, () => controller.getUsers(ctx.prisma));
     }),
-  getInvitesForProject: protectedProcedure
+  getCollaboratorsForProject: protectedProcedure
     .meta({
       openapi: {
         method: "GET",
-        path: "/project/{projectId}/collaborators/invites",
+        path: "/project/{projectId}/collaborators",
         protect: true
       }
     })
-    .input(z.strictObject({ projectId: z.string() }))
-    .output(z.union([InviteSchema.array(), OVEExceptionSchema]))
-    .query(async ({ ctx, input: { projectId } }) => {
-      logger.info(`Getting invites for ${projectId}`);
-      return await safe(logger, () =>
-        controller.getInvitesForProject(ctx.prisma, projectId));
+    .input(z.strictObject({projectId: z.string()}))
+    .output(z.union([CollaboratorSchema.array(), OVEExceptionSchema]))
+    .query(async ({ ctx, input: {projectId} }) => {
+      logger.info(`Getting collaborators for ${projectId}`);
+      return await safe(logger, () => controller.getCollaboratorsForProject(ctx.prisma, projectId));
     }),
   getSectionsForProject: protectedProcedure
     .meta({
@@ -344,13 +365,14 @@ export const projectsRouter = router({
       }
     })
     .input(z.strictObject({
-      projectId: z.string()
+      projectId: z.string(),
+      tags: z.string().array()
     }))
     .output(z.union([z.string(), OVEExceptionSchema]))
     .mutation(async ({ ctx, input }) => {
       logger.info(`Generator thumbnail for ${input.projectId}`);
       return await safe(logger, () =>
-        controller.generateThumbnail(ctx.prisma, input.projectId));
+        controller.generateThumbnail(ctx.prisma, input.projectId, input.tags));
     }),
   inviteCollaborator: protectedProcedure
     .meta({
@@ -483,5 +505,61 @@ export const projectsRouter = router({
       logger.info("Converting image file to DZI");
       return safe(logger, () =>
         controller.formatDZI(ctx.s3, bucketName, objectName, versionId));
+    }),
+  getCollaborationInvites: protectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/invites",
+        protect: true
+      }
+    })
+    .input(z.void())
+    .output(z.union([InviteSchema.array(), OVEExceptionSchema]))
+    .query(({ctx}) => {
+      logger.info(`Getting invites for user ${ctx.user}`);
+      return safe(logger, () => controller.getCollaborationInvites(ctx.prisma, ctx.user));
+    }),
+  acceptInvite: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/invite/accept",
+        protect: true
+      }
+    })
+    .input(z.strictObject({inviteId: z.string()}))
+    .output(z.union([z.any(), OVEExceptionSchema]))
+    .mutation(({input: {inviteId}, ctx}) => {
+      logger.info(`Accepting invite ${inviteId}`);
+      return safe(logger, () => controller.acceptInvite(ctx.prisma, inviteId));
+    }),
+  declineInvite: protectedProcedure
+    .meta({
+      openapi: {
+        method: "DELETE",
+        path: "/invite/reject",
+        protect: true
+      }
+    })
+    .input(z.strictObject({inviteId: z.string()}))
+    .output(z.union([z.any(), OVEExceptionSchema]))
+    .mutation(({input: {inviteId}, ctx}) => {
+      logger.info(`Declining invite ${inviteId}`);
+      return safe(logger, () => controller.declineInvite(ctx.prisma, inviteId));
+    }),
+  getPendingInviteCount: protectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/invite/count",
+        protect: true
+      }
+    })
+    .input(z.void())
+    .output(z.union([z.number(), OVEExceptionSchema]))
+    .query(({ctx}) => {
+      logger.info(`Getting pending invite count for ${ctx.user}`);
+      return safe(logger, () => controller.getPendingInviteCount(ctx.prisma, ctx.user));
     })
 });

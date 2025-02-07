@@ -48,6 +48,7 @@ const Login = ({ login }: {
               <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
+                autoComplete="username"
                 placeholder="Enter your username"
                 autoCorrect="off"
                 {...register("username", { required: "Username is required" })}

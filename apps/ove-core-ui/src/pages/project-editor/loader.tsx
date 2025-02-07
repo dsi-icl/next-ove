@@ -1,29 +1,16 @@
+import React from "react";
 import ProjectEditor from "./page";
-import { useQuery } from "../../hooks";
-import { api } from "../../utils/api";
-import React, { useMemo } from "react";
-import { isError } from "@ove/ove-types";
-import { useProject, useSave } from "./hooks";
+import { useUser } from "./hooks/user";
+import { useInitProject } from "./hooks/projects";
+import { useInitSections } from "./hooks/sections";
 
-const Loader = ({ token }: { token: string }) => {
-  const query = useQuery();
-  const user = api.getUserID.useQuery({});
+const Loader = () => {
+  const user = useUser();
 
-  const userId = useMemo(() => user.status === "success" &&
-  !isError(user.data) ? user.data.id : null, [user.status, user.data]);
+  const loadingProject = useInitProject(user);
+  const loadingSections = useInitSections();
 
-  const {
-    project,
-    updateProject,
-    tags,
-    createProject
-  } = useProject(userId, query.get("project"));
-
-  const { saveProject } = useSave(createProject);
-
-  return project === null || userId === null ? null :
-    <ProjectEditor project={project} updateProject={updateProject}
-                   tags={tags} saveProject={saveProject} token={token} />;
+  return user === null || loadingProject || loadingSections ? null : <ProjectEditor />;
 };
 
 export default Loader;

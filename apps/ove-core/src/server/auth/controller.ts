@@ -27,13 +27,11 @@ const login = async (
   }
   const [username, password] = decodeURIComponent(
     Buffer.from(credentials, "base64url").toString()).split(":");
-  console.log(username, password);
   const user = await prisma.user.findUnique({
     where: {
       username
     }
   });
-  console.log(user);
 
   if (user === null) {
     throw new TRPCError({
@@ -133,7 +131,16 @@ const logout = async (prisma: PrismaClient, username: string) => {
 };
 
 const getUser = (prisma: PrismaClient, username: string) =>
-  prisma.user.findUniqueOrThrow({ where: { username } });
+  prisma.user.findUniqueOrThrow({
+    where: { username }, select: {
+      username: true,
+      id: true,
+      name: true,
+      email: true,
+      icon: true,
+      role: true
+    }
+  });
 
 const controller = { login, getToken, getUser, logout };
 

@@ -9,9 +9,9 @@ const UserSchema = z.strictObject({
   id: z.string(),
   username: z.string(),
   email: z.string().nullable(),
-  password: z.string(),
   role: z.string(),
-  projectIds: z.string().array()
+  icon: z.string().nullable(),
+  name: z.string().nullable()
 });
 
 export const authRouter = router({

@@ -4,18 +4,18 @@ import ProtectedRoute from "../components/protected-route";
 
 const Login = React.lazy(() => import("../pages/login/page"));
 const Sockets = React.lazy(() => import("../pages/sockets/page"));
-const Projects = React.lazy(() => import("../pages/projects/page"));
 const Landing = React.lazy(() => import("../pages/landing/page"));
+const Projects = React.lazy(() => import("../pages/projects/page"));
 const HardwareManager = React.lazy(() => import("../pages/hardware/page"));
+const Collaboration = React.lazy(() => import("../pages/collaboration/page"));
 const ProjectEditorLoader = React.lazy(() => import("../pages/project-editor/loader"));
 
 type RouterProps = {
   loggedIn: boolean,
   login: (username: string, password: string) => Promise<void>,
-  token: string
 }
 
-const Router = ({ loggedIn, login, token }: RouterProps) => {
+const Router = ({ loggedIn, login }: RouterProps) => {
   return <Suspense fallback={<div></div>}>
     <Routes>
       <Route
@@ -38,7 +38,11 @@ const Router = ({ loggedIn, login, token }: RouterProps) => {
       <Route
         path="/project-editor"
         element={<ProtectedRoute condition={loggedIn} redirectTo="/login">
-          <ProjectEditorLoader token={token} /></ProtectedRoute>} />
+          <ProjectEditorLoader /></ProtectedRoute>} />
+      <Route
+        path="/collaboration"
+        element={<ProtectedRoute condition={loggedIn}
+                                 redirectTo="/login"><Collaboration /></ProtectedRoute>} />
     </Routes>
   </Suspense>;
 };

@@ -379,10 +379,14 @@ dev/tools/auto-populate/data/global_buckets/*
 apps/ove-logs/data/logs.db
 
 # Core environment config
-/apps/ove-core/src/config/*.json
-!/apps/ove-core/src/config/*.example.json
+/apps/ove-core/config/*.json
+!/apps/ove-core/config/*.example.json
 /tools/db/.env.production
 /apps/ove-core/config.production.json
+
+# Bridge service environment config
+/apps/ove-bridge-service/config/*.json
+!/apps/ove-bridge-service/config/*.example.json
 
 # Test environment config
 /tests/**/private.*

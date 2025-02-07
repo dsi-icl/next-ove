@@ -18,17 +18,20 @@ import {
   SelectValue
 } from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
-import type {
-  LaunchConfig as LaunchConfigT
-} from "../../pages/project-editor/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Project, Section } from "@prisma/client";
+import { useObservatories } from "../../hooks/observatories";
+import { useSectionStore } from "../../pages/project-editor/hooks/stores";
+
+export type TLaunchConfig = {
+  projectId: string
+  observatory: string
+  layout: Section[] | null
+}
 
 type LaunchConfigProps = {
-  observatories: string[]
-  launch: (config: LaunchConfigT) => void
+  launch: (config: TLaunchConfig) => void
   project: Project,
-  sections: Section[] | null
 }
 
 const LaunchConfigFormSchema = z.strictObject({
@@ -40,17 +43,18 @@ type LaunchConfigForm = z.infer<typeof LaunchConfigFormSchema>
 
 const LaunchConfig = ({
   project,
-  observatories,
-  launch,
-  sections
+  launch
 }: LaunchConfigProps) => {
+  const observatories = useObservatories();
+  const sections = useSectionStore(state => state.sections);
+
   const form = useForm<LaunchConfigForm>({
     resolver: zodResolver(LaunchConfigFormSchema)
   });
 
   const onSubmit = ({ observatory, confirmation }: LaunchConfigForm) => {
     if (!confirmation) return;
-    launch({ projectId: project.id, observatory, layout: sections });
+    launch({ projectId: project.id, observatory, layout: sections.length === 0 ? null : sections });
   };
 
   return <DialogContent className="w-[25vw]">
@@ -73,7 +77,7 @@ const LaunchConfig = ({
                          </SelectTrigger>
                        </FormControl>
                        <SelectContent position="popper">
-                         {observatories.map(k => <SelectItem className="cursor-pointer" key={k}
+                         {Object.keys(observatories).map(k => <SelectItem className="cursor-pointer" key={k}
                                                              value={k}>{k}</SelectItem>)}
                        </SelectContent>
                      </Select>

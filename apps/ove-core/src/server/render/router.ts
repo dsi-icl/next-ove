@@ -38,7 +38,8 @@ const ProjectSchema = z.strictObject({
   presenterNotes: z.string(),
   notes: z.string(),
   tags: z.string().array(),
-  isPublic: z.boolean()
+  isPublic: z.boolean(),
+  bucket: z.string().nullable()
 });
 
 export const renderRouter = router({

@@ -1,4 +1,6 @@
 import React from "react";
+import { api } from "../../utils/api";
+import { isError } from "@ove/ove-types";
 import { useNavigate } from "react-router-dom";
 import type { Project, User } from "@prisma/client";
 import { Button, DialogTrigger } from "@ove/ui-base-components";
@@ -17,9 +19,10 @@ const ProjectCard = ({
   openConfig
 }: ProjectCardProps) => {
   const navigate = useNavigate();
+  const getCollaborators = api.projects.getCollaboratorsForProject.useQuery({projectId: project.id});
   const canEdit = user.role === "admin" ||
     ((user.id === project.creatorId ||
-      project.collaboratorIds.includes(user.id)) && user.role !== "client");
+      getCollaborators.status === "success" && !isError(getCollaborators.data) && getCollaborators.data.find(collaborator => collaborator.id === user.id) !== undefined) && user.role !== "client");
 
   return <li key={project.title} className="p-3 max-w-[calc(1.5rem + 256px)] rounded-xl border-[1px] border-gray-200">
     <img className="w-full aspect-square rounded-xl" src={project.thumbnail ?? "/missing-thumbnail.jpg"}

@@ -12,7 +12,11 @@ import { readFileSync } from "atomically";
 import unzip, { Entry } from "unzip-stream";
 import { S3Controller } from "./s3-controller";
 import { type DataTypes, isError } from "@ove/ove-types";
-import type { Controller, DataFormatConfigOptions } from "./router";
+import type {
+  Controller,
+  DataFormatConfigOptions,
+  InviteStatus
+} from "./router";
 import type { PrismaClient, Project, Section } from "@prisma/client";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
 
@@ -25,12 +29,15 @@ const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
     }
   });
 
-  return prisma.project.findMany({
+  const projects = await prisma.project.findMany({
     where: {
       OR: [
         {
-          collaboratorIds: {
-            hasSome: [assert(user).id]
+          invites: {
+            some: {
+              recipientId: assert(user).id,
+              status: "accepted"
+            }
           }
         },
         {
@@ -40,8 +47,12 @@ const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
           isPublic: true
         }
       ]
+    },
+    include: {
+      invites: true
     }
   });
+  return projects.map(({ invites, ...project }) => project);
 };
 
 const getProject = async (
@@ -52,35 +63,85 @@ const getProject = async (
   if (id.length === 32) return null;
   const user = await prisma.user.findUnique({ where: { username } });
 
-  return prisma.project.findUnique({
+  const { invites, ...project } = await prisma.project.findUniqueOrThrow({
     where: {
       id,
       OR: [{
-        collaboratorIds: {
-          hasSome: [assert(user).id]
+        invites: {
+          some: {
+            recipientId: assert(user).id,
+            status: "accepted"
+          }
         }
       }, {
         creatorId: assert(user).id
       }, { isPublic: true }]
+    },
+    include: {
+      invites: true
     }
   });
+  return project;
 };
 
-const getTagsForUser = async (prisma: PrismaClient, username: string) => {
-  const projects = await getProjectsForUser(prisma, username);
-  return projects.flatMap(({ tags }) => tags);
+const getTags = async (prisma: PrismaClient) => {
+  const projects = await prisma.project.findMany({select: {tags: true}});
+  return projects.flatMap(({tags}) => tags);
 };
 
-const getUsers = async (prisma: PrismaClient) => prisma.user.findMany();
+const getPublications = async (prisma: PrismaClient) => {
+  const projects = await prisma.project.findMany({select: {publications: true}});
+  return projects.flatMap(({publications}) => publications);
+};
 
-const getInvitesForProject = async (
-  prisma: PrismaClient, projectId: string) => {
+const getUsers = async (prisma: PrismaClient) => prisma.user.findMany({
+  select: {
+    email: true,
+    icon: true,
+    id: true,
+    name: true,
+    role: true,
+    username: true
+  },
+  where: {
+    NOT: {
+      role: "bridge"
+    }
+  }
+});
+
+const getCollaboratorsForProject = async (prisma: PrismaClient, projectId: string) => {
   if (projectId.length === 32) return [];
-  return prisma.invite.findMany({
+  const raw = await prisma.invite.findMany({
     where: {
       projectId
+    },
+    include: {
+      recipient: true
     }
   });
+  const creator = (await prisma.project.findUniqueOrThrow({
+    where: {
+      id: projectId
+    },
+    include: {
+      creator: true
+    }
+  })).creator;
+
+  return [...raw.map(invite => ({
+    status: invite.status as InviteStatus,
+    id: invite.recipient.id,
+    name: invite.recipient.name,
+    icon: invite.recipient.icon,
+    email: invite.recipient.email
+  })), {
+    status: "creator" as const,
+    id: creator.id,
+    name: creator.name,
+    icon: creator.icon,
+    email: creator.email
+  }];
 };
 
 const createProject = async (
@@ -161,21 +222,17 @@ const saveProject = async (
     }
   });
 
-  if (project.creatorId !== user?.id &&
-    !project.collaboratorIds.includes(user?.id ?? "ERROR")) {
-    throw new Error("Cannot make changes to public project");
-  }
-
   const { id, ...data } = project;
   const existing = await prisma.project.findUniqueOrThrow({
     where: {
       id
-    }
+    },
+    include: { invites: true }
   });
 
-  // TODO: replace with either bucket re-instantiation or lookup mechanism
-  if (existing.title !== data.title) {
-    throw new Error("Cannot change project title");
+  if (project.creatorId !== user?.id &&
+    existing.invites.find(invite => invite.recipientId === (user?.id ?? "ERROR") && invite.status === "accepted") === undefined) {
+    throw new Error("Cannot make changes to public project");
   }
 
   const sectionIds = (await prisma.section.findMany()).map(({ id }) => id);
@@ -346,14 +403,14 @@ const getPresignedPutURL = async (
     titleToBucketName(project.title), objectName);
 };
 
-const generateThumbnail = async (prisma: PrismaClient, projectId: string) => {
+const generateThumbnail = async (prisma: PrismaClient, projectId: string, tags: string[]) => {
   if (env.THUMBNAIL_GENERATOR === undefined) {
     return raise("Thumbnail generator not configured");
   }
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (project === null) return raise("Project not found");
   if (project.thumbnail !== null) return raise("Thumbnail already exists");
-  const prompt = encodeURI(project.tags.join(" "));
+  const prompt = encodeURI(tags.join(" "));
   const thumbnail = await (await fetch(
     `${env.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`)).text();
   await prisma.project.update({
@@ -370,13 +427,14 @@ const generateThumbnail = async (prisma: PrismaClient, projectId: string) => {
 const inviteCollaborator = async (
   prisma: PrismaClient,
   projectId: string,
-  senderId: string,
+  sender: string,
   recipientId: string
 ) => {
+  const user = await prisma.user.findUniqueOrThrow({ where: { username: sender } });
   await prisma.invite.create({
     data: {
       projectId,
-      senderId,
+      senderId: user.id,
       recipientId
     }
   });
@@ -677,12 +735,67 @@ const formatDZI = async (
   return undefined;
 };
 
+const getCollaborationInvites = async (prisma: PrismaClient, username: string) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      username
+    }
+  });
+
+  return prisma.invite.findMany({
+    where: {
+      recipientId: user.id
+    },
+    include: {
+      project: true
+    }
+  });
+};
+
+const acceptInvite = async (prisma: PrismaClient, inviteId: string) => {
+  await prisma.invite.update({
+    where: {
+      id: inviteId
+    },
+    data: {
+      status: "accepted"
+    }
+  });
+};
+
+const declineInvite = async (prisma: PrismaClient, inviteId: string) => {
+  await prisma.invite.update({
+    where: {
+      id: inviteId
+    },
+    data: {
+      status: "declined"
+    }
+  });
+};
+
+const getPendingInviteCount = async (prisma: PrismaClient, username: string) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      username
+    }
+  });
+
+  return prisma.invite.count({
+    where: {
+      recipientId: user.id,
+      status: "pending"
+    }
+  });
+};
+
 const controller: Controller = {
   getProjectsForUser,
   getProject,
-  getTagsForUser,
+  getTags,
+  getPublications,
   getUsers,
-  getInvitesForProject,
+  getCollaboratorsForProject,
   createProject,
   saveProject,
   getFiles,
@@ -696,7 +809,11 @@ const controller: Controller = {
   getEnv,
   getController,
   formatData,
-  formatDZI
+  formatDZI,
+  getCollaborationInvites,
+  acceptInvite,
+  declineInvite,
+  getPendingInviteCount
 };
 
 export default controller;

@@ -1,6 +1,6 @@
 import { env } from "../env";
 import { type Context } from "./context";
-import { type OpenApiMeta } from "trpc-openapi";
+import { type OpenApiMeta } from "trpc-to-openapi";
 import { initTRPC, TRPCError } from "@trpc/server";
 
 const trpc = initTRPC.meta<OpenApiMeta>()

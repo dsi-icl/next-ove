@@ -8,7 +8,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
-        "commands": ["export NODE_ENV=production", "npm run db sync"]
+        "commands": ["npm run db sync"]
       }
     },
     "make": {
@@ -34,6 +34,9 @@
       "defaultConfiguration": "production",
       "options": {
         "main": "apps/ove-core/src/main.ts",
+        "assets": [
+          "apps/ove-core/config/config.json"
+        ],
         "outputPath": "dist/apps/ove-core",
         "outputFileName": "main.js",
         "tsConfig": "apps/ove-core/tsconfig.app.json",

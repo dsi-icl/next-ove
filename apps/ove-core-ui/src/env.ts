@@ -56,7 +56,22 @@ const parsedConfig = schema.parse({
 
 const staticConfig = {
   CORE_API_VERSION: 1,
-  APP_NAME: "ove-core-ui"
+  APP_NAME: "ove-core-ui",
+  CONSTANTS: {
+    SPECIAL_FILES: {
+      CONTROLLER: "control.html",
+      ENV: "env.json"
+    },
+    STATE_TAB_TRANSITION: 100,
+    DEFAULT_STATE: "__default__",
+    NEW_STATE_PREFIX: "__new__",
+    DRAG_SENSITIVITY: {
+      X: 0.01,
+      Y: 0.02
+    },
+    NEW_PROJECT_ID_LENGTH: 32,
+    IMAGE_EXTENSION_REGEX: /.*(?:png|jpg|jpeg|PNG|JPG|JPEG)$/g
+  }
 } as const;
 
 export const env = {

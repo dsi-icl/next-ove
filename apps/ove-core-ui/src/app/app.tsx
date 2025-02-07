@@ -2,14 +2,55 @@
 
 import { env } from "../env";
 import Router from "./router";
-import { useAuth } from "../hooks";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage, Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  NavigationMenuLink,
+  Toaster
+} from "@ove/ui-base-components";
 import { api } from "../utils/api";
+import { useStore } from "../store";
 import { httpLink } from "@trpc/client";
+import { useAuth } from "../hooks/auth";
 import { Nav } from "@ove/ui-components";
+import { useNavigate } from "react-router-dom";
 import { HddStack } from "react-bootstrap-icons";
-import { NavigationMenuLink, Toaster } from "@ove/ui-base-components";
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { isError } from "@ove/ove-types";
+
+const Persona = ({ logout }: { logout: () => void }) => {
+  const user = useStore(state => state.user);
+  const navigate = useNavigate();
+  const getPendingInviteCount = api.projects.getPendingInviteCount.useQuery();
+
+  return user !== null ? <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Avatar className="mr-1 cursor-pointer">
+    <AvatarImage src={user.icon ?? undefined}
+                 alt={user.name ?? "collaborator name"} />
+    <AvatarFallback>{user.name?.charAt(0) ?? "?"}</AvatarFallback>
+    </Avatar>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent className="w-56">
+      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem className="cursor-pointer flex" onClick={() => navigate("/collaboration")}>
+        Invites
+        {getPendingInviteCount.status === "success" && !isError(getPendingInviteCount.data) ? <Badge variant="destructive" className="ml-auto">{getPendingInviteCount.data}</Badge> : null}
+      </DropdownMenuItem>
+      <DropdownMenuItem className="cursor-pointer" onClick={logout}>Log out</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu> : null;
+};
 
 export const App = () => {
   const { loggedIn, login, logout, tokens, refresh } = useAuth();
@@ -64,16 +105,12 @@ export const App = () => {
     {
       title: loggedIn ? "Logout" : "Login",
       item: loggedIn ?
-        <button onClick={() => logout()} style={{
+        <Persona logout={logout} /> :
+        <Button style={{
           color: "white",
           padding: "1rem",
           fontWeight: 700
-        }}>Logout</button> :
-        <div style={{
-          color: "white",
-          padding: "1rem",
-          fontWeight: 700
-        }}>Login</div>,
+        }}>Login</Button>,
       card: null,
       location: loggedIn ? null : "/login"
     }
@@ -136,7 +173,7 @@ export const App = () => {
     <QueryClientProvider client={queryClient}>
       <Nav icon={{ asset: `${env.BASE_URL}/logo.svg`, alt: "OVE Core Logo" }}
            content={navContent} />
-      <Router loggedIn={loggedIn} login={login} token={tokens?.access ?? ""} />
+      <Router loggedIn={loggedIn} login={login} />
       <Toaster closeButton richColors />
     </QueryClientProvider>
   </api.Provider>;

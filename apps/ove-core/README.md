@@ -8,7 +8,7 @@ well as for creating and managing visualisation projects.
 The environment configuration is located at apps/ove-core/src/config/config.json
 within the repository, or loaded into the Docker container at
 /usr/src/app/config/config.json.
-An [example configuration file](./src/config/config.example.json) is also
+An [example configuration file](config/config.example.json) is also
 provided.
 
 **Variables**

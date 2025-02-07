@@ -3,7 +3,7 @@ export type Rect = {
   height: number
 }
 
-export type Space = Rect & {
+export type Observatory = Rect & {
   columns: number
   rows: number
 }

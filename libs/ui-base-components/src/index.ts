@@ -25,3 +25,6 @@ export * from "./lib/accordion";
 export * from "./lib/sidebar";
 export * from "./lib/sheet";
 export * from "./lib/collapsible";
+export * from "./lib/textarea";
+export * from "./lib/badge";
+export * from "./lib/avatar";
