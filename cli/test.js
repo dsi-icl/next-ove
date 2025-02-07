@@ -25,11 +25,11 @@ const schemas = {
 const schema = makeSchema(schemas);
 
 const unit = () => {
-  run('npx nx run-many --target=test -- --coverage');
+  run('npx nx run-many --target=test -- --coverage', args.dryRun);
 };
 
 const integration = () => {
-  run('npx jest --coverage --config jest.integration.config.ts');
+  run('npx jest --coverage --config jest.integration.config.ts', args.dryRun);
 };
 
 const runTest = args => {

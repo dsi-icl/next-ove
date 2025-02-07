@@ -91,7 +91,7 @@ const schema = makeSchema(schemas, refinements);
 
 const mock = args => {
   const mock = path.join(__dirname, '..', 'dev', 'testing', `mock-${args.component}.js`);
-  run(`node ${mock}`);
+  run(`node ${mock}`, args.dryRun);
 };
 
 const build = args => {
@@ -103,10 +103,10 @@ const build = args => {
   switch (args.component) {
     case 'client':
     case 'bridge':
-      run(`${path.join(toolDir, `build-${args.component}.sh`)} --arch=${args.arch}${platform}`);
+      run(`${path.join(toolDir, `build-${args.component}.sh`)} --arch=${args.arch}${platform}`, args.dryRun);
       break;
     case 'core':
-      run(`${path.join(toolDir, `build-core.sh`)} --version=${args.version}${platform}`);
+      run(`${path.join(toolDir, `build-core.sh`)} --version=${args.version}${platform}`, args.dryRun);
       break;
   }
 };
@@ -116,20 +116,20 @@ const services = args => {
   const populate = path.join(__dirname, '..', 'dev', 'cli', 'auto-populate', 'auto-populate.js');
   switch (args.action) {
     case 'start':
-      run(`cd ${composeDir} && docker compose up -d`);
+      run(`cd ${composeDir} && docker compose up -d`, args.dryRun);
       break;
     case 'stop':
-      run(`cd ${composeDir} && docker compose down`);
+      run(`cd ${composeDir} && docker compose down`, args.dryRun);
       break;
     case 'populate':
-      run(`node ${populate}`);
+      run(`node ${populate}`, args.dryRun);
       break;
   }
 };
 
-const tools = args => run(supportedTools[args.name](args));
+const tools = args => run(supportedTools[args.name](args), args.dryRun);
 
-const patch = args => run(activePatches[args.name](args));
+const patch = args => run(activePatches[args.name](args), args.dryRun);
 
 const deploy = args => {
   let asset = '';
@@ -142,7 +142,7 @@ const deploy = args => {
     screens = args.screens.split(',').map((screen, i) => ` --screen${i + 1}=${screen}`);
   }
 
-  run(`${script} --version=${args.version} --target=${args.target}${screens}${asset}`);
+  run(`${script} --version=${args.version} --target=${args.target}${screens}${asset}`, args.dryRun);
 };
 
 const runDev = args => {

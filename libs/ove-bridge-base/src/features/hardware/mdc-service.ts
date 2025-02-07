@@ -7,7 +7,7 @@ import {
   MDCSourceSchema
 } from "@ove/ove-types";
 import { z } from "zod";
-import { env } from "../../../../env";
+import { env } from "../../env";
 import * as mdc from "@ove/mdc-control";
 import { statusOptions } from "../../utils/status";
 
@@ -23,7 +23,7 @@ const reboot = async (
 
   return mdc.setPower({
     id: 0x01,
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     ip,
     ac: ac?.(),
     port
@@ -42,7 +42,7 @@ const shutdown = async (
 
   return mdc.setPower({
     id: 0x01,
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     ip,
     ac: ac?.(),
     port
@@ -61,7 +61,7 @@ const start = async (
 
   return mdc.setPower({
     id: 0x01,
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     ip,
     ac: ac?.(),
     port
@@ -80,7 +80,7 @@ const getInfo = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.getInfo({
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     id: 0x01,
     ip,
     ac: ac?.(),
@@ -100,7 +100,7 @@ const getStatus = async (
 
   return statusOptions(async () =>
     mdc.getStatus({
-      timeout: env.MDC_TIMEOUT,
+      timeout: env!.MDC_TIMEOUT,
       id: 0x01,
       ip,
       ac: ac?.(),
@@ -119,7 +119,7 @@ const mute = async ({
 
   return mdc.setIsMute({
     id: 0x01,
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     ip,
     ac: ac?.(),
     port
@@ -138,7 +138,7 @@ const unmute = async (
 
   return mdc.setIsMute({
     id: 0x01,
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     ip,
     ac: ac?.(),
     port
@@ -158,7 +158,7 @@ const setVolume = async (
   return mdc
     .setVolume({
       id: 0x01,
-      timeout: env.MDC_TIMEOUT,
+      timeout: env!.MDC_TIMEOUT,
       ip,
       ac: ac?.(),
       port
@@ -178,7 +178,7 @@ const setSource = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setSource({
-    timeout: env.MDC_TIMEOUT,
+    timeout: env!.MDC_TIMEOUT,
     id: 0x01,
     ip,
     ac: ac?.(),

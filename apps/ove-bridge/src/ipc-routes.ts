@@ -25,7 +25,8 @@ export const inboundChannels: InboundAPIChannels = {
   getReconciliation: "get-reconciliation",
   refreshReconciliation: "refresh-reconciliation",
   startReconciliation: "start-reconciliation",
-  stopReconciliation: "stop-reconciliation"
+  stopReconciliation: "stop-reconciliation",
+  setMode: "set-mode"
 };
 
 export type InboundAPIChannels = {

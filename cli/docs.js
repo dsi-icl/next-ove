@@ -64,7 +64,7 @@ const code = args => {
   [
     `mkdir -p ${outDir}`,
     `cd ${rootDir} && npx jsdoc ${input} -c ${config}`
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const types = args => {
@@ -76,7 +76,7 @@ const types = args => {
   [
     `mkdir -p ${outDir}`,
     `cd ${rootDir} && npx typedoc --options ${config} --tsconfig ${tsConfig}`
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const build = args => {
@@ -191,7 +191,7 @@ const build = args => {
     ...buildAPIs(),
     ...buildCoverage(),
     ...buildFeatures()
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const api = args => {
@@ -204,12 +204,12 @@ const api = args => {
     `mkdir -p "${outDir}"`,
     `npx tsx ${core} ${outDir} --configFile="${coreConfig}"`,
     `npx tsx ${client} ${outDir} --configFile="${clientConfig}"`
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const show = () => {
   const docsDir = path.join(__dirname, '..', 'apps', 'ove-docs');
-  run(`cd ${docsDir} && node server.js`);
+  run(`cd ${docsDir} && node server.js`, args.dryRun);
 };
 
 const runDocumentation = args => {

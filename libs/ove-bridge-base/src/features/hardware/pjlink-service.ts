@@ -10,7 +10,7 @@ import {
   type TBridgeServiceArgs
 } from "@ove/ove-types";
 import { z } from "zod";
-import { env } from "../../../../env";
+import { env } from "../../env";
 import { raise } from "@ove/ove-utils";
 import * as PJLink from "@ove/pjlink-control";
 import { statusOptions } from "../../utils/status";
@@ -23,14 +23,14 @@ const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">,
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   }, PJLink.POWER.OFF);
   return await new Promise<boolean>(resolve =>
     setTimeout(async () => {
       await PJLink.setPower({
-        timeout: env.PJLINK_TIMEOUT,
+        timeout: env!.PJLINK_TIMEOUT,
         device,
         ac: ac?.()
       }, PJLink.POWER.ON);
@@ -50,7 +50,7 @@ const shutdown = async (
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   }, PJLink.POWER.OFF);
@@ -66,7 +66,7 @@ const start = async (device: Device, args: TBridgeServiceArgs<"start">,
 
   const response = await PJLink
     .setPower({
-      timeout: env.PJLINK_TIMEOUT,
+      timeout: env!.PJLINK_TIMEOUT,
       device,
       ac: ac?.()
     }, PJLink.POWER.ON);
@@ -90,67 +90,67 @@ const getInfo = async (
   if (!parsedOpts.success) return undefined;
 
   const info = await PJLink.getInfo({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const source = await PJLink.getInput({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const power = await PJLink.getPower({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const pjlinkClass = await PJLink.getClass({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const isMuted = await PJLink.getIsMuted({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const isAudioMuted = await PJLink.getIsAudioMuted({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const isVideoMuted = await PJLink.getIsVideoMuted({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const errors = await PJLink.getErrors({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const lamp = await PJLink.getLamp({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const name = await PJLink.getName({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const manufacturer = await PJLink.getManufacturer({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const product = await PJLink.getProduct({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
   const sources = await PJLink.getInputs({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
@@ -202,7 +202,7 @@ const getStatus = async (
 
   return statusOptions(async () => {
     const res = await PJLink.getPower({
-      timeout: env.PJLINK_TIMEOUT,
+      timeout: env!.PJLINK_TIMEOUT,
       device,
       ac: ac?.()
     });
@@ -226,7 +226,7 @@ const setSource = async (
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.setInput({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   }, PJLink.INPUT[parsedOpts.data.source], parsedOpts.data.channel);
@@ -244,7 +244,7 @@ const mute = async (device: Device, args: TBridgeServiceArgs<"mute">,
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.mute({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
@@ -262,7 +262,7 @@ const unmute = async (device: Device, args: TBridgeServiceArgs<"unmute">,
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.unmute({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
@@ -283,7 +283,7 @@ const muteAudio = async (
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.muteAudio({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
@@ -304,7 +304,7 @@ const unmuteAudio = async (
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.unmuteAudio({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
@@ -325,7 +325,7 @@ const muteVideo = async (
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.muteVideo({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });
@@ -346,7 +346,7 @@ const unmuteVideo = async (
   if (!parsedOpts.success) return undefined;
 
   const response = await PJLink.unmuteVideo({
-    timeout: env.PJLINK_TIMEOUT,
+    timeout: env!.PJLINK_TIMEOUT,
     device,
     ac: ac?.()
   });

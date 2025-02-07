@@ -10,14 +10,14 @@ import {
 import { z } from "zod";
 import * as ws from "ws";
 import fetch from "node-fetch";
-import { env } from "../../../../env";
-import { wake } from "../../utils/wol";
+import { env } from "../../env";
 import { statusOptions } from "../../utils/status";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 // IGNORE PATH - as importing only type, will not trigger full import on build
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import type { AppRouter } from "../../../../../../ove-client/src/server/router";
+import type { AppRouter } from "../../../../../apps/ove-client/src/server/router";
 import { Json, raise } from "@ove/ove-utils";
+import { execSync } from "child_process";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalAny = global as any;
@@ -37,10 +37,10 @@ export const createClient = (
   createTRPCProxyClient<AppRouter>({
     links: [
       httpLink({
-        url: `${device.protocol}://${device.ip}:${device.port}/api/v${env.CLIENT_API_VERSION}/trpc`,
+        url: `${device.protocol}://${device.ip}:${device.port}/api/v${env!.CLIENT_API_VERSION}/trpc`,
         headers: () => {
           return {
-            Authorization: fixedEncodeURIComponent(`Bearer ${env.PUBLIC_KEY}`)
+            Authorization: fixedEncodeURIComponent(`Bearer ${env!.PUBLIC_KEY}`)
           };
         }
       })
@@ -55,7 +55,7 @@ const reboot = async (device: Device, args: TBridgeServiceArgs<"reboot">,
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).reboot.mutate(
@@ -78,7 +78,7 @@ const shutdown = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).shutdown.mutate(
@@ -90,17 +90,13 @@ const shutdown = async (
   }
 };
 
-const start = async (device: Device, args: TBridgeServiceArgs<"start">,
-  ac?: () => AbortController) => {
-  const startOptsSchema = z.object({}).strict();
-  const parsedOpts = startOptsSchema.safeParse(args);
-
-  if (!parsedOpts.success) return undefined;
-
-  const controller = ac?.() ?? new AbortController();
-
+const start = async (device: Device, _args: TBridgeServiceArgs<"start">,
+  _ac?: () => AbortController) => {
   try {
-    return wake(device.mac, env.NODE_TIMEOUT, undefined, controller);
+    if (env!.START_NODE_COMMAND !== undefined) {
+      execSync(env!.START_NODE_COMMAND.replaceAll("%MAC%", device.mac).replaceAll("%BROADCAST%", env!.WOL_ADDRESS ?? "192.168.255.255"));
+    }
+    return true;
   } catch (e) {
     return raise(Json.stringify(e));
   }
@@ -114,7 +110,7 @@ const getInfo = async (device: Device, args: TBridgeServiceArgs<"getInfo">,
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).getInfo.query(
@@ -137,7 +133,7 @@ const getStatus = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return statusOptions(() => createClient(device).getStatus.query(
@@ -157,7 +153,7 @@ const execute = async (device: Device, args: TBridgeServiceArgs<"execute">,
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).execute.mutate(
@@ -184,7 +180,7 @@ const screenshot = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).screenshot.mutate(
@@ -208,7 +204,7 @@ const openBrowsers = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).openBrowsers.mutate(
@@ -231,7 +227,7 @@ const closeBrowsers = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).closeBrowsers.mutate(
@@ -254,7 +250,7 @@ const reloadBrowser = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).reloadBrowser.mutate(
@@ -277,7 +273,7 @@ const reloadBrowsers = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).reloadBrowsers.mutate(
@@ -302,7 +298,7 @@ const setWindowConfig = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).setWindowConfig.mutate(
@@ -325,7 +321,7 @@ const getWindowConfig = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).getWindowConfig.query(
@@ -348,7 +344,7 @@ const getBrowsers = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.NODE_TIMEOUT);
+  setTimeout(() => controller.abort(), env!.NODE_TIMEOUT);
 
   try {
     return createClient(device).getBrowsers.query(

@@ -1,6 +1,6 @@
 /* global clearInterval, NodeJS, setInterval */
 
-import { env, logger } from "../../../../env";
+import { env, logger } from "../../env";
 import { service } from "./reconciliation-service";
 
 let interval: NodeJS.Timeout | null = null;
@@ -8,7 +8,7 @@ let interval: NodeJS.Timeout | null = null;
 const reconcile = async () => {
   service.cancel();
   service.update();
-  await Promise.all(env.HARDWARE.flatMap(device => {
+  await Promise.all(env!.HARDWARE.flatMap(device => {
     const callbacks: Promise<void>[] = [];
 
     switch (device.type) {
@@ -39,15 +39,15 @@ const reconcile = async () => {
 };
 
 export const startReconciliation = () => {
-  logger.info("Starting reconciliation");
+  logger!.info("Starting reconciliation");
 
   if (interval !== null) throw new Error("Reconciliation already in progress");
   service.init();
-  interval = setInterval(reconcile, env.RECONCILIATION_TIMEOUT);
+  interval = setInterval(reconcile, env!.RECONCILIATION_TIMEOUT);
 };
 
 export const stopReconciliation = () => {
-  logger.info("Stopping reconciliation");
+  logger!.info("Stopping reconciliation");
 
   if (interval === null) throw new Error("Reconciliation already stopped");
   service.cancel();

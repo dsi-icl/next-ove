@@ -45,22 +45,22 @@ const schema = makeSchema(schemas);
 const show = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
 
-  run(`cd ${dbDir} && npx prisma studio --schema=${schema}`);
+  run(`cd ${dbDir} && npx prisma studio --schema=${schema}`, args.dryRun);
 };
 
 const sync = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma generate --schema=${schema}`);
+  run(`cd ${dbDir} && npx prisma generate --schema=${schema}`, args.dryRun);
 };
 
 const push = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma db push --schema=${schema}`);
+  run(`cd ${dbDir} && npx prisma db push --schema=${schema}`, args.dryRun);
 };
 
 const pull = schema => {
   const dbDir = path.join(__dirname, '..', 'tools', 'db');
-  run(`cd ${dbDir} && npx prisma db pull --schema=${schema}`);
+  run(`cd ${dbDir} && npx prisma db pull --schema=${schema}`, args.dryRun);
 };
 
 const user = args => {
@@ -74,7 +74,7 @@ const user = args => {
       throw new Error('Unknown action');
   }
 
-  run(`node ${script}`);
+  run(`node ${script}`, args.dryRun);
 };
 
 const runDB = args => {

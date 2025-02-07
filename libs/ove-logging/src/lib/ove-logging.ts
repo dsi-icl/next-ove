@@ -45,10 +45,12 @@ export const Logger = (
 
     if (loggingServerURL !== undefined) {
       // fails silently
-      fetch(loggingServerURL, {
-        method: "POST",
-        body: message.join(" ")
-      }).catch();
+      try {
+        fetch(loggingServerURL, {
+          method: "POST",
+          body: message.join(" ")
+        }).catch();
+      } catch (e) {}
     }
 
     switch (level.consoleLogger) {

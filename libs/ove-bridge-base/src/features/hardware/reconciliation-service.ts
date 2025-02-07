@@ -1,13 +1,13 @@
 /* global AbortController */
 
 import {
-  Device, isError, MDCSource, PJLinkSource,
-  StatusOptions,
-  TBridgeHardwareService
+  type Device, isError, type MDCSource, type PJLinkSource,
+  type StatusOptions,
+  type TBridgeHardwareService
 } from "@ove/ove-types";
 import { assert, recordEquals } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
-import { env } from "../../../../env";
+import { env } from "../../env";
 
 type ReconciliationStateValue<T> = { state: T | null, ac: AbortController }
 type ReconciliationStateMember<T> = Map<string, ReconciliationStateValue<T>>
@@ -37,10 +37,12 @@ const state: ReconciliationState = {
 const init = () => {
   cancel();
 
-  for (const device of env.HARDWARE) {
+  for (const device of env!.HARDWARE) {
     for (const key of Object.keys(state)) {
       state[key as keyof ReconciliationState].set(device.id, {
+        // @ts-ignore
         state: null,
+        // @ts-ignore
         ac: createAC(device, state[key as keyof ReconciliationState])
       });
     }
@@ -49,7 +51,7 @@ const init = () => {
 
 const update = () => {
   const cur = new Set(state.status.keys());
-  const next = new Set(env.HARDWARE.map(({ id }) => id));
+  const next = new Set(env!.HARDWARE.map(({ id }) => id));
 
   for (const deviceId of cur.difference(next)) {
     for (const key of Object.keys(state)) {
@@ -61,7 +63,9 @@ const update = () => {
   for (const deviceId of next.difference(cur)) {
     for (const key of Object.keys(state)) {
       state[key as keyof ReconciliationState].set(deviceId, {
+        // @ts-ignore
         state: null,
+        // @ts-ignore
         ac: getACByID(deviceId, state[key as keyof ReconciliationState])
       });
     }

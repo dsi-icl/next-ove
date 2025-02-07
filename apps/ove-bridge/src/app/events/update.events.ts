@@ -1,14 +1,14 @@
 /* global process */
 // noinspection DuplicatedCode
 
-import { logger } from "../../env";
+import { logger } from "@ove/ove-bridge-base";
 import { Json } from "@ove/ove-utils";
 import { app, dialog } from "electron";
 import { autoUpdater } from "electron-updater";
 
 export default () => {
   if (!app.isPackaged) {
-    return () => logger.info("Auto update skipped");
+    return () => logger!.info("Auto update skipped");
   }
 
   autoUpdater.on("update-downloaded", info => {
@@ -30,25 +30,25 @@ export default () => {
   });
 
   autoUpdater.on("checking-for-update", () => {
-    logger.info("Checking for updates...\n");
+    logger!.info("Checking for updates...\n");
   });
 
   autoUpdater.on("update-available", () => {
-    logger.info("New update available!\n");
+    logger!.info("New update available!\n");
   });
 
   autoUpdater.on("update-not-available", () => {
-    logger.info("Up to date!\n");
+    logger!.info("Up to date!\n");
   });
 
   autoUpdater.on("error", message => {
-    logger.error("There was a problem updating the application");
-    logger.error(message, "\n");
+    logger!.error("There was a problem updating the application");
+    logger!.error(message, "\n");
   });
   return () =>
     autoUpdater
       .checkForUpdates()
       .then(info =>
-        logger.info(`Updating: ${Json.stringify(info?.updateInfo)}`)
+        logger!.info(`Updating: ${Json.stringify(info?.updateInfo)}`)
       );
 };

@@ -9,7 +9,7 @@ import {
   type TBridgeRoutesSchema
 } from "@ove/ove-types";
 import { z } from "zod";
-import { env, logger } from "../../../../env";
+import { env, logger } from "../../env";
 import { service as ReconciliationService } from "./reconciliation-service";
 import { raise, assert, Json } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
@@ -20,13 +20,13 @@ export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
   return (response: z.infer<TBridgeRoutesSchema[Key]["client"]>) =>
     cb({
       response: response,
-      meta: { bridge: assert(env.BRIDGE_NAME) }
+      meta: { bridge: assert(env!.BRIDGE_NAME) }
     });
 };
 
 export const getDevices = async (tag?: string) => {
   const devices =
-    env.HARDWARE.filter(({ tags }) =>
+    env!.HARDWARE.filter(({ tags }) =>
       tag === undefined || tags.includes(tag));
 
   if (devices.length === 0) {
@@ -38,7 +38,7 @@ export const getDevices = async (tag?: string) => {
 };
 
 export const getDevice = async (deviceId: string) => {
-  const device = env.HARDWARE.find(({ id }) => deviceId === id);
+  const device = env!.HARDWARE.find(({ id }) => deviceId === id);
 
   if (device === undefined) {
     return raise(`No device found with id: ${deviceId}`);
@@ -82,7 +82,7 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
 ) => {
-  logger.info(`Handling: ${k}`);
+  logger!.info(`Handling: ${k}`);
   const callback = wrapCallback(cb);
   const device = await getDevice(args.deviceId);
 
@@ -102,7 +102,7 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
       device
     );
   } catch (e) {
-    logger.error(e);
+    logger!.error(e);
     callback(raise(`Failed to handle ${k}`));
     return;
   }
@@ -121,7 +121,7 @@ export const multiDeviceHandler =
     args: z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>,
     cb: (response: z.infer<TBridgeRoutesSchema[`${Key}All`]["bridge"]>) => void
   ) => {
-    logger.info(`Handling: ${k}All`);
+    logger!.info(`Handling: ${k}All`);
     const callback = wrapCallback(cb);
     const devices = await getDevices(args.tag);
 
@@ -146,7 +146,7 @@ export const multiDeviceHandler =
         )
       );
     } catch (e) {
-      logger.error(e);
+      logger!.error(e);
       callback(raise(Json.stringify(e)));
       return;
     }

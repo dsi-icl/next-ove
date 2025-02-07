@@ -6,19 +6,19 @@ import { Json } from "@ove/ove-utils";
 import { addHours } from "date-fns/addHours";
 import { subHours } from "date-fns/subHours";
 import * as schedule from "node-schedule";
-import { env, logger } from "../../../../env";
 import { multiDeviceHandler } from "../hardware/service";
 import type { AutoSchedule, CalendarEvent } from "@ove/ove-types";
+import { env, logger } from "../../env";
 
 export const setManualSchedule = () => {
-  env.POWER_MODE = "manual";
-  schedule.gracefulShutdown().catch(logger.error);
+  env!.POWER_MODE = "manual";
+  schedule.gracefulShutdown().catch(logger!.error);
 };
 
 export const setEcoSchedule = async (
   ecoSchedule: CalendarEvent[]
 ): Promise<void> => {
-  env.POWER_MODE = "eco";
+  env!.POWER_MODE = "eco";
   const groups =
     Object.values(ecoSchedule.reduce((acc, event) => {
       const date = event.start.getDate();
@@ -45,20 +45,20 @@ export const setEcoSchedule = async (
 
   groups.forEach(({ start, end }) => {
     schedule.scheduleJob(start, () => {
-      if (process.env.NODE_ENV === "development") {
-        logger.info(`Triggered for ${start.toISOString()}`);
+      if (process.env!.NODE_ENV === "development") {
+        logger!.info(`Triggered for ${start.toISOString()}`);
       } else {
         multiDeviceHandler("start", {}, response =>
-          logger.info(`Started devices with response: 
+          logger!.info(`Started devices with response: 
           ${Json.stringify(response)}`));
       }
     });
     schedule.scheduleJob(end, () => {
-      if (process.env.NODE_ENV === "development") {
-        logger.info(`Triggered for ${end.toISOString()}`);
+      if (process.env!.NODE_ENV === "development") {
+        logger!.info(`Triggered for ${end.toISOString()}`);
       } else {
         multiDeviceHandler("shutdown", {}, response =>
-          logger.info(`Stopped devices with response: 
+          logger!.info(`Stopped devices with response: 
           ${Json.stringify(response)}`));
       }
     });
@@ -70,13 +70,13 @@ export const setAutoSchedule = async (
 ): Promise<void> => {
   let autoSchedule: AutoSchedule | undefined = autoSchedule_;
   if (autoSchedule !== undefined) {
-    env.AUTO_SCHEDULE = autoSchedule;
-    if (env.POWER_MODE !== "auto") return;
+    env!.AUTO_SCHEDULE = autoSchedule;
+    if (env!.POWER_MODE !== "auto") return;
   } else {
-    autoSchedule = env.AUTO_SCHEDULE;
+    autoSchedule = env!.AUTO_SCHEDULE;
   }
 
-  env.POWER_MODE = "auto";
+  env!.POWER_MODE = "auto";
   await schedule.gracefulShutdown();
 
   if (autoSchedule === undefined) return;
@@ -91,11 +91,11 @@ export const setAutoSchedule = async (
         hour: wakeHour,
         minute: wakeMinute
       }, () => {
-        if (process.env.NODE_ENV === "development") {
-          logger.info("Waking");
+        if (process.env!.NODE_ENV === "development") {
+          logger!.info("Waking");
         } else {
           multiDeviceHandler("shutdown", {}, response =>
-            logger.info(`Started devices with response: 
+            logger!.info(`Started devices with response: 
             ${Json.stringify(response)}`));
         }
       });
@@ -114,10 +114,10 @@ export const setAutoSchedule = async (
         minute: sleepMinute
       }, () => {
         if (process.env.NODE_ENV === "development") {
-          logger.info("Sleeping");
+          logger!.info("Sleeping");
         } else {
           multiDeviceHandler("shutdown", {}, response =>
-            logger.info(`Shutdown devices with response: 
+            logger!.info(`Shutdown devices with response: 
             ${Json.stringify(response)}`));
         }
       });

@@ -3,7 +3,7 @@
 import { join } from "path";
 import { exit } from "process";
 import { pathToFileURL } from "url";
-import { env, logger } from "../env";
+import { env, logger } from "@ove/ove-bridge-base";
 import { assert } from "@ove/ove-utils";
 import initAutoUpdate from "./events/update.events";
 import { type OutboundAPI, outboundChannels } from "../ipc-routes";
@@ -66,9 +66,9 @@ const loadErrorPage = () => {
   const formattedUrl = pathToFileURL(
     join(__dirname, "assets", "error.html")).toString();
   mainWindow?.loadURL(formattedUrl)
-    .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+    .then(() => logger!.info(`Loaded url: ${formattedUrl}`))
     .catch(reason => {
-      logger.fatal(reason);
+      logger!.fatal(reason);
       app.exit(1);
       exit(1);
     });
@@ -77,20 +77,20 @@ const loadErrorPage = () => {
 const loadMainWindow = () => {
   if (mainWindow === null) throw new Error("Main window should not be null");
   if (!application.isPackaged) {
-    const formattedUrl = `${assert(env.RENDER_CONFIG).PROTOCOL}://${assert(env.RENDER_CONFIG).HOSTNAME}:${assert(env.RENDER_CONFIG).PORT}`;
+    const formattedUrl = `${assert(env!.RENDER_CONFIG).PROTOCOL}://${assert(env!.RENDER_CONFIG).HOSTNAME}:${assert(env!.RENDER_CONFIG).PORT}`;
     mainWindow.loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+      .then(() => logger!.info(`Loaded url: ${formattedUrl}`))
       .catch(reason => {
-        logger.error(reason);
+        logger!.error(reason);
         loadErrorPage();
       });
   } else {
     const formattedUrl = pathToFileURL(
-      join(__dirname, "..", env.UI_ALIAS, "index.html")).toString();
+      join(__dirname, "..", env!.UI_ALIAS, "index.html")).toString();
     mainWindow.loadURL(formattedUrl)
-      .then(() => logger.info(`Loaded url: ${formattedUrl}`))
+      .then(() => logger!.info(`Loaded url: ${formattedUrl}`))
       .catch(reason => {
-        logger.error(reason);
+        logger!.error(reason);
         loadErrorPage();
       });
   }

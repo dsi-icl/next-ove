@@ -63,8 +63,8 @@ module.exports.handlePathname = (output, default_, suffix) => {
   }
 };
 
-module.exports.run = command => {
-  if (process.env.NODE_ENV !== 'production') {
+module.exports.run = (command, dryRun = false) => {
+  if (dryRun) {
     console.log(command);
   } else {
     try {
@@ -134,7 +134,8 @@ const defaultSchema = z.strictObject({
   __program__: z.string(),
   __entrypoint__: z.string(),
   _: z.string().array(),
-  help: z.boolean().optional()
+  help: z.boolean().optional(),
+  dryRun: z.boolean().optional()
 });
 module.exports.defaultSchema = defaultSchema;
 

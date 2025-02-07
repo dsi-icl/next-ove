@@ -24,7 +24,7 @@ const schema = makeSchema(schemas);
 
 const upload = () => {
   const fp = path.join(__dirname, '..', 'tools', 'files', 'upload.js');
-  run(`node ${fp}`);
+  run(`node ${fp}`, args.dryRun);
 };
 
 const runAnalysis = args => {

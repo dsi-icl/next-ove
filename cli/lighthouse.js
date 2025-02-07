@@ -44,11 +44,11 @@ const audit = args => {
   [
     `mkdir -p ${outDir}`,
     `node ${lighthouse} ${config}`
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const wizard = () => {
-  run("npx lhci wizard");
+  run("npx lhci wizard", args.dryRun);
 };
 
 const server = args => {
@@ -58,7 +58,7 @@ const server = args => {
   const sqlDialect = args.sqlDialect ?? 'sqlite';
   const sqlDatabasePath = handlePathname(args.sqlDatabasePath, 'tools/lighthouseci/db.sql');
 
-  run(`npx lhci server --config=${config} --port=${port} --storage.storageMethod=${storageMethod} --storage.sqlDialect=${sqlDialect} --storage.sqlDatabasePath=${sqlDatabasePath}`);
+  run(`npx lhci server --config=${config} --port=${port} --storage.storageMethod=${storageMethod} --storage.sqlDialect=${sqlDialect} --storage.sqlDatabasePath=${sqlDatabasePath}`, args.dryRun);
 };
 
 const runLighthouse = args => {

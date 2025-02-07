@@ -8,7 +8,7 @@ import {
   type THardwareServerToClientEvents
 } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
-import { env, logger } from "../../../../env";
+import { env, logger } from "../../env";
 import { io, type Socket } from "socket.io-client";
 import { startReconciliation, stopReconciliation } from "./reconciliation";
 
@@ -24,34 +24,34 @@ export const closeHardwareSocket = () => {
 };
 
 export const initHardware = () => {
-  if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  if (env.RECONCILE) {
+  if (env!.CORE_URL === undefined || env!.BRIDGE_NAME === undefined) return;
+  if (env!.RECONCILE) {
     try {
       startReconciliation();
     } catch (e) {
-      logger.info(e);
+      logger!.info(e);
     }
   } else {
     try {
       stopReconciliation();
     } catch (e) {
-      logger.info(e);
+      logger!.info(e);
     }
   }
-  socket = io(`${env.CORE_URL}/socket/hardware`, {
+  socket = io(`${env!.CORE_URL}/socket/hardware`, {
     auth: {
-      username: env.BRIDGE_NAME,
-      password: env.PUBLIC_KEY
+      username: env!.BRIDGE_NAME,
+      password: env!.PUBLIC_KEY
     },
-    path: `${env.SOCKET_PATH ?? ""}/${env.CORE_API_VERSION}`
+    path: `${env!.SOCKET_PATH ?? ""}/${env!.CORE_API_VERSION}`
   });
 
   socket.on("connect", () => {
-    logger.info(`${assert(socket).id} connected to /hardware`);
+    logger!.info(`${assert(socket).id} connected to /hardware`);
   });
 
   socket.on("disconnect", () => {
-    logger.info(`${assert(socket).id} disconnected from /hardware`);
+    logger!.info(`${assert(socket).id} disconnected from /hardware`);
   });
 
   BridgeServiceKeys.forEach(k => {
@@ -71,5 +71,5 @@ export const initHardware = () => {
   });
 
   socket.on("connect_error", err =>
-    logger.error(`connection error due to ${err.message}`));
+    logger!.error(`connection error due to ${err.message}`));
 };

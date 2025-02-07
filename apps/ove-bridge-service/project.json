@@ -1,0 +1,89 @@
+{
+  "name": "ove-bridge-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-bridge-service/src",
+  "projectType": "application",
+  "targets": {
+    "db": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["npm run db sync"]
+      }
+    },
+    "make": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "docker build --progress=plain --rm -t next-ove/bridge:latest --platform linux/amd64 -f apps/ove-bridge-service/Dockerfile ."
+        ]
+      },
+      "configurations": {
+        "arm": {
+          "commands": [
+            "docker build --progress=plain --rm -t next-ove/bridge:latest --platform linux/arm64 -f apps/ove-bridge-service/Dockerfile ."
+          ]
+        }
+      },
+      "dependsOn": ["^build"]
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "main": "apps/ove-bridge-service/src/main.ts",
+        "assets": [
+          "apps/ove-bridge-service/config/config.json"
+        ],
+        "outputPath": "dist/apps/ove-bridge-service",
+        "outputFileName": "main.js",
+        "tsConfig": "apps/ove-bridge-service/tsconfig.app.json",
+        "thirdParty": true,
+        "format": ["cjs"],
+        "external": [
+          "bcrypt"
+        ],
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "ove-bridge-service:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "ove-bridge-service:build:production"
+        }
+      },
+      "dependsOn": ["db"]
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-bridge-service/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "dependsOn": ["db"],
+      "options": {
+        "jestConfig": "apps/ove-bridge-service/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}

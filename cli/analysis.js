@@ -53,7 +53,7 @@ const bundle = args => {
       `mkdir -p ${outDir}`,
       `cd ${appDir} && npx vite-bundle-visualizer --open=${open} --output=${output}`,
       `npx rimraf ${distDir}`
-    ].forEach(run);
+    ].forEach(x => run(x, args.dryRun));
   };
 
   if (args.component === undefined) {
@@ -87,7 +87,7 @@ const packages = args => {
     `tail -n +2 ${packagesTxt} > ${packagesTxt}`,
     `npx sandworm-audit --summary -d --max-depth=3 -o ${sandwormOutput}`,
     `npx taze -l -r --ignore-paths node_modules major --sort time-desc > ${updates}`
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const css = args => {
@@ -104,7 +104,7 @@ const coverage = args => {
   [
     `mkdir -p ${outDir}`,
     `npx typescript-coverage-report -o ${outDir}`
-  ].forEach(run);
+  ].forEach(x => run(x, args.dryRun));
 };
 
 const runAnalysis = args => {

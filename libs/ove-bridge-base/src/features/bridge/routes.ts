@@ -13,27 +13,27 @@ import { io } from "socket.io-client";
 import { assert } from "@ove/ove-utils";
 import { initService } from "./service";
 import { controller } from "./controller";
-import { env, logger } from "../../../../env";
 import { initHardware } from "../hardware/hardware-controller";
+import { env, logger } from "../../env";
 
 export const initBridge = () => {
-  if (env.CORE_URL === undefined || env.BRIDGE_NAME === undefined) return;
-  setSocket(io(`${env.CORE_URL}/socket/bridge`, {
+  if (env!.CORE_URL === undefined || env!.BRIDGE_NAME === undefined) return;
+  setSocket(io(`${env!.CORE_URL}/socket/bridge`, {
     auth: {
-      username: env.BRIDGE_NAME,
-      password: env.PUBLIC_KEY
+      username: env!.BRIDGE_NAME,
+      password: env!.PUBLIC_KEY
     },
-    path: `${env.SOCKET_PATH}/${env.CORE_API_VERSION}`
+    path: `${env!.SOCKET_PATH ?? ""}/${env!.CORE_API_VERSION}`
   }));
   if (socket === null) throw new Error("ILLEGAL");
 
   socket.on("connect", () => {
-    logger.info(`${assert(socket).id} connected to /bridge`);
+    logger!.info(`${assert(socket).id} connected to /bridge`);
     socketConnectListeners.forEach(x => x());
   });
 
   socket.on("disconnect", () => {
-    logger.info(`${assert(socket).id} disconnected from /bridge`);
+    logger!.info(`${assert(socket).id} disconnected from /bridge`);
     socketDisconnectListeners.forEach(x => x());
   });
 
@@ -41,7 +41,7 @@ export const initBridge = () => {
     return ((args: TParameters<Key>, callback: TCallback<Key>) => {
       controller[k](args).then(res => {
         callback(res);
-        logger.info(`Handled: ${k}`);
+        logger!.info(`Handled: ${k}`);
       });
     }) as TSocketOutEvents[Key];
   };
@@ -51,7 +51,7 @@ export const initBridge = () => {
   });
 
   socket.on("connect_error", err =>
-    logger.error(`connection error due to ${err.message}`));
+    logger!.error(`connection error due to ${err.message}`));
 };
 
 initService(initBridge, initHardware);
