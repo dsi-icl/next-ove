@@ -1,10 +1,10 @@
-version: "3"
 services:
   ove-core:
-    image: next-ove-core:latest
+    image: next-ove/core:latest
+    platform: linux/amd64
     ports:
       - "8080:8080"
-    restart: "on-failure"
+    restart: unless-stopped
     volumes:
       - ./apps/ove-core/config.production.json:/usr/src/app/config/config.json:ro
       - ./tools/db/.env.production:/usr/src/app/.env:ro
