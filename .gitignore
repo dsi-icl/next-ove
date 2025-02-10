@@ -365,7 +365,7 @@ cython_debug/
 # Custom rules
 
 # Development configuration
-/dev/testing/data/system-info.json
+/dev/testing/data/*.json
 /dev/services/data/mongo/database
 /dev/services/data/minio/data
 /dev/services/config/mongo.keyfile
@@ -376,12 +376,14 @@ dev/tools/auto-populate/data/global_buckets/*
 !/dev/tools/auto-populate/data/global_buckets/.gitkeep
 /dev/services/config/MapLayers.json
 /dev/services/config/ove_networks_config.json
-apps/ove-logs/data/logs.db
+
+# database config
+/apps/ove-logs/data/logs.db
+/tools/db/.env.production
 
 # Core environment config
 /apps/ove-core/config/*.json
 !/apps/ove-core/config/*.example.json
-/tools/db/.env.production
 /apps/ove-core/config.production.json
 
 # Bridge service environment config
