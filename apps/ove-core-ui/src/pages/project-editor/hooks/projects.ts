@@ -57,7 +57,7 @@ export const useSave = () => {
           toast.error("Error creating project");
           return;
         }
-        let updatedProject = {
+        const updatedProject = {
           ...project, ...res.project,
           created: new Date(res.project.created),
           updated: new Date(res.project.updated)
@@ -90,7 +90,7 @@ export const useInitProject = (user: Omit<User, "password"> | null) => {
       updated: new Date(getProject.data.updated)
     });
     setIsLoading(false);
-  }, [getProject.status, getProject.data]);
+  }, [setProject, setIsLoading, getProject.status, getProject.data]);
 
   useEffect(() => {
     if (projectId !== null || user === null) return;

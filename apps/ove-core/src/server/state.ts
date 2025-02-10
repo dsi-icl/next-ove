@@ -6,38 +6,47 @@ import { raise } from "@ove/ove-utils";
 import { logger } from "../env";
 
 type ObservatoryState = {
-  project: Project
-  layout: Section[]
-  state: string
-}
+  project: Project;
+  layout: Section[];
+  state: string;
+};
 
 export const state = {
   hardwareClients: new Map<string, string>(),
   bridgeClients: new Map<string, string>(),
-  rendering: new Map<string, {
-    state: ObservatoryState | null,
-    clients: {
-      state: Map<string, { type: "controller" | "view" }>,
-      io: Namespace<{
-        setState: (state: string) => void
-      }, {
-        init: (state: ObservatoryState | null) => void
-        createSection: (section: Section) => void
-        deleteSection: (id: string) => void
-      }>
-    },
-    sections: Map<string, {
-      state: object
+  rendering: new Map<
+    string,
+    {
+      state: ObservatoryState | null;
       clients: {
-        state: Map<string, { type: "controller" | "view" }>,
-        io: Namespace<{}, {}>
-      }
-    }>
-  }>()
+        state: Map<string, { type: "controller" | "view" }>;
+        io: Namespace<
+          {
+            setState: (state: string) => void;
+          },
+          {
+            init: (state: ObservatoryState | null) => void;
+            createSection: (section: Section) => void;
+            deleteSection: (id: string) => void;
+          }
+        >;
+      };
+      sections: Map<
+        string,
+        {
+          state: object;
+          clients: {
+            state: Map<string, { type: "controller" | "view" }>;
+            io: Namespace<object, object>;
+          };
+        }
+      >;
+    }
+  >(),
 };
 
 const initSectionSockets = (observatory: string, id: string) => {
-
+  logger.info(observatory, id);
 };
 
 const initObservatorySockets = (observatory: string) => {
@@ -48,32 +57,36 @@ const initObservatorySockets = (observatory: string) => {
 
   observatoryState.clients.io.use((socket, next) => {
     const { token } = socket.handshake.auth;
-    prisma.user.findUnique({
-      where: {
-        username: observatory
-      }
-    }).then(user => {
-      if (user?.role === "bridge" && token.trim() === user.password.trim()) {
-        next();
-      } else {
-        next(new Error("UNAUTHORIZED"));
-      }
-    });
+    prisma.user
+      .findUnique({
+        where: {
+          username: observatory,
+        },
+      })
+      .then((user) => {
+        if (user?.role === "bridge" && token.trim() === user.password.trim()) {
+          next();
+        } else {
+          next(new Error("UNAUTHORIZED"));
+        }
+      });
   });
 
-  observatoryState.clients.io.on("connection", socket => {
+  observatoryState.clients.io.on("connection", (socket) => {
     logger.info(`Socket ID: ${socket.handshake.auth.username}
      connected via ${observatoryState.clients.io.name}`);
-    observatoryState.clients.state.set(socket.id, { type: socket.handshake.auth.type });
+    observatoryState.clients.state.set(socket.id, {
+      type: socket.handshake.auth.type,
+    });
     socket.emit("init", observatoryState.state);
 
-    socket.on("disconnect", reason => {
+    socket.on("disconnect", (reason) => {
       logger.info(`${socket.handshake.auth.username}
        disconnected with reason: ${reason}`);
       observatoryState.clients.state.delete(socket.id);
     });
 
-    socket.on("setState", s => {
+    socket.on("setState", (s) => {
       const observatoryState = state.rendering.get(observatory);
       if (observatoryState === undefined || observatoryState.state === null) {
         return raise("Missing observatory state");
@@ -85,14 +98,16 @@ const initObservatorySockets = (observatory: string) => {
           observatoryState.clients.io.emit("deleteSection", section.id);
           observatoryState.sections.delete(section.id);
         } else if (section.states.includes(s)) {
-          const sectionIO = SocketServer.of(`/socket/render/${observatory}/${section.id}`);
+          const sectionIO = SocketServer.of(
+            `/socket/render/${observatory}/${section.id}`,
+          );
           observatoryState.clients.io.emit("createSection", section);
           observatoryState.sections.set(section.id, {
             state: { layout: section },
             clients: {
               state: new Map(),
-              io: sectionIO
-            }
+              io: sectionIO,
+            },
           });
           initSectionSockets(observatory, section.id);
         }
@@ -108,9 +123,9 @@ prisma.user.findMany({ where: { role: "bridge" } }).then((users) => {
       state: null,
       clients: {
         state: new Map(),
-        io
+        io,
       },
-      sections: new Map()
+      sections: new Map(),
     });
     initObservatorySockets(user.username);
   }

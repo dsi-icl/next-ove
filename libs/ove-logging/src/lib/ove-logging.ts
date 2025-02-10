@@ -5,27 +5,25 @@ import { format } from "date-fns/format";
 import { default as Constants } from "./constants";
 
 export type LogLevel = {
-  name: string
-  consoleLogger: string
-  level: number
+  name: string;
+  consoleLogger: string;
+  level: number;
   label: {
-    bgColor: string
-    color: string
-  }
-}
+    bgColor: string;
+    color: string;
+  };
+};
 
 export const Logger = (
   name?: string,
   logLevel?: number,
-  loggingServerURL?: string
+  loggingServerURL?: string,
 ) => {
   const logLevel_ = logLevel ?? Constants.DEFAULT_LOG_LEVEL;
   const name_: string = name ?? Constants.UNKNOWN_APP_ID;
 
-  const getLogLabel = (logLevel: LogLevel) => chalk
-    .bgHex(logLevel.label.bgColor)
-    .hex(logLevel.label.color)
-    .bold;
+  const getLogLabel = (logLevel: LogLevel) =>
+    chalk.bgHex(logLevel.label.bgColor).hex(logLevel.label.color).bold;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buildLogMessage = (logLevel: LogLevel, ...args: any[]): string[] => {
@@ -33,8 +31,9 @@ export const Logger = (
     const logLabel = getLogLabel(logLevel)(`[${logLevel.name}]`);
     const date = format(new Date(), "dd/MM/yyyy, HH:mm:ss");
     const paddedName = name_.padEnd(Constants.APP_LOG_ID_WIDTH);
-    return [whitespace + logLabel, date, "-", paddedName, ":"]
-      .concat(Object.values(args));
+    return [whitespace + logLabel, date, "-", paddedName, ":"].concat(
+      Object.values(args),
+    );
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,9 +47,11 @@ export const Logger = (
       try {
         fetch(loggingServerURL, {
           method: "POST",
-          body: message.join(" ")
+          body: message.join(" "),
         }).catch();
-      } catch (e) {}
+      } catch (_e) {
+        // DO NOTHING
+      }
     }
 
     switch (level.consoleLogger) {
@@ -84,8 +85,8 @@ export const Logger = (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     debug: (...args: any[]) => log(Constants.LogLevels["debug"], ...args),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    trace: (...args: any[]) => log(Constants.LogLevels["trace"], ...args)
+    trace: (...args: any[]) => log(Constants.LogLevels["trace"], ...args),
   };
 };
 
-export type TLogger = ReturnType<typeof Logger>
+export type TLogger = ReturnType<typeof Logger>;

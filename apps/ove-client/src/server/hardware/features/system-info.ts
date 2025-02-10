@@ -121,7 +121,9 @@ const docker = async () => {
     images: await si.dockerImages(),
     containers,
     containerStats: await si.dockerContainerStats(),
-    containerProcesses: await Promise.all(containers.flatMap(async container => (await si.dockerContainerProcesses(container.id)).map(process => ({id: container.id, ...process})))),
+    containerProcesses: await Promise.all(containers.flatMap(async container =>
+      (await si.dockerContainerProcesses(container.id))
+        .map(process => ({ id: container.id, ...process })))),
     volumes: await si.dockerVolumes(),
     type: "docker" as const
   });

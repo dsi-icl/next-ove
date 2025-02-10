@@ -7,11 +7,11 @@
 import App from "../app";
 import {
   logger,
-  service,
   registerSocketConnectedListener,
-  registerSocketDisconnectListener
+  registerSocketDisconnectListener,
+  service,
 } from "@ove/ove-bridge-base";
-import { Json } from "@ove/ove-utils";
+import { assert, Json } from "@ove/ove-utils";
 import * as schedule from "node-schedule";
 import type { InboundAPI } from "@ove/ove-types";
 import { inboundChannels } from "../../ipc-routes";
@@ -23,25 +23,29 @@ process.on("SIGINT", () => {
   schedule.gracefulShutdown().then(() => process.exit(0));
 });
 
-const IPCService: InboundAPI = Object.entries(service)
-  .reduce((acc, [k, route]) => {
+const IPCService: InboundAPI = Object.entries(service).reduce(
+  (acc, [k, route]) => {
     acc[k] = async (args: Parameters<typeof route>[0]) => {
-      logger!.info(`Handling: ${k}`);
+      assert(logger).info(`Handling: ${k}`);
       // @ts-expect-error – arg spread
       const res = await route(args);
-      return Array.isArray(res) || typeof res === "object" ?
-        Json.copy(res) : res; // fixes error with IPC memory allocation
+      return Array.isArray(res) || typeof res === "object"
+        ? Json.copy(res)
+        : res; // fixes error with IPC memory allocation
     };
     return acc;
-  }, <{ [key: string]: unknown }>{}) as InboundAPI;
+  },
+  <{ [key: string]: unknown }>{},
+) as InboundAPI;
 
-(Object.keys(inboundChannels) as Array<keyof InboundAPI>).forEach(k => {
+(Object.keys(inboundChannels) as Array<keyof InboundAPI>).forEach((k) => {
   ipcMain.handle(inboundChannels[k], (_event, ...args) =>
     // !Important: This will not error as correctly typed on client,
     // pass-through is allowed
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    IPCService[k](...args));
+    IPCService[k](...args),
+  );
 });
 
 registerSocketConnectedListener(() => App.triggerIPC.socketConnect());

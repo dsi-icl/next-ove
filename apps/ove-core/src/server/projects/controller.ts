@@ -15,7 +15,7 @@ import { type DataTypes, isError } from "@ove/ove-types";
 import type {
   Controller,
   DataFormatConfigOptions,
-  InviteStatus
+  InviteStatus,
 } from "./router";
 import type { PrismaClient, Project, Section } from "@prisma/client";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
@@ -25,8 +25,8 @@ import "@total-typescript/ts-reset";
 const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUnique({
     where: {
-      username
-    }
+      username,
+    },
   });
 
   const projects = await prisma.project.findMany({
@@ -36,112 +36,128 @@ const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
           invites: {
             some: {
               recipientId: assert(user).id,
-              status: "accepted"
-            }
-          }
+              status: "accepted",
+            },
+          },
         },
         {
-          creatorId: assert(user).id
+          creatorId: assert(user).id,
         },
         {
-          isPublic: true
-        }
-      ]
+          isPublic: true,
+        },
+      ],
     },
     include: {
-      invites: true
-    }
+      invites: true,
+    },
   });
-  return projects.map(({ invites, ...project }) => project);
+  return projects.map(({ invites: _invites, ...project }) => project);
 };
 
 const getProject = async (
   prisma: PrismaClient,
   username: string,
-  id: string
+  id: string,
 ) => {
   if (id.length === 32) return null;
   const user = await prisma.user.findUnique({ where: { username } });
 
-  const { invites, ...project } = await prisma.project.findUniqueOrThrow({
-    where: {
-      id,
-      OR: [{
-        invites: {
-          some: {
-            recipientId: assert(user).id,
-            status: "accepted"
-          }
-        }
-      }, {
-        creatorId: assert(user).id
-      }, { isPublic: true }]
-    },
-    include: {
-      invites: true
-    }
-  });
+  const { invites: _invites, ...project } =
+    await prisma.project.findUniqueOrThrow({
+      where: {
+        id,
+        OR: [
+          {
+            invites: {
+              some: {
+                recipientId: assert(user).id,
+                status: "accepted",
+              },
+            },
+          },
+          {
+            creatorId: assert(user).id,
+          },
+          { isPublic: true },
+        ],
+      },
+      include: {
+        invites: true,
+      },
+    });
   return project;
 };
 
 const getTags = async (prisma: PrismaClient) => {
-  const projects = await prisma.project.findMany({select: {tags: true}});
-  return projects.flatMap(({tags}) => tags);
+  const projects = await prisma.project.findMany({ select: { tags: true } });
+  return projects.flatMap(({ tags }) => tags);
 };
 
 const getPublications = async (prisma: PrismaClient) => {
-  const projects = await prisma.project.findMany({select: {publications: true}});
-  return projects.flatMap(({publications}) => publications);
+  const projects = await prisma.project.findMany({
+    select: { publications: true },
+  });
+  return projects.flatMap(({ publications }) => publications);
 };
 
-const getUsers = async (prisma: PrismaClient) => prisma.user.findMany({
-  select: {
-    email: true,
-    icon: true,
-    id: true,
-    name: true,
-    role: true,
-    username: true
-  },
-  where: {
-    NOT: {
-      role: "bridge"
-    }
-  }
-});
+const getUsers = async (prisma: PrismaClient) =>
+  prisma.user.findMany({
+    select: {
+      email: true,
+      icon: true,
+      id: true,
+      name: true,
+      role: true,
+      username: true,
+    },
+    where: {
+      NOT: {
+        role: "bridge",
+      },
+    },
+  });
 
-const getCollaboratorsForProject = async (prisma: PrismaClient, projectId: string) => {
+const getCollaboratorsForProject = async (
+  prisma: PrismaClient,
+  projectId: string,
+) => {
   if (projectId.length === 32) return [];
   const raw = await prisma.invite.findMany({
     where: {
-      projectId
+      projectId,
     },
     include: {
-      recipient: true
-    }
+      recipient: true,
+    },
   });
-  const creator = (await prisma.project.findUniqueOrThrow({
-    where: {
-      id: projectId
-    },
-    include: {
-      creator: true
-    }
-  })).creator;
+  const creator = (
+    await prisma.project.findUniqueOrThrow({
+      where: {
+        id: projectId,
+      },
+      include: {
+        creator: true,
+      },
+    })
+  ).creator;
 
-  return [...raw.map(invite => ({
-    status: invite.status as InviteStatus,
-    id: invite.recipient.id,
-    name: invite.recipient.name,
-    icon: invite.recipient.icon,
-    email: invite.recipient.email
-  })), {
-    status: "creator" as const,
-    id: creator.id,
-    name: creator.name,
-    icon: creator.icon,
-    email: creator.email
-  }];
+  return [
+    ...raw.map((invite) => ({
+      status: invite.status as InviteStatus,
+      id: invite.recipient.id,
+      name: invite.recipient.name,
+      icon: invite.recipient.icon,
+      email: invite.recipient.email,
+    })),
+    {
+      status: "creator" as const,
+      id: creator.id,
+      name: creator.name,
+      icon: creator.icon,
+      email: creator.email,
+    },
+  ];
 };
 
 const createProject = async (
@@ -150,12 +166,12 @@ const createProject = async (
   username: string,
   project: Pick<Project, "title"> | undefined,
   layout: Omit<Section, "id" | "projectId">[] | undefined,
-  files: string[] | undefined
+  files: string[] | undefined,
 ) => {
   const user = await prisma.user.findUnique({
     where: {
-      username
-    }
+      username,
+    },
   });
   if (user === null) {
     return raise("User cannot be null");
@@ -167,45 +183,60 @@ const createProject = async (
   const project_ = await prisma.project.create({
     data: {
       title,
-      creatorId: user.id
-    }
+      creatorId: user.id,
+    },
   });
 
   if (s3 !== null) {
     await S3Controller.createBucket(s3, titleToBucketName(title));
 
     if (files === undefined || !files.includes("env.json")) {
-      await S3Controller.uploadFile(s3,
-        titleToBucketName(title), "env.json", Json.EMPTY);
+      await S3Controller.uploadFile(
+        s3,
+        titleToBucketName(title),
+        "env.json",
+        Json.EMPTY,
+      );
     }
     if (files === undefined || !files.includes("control.html")) {
       const template = readFileSync(
-        path.join(__dirname, "assets", "control-template.html")).toString();
-      await S3Controller
-        .uploadFile(s3, titleToBucketName(title), "control.html", template);
+        path.join(__dirname, "assets", "control-template.html"),
+      ).toString();
+      await S3Controller.uploadFile(
+        s3,
+        titleToBucketName(title),
+        "control.html",
+        template,
+      );
     }
 
     if (files !== undefined) {
-      files_ = await Promise.all(files.map(file => S3Controller
-        .getPresignedPutURL(s3, titleToBucketName(title), file)));
+      files_ = await Promise.all(
+        files.map((file) =>
+          S3Controller.getPresignedPutURL(s3, titleToBucketName(title), file),
+        ),
+      );
     }
   }
 
   const layout_ = await Promise.all(
-    (layout ?? []).map(section => prisma.section.create({
-      data: {
-        width: section.width,
-        height: section.height,
-        x: section.x,
-        y: section.y,
-        asset: section.asset,
-        assetId: section.assetId,
-        dataType: section.dataType,
-        states: section.states,
-        ordering: section.ordering,
-        projectId: project_.id
-      }
-    })));
+    (layout ?? []).map((section) =>
+      prisma.section.create({
+        data: {
+          width: section.width,
+          height: section.height,
+          x: section.x,
+          y: section.y,
+          asset: section.asset,
+          assetId: section.assetId,
+          dataType: section.dataType,
+          states: section.states,
+          ordering: section.ordering,
+          projectId: project_.id,
+        },
+      }),
+    ),
+  );
 
   return { project: project_, layout: layout_, files: files_ };
 };
@@ -214,24 +245,30 @@ const saveProject = async (
   prisma: PrismaClient,
   username: string,
   project: Project,
-  layout: Section[]
+  layout: Section[],
 ) => {
   const user = await prisma.user.findUnique({
     where: {
-      username
-    }
+      username,
+    },
   });
 
   const { id, ...data } = project;
   const existing = await prisma.project.findUniqueOrThrow({
     where: {
-      id
+      id,
     },
-    include: { invites: true }
+    include: { invites: true },
   });
 
-  if (project.creatorId !== user?.id &&
-    existing.invites.find(invite => invite.recipientId === (user?.id ?? "ERROR") && invite.status === "accepted") === undefined) {
+  if (
+    project.creatorId !== user?.id &&
+    existing.invites.find(
+      (invite) =>
+        invite.recipientId === (user?.id ?? "ERROR") &&
+        invite.status === "accepted",
+    ) === undefined
+  ) {
     throw new Error("Cannot make changes to public project");
   }
 
@@ -241,13 +278,13 @@ const saveProject = async (
     if (newSectionIds.includes(sectionId)) continue;
     await prisma.section.delete({
       where: {
-        id: sectionId
-      }
+        id: sectionId,
+      },
     });
   }
 
   const layout_ = await Promise.all(
-    layout.map(async section => {
+    layout.map(async (section) => {
       if (section.id.length === 32) {
         // eslint-disable-next-line no-unused-vars
         const { id: _id, ...data } = section;
@@ -257,107 +294,133 @@ const saveProject = async (
         const { id, projectId: _projectId, ...data } = section;
         return prisma.section.update({ data, where: { id } });
       }
-    }));
+    }),
+  );
 
   const project_ = await prisma.project.update({
     data,
     where: {
-      id
-    }
+      id,
+    },
   });
 
   return { project: project_, layout: layout_ };
 };
 
 const groupBy = <T extends object>(xs: T[], key: keyof T) =>
-  xs.reduce((rv, x) => {
-    // @ts-expect-error - object keys
-    (rv[x[key]] = rv[x[key]] || []).push(x);
-    return rv;
-  }, {} as { [_Key in keyof T]: T[] });
+  xs.reduce(
+    (rv, x) => {
+      // @ts-expect-error - object keys
+      (rv[x[key]] = rv[x[key]] || []).push(x);
+      return rv;
+    },
+    {} as { [_Key in keyof T]: T[] },
+  );
 
 type RawFile = {
-  versionId: string
-  isLatest: boolean
-  lastModified: Date
-}
+  versionId: string;
+  isLatest: boolean;
+  lastModified: Date;
+};
 
 const addLatest = <T extends RawFile>(files: T[]): T[] =>
-  files.concat(files.filter(({ isLatest }) => isLatest).map(file => ({
-    ...file,
-    versionId: "latest",
-    lastModified: new Date(),
-    isLatest: false
-  })));
+  files.concat(
+    files
+      .filter(({ isLatest }) => isLatest)
+      .map((file) => ({
+        ...file,
+        versionId: "latest",
+        lastModified: new Date(),
+        isLatest: false,
+      })),
+  );
 
 const getProjectFiles = async (s3: Client, bucketName: string) => {
   const files = (await S3Controller.listObjects(s3, bucketName))
-    .filter(obj => !obj.name.includes("/") || obj.name.endsWith("dzi"))
-    .map(obj => ({
+    .filter((obj) => !obj.name.includes("/") || obj.name.endsWith("dzi"))
+    .map((obj) => ({
       ...obj,
-      name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name
+      name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name,
     }));
   return Object.values(groupBy(files, "name"))
-    .map(group => group.sort((a, b) =>
-      a.lastModified.getTime() - b.lastModified.getTime())
-      .map((file, i) => ({
-        ...file,
-        versionId: `v${i}`
-      }))).flat();
+    .map((group) =>
+      group
+        .sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime())
+        .map((file, i) => ({
+          ...file,
+          versionId: `v${i}`,
+        })),
+    )
+    .flat();
 };
 
 const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
-  (await Promise.all(env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS
-    .map(async bucket => {
-      const objects = (await S3Controller.listObjects(s3, bucket))
-        .filter(obj => !obj.name.includes("/") || obj.name.endsWith("dzi"))
-        .map(obj => ({
-          ...obj,
-          name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name
-        }));
-      return Object.values(groupBy(objects, "name"))
-        .map(group => group.sort((a, b) =>
-          a.lastModified.getTime() - b.lastModified.getTime())
-          .map((obj, i) => ({
+  (
+    await Promise.all(
+      env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS.map(async (bucket) => {
+        const objects = (await S3Controller.listObjects(s3, bucket))
+          .filter((obj) => !obj.name.includes("/") || obj.name.endsWith("dzi"))
+          .map((obj) => ({
             ...obj,
-            versionId: `v${i}`,
-            bucketName: bucket
-          }))).flat();
-    }) ?? [])).flat().map(object => ({
-    name: assert(object.name),
-    version: object.versionId,
-    isGlobal: true,
-    isLatest: object.isLatest,
-    bucketName: object.bucketName
-  }));
+            name: obj.name.includes("/") ? obj.name.split("/")[0] : obj.name,
+          }));
+        return Object.values(groupBy(objects, "name"))
+          .map((group) =>
+            group
+              .sort(
+                (a, b) => a.lastModified.getTime() - b.lastModified.getTime(),
+              )
+              .map((obj, i) => ({
+                ...obj,
+                versionId: `v${i}`,
+                bucketName: bucket,
+              })),
+          )
+          .flat();
+      }) ?? [],
+    )
+  )
+    .flat()
+    .map((object) => ({
+      name: assert(object.name),
+      version: object.versionId,
+      isGlobal: true,
+      isLatest: object.isLatest,
+      bucketName: object.bucketName,
+    }));
 
 const getFiles = async (
   prisma: PrismaClient,
   s3: Client | null,
   username: string,
-  projectId: string
+  projectId: string,
 ) => {
   const project = await getProject(prisma, username, projectId);
   if (s3 === null || project === null) return [];
   const globals = await getGlobalFiles(s3);
-  const projectFiles = addLatest(await getProjectFiles(s3,
-    titleToBucketName(project.title))).map(object => ({
-    name: assert(object.name),
-    version: object.versionId,
-    isGlobal: false,
-    isLatest: object.isLatest,
-    bucketName: titleToBucketName(project.title)
-  })).filter(({ name }) => !name.includes("OVE_FORMAT"));
+  const projectFiles = addLatest(
+    await getProjectFiles(s3, titleToBucketName(project.title)),
+  )
+    .map((object) => ({
+      name: assert(object.name),
+      version: object.versionId,
+      isGlobal: false,
+      isLatest: object.isLatest,
+      bucketName: titleToBucketName(project.title),
+    }))
+    .filter(({ name }) => !name.includes("OVE_FORMAT"));
   return globals.concat(projectFiles);
 };
 
-const getSectionsForProject = async (prisma: PrismaClient,
-  projectId: string) => {
+const getSectionsForProject = async (
+  prisma: PrismaClient,
+  projectId: string,
+) => {
   if (projectId.length === 32) return [];
   return prisma.section.findMany({
     where: {
-      projectId
-    }
+      projectId,
+    },
   });
 };
 
@@ -365,15 +428,20 @@ const getS3Version = async (
   s3: Client,
   bucketName: string,
   objectName: string,
-  versionId: string
+  versionId: string,
 ) => {
-  const files = (await Promise.all(assert(env.ASSET_STORE_CONFIG)
-    .GLOBAL_BUCKETS.concat([bucketName]).flatMap(bucket =>
-      S3Controller.listObjects(s3, bucket)))).flat().filter(file =>
-    file.name === objectName).sort((a, b) =>
-    a.lastModified.getTime() - b.lastModified.getTime());
-  const idx = versionId === "latest" ? -1 :
-    parseInt(versionId.substring(1)) - 1;
+  const files = (
+    await Promise.all(
+      assert(env.ASSET_STORE_CONFIG)
+        .GLOBAL_BUCKETS.concat([bucketName])
+        .flatMap((bucket) => S3Controller.listObjects(s3, bucket)),
+    )
+  )
+    .flat()
+    .filter((file) => file.name === objectName)
+    .sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime());
+  const idx =
+    versionId === "latest" ? -1 : parseInt(versionId.substring(1)) - 1;
   return assert(files.at(idx)).versionId;
 };
 
@@ -381,12 +449,15 @@ const getPresignedGetURL = async (
   s3: Client | null,
   bucketName: string,
   objectName: string,
-  versionId: string
+  versionId: string,
 ) => {
   if (s3 === null) return raise("No S3 store configured");
   return S3Controller.getPresignedGetURL(
-    s3, bucketName, objectName,
-    await getS3Version(s3, bucketName, objectName, versionId));
+    s3,
+    bucketName,
+    objectName,
+    await getS3Version(s3, bucketName, objectName, versionId),
+  );
 };
 
 const getPresignedPutURL = async (
@@ -394,16 +465,23 @@ const getPresignedPutURL = async (
   s3: Client | null,
   username: string,
   projectId: string,
-  objectName: string
+  objectName: string,
 ) => {
   const project = await getProject(prisma, username, projectId);
   if (project === null) return raise(`No project with id ${projectId}`);
   if (s3 === null) return raise("No S3 store configured");
-  return S3Controller.getPresignedPutURL(s3,
-    titleToBucketName(project.title), objectName);
+  return S3Controller.getPresignedPutURL(
+    s3,
+    titleToBucketName(project.title),
+    objectName,
+  );
 };
 
-const generateThumbnail = async (prisma: PrismaClient, projectId: string, tags: string[]) => {
+const generateThumbnail = async (
+  prisma: PrismaClient,
+  projectId: string,
+  tags: string[],
+) => {
   if (env.THUMBNAIL_GENERATOR === undefined) {
     return raise("Thumbnail generator not configured");
   }
@@ -411,15 +489,16 @@ const generateThumbnail = async (prisma: PrismaClient, projectId: string, tags: 
   if (project === null) return raise("Project not found");
   if (project.thumbnail !== null) return raise("Thumbnail already exists");
   const prompt = encodeURI(tags.join(" "));
-  const thumbnail = await (await fetch(
-    `${env.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`)).text();
+  const thumbnail = await (
+    await fetch(`${env.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`)
+  ).text();
   await prisma.project.update({
     data: {
-      thumbnail
+      thumbnail,
     },
     where: {
-      id: projectId
-    }
+      id: projectId,
+    },
   });
   return thumbnail;
 };
@@ -428,15 +507,17 @@ const inviteCollaborator = async (
   prisma: PrismaClient,
   projectId: string,
   sender: string,
-  recipientId: string
+  recipientId: string,
 ) => {
-  const user = await prisma.user.findUniqueOrThrow({ where: { username: sender } });
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { username: sender },
+  });
   await prisma.invite.create({
     data: {
       projectId,
       senderId: user.id,
-      recipientId
-    }
+      recipientId,
+    },
   });
   return undefined;
 };
@@ -444,13 +525,13 @@ const inviteCollaborator = async (
 const removeCollaborator = async (
   prisma: PrismaClient,
   projectId: string,
-  recipientId: string
+  recipientId: string,
 ) => {
   await prisma.invite.deleteMany({
     where: {
       recipientId,
-      projectId
-    }
+      projectId,
+    },
   });
   return undefined;
 };
@@ -463,18 +544,24 @@ const getEnv = async (
   prisma: PrismaClient,
   s3: Client | null,
   username: string,
-  projectId: string
+  projectId: string,
 ) => {
   if (s3 === null) return raise("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
   if (project === null) return raise(`No project with id ${projectId}`);
-  const url = await getPresignedGetURL(s3,
-    titleToBucketName(project.title), "env.json", "latest");
+  const url = await getPresignedGetURL(
+    s3,
+    titleToBucketName(project.title),
+    "env.json",
+    "latest",
+  );
   if (isError(url)) return url;
   const data = await (await fetch(url)).json();
-  return Object.fromEntries(Object.entries(data)
-    .filter(([k, _v]) => k.startsWith("OVE_PUBLIC_"))
-    .map(([k, v]) => [k.substring(11), v]));
+  return Object.fromEntries(
+    Object.entries(data)
+      .filter(([k, _v]) => k.startsWith("OVE_PUBLIC_"))
+      .map(([k, v]) => [k.substring(11), v]),
+  );
 };
 
 const getController = async (
@@ -483,17 +570,22 @@ const getController = async (
   username: string,
   projectId: string,
   observatory: string,
-  layout?: Section[]
+  layout?: Section[],
 ) => {
   if (s3 === null) return raise("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
   let data: string;
   if (project === null) {
     data = readFileSync(
-      path.join(__dirname, "assets", "control-template.html")).toString();
+      path.join(__dirname, "assets", "control-template.html"),
+    ).toString();
   } else {
-    const url = await getPresignedGetURL(s3,
-      titleToBucketName(project.title), "control.html", "latest");
+    const url = await getPresignedGetURL(
+      s3,
+      titleToBucketName(project.title),
+      "control.html",
+      "latest",
+    );
     if (isError(url)) return url;
     data = await (await fetch(url)).text();
   }
@@ -510,35 +602,40 @@ const getController = async (
     }
   }
 
-  data = data.replaceAll("{{OBSERVATORY}}", observatory)
+  data = data
+    .replaceAll("{{OBSERVATORY}}", observatory)
     .replaceAll("{{PROJECT_ID}}", projectId)
     .replaceAll("{{SPACE}}", observatory);
 
   const user = await prisma.user.findUnique({
     where: {
-      username
-    }
+      username,
+    },
   });
 
   if (user === null) throw new Error("Missing user");
 
   const token = await prisma.refreshToken.findUnique({
     where: {
-      userId: user.id
-    }
+      userId: user.id,
+    },
   });
 
   let dataToken = token?.token;
 
   if (token === null) {
-    const refreshToken = service.generateToken(username,
-      env.TOKENS.REFRESH.SECRET, env.TOKENS.REFRESH.ISSUER,
-      undefined, env.TOKENS.REFRESH.ISSUER);
+    const refreshToken = service.generateToken(
+      username,
+      env.TOKENS.REFRESH.SECRET,
+      env.TOKENS.REFRESH.ISSUER,
+      undefined,
+      env.TOKENS.REFRESH.ISSUER,
+    );
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
-        userId: user.id
-      }
+        userId: user.id,
+      },
     });
     dataToken = refreshToken;
   }
@@ -546,11 +643,15 @@ const getController = async (
   data = data.replaceAll("{{TOKEN}}", assert(dataToken));
 
   if (layout !== undefined) {
-    data = data.replaceAll(/project = await [^;]+/g,
-      "project = {title: \"Temp - Dev\"}");
+    data = data.replaceAll(
+      /project = await [^;]+/g,
+      'project = {title: "Temp - Dev"}',
+    );
     data = data.replaceAll(/projectEnv = [^;]+/g, "projectEnv = {}");
-    data = data.replaceAll(/project\.layouts = [^;]+/g,
-      `project.layouts = ${Json.stringify(layout, undefined, 2)}`);
+    data = data.replaceAll(
+      /project\.layouts = [^;]+/g,
+      `project.layouts = ${Json.stringify(layout, undefined, 2)}`,
+    );
   }
 
   return data;
@@ -559,19 +660,27 @@ const getController = async (
 const formatDataTable = (
   title: string,
   data: string,
-  opts: DataFormatConfigOptions
+  opts: DataFormatConfigOptions,
 ) => {
   let template = readFileSync(
-    path.join(__dirname, "assets", "table-format.html")).toString();
+    path.join(__dirname, "assets", "table-format.html"),
+  ).toString();
   if (!("tableSource" in opts)) {
     throw new Error("Missing options for data table formatting");
   }
   if (opts.tableSource === "csv" || opts.tableSource === "tsv") {
-    template = template.replaceAll("const data = null;",
-      `const data = ${JSON.stringify(data.split("\n")
-        .map(x => x.split(opts.tableSource === "csv" ? "," : "\t")))};`);
-    template = template.replaceAll("const containsHeader = true;",
-      `const containsHeader = ${opts.containsHeader ?? false};`);
+    template = template.replaceAll(
+      "const data = null;",
+      `const data = ${JSON.stringify(
+        data
+          .split("\n")
+          .map((x) => x.split(opts.tableSource === "csv" ? "," : "\t")),
+      )};`,
+    );
+    template = template.replaceAll(
+      "const containsHeader = true;",
+      `const containsHeader = ${opts.containsHeader ?? false};`,
+    );
   } else {
     template = template.replaceAll("%%DATA%%", data);
   }
@@ -583,52 +692,61 @@ const formatDataTable = (
 
 const formatJSON = (title: string, data: string) => {
   let template = readFileSync(
-    path.join(__dirname, "assets", "json-format.html")).toString();
+    path.join(__dirname, "assets", "json-format.html"),
+  ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   return template.replaceAll("%%DATA%%", data);
 };
 
 const formatGeoJSON = (title: string, data: string) => {
   let template = readFileSync(
-    path.join(__dirname, "assets", "geojson-format.json")).toString();
+    path.join(__dirname, "assets", "geojson-format.json"),
+  ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   const idx = data.indexOf(",");
   const basemap = data.substring(0, idx);
   template = template.replaceAll("%%BASEMAP%%", basemap);
-  return template.replaceAll("\"%%DATA%%\"", data.substring(idx));
+  return template.replaceAll('"%%DATA%%"', data.substring(idx));
 };
 
 const formatHTML = (title: string, data: string) => {
   let template = readFileSync(
-    path.join(__dirname, "assets", "html-format.html")).toString();
+    path.join(__dirname, "assets", "html-format.html"),
+  ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   return template.replaceAll("%%DATA%%", data);
 };
 
 const formatLatex = async (title: string, data: string) => {
   let template = readFileSync(
-    path.join(__dirname, "assets", "latex-format.html")).toString();
+    path.join(__dirname, "assets", "latex-format.html"),
+  ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.DATA_FORMATTER !== undefined) {
-    data = await (await fetch(`${env.DATA_FORMATTER}/latex`, {
-      headers: { "Content-Type": "text/plain" },
-      method: "POST",
-      body: data
-    })).text();
+    data = await (
+      await fetch(`${env.DATA_FORMATTER}/latex`, {
+        headers: { "Content-Type": "text/plain" },
+        method: "POST",
+        body: data,
+      })
+    ).text();
   }
   return template.replaceAll("%%DATA%%", data);
 };
 
 const formatMarkdown = async (title: string, data: string) => {
   let template = readFileSync(
-    path.join(__dirname, "assets", "markdown-format.html")).toString();
+    path.join(__dirname, "assets", "markdown-format.html"),
+  ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.DATA_FORMATTER !== undefined) {
-    data = await (await fetch(`${env.DATA_FORMATTER}/markdown`, {
-      headers: { "Content-Type": "text/plain" },
-      method: "POST",
-      body: data
-    })).text();
+    data = await (
+      await fetch(`${env.DATA_FORMATTER}/markdown`, {
+        headers: { "Content-Type": "text/plain" },
+        method: "POST",
+        body: data,
+      })
+    ).text();
   }
   return template.replaceAll("%%DATA%%", data);
 };
@@ -637,7 +755,7 @@ const formatData = async (
   title: string,
   dataType: DataTypes,
   data: string,
-  opts?: DataFormatConfigOptions
+  opts?: DataFormatConfigOptions,
 ) => {
   const fileParts = title.split(".");
   const fileName = `${fileParts.slice(0, -1).join(".")}_OVE_FORMAT`;
@@ -658,12 +776,12 @@ const formatData = async (
     case "latex":
       return {
         data: await formatLatex(title, data),
-        fileName: `${fileName}.html`
+        fileName: `${fileName}.html`,
       };
     case "markdown":
       return {
         data: await formatMarkdown(title, data),
-        fileName: `${fileName}.html`
+        fileName: `${fileName}.html`,
       };
     default:
       return { data, fileName: `${fileName}.${fileParts.at(-1)}` };
@@ -674,7 +792,7 @@ const formatDZI = async (
   s3: Client | null,
   bucketName: string,
   objectName: string,
-  versionId: string
+  versionId: string,
 ) => {
   if (s3 === null) return raise("No S3 store configured");
   const url = await getPresignedGetURL(s3, bucketName, objectName, versionId);
@@ -683,9 +801,9 @@ const formatDZI = async (
     return raise("No data formatter configured");
   }
   const formatter = new URL(env.DATA_FORMATTER);
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     const data = Json.stringify({
-      "get_url": url
+      get_url: url,
     });
 
     const options = {
@@ -695,38 +813,51 @@ const formatDZI = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(data)
-      }
+        "Content-Length": Buffer.byteLength(data),
+      },
     };
 
-    const req = http.request(options, res => {
-      res.pipe(unzip.Parse())
+    const req = http.request(options, (res) => {
+      res
+        .pipe(unzip.Parse())
         .on("entry", async (entry: Entry) => {
-          const dziRootName =
-            objectName.replaceAll(/(?:png|jpg|jpeg|PNG|JPEG|JPG)$/g, "dzi");
+          const dziRootName = objectName.replaceAll(
+            /(?:png|jpg|jpeg|PNG|JPEG|JPG)$/g,
+            "dzi",
+          );
           const dziObjectName = `${dziRootName}/${entry.path}`;
-          const entryURL = await S3Controller
-            .getPresignedPutURL(s3, bucketName, dziObjectName);
+          const entryURL = await S3Controller.getPresignedPutURL(
+            s3,
+            bucketName,
+            dziObjectName,
+          );
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const [size, chunks] = await new Promise<[number, any[]]>(resolve => {
-            let size = 0;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const chunks: any[] = [];
-            entry.on("data", chunk => {
-              size += chunk.length;
-              chunks.push(chunk);
-            }).on("end", () => {
-              resolve([size, chunks]);
-            });
-          });
+          const [size, chunks] = await new Promise<[number, any[]]>(
+            (resolve) => {
+              let size = 0;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const chunks: any[] = [];
+              entry
+                .on("data", (chunk) => {
+                  size += chunk.length;
+                  chunks.push(chunk);
+                })
+                .on("end", () => {
+                  resolve([size, chunks]);
+                });
+            },
+          );
           await fetch(entryURL, {
             method: "PUT",
-            body: await (new File([Buffer.from(chunks)], entry.path))
-              .arrayBuffer(),
-            headers: { "Content-Length": `${size}` }
+            body: await new File(
+              [Buffer.from(chunks)],
+              entry.path,
+            ).arrayBuffer(),
+            headers: { "Content-Length": `${size}` },
           });
-        }).on("finish", resolve);
+        })
+        .on("finish", resolve);
     });
 
     req.write(data);
@@ -735,57 +866,63 @@ const formatDZI = async (
   return undefined;
 };
 
-const getCollaborationInvites = async (prisma: PrismaClient, username: string) => {
+const getCollaborationInvites = async (
+  prisma: PrismaClient,
+  username: string,
+) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: {
-      username
-    }
+      username,
+    },
   });
 
   return prisma.invite.findMany({
     where: {
-      recipientId: user.id
+      recipientId: user.id,
     },
     include: {
-      project: true
-    }
+      project: true,
+    },
   });
 };
 
 const acceptInvite = async (prisma: PrismaClient, inviteId: string) => {
   await prisma.invite.update({
     where: {
-      id: inviteId
+      id: inviteId,
     },
     data: {
-      status: "accepted"
-    }
+      status: "accepted",
+    },
   });
 };
 
 const declineInvite = async (prisma: PrismaClient, inviteId: string) => {
   await prisma.invite.update({
     where: {
-      id: inviteId
+      id: inviteId,
     },
     data: {
-      status: "declined"
-    }
+      status: "declined",
+    },
   });
 };
 
-const getPendingInviteCount = async (prisma: PrismaClient, username: string) => {
+const getPendingInviteCount = async (
+  prisma: PrismaClient,
+  username: string,
+) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: {
-      username
-    }
+      username,
+    },
   });
 
   return prisma.invite.count({
     where: {
       recipientId: user.id,
-      status: "pending"
-    }
+      status: "pending",
+    },
   });
 };
 
@@ -813,7 +950,7 @@ const controller: Controller = {
   getCollaborationInvites,
   acceptInvite,
   declineInvite,
-  getPendingInviteCount
+  getPendingInviteCount,
 };
 
 export default controller;

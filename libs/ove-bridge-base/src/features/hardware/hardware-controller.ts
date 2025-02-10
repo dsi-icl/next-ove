@@ -1,11 +1,8 @@
-import {
-  deviceHandler,
-  multiDeviceHandler
-} from "./service";
+import { deviceHandler, multiDeviceHandler } from "./service";
 import {
   BridgeServiceKeys,
   type THardwareClientToServerEvents,
-  type THardwareServerToClientEvents
+  type THardwareServerToClientEvents,
 } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
 import { env, logger } from "../../env";
@@ -24,52 +21,60 @@ export const closeHardwareSocket = () => {
 };
 
 export const initHardware = () => {
-  if (env!.CORE_URL === undefined || env!.BRIDGE_NAME === undefined) return;
-  if (env!.RECONCILE) {
+  if (
+    assert(env).CORE_URL === undefined ||
+    assert(env).BRIDGE_NAME === undefined
+  )
+    return;
+  if (assert(env).RECONCILE) {
     try {
       startReconciliation();
     } catch (e) {
-      logger!.info(e);
+      assert(logger).info(e);
     }
   } else {
     try {
       stopReconciliation();
     } catch (e) {
-      logger!.info(e);
+      assert(logger).info(e);
     }
   }
-  socket = io(`${env!.CORE_URL}/socket/hardware`, {
+  socket = io(`${assert(env).CORE_URL}/socket/hardware`, {
     auth: {
-      username: env!.BRIDGE_NAME,
-      password: env!.PUBLIC_KEY
+      username: assert(env).BRIDGE_NAME,
+      password: assert(env).PUBLIC_KEY,
     },
-    path: `${env!.SOCKET_PATH ?? ""}/${env!.CORE_API_VERSION}`
+    path: `${assert(env).SOCKET_PATH ?? ""}/${assert(env).CORE_API_VERSION}`,
   });
 
   socket.on("connect", () => {
-    logger!.info(`${assert(socket).id} connected to /hardware`);
+    assert(logger).info(`${assert(socket).id} connected to /hardware`);
   });
 
   socket.on("disconnect", () => {
-    logger!.info(`${assert(socket).id} disconnected from /hardware`);
+    assert(logger).info(`${assert(socket).id} disconnected from /hardware`);
   });
 
-  BridgeServiceKeys.forEach(k => {
+  BridgeServiceKeys.forEach((k) => {
     const deviceHandlerInterface = (
       args: Parameters<typeof deviceHandler>[1],
-      callback: Parameters<typeof deviceHandler>[2]
+      callback: Parameters<typeof deviceHandler>[2],
     ) => deviceHandler(k, args, callback).then();
     const multiDeviceHandlerInterface = (
       args: Parameters<typeof multiDeviceHandler>[1],
-      callback: Parameters<typeof multiDeviceHandler>[2]
-    ) => multiDeviceHandler(k, args, callback)
-      .then();
-    assert(socket).on(k, deviceHandlerInterface as
-      THardwareServerToClientEvents[typeof k]);
-    assert(socket).on(`${k}All`, multiDeviceHandlerInterface as
-      THardwareServerToClientEvents[`${typeof k}All`]);
+      callback: Parameters<typeof multiDeviceHandler>[2],
+    ) => multiDeviceHandler(k, args, callback).then();
+    assert(socket).on(
+      k,
+      deviceHandlerInterface as THardwareServerToClientEvents[typeof k],
+    );
+    assert(socket).on(
+      `${k}All`,
+      multiDeviceHandlerInterface as THardwareServerToClientEvents[`${typeof k}All`],
+    );
   });
 
-  socket.on("connect_error", err =>
-    logger!.error(`connection error due to ${err.message}`));
+  socket.on("connect_error", (err) =>
+    assert(logger).error(`connection error due to ${err.message}`),
+  );
 };

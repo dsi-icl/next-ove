@@ -20,13 +20,14 @@ export const useCanvas = () => {
 
   useEffect(() => {
     const observer = new ResizeObserver(update);
+    const current = ref.current;
 
-    if (ref.current === null) return;
-    observer.observe(ref.current);
+    if (current === null) return;
+    observer.observe(current);
 
     return () => {
-      if (ref.current === null) return;
-      observer.unobserve(ref.current);
+      if (current === null) return;
+      observer.unobserve(current);
     };
   }, [update]);
 

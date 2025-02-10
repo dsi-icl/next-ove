@@ -4,7 +4,7 @@ import type { PrismaClient } from "@prisma/client";
 
 export const isAuthed = async (
   prisma: PrismaClient,
-  username: string | null
+  username: string | null,
 ): Promise<"disabled" | null | string | "unauthorised"> => {
   if (env.DISABLE_AUTH) {
     return "disabled";
@@ -15,23 +15,24 @@ export const isAuthed = async (
   }
 
   try {
-    username = (jwt.verify(username,
-      env.TOKENS.ACCESS.SECRET, {
+    username = (
+      jwt.verify(username, env.TOKENS.ACCESS.SECRET, {
         issuer: env.TOKENS.ACCESS.ISSUER,
-        audience: env.TOKENS.ACCESS.ISSUER
-      }) as unknown as { username: string }).username;
+        audience: env.TOKENS.ACCESS.ISSUER,
+      }) as unknown as { username: string }
+    ).username;
     const user = await prisma.user.findUniqueOrThrow({
       where: {
-        username
-      }
+        username,
+      },
     });
     await prisma.refreshToken.findUniqueOrThrow({
       where: {
-        userId: user.id
-      }
+        userId: user.id,
+      },
     });
     return username;
-  } catch (e) {
+  } catch (_e) {
     return "unauthorised";
   }
 };

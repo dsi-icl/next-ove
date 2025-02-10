@@ -1,27 +1,30 @@
 /* global AbortController */
 
 import {
-  type Device, isError, type MDCSource, type PJLinkSource,
+  type Device,
+  isError,
+  type MDCSource,
+  type PJLinkSource,
   type StatusOptions,
-  type TBridgeHardwareService
+  type TBridgeHardwareService,
 } from "@ove/ove-types";
 import { assert, recordEquals } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
 import { env } from "../../env";
 
-type ReconciliationStateValue<T> = { state: T | null, ac: AbortController }
-type ReconciliationStateMember<T> = Map<string, ReconciliationStateValue<T>>
+type ReconciliationStateValue<T> = { state: T | null; ac: AbortController };
+type ReconciliationStateMember<T> = Map<string, ReconciliationStateValue<T>>;
 
 export type ReconciliationState = {
-  status: ReconciliationStateMember<StatusOptions>
-  browsers: ReconciliationStateMember<boolean | null>
-  windows: ReconciliationStateMember<Record<string, string> | null>
-  muted: ReconciliationStateMember<boolean>
-  audio: ReconciliationStateMember<boolean>
-  video: ReconciliationStateMember<boolean>
-  volume: ReconciliationStateMember<number>
-  source: ReconciliationStateMember<keyof PJLinkSource | keyof MDCSource>
-}
+  status: ReconciliationStateMember<StatusOptions>;
+  browsers: ReconciliationStateMember<boolean | null>;
+  windows: ReconciliationStateMember<Record<string, string> | null>;
+  muted: ReconciliationStateMember<boolean>;
+  audio: ReconciliationStateMember<boolean>;
+  video: ReconciliationStateMember<boolean>;
+  volume: ReconciliationStateMember<number>;
+  source: ReconciliationStateMember<keyof PJLinkSource | keyof MDCSource>;
+};
 
 const state: ReconciliationState = {
   status: new Map(),
@@ -31,19 +34,17 @@ const state: ReconciliationState = {
   audio: new Map(),
   video: new Map(),
   volume: new Map(),
-  source: new Map()
+  source: new Map(),
 };
 
 const init = () => {
   cancel();
 
-  for (const device of env!.HARDWARE) {
+  for (const device of assert(env).HARDWARE) {
     for (const key of Object.keys(state)) {
       state[key as keyof ReconciliationState].set(device.id, {
-        // @ts-ignore
         state: null,
-        // @ts-ignore
-        ac: createAC(device, state[key as keyof ReconciliationState])
+        ac: createAC(device, state[key as keyof ReconciliationState]),
       });
     }
   }
@@ -51,7 +52,7 @@ const init = () => {
 
 const update = () => {
   const cur = new Set(state.status.keys());
-  const next = new Set(env!.HARDWARE.map(({ id }) => id));
+  const next = new Set(assert(env).HARDWARE.map(({ id }) => id));
 
   for (const deviceId of cur.difference(next)) {
     for (const key of Object.keys(state)) {
@@ -63,10 +64,8 @@ const update = () => {
   for (const deviceId of next.difference(cur)) {
     for (const key of Object.keys(state)) {
       state[key as keyof ReconciliationState].set(deviceId, {
-        // @ts-ignore
         state: null,
-        // @ts-ignore
-        ac: getACByID(deviceId, state[key as keyof ReconciliationState])
+        ac: getACByID(deviceId, state[key as keyof ReconciliationState]),
       });
     }
   }
@@ -75,14 +74,14 @@ const update = () => {
 const updateState = async <Key extends keyof TBridgeHardwareService>(
   device: Device,
   k: Key,
-  args: unknown
+  args: unknown,
 ) => {
   switch (k) {
     case "mute": {
       assert(state.muted.get(device.id)).ac.abort();
       state.muted.set(device.id, {
         state: true,
-        ac: getAC(device, state.muted)
+        ac: getAC(device, state.muted),
       });
       break;
     }
@@ -90,7 +89,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.muted.get(device.id)).ac.abort();
       state.muted.set(device.id, {
         state: false,
-        ac: getAC(device, state.muted)
+        ac: getAC(device, state.muted),
       });
       break;
     }
@@ -98,7 +97,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.audio.get(device.id)).ac.abort();
       state.audio.set(device.id, {
         state: true,
-        ac: getAC(device, state.audio)
+        ac: getAC(device, state.audio),
       });
       break;
     }
@@ -106,7 +105,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.audio.get(device.id)).ac.abort();
       state.audio.set(device.id, {
         state: false,
-        ac: getAC(device, state.audio)
+        ac: getAC(device, state.audio),
       });
       break;
     }
@@ -114,7 +113,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.video.get(device.id)).ac.abort();
       state.video.set(device.id, {
         state: true,
-        ac: getAC(device, state.video)
+        ac: getAC(device, state.video),
       });
       break;
     }
@@ -122,7 +121,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.video.get(device.id)).ac.abort();
       state.video.set(device.id, {
         state: false,
-        ac: getAC(device, state.video)
+        ac: getAC(device, state.video),
       });
       break;
     }
@@ -130,15 +129,15 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.volume.get(device.id)).ac.abort();
       state.volume.set(device.id, {
         state: (args as { volume: number }).volume,
-        ac: getAC(device, state.volume)
+        ac: getAC(device, state.volume),
       });
       break;
     }
     case "setSource": {
       assert(state.source.get(device.id)).ac.abort();
       state.source.set(device.id, {
-        state: (args as keyof PJLinkSource | keyof MDCSource),
-        ac: getAC(device, state.source)
+        state: args as keyof PJLinkSource | keyof MDCSource,
+        ac: getAC(device, state.source),
       });
       break;
     }
@@ -146,7 +145,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.status.get(device.id)).ac.abort();
       state.status.set(device.id, {
         state: "on",
-        ac: getAC(device, state.status)
+        ac: getAC(device, state.status),
       });
       break;
     }
@@ -154,7 +153,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.status.get(device.id)).ac.abort();
       state.status.set(device.id, {
         state: "off",
-        ac: getAC(device, state.status)
+        ac: getAC(device, state.status),
       });
       break;
     }
@@ -162,7 +161,7 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.browsers.get(device.id)).ac.abort();
       state.browsers.set(device.id, {
         state: true,
-        ac: getAC(device, state.browsers)
+        ac: getAC(device, state.browsers),
       });
       break;
     }
@@ -170,98 +169,173 @@ const updateState = async <Key extends keyof TBridgeHardwareService>(
       assert(state.browsers.get(device.id)).ac.abort();
       state.browsers.set(device.id, {
         state: false,
-        ac: getAC(device, state.browsers)
+        ac: getAC(device, state.browsers),
       });
       break;
     }
   }
 };
 
-const createAC = <T extends Map<string, {
-  state: StateType<T>,
-  ac: AbortController
-}>>(device: Device, map: T) => {
+const createAC = <
+  T extends Map<
+    string,
+    {
+      state: StateType<T>;
+      ac: AbortController;
+    }
+  >,
+>(
+  device: Device,
+  map: T,
+) => {
   const ac = new AbortController();
-  ac.signal.addEventListener("abort", () => {
-    map.set(device.id, {
-      state: assert(map.get(device.id)).state,
-      ac: createAC(device, map)
-    });
-  }, { once: true });
+  ac.signal.addEventListener(
+    "abort",
+    () => {
+      map.set(device.id, {
+        state: assert(map.get(device.id)).state,
+        ac: createAC(device, map),
+      });
+    },
+    { once: true },
+  );
   return ac;
 };
 
 const reconcileStatus = async (device: Device) => {
   const currentState = assert(state.status.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const res = await service
-    .getStatus?.(device, {}, getAC.bind(null, device, state.status));
+  const res = await service.getStatus?.(
+    device,
+    {},
+    getAC.bind(null, device, state.status),
+  );
   if (res === currentState.state) return;
   if (res === "off") {
     await service.start?.(device, {}, getAC.bind(null, device, state.status));
   } else {
-    await service
-      .shutdown?.(device, {}, getAC.bind(null, device, state.status));
+    await service.shutdown?.(
+      device,
+      {},
+      getAC.bind(null, device, state.status),
+    );
   }
 };
 
-type StateType<T> = T extends Map<string, {
-  state: infer R,
-  ac: AbortController
-}> ? R : never
+type StateType<T> =
+  T extends Map<
+    string,
+    {
+      state: infer R;
+      ac: AbortController;
+    }
+  >
+    ? R
+    : never;
 
-const getAC = <T extends Map<string, {
-  state: StateType<T>,
-  ac: AbortController
-}>>(device: Device, map: T) => getACByID(device.id, map);
+const getAC = <
+  T extends Map<
+    string,
+    {
+      state: StateType<T>;
+      ac: AbortController;
+    }
+  >,
+>(
+  device: Device,
+  map: T,
+) => getACByID(device.id, map);
 
-const getACByID = <T extends Map<string, {
-  state: StateType<T>,
-  ac: AbortController
-}>>(deviceId: string, map: T) => assert(map.get(deviceId)).ac;
+const getACByID = <
+  T extends Map<
+    string,
+    {
+      state: StateType<T>;
+      ac: AbortController;
+    }
+  >,
+>(
+  deviceId: string,
+  map: T,
+) => assert(map.get(deviceId)).ac;
 
 const reconcileBrowsers = async (device: Device) => {
   const currentState = assert(state.browsers.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const browsers = await service.getBrowsers?.(device, {},
-    getAC.bind(null, device, state.browsers));
-  const windowConfig = await service.getWindowConfig?.(device, {},
-    getAC.bind(null, device, state.browsers));
-  if (browsers === undefined || isError(browsers) ||
-    windowConfig === undefined || isError(windowConfig)) {
+  const browsers = await service.getBrowsers?.(
+    device,
+    {},
+    getAC.bind(null, device, state.browsers),
+  );
+  const windowConfig = await service.getWindowConfig?.(
+    device,
+    {},
+    getAC.bind(null, device, state.browsers),
+  );
+  if (
+    browsers === undefined ||
+    isError(browsers) ||
+    windowConfig === undefined ||
+    isError(windowConfig)
+  ) {
     throw new Error(`Error on client ${device.id}`);
   }
   if (currentState.state && !recordEquals(browsers, windowConfig)) {
-    await service.openBrowsers?.(device, {},
-      getAC.bind(null, device, state.browsers));
-  } else if (!currentState.state && (typeof browsers === "object" &&
-    Object.keys(browsers).length !== 0)) {
-    await service.closeBrowsers?.(device, {},
-      getAC.bind(null, device, state.browsers));
+    await service.openBrowsers?.(
+      device,
+      {},
+      getAC.bind(null, device, state.browsers),
+    );
+  } else if (
+    !currentState.state &&
+    typeof browsers === "object" &&
+    Object.keys(browsers).length !== 0
+  ) {
+    await service.closeBrowsers?.(
+      device,
+      {},
+      getAC.bind(null, device, state.browsers),
+    );
   }
 };
 
 const reconcileWindowConfig = async (device: Device) => {
   const currentState = assert(state.windows.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const windows = await service.getWindowConfig?.(device, {},
-    getAC.bind(null, device, state.windows));
-  if (currentState.state === null || (windows !== undefined &&
-    !isError(windows) && recordEquals(currentState.state, windows))) return;
-  await service
-    .setWindowConfig?.(device, { config: assert(currentState.state) },
-      getAC.bind(null, device, state.windows));
+  const windows = await service.getWindowConfig?.(
+    device,
+    {},
+    getAC.bind(null, device, state.windows),
+  );
+  if (
+    currentState.state === null ||
+    (windows !== undefined &&
+      !isError(windows) &&
+      recordEquals(currentState.state, windows))
+  )
+    return;
+  await service.setWindowConfig?.(
+    device,
+    { config: assert(currentState.state) },
+    getAC.bind(null, device, state.windows),
+  );
 };
 
 const reconcileIsMuted = async (device: Device) => {
   const currentState = assert(state.muted.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const currentValue = await service.getInfo?.(device, {},
-    getAC.bind(null, device, state.muted)) as {
-    isMuted: boolean
+  const currentValue = (await service.getInfo?.(
+    device,
+    {},
+    getAC.bind(null, device, state.muted),
+  )) as {
+    isMuted: boolean;
   };
-  if (currentValue.isMuted === currentState.state ||
-    currentState.state === null) return;
+  if (
+    currentValue.isMuted === currentState.state ||
+    currentState.state === null
+  )
+    return;
 
   if (currentState.state) {
     await service.mute?.(device, {}, getAC.bind(null, device, state.muted));
@@ -273,62 +347,101 @@ const reconcileIsMuted = async (device: Device) => {
 const reconcileVolume = async (device: Device) => {
   const currentState = assert(state.volume.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const current = await service.getInfo?.(device, {},
-    getAC.bind(null, device, state.volume)) as {
-    volume: number
+  const current = (await service.getInfo?.(
+    device,
+    {},
+    getAC.bind(null, device, state.volume),
+  )) as {
+    volume: number;
   };
-  if (current.volume === currentState.state ||
-    currentState.state === null) return;
-  await service.setVolume?.(device, { volume: assert(currentState.state) },
-    getAC.bind(null, device, state.volume));
+  if (current.volume === currentState.state || currentState.state === null)
+    return;
+  await service.setVolume?.(
+    device,
+    { volume: assert(currentState.state) },
+    getAC.bind(null, device, state.volume),
+  );
 };
 
 const reconcileSource = async (device: Device) => {
   const currentState = assert(state.source.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const currentSource = await service.getInfo?.(device, {},
-    getAC.bind(null, device, state.source)) as {
-    source: keyof MDCSource | keyof PJLinkSource
+  const currentSource = (await service.getInfo?.(
+    device,
+    {},
+    getAC.bind(null, device, state.source),
+  )) as {
+    source: keyof MDCSource | keyof PJLinkSource;
   };
-  if (currentSource.source === currentState.state ||
-    currentState.state === null) return;
-  await service.setSource?.(device, { source: assert(currentState.state) },
-    getAC.bind(null, device, state.source));
+  if (
+    currentSource.source === currentState.state ||
+    currentState.state === null
+  )
+    return;
+  await service.setSource?.(
+    device,
+    { source: assert(currentState.state) },
+    getAC.bind(null, device, state.source),
+  );
 };
 
 const reconcileIsAudioMuted = async (device: Device) => {
   const currentState = assert(state.audio.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const current = await service.getInfo?.(device, {},
-    getAC.bind(null, device, state.audio)) as {
-    isAudioMuted: boolean
+  const current = (await service.getInfo?.(
+    device,
+    {},
+    getAC.bind(null, device, state.audio),
+  )) as {
+    isAudioMuted: boolean;
   };
-  if (current.isAudioMuted === currentState.state ||
-    currentState.state === null) return;
+  if (
+    current.isAudioMuted === currentState.state ||
+    currentState.state === null
+  )
+    return;
   if (currentState.state) {
-    await service.muteAudio?.(device, {},
-      getAC.bind(null, device, state.audio));
+    await service.muteAudio?.(
+      device,
+      {},
+      getAC.bind(null, device, state.audio),
+    );
   } else {
-    await service.unmuteAudio?.(device, {},
-      getAC.bind(null, device, state.audio));
+    await service.unmuteAudio?.(
+      device,
+      {},
+      getAC.bind(null, device, state.audio),
+    );
   }
 };
 
 const reconcileIsVideoMuted = async (device: Device) => {
   const currentState = assert(state.video.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const current = await service.getInfo?.(device, {},
-    getAC.bind(null, device, state.audio)) as {
-    isVideoMuted: boolean
+  const current = (await service.getInfo?.(
+    device,
+    {},
+    getAC.bind(null, device, state.audio),
+  )) as {
+    isVideoMuted: boolean;
   };
-  if (current.isVideoMuted === currentState.state ||
-    currentState.state === null) return;
+  if (
+    current.isVideoMuted === currentState.state ||
+    currentState.state === null
+  )
+    return;
   if (currentState.state) {
-    await service.muteVideo?.(device, {},
-      getAC.bind(null, device, state.video));
+    await service.muteVideo?.(
+      device,
+      {},
+      getAC.bind(null, device, state.video),
+    );
   } else {
-    await service.unmuteVideo?.(device, {},
-      getAC.bind(null, device, state.video));
+    await service.unmuteVideo?.(
+      device,
+      {},
+      getAC.bind(null, device, state.video),
+    );
   }
 };
 
@@ -353,6 +466,5 @@ export const service = {
   updateState,
   init,
   update,
-  cancel
+  cancel,
 };
-

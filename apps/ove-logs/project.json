@@ -12,10 +12,10 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/ove-docs/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": ["apps/ove-logs/**/*.{ts,tsx,js,jsx}"]
       }
     },
     "build": {

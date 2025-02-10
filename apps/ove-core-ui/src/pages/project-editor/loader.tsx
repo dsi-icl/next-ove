@@ -10,7 +10,9 @@ const Loader = () => {
   const loadingProject = useInitProject(user);
   const loadingSections = useInitSections();
 
-  return user === null || loadingProject || loadingSections ? null : <ProjectEditor />;
+  return user === null || loadingProject || loadingSections ? null : (
+    <ProjectEditor />
+  );
 };
 
 export default Loader;

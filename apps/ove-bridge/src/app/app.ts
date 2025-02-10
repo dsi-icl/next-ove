@@ -7,7 +7,7 @@ import { env, logger } from "@ove/ove-bridge-base";
 import { assert } from "@ove/ove-utils";
 import initAutoUpdate from "./events/update.events";
 import { type OutboundAPI, outboundChannels } from "../ipc-routes";
-import { type BrowserWindow as BW, type App, type Screen, app } from "electron";
+import { type App, app, type BrowserWindow as BW, type Screen } from "electron";
 
 let mainWindow: BW | null = null;
 let application: App;
@@ -47,8 +47,8 @@ const initMainWindow = () => {
     webPreferences: {
       contextIsolation: true,
       backgroundThrottling: false,
-      preload: join(__dirname, "main.preload.js")
-    }
+      preload: join(__dirname, "main.preload.js"),
+    },
   });
   mainWindow.setMenu(null);
   mainWindow.center();
@@ -64,11 +64,13 @@ const initMainWindow = () => {
 
 const loadErrorPage = () => {
   const formattedUrl = pathToFileURL(
-    join(__dirname, "assets", "error.html")).toString();
-  mainWindow?.loadURL(formattedUrl)
-    .then(() => logger!.info(`Loaded url: ${formattedUrl}`))
-    .catch(reason => {
-      logger!.fatal(reason);
+    join(__dirname, "assets", "error.html"),
+  ).toString();
+  mainWindow
+    ?.loadURL(formattedUrl)
+    .then(() => assert(logger).info(`Loaded url: ${formattedUrl}`))
+    .catch((reason) => {
+      assert(logger).fatal(reason);
       app.exit(1);
       exit(1);
     });
@@ -77,20 +79,23 @@ const loadErrorPage = () => {
 const loadMainWindow = () => {
   if (mainWindow === null) throw new Error("Main window should not be null");
   if (!application.isPackaged) {
-    const formattedUrl = `${assert(env!.RENDER_CONFIG).PROTOCOL}://${assert(env!.RENDER_CONFIG).HOSTNAME}:${assert(env!.RENDER_CONFIG).PORT}`;
-    mainWindow.loadURL(formattedUrl)
-      .then(() => logger!.info(`Loaded url: ${formattedUrl}`))
-      .catch(reason => {
-        logger!.error(reason);
+    const formattedUrl = `${assert(assert(env).RENDER_CONFIG).PROTOCOL}://${assert(assert(env).RENDER_CONFIG).HOSTNAME}:${assert(assert(env).RENDER_CONFIG).PORT}`;
+    mainWindow
+      .loadURL(formattedUrl)
+      .then(() => assert(logger).info(`Loaded url: ${formattedUrl}`))
+      .catch((reason) => {
+        assert(logger).error(reason);
         loadErrorPage();
       });
   } else {
     const formattedUrl = pathToFileURL(
-      join(__dirname, "..", env!.UI_ALIAS, "index.html")).toString();
-    mainWindow.loadURL(formattedUrl)
-      .then(() => logger!.info(`Loaded url: ${formattedUrl}`))
-      .catch(reason => {
-        logger!.error(reason);
+      join(__dirname, "..", assert(env).UI_ALIAS, "index.html"),
+    ).toString();
+    mainWindow
+      .loadURL(formattedUrl)
+      .then(() => assert(logger).info(`Loaded url: ${formattedUrl}`))
+      .catch((reason) => {
+        assert(logger).error(reason);
         loadErrorPage();
       });
   }
@@ -106,18 +111,20 @@ const init = (app: App, browserWindow: typeof BW, sc: Screen) => {
   application.on("activate", onActivate);
 };
 
-const triggerIPC: OutboundAPI = Object.entries(outboundChannels)
-  .reduce((acc, [k, channel]) => {
+const triggerIPC: OutboundAPI = Object.entries(outboundChannels).reduce(
+  (acc, [k, channel]) => {
     const _key = k as keyof OutboundAPI;
     acc[k] = (args: Parameters<OutboundAPI[typeof _key]>) => {
       if (mainWindow === null) return;
       mainWindow.webContents.send(channel, args);
     };
     return acc;
-  }, <Record<string, unknown>>{}) as OutboundAPI;
+  },
+  <Record<string, unknown>>{},
+) as OutboundAPI;
 
 export default {
   isDevelopmentMode,
   init,
-  triggerIPC
+  triggerIPC,
 };

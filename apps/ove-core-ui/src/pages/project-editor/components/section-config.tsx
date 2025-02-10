@@ -6,11 +6,7 @@ import {
   useFiles
 } from "../hooks/files";
 import { z } from "zod";
-import {
-  useForm,
-  type Control,
-  type UseFormSetValue
-} from "react-hook-form";
+import { useForm, type Control, type UseFormSetValue } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Form,
@@ -42,8 +38,11 @@ import { type File, dataTypes, type DataType, Bounds } from "@ove/ove-types";
 
 const getDataTypeFromFile = (file: File) => {
   for (const dt of dataTypes) {
-    if (dt.extensions.some(extension =>
-      file.name.toLowerCase().endsWith(extension.toLowerCase()))) {
+    if (
+      dt.extensions.some((extension) =>
+        file.name.toLowerCase().endsWith(extension.toLowerCase())
+      )
+    ) {
       return dt.name;
     }
   }
@@ -56,13 +55,16 @@ const sort = (k: keyof DataType, a: DataType, b: DataType) => {
   return -1;
 };
 
-const toPercentage = (x: number) => parseFloat(`${(x * 100)}`.slice(0, 5));
+const toPercentage = (x: number) => parseFloat(`${x * 100}`.slice(0, 5));
 const fromPercentage = (x: number) => parseFloat(x.toString()) / 100;
 
-const getRow = (y: number, space: {
-  bounds: Bounds | null,
-  cells: TGeometry[] | null
-}) => {
+const getRow = (
+  y: number,
+  space: {
+    bounds: Bounds | null;
+    cells: TGeometry[] | null;
+  }
+) => {
   if (space.bounds === null || space.cells === null) return null;
   if (y === 0) return 0;
   if (y === 1) return space.bounds.rows;
@@ -75,10 +77,13 @@ const getRow = (y: number, space: {
   return null;
 };
 
-const getColumn = (x: number, space: {
-  bounds: Bounds | null,
-  cells: TGeometry[] | null
-}) => {
+const getColumn = (
+  x: number,
+  space: {
+    bounds: Bounds | null;
+    cells: TGeometry[] | null;
+  }
+) => {
   if (space.bounds === null || space.cells === null) return null;
   if (x === 0) return 0;
   if (x === 1) return space.bounds.columns;
@@ -106,20 +111,22 @@ const SectionConfigFormSchema = z.strictObject({
   asset: z.string()
 });
 
-type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>
+type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>;
 
 const SectionConfig = () => {
   const projectId = useProjectId();
-  const state = useStateStore(state => state.selectedState);
+  const state = useStateStore((state) => state.selectedState);
   const { getSections } = useSections();
   const sections = useMemo(() => getSections(state), [state, getSections]);
-  const selected = useSectionStore(state => state.selectedSection);
+  const selected = useSectionStore((state) => state.selectedSection);
   const cells = useCells();
   const updateSection = useUpdateSection();
   const { bounds } = useObservatory();
-  const {ordinary} = useFiles(assert(projectId));
-  const section = useMemo(() => sections
-    .find(section => section.id === selected) ?? null, [selected, sections]);
+  const { ordinary } = useFiles(assert(projectId));
+  const section = useMemo(
+    () => sections.find((section) => section.id === selected) ?? null,
+    [selected, sections]
+  );
   const form = useForm<SectionConfigForm>({
     defaultValues: {
       x: 0,
@@ -137,12 +144,7 @@ const SectionConfig = () => {
     },
     resolver: zodResolver(SectionConfigFormSchema)
   });
-  const {
-    handleSubmit,
-    setValue,
-    resetField,
-    watch
-  } = form;
+  const { handleSubmit, setValue, resetField, watch } = form;
   useFormErrorHandling(form.formState.errors);
   const [mode, setMode] = useState<"custom" | "grid">("custom");
   const [fileName, fileVersion] = watch(["fileName", "fileVersion"]);
@@ -172,7 +174,17 @@ const SectionConfig = () => {
       setValue("fileName", `${file.bucketName}/${file.name}`);
       setValue("fileVersion", file.version.toString());
     }
-  }, [selected, sections, resetField, setValue, bounds, cells, form, ordinary]);
+  }, [
+    section,
+    selected,
+    sections,
+    resetField,
+    setValue,
+    bounds,
+    cells,
+    form,
+    ordinary
+  ]);
 
   const onSubmit = (section: SectionConfigForm) => {
     if (mode === "grid" && (bounds === null || cells === null)) {
@@ -184,26 +196,36 @@ const SectionConfig = () => {
       return;
     }
     updateSection({
-      x: mode === "custom" ? fromPercentage(assert(section.x)) :
-        assert(section.columnFrom) / assert(bounds).columns,
-      y: mode === "custom" ? fromPercentage(assert(section.y)) :
-        assert(section.rowFrom) / assert(bounds).rows,
-      width: mode === "custom" ? fromPercentage(assert(section.width)) :
-        (assert(section.columnTo) - assert(
-          section.columnFrom)) * (1 / assert(bounds).columns),
-      height: mode === "custom" ? fromPercentage(assert(section.height)) :
-        (assert(section.rowTo) - assert(
-          section.rowFrom)) * (1 / assert(bounds).rows),
-      assetId: ordinary.find(({
-        name,
-        version
-      }) => name === section.fileName &&
-        version.toString() === section.fileVersion)?.name ?? null,
+      x:
+        mode === "custom"
+          ? fromPercentage(assert(section.x))
+          : assert(section.columnFrom) / assert(bounds).columns,
+      y:
+        mode === "custom"
+          ? fromPercentage(assert(section.y))
+          : assert(section.rowFrom) / assert(bounds).rows,
+      width:
+        mode === "custom"
+          ? fromPercentage(assert(section.width))
+          : (assert(section.columnTo) - assert(section.columnFrom)) *
+          (1 / assert(bounds).columns),
+      height:
+        mode === "custom"
+          ? fromPercentage(assert(section.height))
+          : (assert(section.rowTo) - assert(section.rowFrom)) *
+          (1 / assert(bounds).rows),
+      assetId:
+        ordinary.find(
+          ({ name, version }) =>
+            name === section.fileName &&
+            version.toString() === section.fileVersion
+        )?.name ?? null,
       asset: section.asset,
       dataType: section.dataType,
       states: [state],
-      ordering: sections.find(section =>
-        section.id === selected)?.ordering ?? sections.length,
+      ordering:
+        sections.find((section) => section.id === selected)?.ordering ??
+        sections.length,
       projectId: assert(projectId)
     });
 
@@ -212,14 +234,20 @@ const SectionConfig = () => {
 
   const url = watch("asset");
 
-  const onAssetChange = useCallback((asset: string | undefined) => {
-    const file = fromURL(ordinary, asset ?? "");
-    setValue("fileVersion", file === null ? "" : file.version);
-    setValue("fileName", file === null ? "" : `${file.bucketName}/${file.name}`);
-    if (file !== null) {
-      setValue("dataType", getDataTypeFromFile(file) ?? "");
-    }
-  }, [setValue, ordinary]);
+  const onAssetChange = useCallback(
+    (asset: string | undefined) => {
+      const file = fromURL(ordinary, asset ?? "");
+      setValue("fileVersion", file === null ? "" : file.version);
+      setValue(
+        "fileName",
+        file === null ? "" : `${file.bucketName}/${file.name}`
+      );
+      if (file !== null) {
+        setValue("dataType", getDataTypeFromFile(file) ?? "");
+      }
+    },
+    [setValue, ordinary]
+  );
 
   useEffect(() => {
     onAssetChange(url);
@@ -228,64 +256,102 @@ const SectionConfig = () => {
   useEffect(() => {
     if (fileName === "") return;
     const [bn, fn] = fileName.split("/");
-    const fv = fileVersion === "" || !hasVersion(ordinary, bn, fn, fileVersion) ? getLatest(ordinary, bn, fn).version : fileVersion;
+    const fv =
+      fileVersion === "" || !hasVersion(ordinary, bn, fn, fileVersion)
+        ? getLatest(ordinary, bn, fn).version
+        : fileVersion;
     setValue("asset", toURL(bn, fn, fv));
   }, [fileName, setValue, fileVersion, ordinary]);
 
-  return <section className="h-full px-4">
-    <h2 className="font-bold w-full text-center text-base mt-2">Section Config</h2>
-    <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-row w-full">
-        <div className="flex flex-col w-[calc(100%-2.5rem)]">
-          <Geometry setMode={setMode} mode={mode} space={bounds}
-                    setValue={setValue} control={form.control} />
-        </div>
-        <fieldset className="w-[66%] flex flex-col">
-          <FormField control={form.control} name="asset"
-                     render={({ field }) => <FormItem className="space-y-1">
-                       <FormLabel className="font-semibold">Asset</FormLabel>
-                       <FormControl>
-                         <Input {...field} />
-                       </FormControl>
-                     </FormItem>} />
-          <S3FileSelect control={form.control} fileName={fileName}
-                        files={ordinary} />
-          <FormField control={form.control} name="dataType"
-                     render={({ field }) => <FormItem className="space-y-1">
-                       <FormLabel className="font-semibold">Data
-                         Type</FormLabel>
-                       <Select onValueChange={field.onChange}
-                               defaultValue={field.value}>
-                         <FormControl>
-                           <SelectTrigger>
-                             <SelectValue placeholder="Select data type" />
-                           </SelectTrigger>
-                         </FormControl>
-                         <SelectContent position="popper">
-                           {dataTypes.sort((a, b) => sort("displayName", a, b)).map(({
-                             displayName,
-                             name
-                           }) => <SelectItem value={name}
-                                             key={name}>{displayName}</SelectItem>)}
-                         </SelectContent>
-                       </Select>
-                     </FormItem>} />
-          <div className="flex flex-col w-full mt-2">
-            <Button variant="default" className="w-full"
-                    type="submit">UPDATE</Button>
+  return (
+    <section className="h-full px-4">
+      <h2 className="mt-2 w-full text-center text-base font-bold">
+        Section Config
+      </h2>
+      <Form {...form}>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex w-full flex-row"
+        >
+          <div className="flex w-[calc(100%-2.5rem)] flex-col">
+            <Geometry
+              setMode={setMode}
+              mode={mode}
+              space={bounds}
+              setValue={setValue}
+              control={form.control}
+            />
           </div>
-        </fieldset>
-      </form>
-    </Form>
-  </section>;
+          <fieldset className="flex w-[66%] flex-col">
+            <FormField
+              control={form.control}
+              name="asset"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel className="font-semibold">Asset</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <S3FileSelect
+              control={form.control}
+              fileName={fileName}
+              files={ordinary}
+            />
+            <FormField
+              control={form.control}
+              name="dataType"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormLabel className="font-semibold">Data Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select data type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent position="popper">
+                      {dataTypes
+                        .sort((a, b) => sort("displayName", a, b))
+                        .map(({ displayName, name }) => (
+                          <SelectItem value={name} key={name}>
+                            {displayName}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <div className="mt-2 flex w-full flex-col">
+              <Button variant="default" className="w-full" type="submit">
+                UPDATE
+              </Button>
+            </div>
+          </fieldset>
+        </form>
+      </Form>
+    </section>
+  );
 };
 
-const Geometry = ({ mode, control, setMode, setValue, space }: {
-  mode: "custom" | "grid",
-  setMode: (mode: "custom" | "grid") => void,
-  setValue: UseFormSetValue<SectionConfigForm>,
-  space: Observatory | null
-  control: Control<SectionConfigForm>
+const Geometry = ({
+  mode,
+  control,
+  setMode,
+  setValue,
+  space
+}: {
+  mode: "custom" | "grid";
+  setMode: (mode: "custom" | "grid") => void;
+  setValue: UseFormSetValue<SectionConfigForm>;
+  space: Observatory | null;
+  control: Control<SectionConfigForm>;
 }) => {
   const fullscreen = () => {
     setValue("x", 0);
@@ -298,101 +364,151 @@ const Geometry = ({ mode, control, setMode, setValue, space }: {
     setValue("rowTo", space?.rows ?? 0);
   };
 
-  return <div className="w-[calc((100%-2rem)-0.5rem)]">
-    <div className="w-full flex flex-row">
-      <div className="w-full flex flex-row mt-2 items-center">
-        <Button className="rounded-r-none" type="button"
-                variant={mode === "custom" ? "default" : "outline"}
-                onClick={() => setMode("custom")}>
-          <Brush className="mr-1" /> Custom</Button>
-        <Button className="rounded-l-none"
-                variant={mode === "grid" ? "default" : "outline"} type="button"
-                onClick={() => setMode("grid")}>
-          <Grid className="mr-1" /> Grid</Button>
+  return (
+    <div className="w-[calc((100%-2rem)-0.5rem)]">
+      <div className="flex w-full flex-row">
+        <div className="mt-2 flex w-full flex-row items-center">
+          <Button
+            className="rounded-r-none"
+            type="button"
+            variant={mode === "custom" ? "default" : "outline"}
+            onClick={() => setMode("custom")}
+          >
+            <Brush className="mr-1" /> Custom
+          </Button>
+          <Button
+            className="rounded-l-none"
+            variant={mode === "grid" ? "default" : "outline"}
+            type="button"
+            onClick={() => setMode("grid")}
+          >
+            <Grid className="mr-1" /> Grid
+          </Button>
+        </div>
+        <Button className="mt-2" type="button" onClick={fullscreen}>
+          <Fullscreen className="mr-1" /> Maximise
+        </Button>
       </div>
-      <Button className="mt-2"
-              type="button" onClick={fullscreen}><Fullscreen
-        className="mr-1" /> Maximise</Button>
+      <fieldset
+        className="grid w-full grid-cols-[1fr,1fr] gap-x-6 p-0"
+        style={mode === "custom" ? undefined : { display: "none" }}
+      >
+        <FormField
+          control={control}
+          name="x"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">x</FormLabel>
+              <FormControl className="w-full">
+                <div className="relative flex w-full">
+                  <Input {...field} type="number" className="relative pr-5" />
+                  <span className="absolute right-1 top-2">%</span>
+                </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="y"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">y</FormLabel>
+              <FormControl className="w-full">
+                <div className="relative flex w-full items-center">
+                  <Input {...field} type="number" className="relative pr-5" />
+                  <span className="absolute right-1 top-2">%</span>
+                </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="width"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">Width</FormLabel>
+              <FormControl className="w-full">
+                <div className="relative flex w-full items-center">
+                  <Input {...field} type="number" className="relative pr-5" />
+                  <span className="absolute right-1 top-2">%</span>
+                </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="height"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">Height</FormLabel>
+              <FormControl className="w-full">
+                <div className="relative flex w-full items-center">
+                  <Input {...field} type="number" className="relative pr-5" />
+                  <span className="absolute right-1 top-2">%</span>
+                </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </fieldset>
+      <fieldset
+        className="grid w-full grid-cols-[1fr,1fr] gap-x-6 p-0"
+        style={mode === "grid" ? undefined : { display: "none" }}
+      >
+        <FormField
+          control={control}
+          name="rowFrom"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">From Row</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="rowTo"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">To Row</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="columnFrom"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">From Column</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="columnTo"
+          render={({ field }) => (
+            <FormItem className="w-full space-y-1">
+              <FormLabel className="font-semibold">To Column</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </fieldset>
     </div>
-    <fieldset className="grid grid-cols-[1fr,1fr] gap-x-6 w-full p-0"
-              style={mode === "custom" ? undefined : { display: "none" }}>
-      <FormField control={control} name="x"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">x</FormLabel>
-                   <FormControl className="w-full">
-                     <div className="relative w-full flex">
-                       <Input {...field} type="number"
-                              className="relative pr-5" />
-                       <span className="absolute right-1 top-2">%</span>
-                     </div>
-                   </FormControl>
-                 </FormItem>} />
-      <FormField control={control} name="y"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">y</FormLabel>
-                   <FormControl className="w-full">
-                     <div className="relative w-full flex items-center">
-                       <Input {...field} type="number"
-                              className="relative pr-5" />
-                       <span className="absolute right-1 top-2">%</span>
-                     </div>
-                   </FormControl>
-                 </FormItem>} />
-      <FormField control={control} name="width"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">Width</FormLabel>
-                   <FormControl className="w-full">
-                     <div className="relative w-full flex items-center">
-                       <Input {...field} type="number"
-                              className="relative pr-5" />
-                       <span className="absolute right-1 top-2">%</span>
-                     </div>
-                   </FormControl>
-                 </FormItem>} />
-      <FormField control={control} name="height"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">Height</FormLabel>
-                   <FormControl className="w-full">
-                     <div className="relative w-full flex items-center">
-                       <Input {...field} type="number"
-                              className="relative pr-5" />
-                       <span className="absolute right-1 top-2">%</span>
-                     </div>
-                   </FormControl>
-                 </FormItem>} />
-    </fieldset>
-    <fieldset className="grid grid-cols-[1fr,1fr] gap-x-6 w-full p-0"
-              style={mode === "grid" ? undefined : { display: "none" }}>
-      <FormField control={control} name="rowFrom"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">From Row</FormLabel>
-                   <FormControl>
-                     <Input {...field} type="number" />
-                   </FormControl>
-                 </FormItem>} />
-      <FormField control={control} name="rowTo"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">To Row</FormLabel>
-                   <FormControl>
-                     <Input {...field} type="number" />
-                   </FormControl>
-                 </FormItem>} />
-      <FormField control={control} name="columnFrom"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">From Column</FormLabel>
-                   <FormControl>
-                     <Input {...field} type="number" />
-                   </FormControl>
-                 </FormItem>} />
-      <FormField control={control} name="columnTo"
-                 render={({ field }) => <FormItem className="w-full space-y-1">
-                   <FormLabel className="font-semibold">To Column</FormLabel>
-                   <FormControl>
-                     <Input {...field} type="number" />
-                   </FormControl>
-                 </FormItem>} />
-    </fieldset>
-  </div>;
+  );
 };
 
 export default SectionConfig;

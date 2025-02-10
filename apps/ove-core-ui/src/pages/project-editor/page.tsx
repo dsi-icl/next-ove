@@ -2,7 +2,7 @@ import React from "react";
 import {
   ResizableHandle,
   ResizablePanel,
-  ResizablePanelGroup
+  ResizablePanelGroup,
 } from "@ove/ui-base-components";
 import Canvas from "./components/canvas";
 import Actions from "./components/actions";
@@ -16,45 +16,47 @@ import ObservatoryConfig from "./components/observatory-config";
 const ProjectEditor = () => {
   const { isOpen, open, close, content, setAction } = useDialog();
 
-  return <Dialog open={isOpen} onOpenChange={state => state ? open() : close()}>
-    <main className="w-full h-[90vh]">
-    <ResizablePanelGroup direction="horizontal">
-      <ResizablePanel defaultSize={95}>
-        <ResizablePanelGroup direction="vertical">
-          <ResizablePanel defaultSize={60}>
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={75}>
-                <StateTabs />
-                <Canvas />
+  return (
+    <Dialog open={isOpen} onOpenChange={(state) => (state ? open() : close())}>
+      <main className="h-[90vh] w-full">
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel defaultSize={95}>
+            <ResizablePanelGroup direction="vertical">
+              <ResizablePanel defaultSize={60}>
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel defaultSize={75}>
+                    <StateTabs />
+                    <Canvas />
+                  </ResizablePanel>
+                  <ResizableHandle withHandle={!isOpen} />
+                  <ResizablePanel defaultSize={25}>
+                    <Sections />
+                  </ResizablePanel>
+                </ResizablePanelGroup>
               </ResizablePanel>
               <ResizableHandle withHandle={!isOpen} />
-              <ResizablePanel defaultSize={25}>
-                <Sections />
+              <ResizablePanel defaultSize={40}>
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel defaultSize={20}>
+                    <ObservatoryConfig />
+                  </ResizablePanel>
+                  <ResizableHandle withHandle={!isOpen} />
+                  <ResizablePanel defaultSize={80}>
+                    <SectionConfig />
+                  </ResizablePanel>
+                </ResizablePanelGroup>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
           <ResizableHandle withHandle={!isOpen} />
-          <ResizablePanel defaultSize={40}>
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={20}>
-                <ObservatoryConfig />
-              </ResizablePanel>
-              <ResizableHandle withHandle={!isOpen} />
-              <ResizablePanel defaultSize={80}>
-                <SectionConfig />
-              </ResizablePanel>
-            </ResizablePanelGroup>
+          <ResizablePanel defaultSize={5}>
+            <Actions setAction={setAction} />
           </ResizablePanel>
         </ResizablePanelGroup>
-      </ResizablePanel>
-      <ResizableHandle withHandle={!isOpen} />
-      <ResizablePanel defaultSize={5}>
-        <Actions setAction={setAction} />
-      </ResizablePanel>
-    </ResizablePanelGroup>
-  </main>
-    {content}
-  </Dialog>;
+      </main>
+      {content}
+    </Dialog>
+  );
 };
 
 export default ProjectEditor;

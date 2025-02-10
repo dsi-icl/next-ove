@@ -1,28 +1,62 @@
 {
-  "extends": ["plugin:@nx/react", "../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*"],
+  "extends": [
+    "plugin:@nx/react",
+    "../../.eslintrc.json",
+    "prettier"
+  ],
+  "ignorePatterns": [
+    "!**/*"
+  ],
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "files": [
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx"
+      ],
       "rules": {
-        "react/jsx-indent-props": ["error", "first"],
+        "react/jsx-indent-props": [
+          "error",
+          "first"
+        ],
         "react/prop-types": "off",
         "indent": [
           "error",
           2,
           {
             "SwitchCase": 1,
-            "ignoredNodes": ["JSXAttribute"]
+            "ignoredNodes": [
+              "JSXAttribute"
+            ]
           }
         ]
       }
     },
     {
-      "files": ["*.ts", "*.tsx"],
-      "rules": {}
+      "files": [
+        "*.ts",
+        "*.tsx"
+      ],
+      "rules": {
+        "spaced-comment": [
+          "error",
+          "always",
+          {
+            "line": {
+              "markers": [
+                "/"
+              ]
+            }
+          }
+        ]
+      }
     },
     {
-      "files": ["*.js", "*.jsx"],
+      "files": [
+        "*.js",
+        "*.jsx"
+      ],
       "rules": {}
     }
   ]

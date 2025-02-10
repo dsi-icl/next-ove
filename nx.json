@@ -11,10 +11,11 @@
           "test",
           "e2e"
         ],
-        "accessToken": "YTI0YTI3ODEtNTRhZC00OGRiLTkxYzYtMjZjOTEwN2JjOTI2fHJlYWQtd3JpdGU="
+        "accessToken": ""
       }
     }
   },
+  "neverConnectToCloud": true,
   "targetDefaults": {
     "build": {
       "dependsOn": [

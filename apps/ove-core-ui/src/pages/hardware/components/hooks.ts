@@ -5,21 +5,26 @@ import { useEffect, useMemo } from "react";
 
 export const useStatus = (deviceId: string | null, bridgeId: string) => {
   const apiUtils = api.useUtils();
-  const getStatus = api.hardware.getStatus.useQuery({
-    bridgeId,
-    deviceId: deviceId ?? ""
-  }, { enabled: deviceId !== null });
+  const getStatus = api.hardware.getStatus.useQuery(
+    {
+      bridgeId,
+      deviceId: deviceId ?? "",
+    },
+    { enabled: deviceId !== null },
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (deviceId === null) return;
-      apiUtils.hardware.getStatus.invalidate({bridgeId, deviceId}).catch(logger.error)
+      apiUtils.hardware.getStatus
+        .invalidate({ bridgeId, deviceId })
+        .catch(logger.error);
     }, env.STATUS_REFRESH_INTERVAL);
 
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [bridgeId, deviceId, apiUtils.hardware.getStatus]);
 
   return useMemo(() => {
     if (deviceId === null) return null;

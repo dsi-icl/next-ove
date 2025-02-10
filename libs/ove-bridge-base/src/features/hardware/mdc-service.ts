@@ -2,173 +2,196 @@
 
 import {
   type Device,
+  MDCSourceSchema,
   type TBridgeHardwareService,
   type TBridgeServiceArgs,
-  MDCSourceSchema
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../env";
 import * as mdc from "@ove/mdc-control";
 import { statusOptions } from "../../utils/status";
+import { assert } from "@ove/ove-utils";
 
 const reboot = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"reboot">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const rebootOptsSchema = z.object({}).strict();
   const parsedOpts = rebootOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.setPower({
-    id: 0x01,
-    timeout: env!.MDC_TIMEOUT,
-    ip,
-    ac: ac?.(),
-    port
-  }, "reboot");
+  return mdc.setPower(
+    {
+      id: 0x01,
+      timeout: assert(env).MDC_TIMEOUT,
+      ip,
+      ac: ac?.(),
+      port,
+    },
+    "reboot",
+  );
 };
 
 const shutdown = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"shutdown">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const shutdownOptsSchema = z.object({}).strict();
   const parsedOpts = shutdownOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.setPower({
-    id: 0x01,
-    timeout: env!.MDC_TIMEOUT,
-    ip,
-    ac: ac?.(),
-    port
-  }, "off");
+  return mdc.setPower(
+    {
+      id: 0x01,
+      timeout: assert(env).MDC_TIMEOUT,
+      ip,
+      ac: ac?.(),
+      port,
+    },
+    "off",
+  );
 };
 
 const start = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"start">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const startOptsSchema = z.object({}).strict();
   const parsedOpts = startOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.setPower({
-    id: 0x01,
-    timeout: env!.MDC_TIMEOUT,
-    ip,
-    ac: ac?.(),
-    port
-  }, "on");
+  return mdc.setPower(
+    {
+      id: 0x01,
+      timeout: assert(env).MDC_TIMEOUT,
+      ip,
+      ac: ac?.(),
+      port,
+    },
+    "on",
+  );
 };
 
 const getInfo = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"getInfo">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const infoOptsSchema = z
-    .object({ type: z.literal("general").optional() }).strict();
+    .object({ type: z.literal("general").optional() })
+    .strict();
   const parsedOpts = infoOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
   return mdc.getInfo({
-    timeout: env!.MDC_TIMEOUT,
+    timeout: assert(env).MDC_TIMEOUT,
     id: 0x01,
     ip,
     ac: ac?.(),
-    port
+    port,
   });
 };
 
 const getStatus = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"getStatus">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const statusOptsSchema = z.object({}).strict();
   const parsedOpts = statusOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return statusOptions(async () =>
-    mdc.getStatus({
-      timeout: env!.MDC_TIMEOUT,
-      id: 0x01,
-      ip,
-      ac: ac?.(),
-      port
-    }), ip);
+  return statusOptions(
+    async () =>
+      mdc.getStatus({
+        timeout: assert(env).MDC_TIMEOUT,
+        id: 0x01,
+        ip,
+        ac: ac?.(),
+        port,
+      }),
+    ip,
+  );
 };
 
-const mute = async ({
-  ip,
-  port
-}: Device, args: TBridgeServiceArgs<"mute">, ac?: () => AbortController) => {
+const mute = async (
+  { ip, port }: Device,
+  args: TBridgeServiceArgs<"mute">,
+  ac?: () => AbortController,
+) => {
   const muteOptsSchema = z.object({}).strict();
   const parsedOpts = muteOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.setIsMute({
-    id: 0x01,
-    timeout: env!.MDC_TIMEOUT,
-    ip,
-    ac: ac?.(),
-    port
-  }, true);
+  return mdc.setIsMute(
+    {
+      id: 0x01,
+      timeout: assert(env).MDC_TIMEOUT,
+      ip,
+      ac: ac?.(),
+      port,
+    },
+    true,
+  );
 };
 
 const unmute = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"unmute">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const unmuteOptsSchema = z.object({}).strict();
   const parsedOpts = unmuteOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.setIsMute({
-    id: 0x01,
-    timeout: env!.MDC_TIMEOUT,
-    ip,
-    ac: ac?.(),
-    port
-  }, false);
+  return mdc.setIsMute(
+    {
+      id: 0x01,
+      timeout: assert(env).MDC_TIMEOUT,
+      ip,
+      ac: ac?.(),
+      port,
+    },
+    false,
+  );
 };
 
 const setVolume = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"setVolume">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const setVolumeOptsSchema = z.object({ volume: z.number() }).strict();
   const parsedOpts = setVolumeOptsSchema.safeParse(args);
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc
-    .setVolume({
+  return mdc.setVolume(
+    {
       id: 0x01,
-      timeout: env!.MDC_TIMEOUT,
+      timeout: assert(env).MDC_TIMEOUT,
       ip,
       ac: ac?.(),
-      port
-    }, parsedOpts.data.volume);
+      port,
+    },
+    parsedOpts.data.volume,
+  );
 };
 
 const setSource = async (
   { ip, port }: Device,
   args: TBridgeServiceArgs<"setSource">,
-  ac?: () => AbortController
+  ac?: () => AbortController,
 ) => {
   const setSourceOptsSchema = z
     .object({ source: MDCSourceSchema.keyof() })
@@ -177,13 +200,16 @@ const setSource = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.setSource({
-    timeout: env!.MDC_TIMEOUT,
-    id: 0x01,
-    ip,
-    ac: ac?.(),
-    port
-  }, mdc.sources[parsedOpts.data.source]);
+  return mdc.setSource(
+    {
+      timeout: assert(env).MDC_TIMEOUT,
+      id: 0x01,
+      ip,
+      ac: ac?.(),
+      port,
+    },
+    mdc.sources[parsedOpts.data.source],
+  );
 };
 
 const MDCService: TBridgeHardwareService = {
@@ -195,6 +221,6 @@ const MDCService: TBridgeHardwareService = {
   mute,
   unmute,
   setVolume,
-  setSource
+  setSource,
 };
 export default MDCService;

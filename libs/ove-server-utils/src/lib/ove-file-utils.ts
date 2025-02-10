@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from "atomically";
 
 export const readFile = <T extends NonNullable<object | string | number>>(
   filePath: string,
-  defaultAsset: string | null = null
+  defaultAsset: string | null = null,
 ): T | null => {
   try {
     if (!exists(filePath) && defaultAsset !== null) {
@@ -22,7 +22,7 @@ export const readFile = <T extends NonNullable<object | string | number>>(
 export const safeWriteFile = (
   path: string,
   data: string,
-  overwrite: boolean
+  overwrite: boolean,
 ): boolean | null => {
   if (overwrite) {
     try {
@@ -62,7 +62,7 @@ export const exists = (path: string) => {
   try {
     fs.statSync(path);
     return true;
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };
@@ -71,6 +71,6 @@ export const saveSwagger = (filename: string, swagger: object) => {
   safeWriteFile(
     path.join("out", "documentation", "api", filename),
     Json.stringify(swagger, undefined, 2),
-    true
+    true,
   );
 };

@@ -1,8 +1,9 @@
 import {
-  AutoScheduleSchema, BoundsSchema,
+  AutoScheduleSchema,
+  BoundsSchema,
   CalendarSchema,
   DeviceSchema,
-  PowerModeSchema
+  PowerModeSchema,
 } from "@ove/ove-types";
 import { z } from "zod";
 import { Logger } from "@ove/ove-logging";
@@ -12,11 +13,13 @@ import { nanoid } from "nanoid";
 
 const schema = z.strictObject({
   LOGGING_SERVER: z.string().optional(),
-  RENDER_CONFIG: z.strictObject({
-    PORT: z.number(),
-    HOSTNAME: z.string(),
-    PROTOCOL: z.string()
-  }).optional(),
+  RENDER_CONFIG: z
+    .strictObject({
+      PORT: z.number(),
+      HOSTNAME: z.string(),
+      PROTOCOL: z.string(),
+    })
+    .optional(),
   SOCKET_PATH: z.string().optional(),
   LOG_LEVEL: z.number().optional(),
   CORE_URL: z.string().optional(),
@@ -42,14 +45,14 @@ const schema = z.strictObject({
   ARP_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
   START_NODE_COMMAND: z.string().optional(),
   WOL_ADDRESS: z.string().optional(),
-  RECONCILE: z.boolean()
+  RECONCILE: z.boolean(),
 });
 
 const staticConfig = {
   APP_NAME: "ove-bridge",
   UI_ALIAS: "ove-bridge-ui",
   CLIENT_API_VERSION: "1",
-  CORE_API_VERSION: "1"
+  CORE_API_VERSION: "1",
 } as const;
 
 const passPhrase = nanoid(16);
@@ -58,14 +61,14 @@ const { publicKey, privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 4096,
   publicKeyEncoding: {
     type: "spki",
-    format: "pem"
+    format: "pem",
   },
   privateKeyEncoding: {
     type: "pkcs8",
     format: "pem",
     cipher: "aes-256-cbc",
-    passphrase: passPhrase
-  }
+    passphrase: passPhrase,
+  },
 });
 
 const defaultConfig: z.infer<typeof schema> = {
@@ -79,10 +82,10 @@ const defaultConfig: z.infer<typeof schema> = {
   MDC_RESTART_TIMEOUT: 1_000,
   PJLINK_TIMEOUT: 5_000,
   RECONCILIATION_TIMEOUT: 60_000,
-  RECONCILE: true
+  RECONCILE: true,
 };
 
-export type Environment = z.infer<typeof schema> & typeof staticConfig
+export type Environment = z.infer<typeof schema> & typeof staticConfig;
 
 export let env: Environment | null = null;
 export let logger: ReturnType<typeof Logger> | null = null;
@@ -90,7 +93,7 @@ export let version: string | null = null;
 
 export const initEnv = (path: string, version_: string) => {
   env = setupConfig(path, defaultConfig, schema, staticConfig);
-  logger = Logger(env!.APP_NAME, env!.LOG_LEVEL, env!.LOGGING_SERVER);
+  logger = Logger(env.APP_NAME, env.LOG_LEVEL, env.LOGGING_SERVER);
   version = version_;
   logger.info(`Loaded configuration from ${path}`);
 };

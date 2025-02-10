@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
-export default defineConfig((_config) => {
+export default defineConfig(_config => {
   return {
     root: __dirname,
     css: {

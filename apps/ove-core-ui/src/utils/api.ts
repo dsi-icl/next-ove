@@ -19,18 +19,27 @@ export const api = createTRPCReact<AppRouter>();
 
 export const custom = {
   getFileData: {
-    useQuery: (args: { url: string }, options?: {enabled: boolean}) => useQuery({...(options ?? {}), queryKey: ["getFileData", args.url], queryFn: async ({queryKey, signal}) => {
-        const res = await fetch(queryKey[1], {signal});
+    useQuery: (args: { url: string }, options?: {
+      enabled: boolean
+    }) => useQuery({
+      ...(options ?? {}),
+      queryKey: ["getFileData", args.url],
+      queryFn: async ({ queryKey, signal }) => {
+        const res = await fetch(queryKey[1], { signal });
         return await res.text();
-      }})
+      }
+    })
   },
   uploadFile: {
-    useMutation: (options?: { enabled: boolean }) => useMutation({...(options ?? {enabled: true}), mutationFn: async ({payload, url}: { url: string, payload: File }) => {
+    useMutation: (options?: { enabled: boolean }) => useMutation({
+      ...(options ?? { enabled: true }),
+      mutationFn: async ({ payload, url }: { url: string, payload: File }) => {
         await fetch(url, {
           method: "PUT",
           body: payload
         });
-      }})
+      }
+    })
   }
 };
 

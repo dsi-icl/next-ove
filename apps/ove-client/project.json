@@ -4,6 +4,13 @@
   "sourceRoot": "apps/ove-client/src",
   "projectType": "application",
   "targets": {
+    "db": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["npm run db sync"]
+      }
+    },
     "build": {
       "executor": "nx-electron:build",
       "outputs": [
@@ -23,7 +30,8 @@
           "extractLicenses": true,
           "inspect": false
         }
-      }
+      },
+      "dependsOn": ["db"]
     },
     "serve": {
       "executor": "nx-electron:execute",
@@ -158,7 +166,7 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "outputs": [
         "{options.outputFile}"
       ],
@@ -169,7 +177,7 @@
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
+      "executor": "@nx/jest:jest",
       "outputs": [
         "coverage/apps/ove-client"
       ],

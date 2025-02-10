@@ -4,7 +4,7 @@ import {
   type TCoreAPI,
   type TCoreAPIOutput,
   type THardwareClientToServerEvents,
-  type THardwareServerToClientEvents
+  type THardwareServerToClientEvents,
 } from "@ove/ove-types";
 import { io } from "./sockets";
 import { state } from "../state";
@@ -13,7 +13,9 @@ import { safe } from "@ove/ove-utils";
 import type { Socket } from "socket.io";
 import { protectedProcedure, router } from "../trpc";
 
-const getSocket: (socketId: string) => Socket<
+const getSocket: (
+  socketId: string,
+) => Socket<
   THardwareClientToServerEvents,
   THardwareServerToClientEvents
 > | null = (socketId: string) => {
@@ -22,15 +24,21 @@ const getSocket: (socketId: string) => Socket<
   return io.sockets.get(clientId) ?? null;
 };
 
-const generateProcedure =
-  <Key extends keyof TCoreAPI>(k: Key) => protectedProcedure
+const generateProcedure = <Key extends keyof TCoreAPI>(k: Key) =>
+  protectedProcedure
     .meta(CoreAPI[k].meta)
     .input<TCoreAPI[Key]["args"]>(CoreAPI[k].args)
     .output<TCoreAPI[Key]["bridge"]>(CoreAPI[k].bridge);
 
-const handler = async <Key extends keyof TCoreAPI, T extends {
-  bridgeId: string
-}>(k: Key, input: T | undefined): Promise<TCoreAPIOutput<Key>> => {
+const handler = async <
+  Key extends keyof TCoreAPI,
+  T extends {
+    bridgeId: string;
+  },
+>(
+  k: Key,
+  input: T | undefined,
+): Promise<TCoreAPIOutput<Key>> => {
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   const { bridgeId, ...args } = input;
   logger.info(`Handling: ${k}`);
@@ -43,35 +51,43 @@ const handler = async <Key extends keyof TCoreAPI, T extends {
   if (isError(res)) {
     return {
       meta: {
-        bridge: bridgeId
+        bridge: bridgeId,
       },
-      response: res
+      response: res,
     };
   } else return res;
 };
 
-const generateQuery =
-  <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)
-    .query<TCoreAPIOutput<Key>>(({ input }) =>
-      handler(k, input) as any);
+const generateQuery = <Key extends keyof TCoreAPI>(k: Key) =>
+  generateProcedure(k).query<TCoreAPIOutput<Key>>(
+    ({ input }) =>
+      // doesn't affect output type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      handler(k, input) as any,
+  );
 
-const generateMutation =
-  <Key extends keyof TCoreAPI>(k: Key) => generateProcedure(k)
-    .mutation<TCoreAPIOutput<Key>>(
-      ({ input }) => handler(k, input) as any);
+const generateMutation = <Key extends keyof TCoreAPI>(k: Key) =>
+  generateProcedure(k).mutation<TCoreAPIOutput<Key>>(
+    // doesn't affect output type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ({ input }) => handler(k, input) as any,
+  );
 
 export type CoreRouter = {
-  [Key in keyof TCoreAPI]:
-  TCoreAPI[Key]["meta"]["openapi"]["method"] extends "GET" ?
-    ReturnType<typeof generateQuery<Key>> :
-    ReturnType<typeof generateMutation<Key>>
-}
+  [Key in keyof TCoreAPI]: TCoreAPI[Key]["meta"]["openapi"]["method"] extends "GET"
+    ? ReturnType<typeof generateQuery<Key>>
+    : ReturnType<typeof generateMutation<Key>>;
+};
 
-const routes: CoreRouter = Object.entries(CoreAPI).reduce((acc, [k, route]) => {
-  acc[k] = route.meta.openapi.method === "GET" ?
-    generateQuery(k as keyof typeof CoreAPI) :
-    generateMutation(k as keyof typeof CoreAPI);
-  return acc;
-}, <{ [key: string]: unknown }>{}) as CoreRouter;
+const routes: CoreRouter = Object.entries(CoreAPI).reduce(
+  (acc, [k, route]) => {
+    acc[k] =
+      route.meta.openapi.method === "GET"
+        ? generateQuery(k as keyof typeof CoreAPI)
+        : generateMutation(k as keyof typeof CoreAPI);
+    return acc;
+  },
+  <{ [key: string]: unknown }>{},
+) as CoreRouter;
 
 export const hardwareRouter = router(routes);

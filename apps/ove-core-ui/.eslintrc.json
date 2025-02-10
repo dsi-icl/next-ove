@@ -1,19 +1,22 @@
 {
-  "extends": ["plugin:@nx/react", "../../.eslintrc.json"],
-  "ignorePatterns": ["!**/*"],
+  "extends": [
+    "plugin:@nx/react",
+    "plugin:tailwindcss/recommended",
+    "../../.eslintrc.json",
+    "prettier"
+  ],
+  "ignorePatterns": [
+    "!**/*"
+  ],
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+      "files": [
+        "*.ts",
+        "*.tsx",
+        "*.js",
+        "*.jsx"
+      ],
       "rules": {
-        "react/jsx-indent-props": ["error", "first"],
-        "indent": [
-          "error",
-          2,
-          {
-            "SwitchCase": 1,
-            "ignoredNodes": ["JSXAttribute"]
-          }
-        ],
         "@typescript-eslint/no-unused-vars": [
           "error",
           {
@@ -26,10 +29,51 @@
       }
     },
     {
-      "files": ["*.ts", "*.tsx"],
+      "files": [
+        "*.ts",
+        "*.tsx"
+      ],
       "rules": {
         "require-jsdoc": "off",
-        "no-invalid-this": "off"
+        "no-invalid-this": "off",
+        "spaced-comment": [
+          "error",
+          "always",
+          {
+            "line": {
+              "markers": [
+                "/"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "*.jsx",
+        "*.tsx"
+      ],
+      "rules": {
+        "max-len": [
+          "error",
+          {
+            "ignoreStrings": true
+          }
+        ],
+        "tailwindcss/no-custom-classname": [
+          "error",
+          {
+            "whitelist": [
+              "from-muted/50",
+              "to-muted",
+              "bg-primary",
+              "text-muted-foreground",
+              "bg-accent",
+              "text-accent-foreground"
+            ]
+          }
+        ]
       }
     }
   ]

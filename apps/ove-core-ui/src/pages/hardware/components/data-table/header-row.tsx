@@ -23,18 +23,27 @@ const getSize = (id: string) => {
   }
 };
 
-const HeaderRow = memo(({ group }: { group: HeaderGroup<any> }) =>
+// type of header group does not matter, provided it has id key
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const HeaderRow = memo(({ group }: { group: HeaderGroup<any> }) => (
   <TableRow>
-    {group.headers.map(header => <TableHead key={header.id}
-                                            style={{
-                                              width: getSize(header.id),
-                                              maxWidth: getSize(header.id),
-                                              minWidth: getSize(header.id)
-                                            }}
-                                            className="bg-[#002147] text-white text-center">
-      {header.isPlaceholder ? null :
-        flexRender(header.column.columnDef.header, header.getContext())}
-    </TableHead>)}
-  </TableRow>);
+    {group.headers.map((header) => (
+      <TableHead
+        key={header.id}
+        style={{
+          width: getSize(header.id),
+          maxWidth: getSize(header.id),
+          minWidth: getSize(header.id),
+        }}
+        className="bg-[#002147] text-center text-white"
+      >
+        {header.isPlaceholder
+          ? null
+          : flexRender(header.column.columnDef.header, header.getContext())}
+      </TableHead>
+    ))}
+  </TableRow>
+));
+HeaderRow.displayName = "HeaderRow";
 
 export default HeaderRow;

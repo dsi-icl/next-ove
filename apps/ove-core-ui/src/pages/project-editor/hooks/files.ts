@@ -8,43 +8,72 @@ import { dataTypes, type File as TFile, isError } from "@ove/ove-types";
 export const toURL = (bucketName: string, name: string, version: string) =>
   `/store/${bucketName}/${name}?versionId=${version}`;
 
-const getDataType = (name: string) => assert(dataTypes.find(dt => dt.extensions.includes(`.${getFormattedExtension(name)}`)));
+const getDataType = (name: string) =>
+  assert(
+    dataTypes.find((dt) =>
+      dt.extensions.includes(`.${getFormattedExtension(name)}`),
+    ),
+  );
 
 const getFormattedExtension = (name: string) => assert(name.split(".").at(-1));
 
-export const hasVersion = (files: TFile[], bucketName: string, name: string, version: string) => {
-  name = name.startsWith(`${bucketName}/`) ?
-    assert(name.split("/").at(-1)) : name;
-  return files.filter(file => file.name === name &&
-    file.bucketName === bucketName)
-    .map(f => f.version).includes(version);
+export const hasVersion = (
+  files: TFile[],
+  bucketName: string,
+  name: string,
+  version: string,
+) => {
+  name = name.startsWith(`${bucketName}/`)
+    ? assert(name.split("/").at(-1))
+    : name;
+  return files
+    .filter((file) => file.name === name && file.bucketName === bucketName)
+    .map((f) => f.version)
+    .includes(version);
 };
 
 export const fromURL = (files: TFile[], url: string | null) => {
   if (url === null) return null;
   const parsed = /^\/store\/(.+)\/(.+)\?versionId=(.+)$/.exec(url);
   if (parsed === null || parsed.length !== 4) return null;
-  return files.find(({
-    bucketName,
-    name,
-    version
-  }) => bucketName === parsed[1] && name === parsed[2] &&
-    version === parsed[3]) ?? null;
+  return (
+    files.find(
+      ({ bucketName, name, version }) =>
+        bucketName === parsed[1] && name === parsed[2] && version === parsed[3],
+    ) ?? null
+  );
 };
 
-export const useUpload = (projectId: string, metadata: {name: string}) => {
-  const presignedPutRaw = api.projects.getPresignedPutURL.useQuery({projectId, objectName: metadata.name}, {enabled: metadata.name !== "ERROR"});
-  const presignedPutFormatted = api.projects.getPresignedPutURL.useQuery({projectId, objectName: getFormattedExtension(metadata.name)}, {enabled: metadata.name !== "ERROR"});
+export const useUpload = (projectId: string, metadata: { name: string }) => {
+  const presignedPutRaw = api.projects.getPresignedPutURL.useQuery(
+    {
+      projectId,
+      objectName: metadata.name,
+    },
+    { enabled: metadata.name !== "ERROR" },
+  );
+  const presignedPutFormatted = api.projects.getPresignedPutURL.useQuery(
+    {
+      projectId,
+      objectName: getFormattedExtension(metadata.name),
+    },
+    { enabled: metadata.name !== "ERROR" },
+  );
   const uploadFile = custom.uploadFile.useMutation();
   const formatFile = api.projects.formatData.useMutation();
   const apiUtils = api.useUtils();
 
   return async (payload: File) => {
-    if (presignedPutRaw.status !== "success" || isError(presignedPutRaw.data) || presignedPutFormatted.status !== "success" || isError(presignedPutFormatted.data)) {
+    if (
+      presignedPutRaw.status !== "success" ||
+      isError(presignedPutRaw.data) ||
+      presignedPutFormatted.status !== "success" ||
+      isError(presignedPutFormatted.data)
+    ) {
       toast.error(`Missing presigned URL for file ${metadata.name}`);
       return;
     }
-    await uploadFile.mutateAsync({url: presignedPutRaw.data, payload});
+    await uploadFile.mutateAsync({ url: presignedPutRaw.data, payload });
 
     const data = await payload.text();
     const dataType = getDataType(metadata.name);
@@ -52,34 +81,50 @@ export const useUpload = (projectId: string, metadata: {name: string}) => {
       data,
       dataType: dataType.name,
       title: metadata.name,
-      opts: dataType.name === "data-table" ? {
-        containsHeader: false,
-        tableSource: getFormattedExtension(metadata.name) as "html" | "csv" | "tsv"
-      } : undefined
+      opts:
+        dataType.name === "data-table"
+          ? {
+              containsHeader: false,
+              tableSource: getFormattedExtension(metadata.name) as
+                | "html"
+                | "csv"
+                | "tsv",
+            }
+          : undefined,
     });
     if (isError(formatted)) {
       toast.error("Error formatting file");
       return;
     }
-    await uploadFile.mutateAsync({url: presignedPutFormatted.data, payload});
-    apiUtils.projects.getFiles.invalidate({projectId}).catch();
+    await uploadFile.mutateAsync({ url: presignedPutFormatted.data, payload });
+    apiUtils.projects.getFiles.invalidate({ projectId }).catch();
   };
 };
 
 export const getLatest = (files: TFile[], bucketName: string, name: string) => {
-  name = name.startsWith(`${bucketName}/`) ?
-    assert(name.split("/").at(-1)) : name;
-  const file = files.find(file =>
-    file.name === name && file.bucketName === bucketName && file.isLatest);
+  name = name.startsWith(`${bucketName}/`)
+    ? assert(name.split("/").at(-1))
+    : name;
+  const file = files.find(
+    (file) =>
+      file.name === name && file.bucketName === bucketName && file.isLatest,
+  );
   if (!file) {
     throw new Error("File not found");
   }
   return file;
 };
 
-export const useLatest = (projectId: string, name: string, bucketName: string) => {
-  const {files} = useFiles(projectId);
-  return useMemo(() => getLatest(files, bucketName, name), [files]);
+export const useLatest = (
+  projectId: string,
+  name: string,
+  bucketName: string,
+) => {
+  const { files } = useFiles(projectId);
+  return useMemo(
+    () => getLatest(files, bucketName, name),
+    [files, bucketName, name],
+  );
 };
 
 export const useFiles = (projectId: string) => {
@@ -88,10 +133,34 @@ export const useFiles = (projectId: string) => {
   const files = useMemo(() => {
     if (env.MODE === "development") {
       return [
-        {bucketName: "test", name: "control.html", isLatest: true, version: "0", isGlobal: false},
-        {bucketName: "test", name: "env.json", isLatest: true, version: "0", isGlobal: false},
-        {bucketName: "test", name: "example.png", isLatest: true, version: "0", isGlobal: false},
-        {bucketName: "imperial", name: "example.jpg", isLatest: true, version: "0", isGlobal: true}
+        {
+          bucketName: "test",
+          name: "control.html",
+          isLatest: true,
+          version: "0",
+          isGlobal: false,
+        },
+        {
+          bucketName: "test",
+          name: "env.json",
+          isLatest: true,
+          version: "0",
+          isGlobal: false,
+        },
+        {
+          bucketName: "test",
+          name: "example.png",
+          isLatest: true,
+          version: "0",
+          isGlobal: false,
+        },
+        {
+          bucketName: "imperial",
+          name: "example.jpg",
+          isLatest: true,
+          version: "0",
+          isGlobal: true,
+        },
       ];
     } else if (getFiles.status !== "success" || isError(getFiles.data)) {
       return [];
@@ -100,38 +169,63 @@ export const useFiles = (projectId: string) => {
     }
   }, [getFiles.status, getFiles.data]);
 
-  const local = useMemo(() => files.filter(f => !f.isGlobal), [files]);
-  const global = useMemo(() => files.filter(f => f.isGlobal), [files]);
-  const ordinary = useMemo(() => local.filter(f => !["control.html", "env.json"].includes(f.name)), [local]);
+  const local = useMemo(() => files.filter((f) => !f.isGlobal), [files]);
+  const global = useMemo(() => files.filter((f) => f.isGlobal), [files]);
+  const ordinary = useMemo(
+    () => local.filter((f) => !["control.html", "env.json"].includes(f.name)),
+    [local],
+  );
 
   return {
     files,
     local,
     global,
-    ordinary
-  }
+    ordinary,
+  };
 };
 
 export const useData = (file: TFile) => {
-  const getPresigned = api.projects.getPresignedGetURL.useQuery({bucketName: file.bucketName, objectName: file.name, versionId: file.version}, {enabled: env.MODE !== "development"});
-  const getData = custom.getFileData.useQuery({url: getPresigned.status !== "success" || isError(getPresigned.data) ? "" : getPresigned.data}, {enabled: getPresigned.status === "success"});
+  const getPresigned = api.projects.getPresignedGetURL.useQuery(
+    {
+      bucketName: file.bucketName,
+      objectName: file.name,
+      versionId: file.version,
+    },
+    { enabled: env.MODE !== "development" },
+  );
+  const getData = custom.getFileData.useQuery(
+    {
+      url:
+        getPresigned.status !== "success" || isError(getPresigned.data)
+          ? ""
+          : getPresigned.data,
+    },
+    { enabled: getPresigned.status === "success" },
+  );
 
   if (env.MODE !== "development") {
     return getData.data ?? null;
   } else {
     switch (file.name) {
-      case "control.html": return `<!DOCTYPE html>
+      case "control.html":
+        return `<!DOCTYPE html>
 <html lang="en">
 <head><title>Controller</title></head>
 <body></body>
 </html>`;
-      case "env.json": return JSON.stringify({EXAMPLE_KEY: "hello world"});
-      default: return "";
+      case "env.json":
+        return JSON.stringify({ EXAMPLE_KEY: "hello world" });
+      default:
+        return "";
     }
   }
 };
 
-export const useFileWithEdit = (name: string, bucket: string, projectId: string) => {
+export const useFileWithEdit = (
+  name: string,
+  bucket: string,
+  projectId: string,
+) => {
   const file = useLatest(projectId, name, bucket);
   const initial = useData(file);
   const [data, setData] = useState<string | null>(null);
@@ -140,7 +234,7 @@ export const useFileWithEdit = (name: string, bucket: string, projectId: string)
     setData,
     data: data === null ? (initial ?? "") : data,
     file,
-    initial
+    initial,
   };
 };
 
@@ -149,12 +243,17 @@ export const useThumbnail = (projectId: string, tags: string[]) => {
   const generateThumbnail = api.projects.generateThumbnail.useMutation({
     retry: false,
     onSuccess: () => {
-      apiUtils.projects.getProject.invalidate({ projectId }).catch(logger.error);
-    }
+      apiUtils.projects.getProject
+        .invalidate({ projectId })
+        .catch(logger.error);
+    },
   });
 
-  return () => generateThumbnail.mutateAsync({
-    projectId,
-    tags
-  }).catch(logger.error);
+  return () =>
+    generateThumbnail
+      .mutateAsync({
+        projectId,
+        tags,
+      })
+      .catch(logger.error);
 };
