@@ -9,11 +9,11 @@ import {
   CommandList,
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from "@ove/ui-base-components";
 import React, { type RefObject, useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import type { FilterValue } from "../data-table/columns";
+import type { FilterValue } from "../columns";
 
 export type SearchSelectProps = {
   values: string[];
@@ -26,12 +26,12 @@ const SearchSelect = ({
   setFilter,
   filter,
   filterType,
-  ref
+  ref,
 }: SearchSelectProps) => {
   const [open, setOpen] = useState(false);
   const filterLabel = useMemo(
     () => (filterType === "id" ? "ID" : "tag"),
-    [filterType]
+    [filterType],
   );
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -70,7 +70,7 @@ const SearchSelect = ({
                   <Check
                     className={cn(
                       "ml-auto",
-                      value === filter ? "opacity-100" : "opacity-0"
+                      value === filter ? "opacity-100" : "opacity-0",
                     )}
                   />
                 </CommandItem>

@@ -25,7 +25,7 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
       (getCollaborators.status === "success" &&
         !isError(getCollaborators.data) &&
         getCollaborators.data.find(
-          collaborator => collaborator.id === user.id,
+          (collaborator) => collaborator.id === user.id,
         ) !== undefined)) &&
       user.role !== "client");
 
@@ -46,7 +46,7 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
           <Button
             className="w-full rounded-r-none"
             variant="outline"
-            onClick={() => navigate(`/project-editor?project=${project.id}`)}
+            onClick={() => navigate(`/editor?project=${project.id}`)}
           >
             EDIT
           </Button>

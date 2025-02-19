@@ -2,7 +2,7 @@ import React, { type RefObject, useMemo, useRef } from "react";
 import Actions from "../actions/actions";
 import type { Device } from "@ove/ove-types";
 import { Button } from "@ove/ui-base-components";
-import type { FilterType } from "../data-table/columns";
+import type { FilterType } from "../columns";
 import SearchSelect, { type SearchSelectProps } from "./search-select";
 
 export type HardwareControlsProps = {

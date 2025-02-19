@@ -28,3 +28,7 @@ export * from "./lib/collapsible";
 export * from "./lib/textarea";
 export * from "./lib/badge";
 export * from "./lib/avatar";
+export * from "./lib/switch";
+export * from "./lib/calendar";
+export * from "./lib/scroll-area";
+export * from "./lib/date-time-picker";

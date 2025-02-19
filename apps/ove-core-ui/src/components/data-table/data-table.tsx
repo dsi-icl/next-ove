@@ -1,14 +1,5 @@
 import Empty from "./empty";
-import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
+import { type ColumnDef, type Table as TTable } from "@tanstack/react-table";
 import {
   Pagination,
   PaginationContent,
@@ -23,68 +14,34 @@ import {
 import BodyRow from "./body-row";
 import HeaderRow from "./header-row";
 import { getPages } from "../../utils";
-import type { FilterValue } from "./columns";
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-type DataTableProps<TData extends { id: string }, TValue> = {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-} & FilterValue;
+export type DataTableProps<TData extends { id: string }, TValue> = {
+  table: TTable<TData>;
+  columns: {
+    [K in keyof TData]: ColumnDef<TData, TData[K]>;
+  }[keyof TData][];
+  getSize: (id: string) => string;
+};
 
 const DataTable = <TData extends { id: string }, TValue>({
+  table,
   columns,
-  data,
-  filter,
-  filterType,
-  selected,
+  getSize,
 }: DataTableProps<TData, TValue>) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-    },
-  });
-
-  useEffect(() => {
-    table.getColumn(filterType)?.setFilterValue({
-      filterType,
-      filter,
-      selected,
-    });
-
-    return () => {
-      table.getColumn(filterType)?.setFilterValue({
-        filterType,
-        filter: null,
-        selected: null,
-      });
-    };
-  }, [filter, filterType, table, selected]);
-
   return (
     <>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((group) => (
-            <HeaderRow group={group} key={group.id} />
+            <HeaderRow group={group} key={group.id} getSize={getSize} />
           ))}
         </TableHeader>
         <TableBody>
           {table.getRowModel()?.rows?.length > 0 ? (
-            table
-              .getRowModel()
-              .rows.map((row) => <BodyRow row={row} key={row.id} />)
+            table.getRowModel().rows.map((row) => {
+              return <BodyRow row={row} key={row.id} />;
+            })
           ) : (
             <Empty length={columns.length} />
           )}

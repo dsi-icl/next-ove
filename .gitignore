@@ -386,6 +386,9 @@ dev/tools/auto-populate/data/global_buckets/*
 !/apps/ove-core/config/*.example.json
 /apps/ove-core/config.production.json
 
+# Core UI logging component
+!/apps/ove-core-ui/src/pages/logs
+
 # Bridge service environment config
 /apps/ove-bridge-service/config/*.json
 !/apps/ove-bridge-service/config/*.example.json
@@ -423,3 +426,6 @@ dev/tools/auto-populate/data/global_buckets/*
 /docs/types
 /docs/features/public
 /docs/packages
+
+# UI base components
+!/libs/ui-base-components/src/lib

@@ -19,19 +19,31 @@ const baseSchema = z.strictObject({
     z.literal("development"),
     z.literal("production"),
     z.literal("test"),
-    z.literal("api")
+    z.literal("api"),
   ]),
   SOCKETS: z.strictObject({
     PATH: z.string().optional(),
-    ADMIN: z.strictObject({
-      USERNAME: z.string(),
-      PASSWORD: z.string()
-    }).optional(),
+    ADMIN: z
+      .strictObject({
+        USERNAME: z.string(),
+        PASSWORD: z.string(),
+      })
+      .optional(),
     MAX_HTTP_BUFFER_SIZE: z.number(),
-    DIST_DIR: z.string()
+    DIST_DIR: z.string(),
   }),
-  LOG_LEVEL: z.number().optional(),
-  LOGGING_SERVER: z.string().optional(),
+  LOGGING: z
+    .strictObject({
+      LEVEL: z.number().optional(),
+      SERVER: z
+        .strictObject({
+          INGESTION: z.string(),
+          AUTH: z.string(),
+          API_KEY: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
   PORT: z.number(),
   HOSTNAME: z.string(),
   PROTOCOL: z.string(),
@@ -40,56 +52,60 @@ const baseSchema = z.strictObject({
       SECRET: z.string(),
       PASSPHRASE: z.string(),
       EXPIRY: z.string(),
-      ISSUER: z.string()
+      ISSUER: z.string(),
     }),
     REFRESH: z.strictObject({
       SECRET: z.string(),
       PASSPHRASE: z.string(),
-      ISSUER: z.string()
-    })
+      ISSUER: z.string(),
+    }),
   }),
-  ASSET_STORE_CONFIG: z.strictObject({
-    ACCESS_KEY: z.string(),
-    SECRET_KEY: z.string(),
-    END_POINT: z.string(),
-    PORT: z.number(),
-    USE_SSL: z.boolean(),
-    GLOBAL_BUCKETS: z.string().array()
-  }).optional(),
-  CONTROLLER_FORMAT: z.strictObject({
-    SERVER: z.string(),
-    RENDERER: z.string(),
-    DATA_TYPE_MAP: z.record(z.string(), z.string())
-  }).optional(),
+  ASSET_STORE_CONFIG: z
+    .strictObject({
+      ACCESS_KEY: z.string(),
+      SECRET_KEY: z.string(),
+      END_POINT: z.string(),
+      PORT: z.number(),
+      USE_SSL: z.boolean(),
+      GLOBAL_BUCKETS: z.string().array(),
+    })
+    .optional(),
+  CONTROLLER_FORMAT: z
+    .strictObject({
+      SERVER: z.string(),
+      RENDERER: z.string(),
+      DATA_TYPE_MAP: z.record(z.string(), z.string()),
+    })
+    .optional(),
   DISABLE_AUTH: z.boolean(),
   TEST_USER: z.string().optional(),
   THUMBNAIL_GENERATOR: z.string().optional(),
   DATA_FORMATTER: z.string().optional(),
-  UI_URL: z.string()
+  UI_URL: z.string(),
 });
 
-const schema = baseSchema.refine(config =>
-  (config.NODE_ENV === "test" && config.TEST_USER !== undefined) ||
-  !config.DISABLE_AUTH);
+const schema = baseSchema.refine(
+  (config) =>
+    (config.NODE_ENV === "test" && config.TEST_USER !== undefined) ||
+    !config.DISABLE_AUTH,
+);
 
 const staticConfig = {
   APP_NAME: "ove-core",
   API_VERSION: 1,
   TITLE: "next-ove core",
-  DESCRIPTION: "The heart of next-ove."
+  DESCRIPTION: "The heart of next-ove.",
 } as const;
 
 const accessTokenPassphrase = nanoid(16);
-const accessTokenSecret = Buffer
-  .from(createHmac("sha256", accessTokenPassphrase)
-    .digest("hex"))
-  .toString("base64");
+const accessTokenSecret = Buffer.from(
+  createHmac("sha256", accessTokenPassphrase).digest("hex"),
+).toString("base64");
 
 const refreshTokenPassphrase = nanoid(16);
-const refreshTokenSecret = Buffer
-  .from(createHmac("sha256", refreshTokenPassphrase)
-    .digest("hex"))
-  .toString("base64");
+const refreshTokenSecret = Buffer.from(
+  createHmac("sha256", refreshTokenPassphrase).digest("hex"),
+).toString("base64");
 
 const defaultConfig: z.infer<typeof schema> = {
   NODE_ENV: process.env.NODE_ENV as "production" | "development" | "test",
@@ -98,36 +114,58 @@ const defaultConfig: z.infer<typeof schema> = {
   PROTOCOL: "http",
   SOCKETS: {
     MAX_HTTP_BUFFER_SIZE: 1e8,
-    DIST_DIR: path.join(__dirname, "..", "..", "..",
-      "node_modules", "@socket.io", "admin-ui", "ui", "dist")
+    DIST_DIR: path.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "node_modules",
+      "@socket.io",
+      "admin-ui",
+      "ui",
+      "dist",
+    ),
   },
   TOKENS: {
     ACCESS: {
       SECRET: accessTokenSecret,
       PASSPHRASE: accessTokenPassphrase,
       ISSUER: staticConfig.APP_NAME,
-      EXPIRY: "24h"
+      EXPIRY: "24h",
     },
     REFRESH: {
       SECRET: refreshTokenSecret,
       PASSPHRASE: refreshTokenPassphrase,
-      ISSUER: staticConfig.APP_NAME
-    }
+      ISSUER: staticConfig.APP_NAME,
+    },
   },
   DISABLE_AUTH: false,
-  UI_URL: path.join(__dirname, "ui")
+  UI_URL: path.join(__dirname, "ui"),
 };
 
-const configFile = process.argv.slice(2).find(arg => arg.startsWith("--configFile="))?.split("=")?.at(-1);
-const configPath = path.join(__dirname, "config", configFile ?? "config.json");
+const configFile = process.argv
+  .slice(2)
+  .find((arg) => arg.startsWith("--configFile="))
+  ?.split("=")
+  ?.at(-1);
+
+const configDir =
+  process.env.NODE_ENV === "development"
+    ? path.join(__dirname, "..", "..", "..", "apps", "ove-core", "config")
+    : path.join(__dirname, "config");
+const configPath = path.join(configDir, configFile ?? "config.json");
 
 export const env = setupConfigWithRefinement(
   configPath,
   defaultConfig,
   schema,
   staticConfig,
-  Object.keys(baseSchema.shape)
+  Object.keys(baseSchema.shape),
 );
 
-export const logger = Logger(env.APP_NAME, env.LOG_LEVEL, env.LOGGING_SERVER);
+export const logger = Logger(
+  env.APP_NAME,
+  env.LOGGING?.LEVEL,
+  env.LOGGING?.SERVER?.INGESTION,
+);
 logger.info(`Loaded configuration from ${configPath}`);

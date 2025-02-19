@@ -69,11 +69,7 @@ export const useLiveFeed = (
         screens: [parseInt(displayId)],
       })
       .catch(logger.error);
-    // only to run on initial render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  useEffect(() => {
     const interval = setInterval(() => {
       takeScreenshot
         .mutateAsync({
@@ -88,7 +84,7 @@ export const useLiveFeed = (
     return () => {
       clearInterval(interval);
     };
-  }, [bridgeId, deviceId, displayId, takeScreenshot]);
+  }, [bridgeId, deviceId, displayId]);
 
   return screenshot;
 };

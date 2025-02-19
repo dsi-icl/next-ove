@@ -48,9 +48,11 @@ export const Logger = (
         fetch(loggingServerURL, {
           method: "POST",
           body: message.join(" "),
-        }).catch();
-      } catch (_e) {
+        }).catch(() => {});
+      } catch (e) {
         // DO NOTHING
+        const doNothing = (_e: unknown) => {};
+        doNothing(e);
       }
     }
 

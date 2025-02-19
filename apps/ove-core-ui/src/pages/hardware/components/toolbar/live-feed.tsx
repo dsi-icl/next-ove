@@ -25,7 +25,7 @@ const useStreams = (bridgeId: string, isOpen: boolean) => {
     } else {
       stopStreams.mutateAsync({ bridgeId }).catch(logger.error);
     }
-  }, [isOpen, bridgeId, startStreams, stopStreams]);
+  }, [isOpen, bridgeId]);
 
   return streams;
 };

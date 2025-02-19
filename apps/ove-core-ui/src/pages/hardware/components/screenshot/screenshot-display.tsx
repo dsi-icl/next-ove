@@ -11,8 +11,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@ove/ui-base-components";
-import { getPages } from "../../utils";
 import { assert } from "@ove/ove-utils";
+import { getPages } from "../../../../utils";
 import React, { useMemo, useState } from "react";
 import type { TransferMethod } from "./screenshot-config";
 

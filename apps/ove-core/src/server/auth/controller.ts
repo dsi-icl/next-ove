@@ -155,6 +155,18 @@ const getUser = (prisma: PrismaClient, username: string) =>
     },
   });
 
-const controller = { login, getToken, getUser, logout };
+const getLoggingToken = async () => {
+  if (env.LOGGING?.SERVER === undefined)
+    throw new Error("No logging server connected");
+  const data = (await (
+    await fetch(`${env.LOGGING.SERVER.AUTH}`, {
+      headers: { Authorization: `Bearer ${env.LOGGING.SERVER.API_KEY}` },
+      method: "GET",
+    })
+  ).json()) as { token: string };
+  return data.token;
+};
+
+const controller = { login, getToken, getUser, logout, getLoggingToken };
 
 export default controller;

@@ -105,6 +105,19 @@ export const App = () => {
               </a>
             </NavigationMenuLink>
           </li>
+          <li>
+            <NavigationMenuLink asChild>
+              <a
+                className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                href={`${env.BASE_URL}/logs`}
+              >
+                <div className="text-sm font-medium leading-none">Logs</div>
+                <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+                  View live and historical logs across next-ove
+                </p>
+              </a>
+            </NavigationMenuLink>
+          </li>
         </ul>
       ),
       location: null,

@@ -11,18 +11,23 @@ const UserSchema = z.strictObject({
   email: z.string().nullable(),
   role: z.string(),
   icon: z.string().nullable(),
-  name: z.string().nullable()
+  name: z.string().nullable(),
 });
 
 export const authRouter = router({
   login: procedure
     .meta({ openapi: { method: "POST", path: "/login" } })
     .input(z.strictObject({}))
-    .output(z.union([OVEExceptionSchema, z.strictObject({
-      access: z.string(),
-      refresh: z.string(),
-      expiry: z.date()
-    })]))
+    .output(
+      z.union([
+        OVEExceptionSchema,
+        z.strictObject({
+          access: z.string(),
+          refresh: z.string(),
+          expiry: z.date(),
+        }),
+      ]),
+    )
     .mutation(async ({ ctx }) => {
       logger.info("Logging in user");
       return safe(logger, () => controller.login(ctx.prisma, ctx.user));
@@ -38,10 +43,15 @@ export const authRouter = router({
   token: procedure
     .meta({ openapi: { method: "GET", path: "/token" } })
     .input(z.strictObject({}))
-    .output(z.union([OVEExceptionSchema, z.strictObject({
-      token: z.string(),
-      expiry: z.date()
-    })]))
+    .output(
+      z.union([
+        OVEExceptionSchema,
+        z.strictObject({
+          token: z.string(),
+          expiry: z.date(),
+        }),
+      ]),
+    )
     .query(async ({ ctx }) => {
       logger.info("Getting token for user");
       return safe(logger, () => controller.getToken(ctx.prisma, ctx.user));
@@ -53,5 +63,13 @@ export const authRouter = router({
     .query(async ({ ctx }) => {
       logger.info("Getting user");
       return safe(logger, () => controller.getUser(ctx.prisma, ctx.user));
-    })
+    }),
+  getLoggingToken: protectedProcedure
+    .meta({ openapi: { method: "GET", path: "/logs/token" } })
+    .input(z.void())
+    .output(z.union([OVEExceptionSchema, z.string()]))
+    .query(async () => {
+      logger.info("Getting token for logging service");
+      return safe(logger, controller.getLoggingToken);
+    }),
 });

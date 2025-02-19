@@ -12,9 +12,9 @@ import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
 import { assert } from "@ove/ove-utils";
 import { api } from "../../../utils/api";
-import DataTable from "./data-table/data-table";
-import { columns, type FilterValue } from "./data-table/columns";
+import { columns, type FilterValue } from "./columns";
 import { cn } from "@ove/ui-base-components";
+import Container from "./container";
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T;
@@ -197,12 +197,12 @@ const Observatory = ({
             selected={filters.selected}
           />
           <div className="w-[calc(100vw-4rem)]">
-            <DataTable
-              columns={columns}
-              filterType={filters.filterType}
+            <Container
               filter={filters.filter}
-              data={getData(name, devices)}
+              filterType={filters.filterType}
               selected={filters.selected}
+              columns={columns}
+              data={getData(name, devices)}
             />
           </div>
         </>

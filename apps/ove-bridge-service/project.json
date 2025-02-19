@@ -33,9 +33,6 @@
       "defaultConfiguration": "production",
       "options": {
         "main": "apps/ove-bridge-service/src/main.ts",
-        "assets": [
-          "apps/ove-bridge-service/config/config.json"
-        ],
         "outputPath": "dist/apps/ove-bridge-service",
         "outputFileName": "main.js",
         "tsConfig": "apps/ove-bridge-service/tsconfig.app.json",

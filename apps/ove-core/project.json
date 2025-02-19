@@ -54,7 +54,8 @@
         "production": {
           "minify": true
         }
-      }
+      },
+      "dependsOn": ["db"]
     },
     "serve": {
       "executor": "@nx/js:node",

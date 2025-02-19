@@ -17,11 +17,12 @@ import {
 } from "@ove/ui-base-components";
 import React, { useMemo, useState } from "react";
 import { type Browser, isError } from "@ove/ove-types";
-import { format, getPages } from "../utils";
+import { format } from "../utils";
 import TableHeader from "./table-header";
 import { api } from "../../../utils/api";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
+import { getPages } from "../../../utils";
 
 const useBrowser = (
   bridgeId: string,

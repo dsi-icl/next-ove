@@ -22,7 +22,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Project, Section } from "@prisma/client";
 import { useObservatories } from "../../hooks/observatories";
-import { useSectionStore } from "../../pages/project-editor/hooks/stores";
+import { useSectionStore } from "../../pages/editor/hooks/stores";
 
 export type TLaunchConfig = {
   projectId: string;

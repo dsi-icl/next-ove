@@ -37,7 +37,6 @@ import DockerInfo from "./docker-info";
 import MemoryInfo from "./memory-info";
 import PJLinkInfo from "./pjlink-info";
 import SystemInfo from "./system-info";
-import { getPages } from "../../utils";
 import { assert } from "@ove/ove-utils";
 import GeneralInfo from "./general-info";
 import BatteryInfo from "./battery-info";
@@ -48,7 +47,7 @@ import GraphicsInfo from "./graphics-info";
 import { api } from "../../../../utils/api";
 import BluetoothInfo from "./bluetooth-info";
 import React, { useMemo, useState } from "react";
-import type { InfoTypes } from "../../../../utils";
+import { type InfoTypes, getPages } from "../../../../utils";
 
 export const useInfo = (
   deviceId: string | null,
