@@ -1,182 +1,263 @@
-const path = require('path');
+const path = require("path");
 const {
   printSchemas,
   run,
-  parseArgs, defaultAlias, makeSchema
-} = require('./utils');
-const z = require('zod').z;
+  parseArgs,
+  defaultAlias,
+  makeSchema,
+} = require("./utils");
+const z = require("zod").z;
 
-const tagline = 'Development tools for next-ove';
-const help = 'Use "npm run dev [COMMAND] -- --help" for more information about a command';
+const tagline = "Development tools for next-ove";
+const help =
+  'Use "npm run dev [COMMAND] -- --help" for more information about a command';
 const descriptions = {
-  build: 'Build next-ove components for publication',
-  deploy: 'Deploy next-ove components in production',
-  services: 'Manage local instances of support services for next-ove',
-  patch: 'Apply patches to libraries and features',
-  tools: 'Utilise development tools',
-  mock: 'Mock components within the system for integration & other testing'
+  build: "Build next-ove components for publication",
+  deploy: "Deploy next-ove components in production",
+  services: "Manage local instances of support services for next-ove",
+  patch: "Apply patches to libraries and features",
+  tools: "Utilise development tools",
+  mock: "Mock components within the system for integration & other testing",
 };
-const description = 'DESCRIPTION\n\tDevelopment tools for next-ove.';
+const description = "DESCRIPTION\n\tDevelopment tools for next-ove.";
 
 const activePatches = {
-  'optional-deps': () => path.join(__dirname, '..', 'dev', 'patches', 'remove-optional-deps.sh'),
-  'sandworm-timeout': args => {
-    const src = path.join(__dirname, '..', 'dev', 'patches', 'sandworm-timeout.js');
+  "optional-deps": () =>
+    path.join(__dirname, "..", "dev", "patches", "remove-optional-deps.sh"),
+  "sandworm-timeout": (args) => {
+    const src = path.join(
+      __dirname,
+      "..",
+      "dev",
+      "patches",
+      "sandworm-timeout.js",
+    );
     const defaults = {
-      timeout: 30_000
+      timeout: 30_000,
     };
-    return `node ${src} ${args.timeout ?? defaults.timeout}`
-  }
+    return `node ${src} ${args.timeout ?? defaults.timeout}`;
+  },
+  "dockerfile-package-versions": () =>
+    `node ${path.join(__dirname, "..", "dev", "patches", "dockerfile-package-versions.js")}`,
 };
 const supportedTools = {
-  'sign-in': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'generate-token.js')}`,
-  'screen-control': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'mdc-control.js')}`,
-  'generate-geometry': () => `node ${path.join(__dirname, '..', 'dev', 'tools', 'generate-geometry.js')}`
+  "sign-in": () =>
+    `node ${path.join(__dirname, "..", "dev", "tools", "generate-token.js")}`,
+  "screen-control": () =>
+    `node ${path.join(__dirname, "..", "dev", "tools", "mdc-control.js")}`,
+  "generate-geometry": () =>
+    `node ${path.join(__dirname, "..", "dev", "tools", "generate-geometry.js")}`,
 };
 
 const schemas = {
   build: z.strictObject({
-    __cmd__: z.literal('build'),
-    component: z.union([z.literal('client'), z.literal('bridge'), z.literal('core')]),
-    arch: z.union([z.literal('x64'), z.literal('arm64')]).optional(),
-    platform: z.union([z.literal('mac'), z.literal('linux'), z.literal('windows'), z.literal('linux/amd64'), z.literal('arm64')]).optional(),
-    version: z.string().optional()
+    __cmd__: z.literal("build"),
+    component: z.union([
+      z.literal("client"),
+      z.literal("bridge"),
+      z.literal("core"),
+    ]),
+    arch: z.union([z.literal("x64"), z.literal("arm64")]).optional(),
+    platform: z
+      .union([
+        z.literal("mac"),
+        z.literal("linux"),
+        z.literal("windows"),
+        z.literal("linux/amd64"),
+        z.literal("arm64"),
+      ])
+      .optional(),
+    version: z.string().optional(),
   }),
   deploy: z.strictObject({
-    __cmd__: z.literal('deploy'),
-    component: z.union([z.literal('client'), z.literal('bridge'), z.literal('core')]),
+    __cmd__: z.literal("deploy"),
+    component: z.union([
+      z.literal("client"),
+      z.literal("bridge"),
+      z.literal("core"),
+    ]),
     version: z.string(),
     target: z.string(),
     screens: z.string().optional(),
-    asset: z.string().optional()
+    asset: z.string().optional(),
   }),
   services: z.strictObject({
-    __cmd__: z.literal('services'),
-    action: z.union([z.literal('start'), z.literal('stop'), z.literal('populate')])
+    __cmd__: z.literal("services"),
+    action: z.union([
+      z.literal("start"),
+      z.literal("stop"),
+      z.literal("populate"),
+    ]),
   }),
   patch: z.strictObject({
-    __cmd__: z.literal('patch'),
-    name: z.string().refine(x => Object.keys(activePatches).includes(x)),
-    timeout: z.coerce.number().optional()
+    __cmd__: z.literal("patch"),
+    name: z.string().refine((x) => Object.keys(activePatches).includes(x)),
+    timeout: z.coerce.number().optional(),
   }),
   tools: z.strictObject({
-    __cmd__: z.literal('tools'),
-    name: z.string().refine(x => Object.keys(supportedTools).includes(x))
+    __cmd__: z.literal("tools"),
+    name: z.string().refine((x) => Object.keys(supportedTools).includes(x)),
   }),
   mock: z.strictObject({
-    __cmd__: z.literal('mock'),
-    component: z.union([z.literal('bridge'), z.literal('renderer')])
-  })
+    __cmd__: z.literal("mock"),
+    component: z.union([z.literal("bridge"), z.literal("renderer")]),
+  }),
 };
 
 const refinements = {
-  build: x => {
+  build: (x) => {
     switch (x.component) {
-      case 'client':
-      case 'bridge':
-        return x.version === undefined && x.arch !== undefined && (x.platform === undefined || ['mac', 'linux', 'windows'].includes(x.platform));
-      case 'core':
-        if (x.platform === 'linux/amd64') {
-          return x.arch === undefined && x.version !== undefined && /\d+\.\d+\.\d+/.test(x.version);
-        } else if (x.platform === 'linux/arm64') {
-          return x.arch === undefined && x.version !== undefined && /\d+\.\d+\.\d+-arm/.test(x.version);
+      case "client":
+      case "bridge":
+        return (
+          x.version === undefined &&
+          x.arch !== undefined &&
+          (x.platform === undefined ||
+            ["mac", "linux", "windows"].includes(x.platform))
+        );
+      case "core":
+        if (x.platform === "linux/amd64") {
+          return (
+            x.arch === undefined &&
+            x.version !== undefined &&
+            /\d+\.\d+\.\d+/.test(x.version)
+          );
+        } else if (x.platform === "linux/arm64") {
+          return (
+            x.arch === undefined &&
+            x.version !== undefined &&
+            /\d+\.\d+\.\d+-arm/.test(x.version)
+          );
         } else return false;
     }
   },
-  deploy: x => (x.component === 'client' && x.screens !== undefined) || x.screens === undefined,
-  parse: x => x.name === 'sandworm-timeout' || x.timeout !== undefined
+  deploy: (x) =>
+    (x.component === "client" && x.screens !== undefined) ||
+    x.screens === undefined,
+  parse: (x) => x.name === "sandworm-timeout" || x.timeout !== undefined,
 };
 
 const schema = makeSchema(schemas, refinements);
 
-const mock = args => {
-  const mock = path.join(__dirname, '..', 'dev', 'testing', `mock-${args.component}.js`);
+const mock = (args) => {
+  const mock = path.join(
+    __dirname,
+    "..",
+    "dev",
+    "testing",
+    `mock-${args.component}.js`,
+  );
   run(`node ${mock}`, args.dryRun);
 };
 
-const build = args => {
-  const toolDir = path.join(__dirname, '..', 'dev', 'deployment', 'scripts');
-  let platform = '';
+const build = (args) => {
+  const toolDir = path.join(__dirname, "..", "dev", "deployment", "scripts");
+  let platform = "";
   if (args.platform !== undefined) {
     platform = ` --platform=${args.platform}`;
   }
   switch (args.component) {
-    case 'client':
-    case 'bridge':
-      run(`${path.join(toolDir, `build-${args.component}.sh`)} --arch=${args.arch}${platform}`, args.dryRun);
+    case "client":
+    case "bridge":
+      run(
+        `${path.join(toolDir, `build-${args.component}.sh`)} --arch=${args.arch}${platform}`,
+        args.dryRun,
+      );
       break;
-    case 'core':
-      run(`${path.join(toolDir, `build-core.sh`)} --version=${args.version}${platform}`, args.dryRun);
+    case "core":
+      run(
+        `${path.join(toolDir, `build-core.sh`)} --version=${args.version}${platform}`,
+        args.dryRun,
+      );
       break;
   }
 };
 
-const services = args => {
-  const composeDir = path.join(__dirname, '..', 'dev', 'services');
-  const populate = path.join(__dirname, '..', 'dev', 'cli', 'auto-populate', 'auto-populate.js');
+const services = (args) => {
+  const composeDir = path.join(__dirname, "..", "dev", "services");
+  const populate = path.join(
+    __dirname,
+    "..",
+    "dev",
+    "cli",
+    "auto-populate",
+    "auto-populate.js",
+  );
   switch (args.action) {
-    case 'start':
+    case "start":
       run(`cd ${composeDir} && docker compose up -d`, args.dryRun);
       break;
-    case 'stop':
+    case "stop":
       run(`cd ${composeDir} && docker compose down`, args.dryRun);
       break;
-    case 'populate':
+    case "populate":
       run(`node ${populate}`, args.dryRun);
       break;
   }
 };
 
-const tools = args => run(supportedTools[args.name](args), args.dryRun);
+const tools = (args) => run(supportedTools[args.name](args), args.dryRun);
 
-const patch = args => run(activePatches[args.name](args), args.dryRun);
+const patch = (args) => run(activePatches[args.name](args), args.dryRun);
 
-const deploy = args => {
-  let asset = '';
-  let screens = '';
-  let script = path.join(__dirname, '..', 'dev', 'deployment', 'scripts', `deploy-${args.component}.sh`);
+const deploy = (args) => {
+  let asset = "";
+  let screens = "";
+  let script = path.join(
+    __dirname,
+    "..",
+    "dev",
+    "deployment",
+    "scripts",
+    `deploy-${args.component}.sh`,
+  );
   if (args.asset !== undefined) {
     asset = ` --asset=${args.asset}`;
   }
   if (args.screens !== undefined) {
-    screens = args.screens.split(',').map((screen, i) => ` --screen${i + 1}=${screen}`);
+    screens = args.screens
+      .split(",")
+      .map((screen, i) => ` --screen${i + 1}=${screen}`);
   }
 
-  run(`${script} --version=${args.version} --target=${args.target}${screens}${asset}`, args.dryRun);
+  run(
+    `${script} --version=${args.version} --target=${args.target}${screens}${asset}`,
+    args.dryRun,
+  );
 };
 
-const runDev = args => {
+const runDev = (args) => {
   switch (args.__cmd__) {
-    case 'mock':
+    case "mock":
       mock(args);
       break;
-    case 'build':
+    case "build":
       build(args);
       break;
-    case 'services':
+    case "services":
       services(args);
       break;
-    case 'tools':
+    case "tools":
       tools(args);
       break;
-    case 'patch':
+    case "patch":
       patch(args);
       break;
-    case 'deploy':
+    case "deploy":
       deploy(args);
       break;
     default:
-      throw new Error('Unknown command');
+      throw new Error("Unknown command");
   }
 };
 
 const args = parseArgs(schema, true, defaultAlias, {
-  build: ['component'],
-  deploy: ['component', 'version', 'target'],
-  services: ['action'],
-  mock: ['component'],
-  tools: ['name'],
-  patch: ['name']
+  build: ["component"],
+  deploy: ["component", "version", "target"],
+  services: ["action"],
+  mock: ["component"],
+  tools: ["name"],
+  patch: ["name"],
 });
 
 if (args.__cmd__ === undefined && args.help) {

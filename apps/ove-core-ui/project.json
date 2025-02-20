@@ -5,6 +5,13 @@
   "projectType": "application",
   "tags": [],
   "targets": {
+    "db": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["npm run db sync"]
+      }
+    },
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
@@ -12,6 +19,7 @@
       "options": {
         "emptyOutDir": true,
         "generatePackageJson": true,
+        "buildLibsFromSource": true,
         "outputPath": "dist/apps/ove-core-ui"
       },
       "configurations": {
@@ -19,9 +27,11 @@
           "mode": "development"
         },
         "production": {
-          "mode": "production"
+          "mode": "production",
+          "skipTypeCheck": true
         }
-      }
+      },
+      "dependsOn": ["db"]
     },
     "serve": {
       "executor": "@nx/vite:dev-server",

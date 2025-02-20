@@ -19,9 +19,43 @@
       }
     },
     "build": {
-      "command": "npx esbuild server.js --bundle --platform=node --target=node22 --outdir=../../dist/apps/ove-logs",
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
       "options": {
-        "cwd": "apps/ove-logs"
+        "main": "apps/ove-logs/server.js",
+        "outputPath": "dist/apps/ove-logs",
+        "outputFileName": "main.js",
+        "tsConfig": "apps/ove-logs/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      },
+      "dependsOn": ["db"]
+    },
+    "prebuild": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "main": "apps/ove-logs/server.js",
+        "outputPath": "dist/apps/ove-logs",
+        "outputFileName": "main.js",
+        "tsConfig": "apps/ove-logs/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": false,
+        "generatePackageJson": true,
+        "skipTypeCheck": true,
+        "platform": "node",
+        "minify": true
       },
       "dependsOn": ["db"]
     },
@@ -38,7 +72,7 @@
         "args": ["--progress=plain", "-t next-ove/logs:latest", "--platform linux/amd64", "-f Dockerfile"],
         "cwd": "apps/ove-logs"
       },
-      "dependsOn": ["db"]
+      "dependsOn": ["prebuild"]
     }
   }
 }

@@ -1,9 +1,0 @@
-version: "3"
-services:
-  docs:
-    build:
-      context: ../../
-      dockerfile: Dockerfile
-    container_name: ove-docs
-    ports:
-      - "8080:8080"

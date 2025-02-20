@@ -26,7 +26,7 @@
           ]
         }
       },
-      "dependsOn": ["^build"]
+      "dependsOn": ["build"]
     },
     "build": {
       "executor": "@nx/esbuild:esbuild",
@@ -34,14 +34,12 @@
       "defaultConfiguration": "production",
       "options": {
         "main": "apps/ove-core/src/main.ts",
-        "assets": [
-          "apps/ove-core/config/config.json"
-        ],
         "outputPath": "dist/apps/ove-core",
         "outputFileName": "main.js",
         "tsConfig": "apps/ove-core/tsconfig.app.json",
         "thirdParty": true,
         "format": ["cjs"],
+        "generatePackageJson": true,
         "external": [
           "bcrypt"
         ],
@@ -52,8 +50,28 @@
           "minify": false
         },
         "production": {
-          "minify": true
+          "minify": true,
+          "skipTypeCheck": true
         }
+      },
+      "dependsOn": ["db"]
+    },
+    "prebuild": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "main": "apps/ove-core/src/main.ts",
+        "outputPath": "dist/apps/ove-core",
+        "outputFileName": "main.js",
+        "tsConfig": "apps/ove-core/tsconfig.app.json",
+        "thirdParty": false,
+        "format": ["cjs"],
+        "generatePackageJson": true,
+        "minify": true,
+        "external": [
+          "bcrypt"
+        ],
+        "platform": "node"
       },
       "dependsOn": ["db"]
     },

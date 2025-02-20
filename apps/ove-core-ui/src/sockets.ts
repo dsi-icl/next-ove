@@ -5,6 +5,6 @@ export const logSocket =
   env.LOGGING?.SERVER?.SOCKET_ENDPOINT !== undefined
     ? io(env.LOGGING.SERVER.SOCKET_ENDPOINT, {
         autoConnect: false,
-        path: "/sockets",
+        path: env.LOGGING?.SERVER?.SOCKET_PATH ?? "/sockets",
       })
     : null;

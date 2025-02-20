@@ -19,6 +19,7 @@
     "help": "node cli/help.js",
     "lighthouse": "node cli/lighthouse.js",
     "lint": "npx nx run-many --target=lint",
+    "postinstall": "npm run dev patch dockerfile-package-versions",
     "start": "npx nx run-many --target=serve",
     "test": "node cli/test.js"
   },

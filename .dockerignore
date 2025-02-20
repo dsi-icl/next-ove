@@ -691,4 +691,13 @@ Temporary Items
 /dist/apps/ove-core/config/config.json
 /dist/apps/ove-core/config/config.example.json
 
+!/dist/apps/ove-logs/package.json
+!/dist/apps/ove-logs/package-lock.json
+
+!/dist/apps/ove-core/package.json
+!/dist/apps/ove-core/package-lock.json
+
+!/dist/apps/ove-core-ui/package.json
+!/dist/apps/ove-core-ui/package-lock.json
+
 Dockerfile

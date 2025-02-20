@@ -22,7 +22,7 @@ import { useStore } from "../store";
 import { httpLink } from "@trpc/client";
 import { useAuth } from "../hooks/auth";
 import { Nav } from "@ove/ui-components";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { HddStack } from "react-bootstrap-icons";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -77,11 +77,8 @@ export const App = () => {
       card: (
         <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
           <li className="row-span-3">
-            <NavigationMenuLink asChild>
-              <a
-                className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md"
-                href={`${env.BASE_URL}/hardware`}
-              >
+            <Link to="/hardware">
+              <NavigationMenuLink className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md">
                 <HddStack />
                 <h4 className="mb-2 mt-4 text-lg font-medium">
                   Hardware Manager
@@ -89,34 +86,28 @@ export const App = () => {
                 <p className="text-muted-foreground text-sm leading-tight">
                   Manage all connected hardware.
                 </p>
-              </a>
-            </NavigationMenuLink>
+              </NavigationMenuLink>
+            </Link>
           </li>
           <li>
-            <NavigationMenuLink asChild>
-              <a
-                className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
-                href={`${env.BASE_URL}/sockets`}
-              >
+            <Link to="/sockets">
+              <NavigationMenuLink className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors">
                 <div className="text-sm font-medium leading-none">Sockets</div>
                 <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
                   Socket.IO Admin UI
                 </p>
-              </a>
-            </NavigationMenuLink>
+              </NavigationMenuLink>
+            </Link>
           </li>
           <li>
-            <NavigationMenuLink asChild>
-              <a
-                className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
-                href={`${env.BASE_URL}/logs`}
-              >
+            <Link to="/logs">
+              <NavigationMenuLink className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors">
                 <div className="text-sm font-medium leading-none">Logs</div>
                 <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
                   View live and historical logs across next-ove
                 </p>
-              </a>
-            </NavigationMenuLink>
+              </NavigationMenuLink>
+            </Link>
           </li>
         </ul>
       ),
@@ -127,15 +118,7 @@ export const App = () => {
       item: loggedIn ? (
         <Persona logout={logout} />
       ) : (
-        <Button
-          style={{
-            color: "white",
-            padding: "1rem",
-            fontWeight: 700,
-          }}
-        >
-          Login
-        </Button>
+        <Button className="p-4 font-bold text-white">Login</Button>
       ),
       card: null,
       location: loggedIn ? null : "/login",
