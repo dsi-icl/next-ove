@@ -1,0 +1,386 @@
+{
+  "LOGGING": {
+    "SERVER": "https://www.example-logging.com/ingest",
+    "LEVEL": 2
+  },
+  "CORE": {
+    "SOCKET_PATH": "/socket.io",
+    "URL": "http://localhost:3333"
+  },
+  "AUTH": {
+    "BRIDGE_NAME": "dev",
+    "API_KEY": ""
+  },
+  "POWER_MODE": {
+    "MODE": "manual",
+    "SCHEDULE": {
+      "wake": "9:00",
+      "sleep": "18:00",
+      "schedule": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ]
+    }
+  },
+  "HARDWARE": {
+    "DEVICES": [
+      {
+        "id": "dev-01",
+        "description": "Dev Node 1",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-01",
+          "nodes",
+          "cluster-01"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-02",
+        "description": "Dev Node 2",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-02",
+          "nodes",
+          "cluster-02"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-03",
+        "description": "Dev Node 3",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-03",
+          "nodes",
+          "cluster-03"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-04",
+        "description": "Dev Node 4",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-04",
+          "nodes",
+          "cluster-04"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-05",
+        "description": "Dev Node 5",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-05",
+          "nodes",
+          "cluster-05"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-06",
+        "description": "Dev Node 6",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-06",
+          "nodes",
+          "cluster-06"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-07",
+        "description": "Dev Node 7",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-07",
+          "nodes",
+          "cluster-07"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-08",
+        "description": "Dev Node 8",
+        "ip": "",
+        "port": 3334,
+        "protocol": "http",
+        "type": "node",
+        "mac": "",
+        "tags": [
+          "dev-08",
+          "nodes",
+          "cluster-08"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-01",
+        "description": "Dev Screen 1",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-01",
+          "screens",
+          "cluster-01"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-02",
+        "description": "Dev Screen 2",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-02",
+          "screens",
+          "cluster-02"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-03",
+        "description": "Dev Screen 3",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-03",
+          "screens",
+          "cluster-03"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-04",
+        "description": "Dev Screen 4",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-04",
+          "screens",
+          "cluster-04"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-05",
+        "description": "Dev Screen 5",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-05",
+          "screens",
+          "cluster-05"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-06",
+        "description": "Dev Screen 6",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-06",
+          "screens",
+          "cluster-06"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-07",
+        "description": "Dev Screen 7",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-07",
+          "screens",
+          "cluster-07"
+        ],
+        "auth": null
+      },
+      {
+        "id": "dev-sc-08",
+        "description": "Dev Screen 8",
+        "ip": "",
+        "type": "mdc",
+        "mac": "",
+        "tags": [
+          "dev-sc-08",
+          "screens",
+          "cluster-08"
+        ],
+        "auth": null
+      }
+    ],
+    "GEOMETRY": {
+      "width": 32,
+      "height": 9,
+      "rows": 2,
+      "columns": 4,
+      "displays": [
+        {
+          "displayId": "dev-sc-01",
+          "renderer": {
+            "deviceId": "dev-01",
+            "displayId": "1"
+          },
+          "row": 2,
+          "column": 1
+        },
+        {
+          "displayId": "dev-sc-02",
+          "renderer": {
+            "deviceId": "dev-02",
+            "displayId": "1"
+          },
+          "row": 1,
+          "column": 1
+        },
+        {
+          "displayId": "dev-sc-03",
+          "renderer": {
+            "deviceId": "dev-03",
+            "displayId": "1"
+          },
+          "row": 2,
+          "column": 2
+        },
+        {
+          "displayId": "dev-sc-04",
+          "renderer": {
+            "deviceId": "dev-04",
+            "displayId": "1"
+          },
+          "row": 1,
+          "column": 2
+        },
+        {
+          "displayId": "dev-sc-05",
+          "renderer": {
+            "deviceId": "dev-05",
+            "displayId": "1"
+          },
+          "row": 2,
+          "column": 3
+        },
+        {
+          "displayId": "dev-sc-06",
+          "renderer": {
+            "deviceId": "dev-06",
+            "displayId": "1"
+          },
+          "row": 1,
+          "column": 3
+        },
+        {
+          "displayId": "dev-sc-07",
+          "renderer": {
+            "deviceId": "dev-07",
+            "displayId": "1"
+          },
+          "row": 2,
+          "column": 4
+        },
+        {
+          "displayId": "dev-sc-08",
+          "renderer": {
+            "deviceId": "dev-08",
+            "displayId": "1"
+          },
+          "row": 1,
+          "column": 4
+        }
+      ]
+    },
+    "WOL_ADDRESS": "255.255.255.255",
+    "SCRIPTS": {
+      "SYN_SCAN": "nmap -PS --packet-trace %IP%",
+      "ARP_SCAN": "nmap -sn -PR --packet-trace %IP%",
+      "START_NODE": "wol %MAC% %BROADCAST%"
+    },
+    "TIMEOUTS": {
+      "NODE": 5000,
+      "MDC": 5000,
+      "PJLINK": 5000,
+      "MDC_RESTART": 1000
+    }
+  },
+  "CALENDAR": {
+    "URL": "https://www.example-calendar.com",
+    "DATA": {
+      "values": [],
+      "lastUpdated": null
+    }
+  },
+  "POWER": {
+    "SCHEDULE": {
+      "wake": "09:00",
+      "sleep": "18:00",
+      "schedule": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false
+      ]
+    },
+    "MODE": "manual"
+  },
+  "LIVE_VIEW": {
+    "SOURCES": [
+      "https://www.example-ip-camera.com"
+    ],
+    "SCRIPTS": {
+      "START": "sudo systemctl start motion",
+      "STOP": "sudo systemctl stop motion"
+    }
+  },
+  "RECONCILIATION": {
+    "TIMEOUT": 60000,
+    "STATUS": true
+  }
+}

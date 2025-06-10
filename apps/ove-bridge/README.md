@@ -6,19 +6,13 @@ remote cloud platform.
 
 ## Environment
 
-The environment configuration is located under the application data folder for
-next-ove on the device, with the filename ove-bridge-config.json.
-An [example configuration file](./ove-bridge-config.example.json) can be found
+The environment configuration is located under the config folder for
+next-ove on the device, with the filename config.json.
+An [example configuration file](./config/config.example.json) can be found
 in this directory.
 
 **Variables**
 
-- RENDER_CONFIG - when under development, ove-bridge-ui is not bundled with the
-  Electron app, but served as a separate React application. This specified the
-  location of the React app to ove-bridge
-    - PORT - ove-bridge-ui port
-    - HOSTNAME - ove-bridge-ui hostname
-    - PROTOCOL - ove-bridge-ui protocol, i.e. http, https
 - LOGGING_SERVER - URL for ingesting logging information for storage and
   processing.
 - SOCKET_PATH - Socket.IO path, defaults to /socket.io
@@ -90,7 +84,6 @@ To run ove-bridge locally, use the following commands:
 
 ```shell
 npm install
-npx nx run ove-bridge-ui:serve
 npx nx run ove-bridge:serve
 ```
 
@@ -104,13 +97,9 @@ To build ove-bridge locally, use the following commands:
 ```shell
 npm install
 npx nx run ove-bridge:build
-npx nx run ove-bridge:make:{PLATFORM}
 ```
-
-where PLATFORM is the operating system of the building device, windows, linux or
-mac.
 
 ## Installing from Release
 
-Download the Electron application for the desired operating system from the
-next-ove GitHub Releases page.
+Download the Docker image tarball application from the next-ove GitHub Releases
+page.

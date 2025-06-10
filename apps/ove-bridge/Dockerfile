@@ -18,17 +18,16 @@ COPY ../../babel.config.json ./
 
 RUN npm ci --include=dev --no-proxy registry.npmjs.org
 
-COPY ../../apps/ove-bridge-service ./apps/ove-bridge-service
+COPY ../../apps/ove-bridge ./apps/ove-bridge
 
 # reliant on following libraries
 COPY ../../cli ./cli
-COPY ../../libs/ove-bridge-base ./libs/ove-bridge-base
 COPY ../../libs/ove-server-utils ./libs/ove-server-utils
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
 
-RUN npm exec nx run ove-bridge-service:build
+RUN npm exec nx run ove-bridge:build
 
 RUN apk del .build-deps
 
@@ -40,6 +39,6 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 
-COPY --from=build /usr/src/app/dist/apps/ove-bridge-service/ ./
+COPY --from=build /usr/src/app/dist/apps/ove-bridge/ ./
 
 CMD ["/bin/sh", "-c", "./env.sh;node main.js"]
