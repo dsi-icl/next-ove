@@ -376,6 +376,8 @@ dev/tools/auto-populate/data/global_buckets/*
 !/dev/tools/auto-populate/data/global_buckets/.gitkeep
 /dev/services/config/MapLayers.json
 /dev/services/config/ove_networks_config.json
+/dev/certs/*
+!/dev/certs/.gitkeep
 
 # database config
 /apps/ove-logs/data/logs.db
@@ -389,9 +391,13 @@ dev/tools/auto-populate/data/global_buckets/*
 # Core UI logging component
 !/apps/ove-core-ui/src/pages/logs
 
-# Bridge service environment config
-/apps/ove-bridge-service/config/*.json
-!/apps/ove-bridge-service/config/*.example.json
+# Bridge auth environment config
+/apps/ove-bridge/config/*.json
+!/apps/ove-bridge/config/*.example.json
+
+# Logging environment config
+/apps/ove-logs/config/*.json
+!/apps/ove-logs/config/*.example.json
 
 # Test environment config
 /tests/**/private.*
@@ -426,6 +432,9 @@ dev/tools/auto-populate/data/global_buckets/*
 /docs/types
 /docs/features/public
 /docs/packages
+
+/docs/public/index.html
+/docs/public/main.js
 
 # UI base components
 !/libs/ui-base-components/src/lib

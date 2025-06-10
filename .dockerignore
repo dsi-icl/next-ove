@@ -700,4 +700,7 @@ Temporary Items
 !/dist/apps/ove-core-ui/package.json
 !/dist/apps/ove-core-ui/package-lock.json
 
+!/dist/apps/ove-renderer/package.json
+!/dist/apps/ove-renderer/package-lock.json
+
 Dockerfile

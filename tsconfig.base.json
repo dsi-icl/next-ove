@@ -18,16 +18,12 @@
     "baseUrl": ".",
     "paths": {
       "@ove/mdc-control": ["libs/mdc-control/src/index.ts"],
-      "@ove/ove-data": ["libs/ove-data/src/index.ts"],
       "@ove/ove-logging": ["libs/ove-logging/src/index.ts"],
       "@ove/ove-server-utils": ["libs/ove-server-utils/src/index.ts"],
       "@ove/ove-types": ["libs/ove-types/src/index.ts"],
       "@ove/ove-utils": ["libs/ove-utils/src/index.ts"],
       "@ove/pjlink-control": ["libs/pjlink-control/src/index.ts"],
-      "@ove/ui-base-components": ["libs/ui-base-components/src/index.ts"],
-      "@ove/ui-components": ["libs/ui-components/src/index.ts"],
-      "@ove/ui-reorderable-list": ["libs/ui-reorderable-list/src/index.ts"],
-      "@ove/ove-bridge-base": ["libs/ove-bridge-base/src/index.ts"]
+      "@ove/ui-base-components": ["libs/ui-base-components/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

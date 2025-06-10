@@ -139,7 +139,7 @@ providing a real-time view of what is being rendered on the displays.
 This can be found under the tools directory of this repository and uses an AI
 model to generate thumbnails for projects to be displayed on the launcher page.
 
-Information for configuring this service can be found in
+Information for configuring this auth can be found in
 the [README](./tools/thumbnail-generator/README.md).
 
 ### Logging
