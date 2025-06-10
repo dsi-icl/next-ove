@@ -20,6 +20,9 @@ import {
   triggerIPC,
 } from "./electron";
 import { env, logger } from "./env";
+import * as http from "node:http";
+import * as https from "node:https";
+import { readFileSync } from "fs";
 
 export const start = () => {
   const app = express();
@@ -61,7 +64,7 @@ export const start = () => {
   app.get("/", swaggerUi.setup(openApiDocument));
 
   if (process.env.NODE_ENV === "development") {
-    FileUtils.saveSwagger(
+    FileUtils.saveOpenApi(
       path.join(`v${env.API_VERSION}`, "client.swagger.json"),
       openApiDocument,
     );
@@ -69,8 +72,22 @@ export const start = () => {
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-  const server = app.listen(env.PORT, `${env.HOSTNAME}`, () => {
-    logger.info(`Listening at ${env.PROTOCOL}://${env.HOSTNAME}:${env.PORT}`);
+  const server =
+    env.PROTOCOL.TYPE === "http"
+      ? http.createServer(app)
+      : https.createServer(
+          {
+            key: readFileSync(env.PROTOCOL.KEY),
+            cert: readFileSync(env.PROTOCOL.CERTIFICATE),
+            ca: readFileSync(env.PROTOCOL.CA),
+          },
+          app,
+        );
+
+  server.listen(env.PORT, `${env.HOSTNAME}`, () => {
+    logger.info(
+      `Listening at ${env.PROTOCOL.TYPE}://${env.HOSTNAME}:${env.PORT}`,
+    );
   });
 
   server.on("error", logger.error);

@@ -8,9 +8,9 @@ const controller = {
   register: (pin: string, key: string) => {
     logger.info("POST /register - authenticating device");
 
-    if (state.authErrors <= env.AUTH_ERROR_LIMIT &&
-      pin === state.pin && env.AUTHORISED_CREDENTIALS === undefined) {
-      env.AUTHORISED_CREDENTIALS = key;
+    if (state.authErrors <= env.AUTH.ERROR_LIMIT &&
+      pin === state.pin && env.AUTH.STORED_CREDENTIALS === undefined) {
+      env.AUTH.STORED_CREDENTIALS = key;
     }
 
     if (state.pinUpdateHandler !== null) {

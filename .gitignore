@@ -441,3 +441,6 @@ dev/tools/auto-populate/data/global_buckets/*
 
 # logging production environment
 /apps/ove-logs/.env.production
+
+# Electron app build directory
+!/apps/ove-client/build/

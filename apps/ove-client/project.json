@@ -3,12 +3,17 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/ove-client/src",
   "projectType": "application",
+  "implicitDependencies": [
+    "ove-renderer"
+  ],
   "targets": {
     "db": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
-        "commands": ["npm run db sync"]
+        "commands": [
+          "npm run db sync"
+        ]
       }
     },
     "build": {
@@ -31,7 +36,9 @@
           "inspect": false
         }
       },
-      "dependsOn": ["db"]
+      "dependsOn": [
+        "db"
+      ]
     },
     "serve": {
       "executor": "nx-electron:execute",
@@ -39,130 +46,71 @@
         "buildTarget": "ove-client:build"
       }
     },
-    "package:windows": {
+    "package": {
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-client",
-        "platform": [
-          "windows"
-        ],
-        "frontendProject": "ove-client-ui",
         "outputPath": "dist/packages",
-        "prepackageOnly": true,
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
+        "prepackageOnly": true
+      },
+      "configurations": {
+        "windows": {
+          "platform": ["windows"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
+        },
+        "linux": {
+          "platform": ["windows", "linux"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
+        },
+        "mac": {
+          "platform": ["windows", "linux", "mac"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        }
       }
     },
-    "package:linux": {
-      "executor": "nx-electron:package",
-      "options": {
-        "name": "ove-client",
-        "platform": [
-          "windows",
-          "linux"
-        ],
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/packages",
-        "prepackageOnly": true,
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
-      }
-    },
-    "package:mac": {
-      "executor": "nx-electron:package",
-      "options": {
-        "name": "ove-client",
-        "platform": [
-          "mac",
-          "windows",
-          "linux"
-        ],
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/packages",
-        "prepackageOnly": true,
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
-      }
-    },
-    "make:linux": {
+    "make": {
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
-        "platform": [
-          "windows",
-          "linux"
-        ],
-        "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables",
-        "publishPolicy": "never",
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
-      }
-    },
-    "make:windows": {
-      "executor": "nx-electron:make",
-      "options": {
-        "name": "ove-client",
-        "platform": [
-          "windows"
-        ],
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/executables",
-        "publishPolicy": "never",
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
-      }
-    },
-    "make:mac": {
-      "executor": "nx-electron:make",
-      "options": {
-        "name": "ove-client",
-        "platform": [
-          "mac",
-          "linux",
-          "windows"
-        ],
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/executables",
-        "publishPolicy": "never",
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        "publishPolicy": "never"
+      },
+      "configurations": {
+        "windows": {
+          "platform": ["windows"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
+        },
+        "linux": {
+          "platform": ["windows", "linux"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
+        },
+        "mac": {
+          "platform": ["windows", "linux", "mac"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        }
       }
     },
     "release:linux": {
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
-        "platform": [
-          "windows",
-          "linux"
-        ],
         "frontendProject": "ove-client-ui",
         "outputPath": "dist/executables",
-        "publishPolicy": "always",
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
-      }
-    },
-    "release:windows": {
-      "executor": "nx-electron:make",
-      "options": {
-        "name": "ove-client",
-        "platform": [
-          "windows"
-        ],
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/executables",
-        "publishPolicy": "always",
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
-      }
-    },
-    "release:mac": {
-      "executor": "nx-electron:make",
-      "options": {
-        "name": "ove-client",
-        "platform": [
-          "mac",
-          "windows",
-          "linux"
-        ],
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/executables",
-        "publishPolicy": "always",
-        "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        "publishPolicy": "always"
+      },
+      "configurations": {
+        "windows": {
+          "platform": ["windows"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.windows.options.json"
+        },
+        "linux": {
+          "platform": ["windows", "linux"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.linux.options.json"
+        },
+        "mac": {
+          "platform": ["windows", "linux", "mac"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        }
       }
     },
     "lint": {

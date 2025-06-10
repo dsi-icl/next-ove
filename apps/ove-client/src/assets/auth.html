@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Package Audit</title>
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'sha256-8oiyULtdMSfJny32CbJsmITPdG2hOnOIUJBQZyX2dx8='; style-src 'self' 'sha256-IW71INAexS8V1Su3vgcWHyvB5wtj+63RO+YdIK4bqmw=';"
+  />
+  <title>Login</title>
   <style>
+
       /* Box sizing rules */
       *,
       *::before,
@@ -35,9 +40,6 @@
       body {
           min-height: 100vh;
           line-height: 1.5;
-          background-color: #002147;
-          color: white;
-          padding: 2rem;
       }
 
       /* Set shorter line heights on headings and interactive elements */
@@ -82,24 +84,24 @@
           scroll-margin-block: 5ex;
       }
 
-      h1 {
-          text-align: center;
-      }
-
-      main {
-          display: flex;
-          justify-content: center;
-
-          p {
-              max-width: 40vw;
-          }
+      #pin {
+          width: 100vw;
+          height: 100vh;
+          text-align: justify;
+          margin: 0;
+          padding: 0;
+          font-size: min(calc(100vw / 4), 100vh);
       }
   </style>
 </head>
 <body>
-<header>
-  <h1>NPM Audit Report</h1>
-</header>
-<main><p>%%text%%</p></main>
+<h1 id="pin"></h1>
+<script>
+  window.onload = () => {
+    window.client.receive('update-pin', (pin) => {
+      document.getElementById('pin').textContent = pin;
+    });
+  };
+</script>
 </body>
 </html>
