@@ -38,7 +38,7 @@ system.
 - The desired state of the hardware, which is updated each time a user executes
   a command.
 - The current state of the hardware, which is periodically checked against the
-  desired state by the reconciliation service.
+  desired state by the reconciliation auth.
 
 ### Outputs:
 
