@@ -1,0 +1,16 @@
+{
+  "name": "next-ove-docs",
+  "author": {
+    "name": "Brython Caley-Davies",
+    "email": "ove@imperial.ac.uk"
+  },
+  "type": "commonjs",
+  "description": "Documentation for the next generation of the Open Visualisation Environment.",
+  "version": "0.3.0",
+  "license": "MIT",
+  "dependencies": {
+    "glob": "^11.0.0",
+    "express": "^4.21.2",
+    "swagger-ui-express": "^5.0.1"
+  }
+}

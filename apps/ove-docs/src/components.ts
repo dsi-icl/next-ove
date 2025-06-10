@@ -1,8 +1,9 @@
-const fs = require("fs");
-const path = require("path");
-const { contentRoot } = require("./app");
+import * as fs from "fs";
+import * as path from "path";
+import { contentRoot } from "./app";
 
-module.exports.components = {
+
+export const components = {
   apis: fs.existsSync(path.join(contentRoot, "api")),
   specs: fs.existsSync(path.join(contentRoot, "specs")),
   coverage: fs.existsSync(path.join(contentRoot, "coverage")),

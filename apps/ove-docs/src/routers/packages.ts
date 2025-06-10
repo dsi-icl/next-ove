@@ -1,27 +1,32 @@
-const express = require("express");
-const fs = require("fs");
-const { contentRoot } = require("../app");
-const path = require("path");
+import express from "express";
+import * as fs from "fs";
+import { contentRoot } from "../app";
+import * as path from "path";
+import { env } from "../env";
 
 // eslint-disable-next-line new-cap
-const router = express.Router();
+export const router = express.Router();
 
 router.get("/audit", async (_req, res) => {
   let template = fs.readFileSync(path
-    .join(__dirname, "..", "..", "templates", "packages", "audit.html"))
+    .join(__dirname, "assets", "packages", "audit.html"))
     .toString();
-  const data = fs.readFileSync(path
-    .join(contentRoot, "packages", "audit.txt")).toString().slice(19)
-    .replaceAll("\n", "<br />");
-
-  template = template.replace("%%text%%", data);
+  const data = fs
+    .readFileSync(path.join(contentRoot, "packages", "audit.txt"))
+    .toString()
+    .slice(18)
+    .replaceAll(/\n\n(.+)/g, (v) => {
+      return `\n\n<h2>${v}</h2>`;
+    })
+    .replaceAll(/\n+/g, "<br />");
+  template = template.replace("%%text%%", data).replaceAll("%BASE_PATH%", env.SERVER.BASE_PATH ?? "");
 
   res.send(template);
 });
 
 router.get("/deprecated", async (_req, res) => {
   let template = fs.readFileSync(path
-    .join(__dirname, "..", "..", "templates", "packages", "deprecated.html"))
+    .join(__dirname, "assets", "packages", "deprecated.html"))
     .toString();
   const data = fs.readFileSync(path
     .join(contentRoot, "packages", "deprecated.txt")).toString().slice(25, -5)
@@ -34,7 +39,7 @@ router.get("/deprecated", async (_req, res) => {
 
 router.get("/directory", async (_req, res) => {
   let template = fs.readFileSync(path
-    .join(__dirname, "..", "..", "templates", "packages", "directory.html"))
+    .join(__dirname, "assets", "packages", "directory.html"))
     .toString();
   const overview = fs.readFileSync(path
     .join(contentRoot, "packages", "packages.txt")).toString()
@@ -51,7 +56,7 @@ router.get("/directory", async (_req, res) => {
 
 router.get("/report", async (_req, res) => {
   let template = fs.readFileSync(path
-    .join(__dirname, "..", "..", "templates", "packages", "report.html"))
+    .join(__dirname, "assets", "packages", "report.html"))
     .toString();
   const data = JSON.parse(fs.readFileSync(path
     .join(contentRoot, "packages", "security", "report.json")).toString());
@@ -67,7 +72,7 @@ router.get("/treemap", async (_req, res) => res
 
 router.get("/dependencies", async (_req, res) => {
   let template = fs.readFileSync(path
-    .join(__dirname, "..", "..", "templates", "packages", "dependencies.html"))
+    .join(__dirname, "assets", "packages", "dependencies.html"))
     .toString();
   const data = fs.readFileSync(path
     .join(contentRoot, "packages", "security", "dependencies.csv")).toString();
@@ -80,14 +85,14 @@ router.get("/dependencies", async (_req, res) => {
 
 router.get("/updates", async (_req, res) => {
   let template = fs.readFileSync(path
-    .join(__dirname, "..", "..", "templates", "packages", "updates.html"))
+    .join(__dirname, "assets", "packages", "updates.html"))
     .toString();
   const data = fs.readFileSync(path
     .join(contentRoot, "packages", "updates.txt"), "utf8")
     .toString().split("\n").map(line => line.trim());
-  const map = {};
-  let position = null;
-  let pkg = null;
+  const map: Record<string, {dependencies: string[], devDependencies: string[]}> = {};
+  let position: "dependencies" | "devDependencies" | null = null;
+  let pkg: string | null = null;
 
   for (const line of data) {
     if (line === "") continue;
@@ -96,11 +101,10 @@ router.get("/updates", async (_req, res) => {
     } else if (line === "devDependencies") {
       position = "devDependencies";
     } else if (/.* - .*/.test(line)) {
-      pkg = line.split(" - ").at(0);
-      map[pkg] = { dependencies: [], devDependencies: [] };
+      pkg = line.split(" - ").at(0) ?? null;
+      map[pkg ?? ""] = { dependencies: [], devDependencies: [] };
     } else if (line.includes("→")) {
-      console.log(pkg, position, line);
-      map[pkg][position].push(line);
+      map[pkg ?? ""][position ?? "dependencies"].push(line);
     }
   }
 
@@ -109,5 +113,3 @@ router.get("/updates", async (_req, res) => {
 
   res.send(template);
 });
-
-module.exports = router;

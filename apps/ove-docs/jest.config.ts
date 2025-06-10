@@ -1,6 +1,6 @@
 /* eslint-disable */
 export default {
-  displayName: 'ove-bridge-service',
+  displayName: 'ove-core',
   preset: '../../jest.preset.js',
   globals: {},
   testEnvironment: 'node',
@@ -13,5 +13,5 @@ export default {
     ],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../out/coverage/tests/apps/ove-bridge-service',
+  coverageDirectory: '../../out/coverage/tests/apps/ove-core',
 };
