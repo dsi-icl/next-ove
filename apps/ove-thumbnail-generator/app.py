@@ -6,6 +6,7 @@ import torch.cuda as cuda
 from flask import Flask, request
 from diffusers import StableDiffusionPipeline
 from diffusers.pipelines.stable_diffusion import safety_checker
+from src.auth import token_required
 
 model_id = "CompVis/stable-diffusion-v1-4"
 dtype = torch.float16
@@ -48,8 +49,8 @@ app = Flask(__name__)
 
 
 @app.route("/")
-def test():
-  return app.send_static_file("test.html")
+def status():
+  return {"status": "running"}
 
 
 def generate_image(prompt):
@@ -61,6 +62,7 @@ def generate_image(prompt):
 
 
 @app.route("/generate")
+@token_required
 def generate():
   prompt = request.args.get("prompt", None)
   if (prompt is None):
