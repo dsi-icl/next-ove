@@ -4,12 +4,13 @@ import { isError } from "@ove/ove-types";
 import ProjectCard from "./project-card";
 import { PlusCircle } from "lucide-react";
 import { Dialog } from "@ove/ui-base-components";
-import type { Project, User } from "@prisma/client";
+import type { Project, User } from "@ove/ove-server-utils";
 import LaunchConfig, {
   type TLaunchConfig,
 } from "../../components/launch-config/launch-config";
 import React, { useCallback, useMemo, useState } from "react";
 import Controller from "../../components/controller/controller";
+import { useStore } from "../../store";
 
 type Action = "config" | "launch";
 
@@ -43,14 +44,11 @@ const Projects = () => {
   const [open, setOpen] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const projects = api.projects.getProjects.useQuery();
-  const user = api.getUserID.useQuery({});
+  const user = useStore((state) => state.user);
   const projectsLoaded = useMemo(
     () =>
-      projects.status === "success" &&
-      !isError(projects.data) &&
-      user.status === "success" &&
-      !isError(user.data),
-    [user.status, user.data, projects.status, projects.data],
+      projects.status === "success" && !isError(projects.data) && user !== null,
+    [user, projects.status, projects.data],
   );
   const privateProjects = useMemo(
     () =>
@@ -95,7 +93,7 @@ const Projects = () => {
                     key={project.id}
                     project={project}
                     openConfig={openConfig}
-                    user={user.data as User}
+                    user={user as User}
                   />
                 ))}
               </ul>
@@ -108,7 +106,7 @@ const Projects = () => {
                     project={project}
                     openConfig={openConfig}
                     key={project.id}
-                    user={user.data as User}
+                    user={user as User}
                   />
                 ))}
               </ul>

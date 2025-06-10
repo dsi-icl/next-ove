@@ -10,7 +10,9 @@
       "@nx/react/typings/image.d.ts"
     ],
     "strictNullChecks": true,
-    "strict": true
+    "strict": true,
+    "module": "esnext",
+    "target": "esnext"
   },
   "files": [
     "../../node_modules/@nx/react/typings/cssmodule.d.ts",

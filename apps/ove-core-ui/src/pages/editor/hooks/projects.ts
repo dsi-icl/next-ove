@@ -5,7 +5,7 @@ import { api } from "../../../utils/api";
 import { isError } from "@ove/ove-types";
 import { useSections } from "./sections";
 import { useQuery } from "../../../hooks/query";
-import type { Project, User } from "@prisma/client";
+import type { Project, User } from "@ove/ove-server-utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const loadNewProject = (username: string) => ({

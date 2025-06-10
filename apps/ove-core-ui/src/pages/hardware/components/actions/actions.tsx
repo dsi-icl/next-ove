@@ -57,7 +57,7 @@ import Volume from "../volume";
 import { useStatus } from "../hooks";
 import { flushSync } from "react-dom";
 import WindowInfo from "../window-info";
-import { Device } from "@ove/ove-types";
+import type { Device } from "@ove/ove-types";
 import TerminalDialog from "../terminal";
 import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
@@ -221,15 +221,15 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
                 className="cursor-pointer"
                 onClick={status === "on" ? shutdown : start}
               >
-                {status === "off" ? (
-                  <>
-                    <Power className="mr-2 size-4" />
-                    Power On
-                  </>
-                ) : (
+                {status === "on" ? (
                   <>
                     <PowerOff className="mr-2 size-4" />
                     Power Off
+                  </>
+                ) : (
+                  <>
+                    <Power className="mr-2 size-4" />
+                    Power On
                   </>
                 )}
               </DropdownMenuItem>

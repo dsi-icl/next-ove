@@ -61,15 +61,7 @@ export const useLiveFeed = (
   }, [takeScreenshot.status, takeScreenshot.data?.response]);
 
   useEffect(() => {
-    takeScreenshot
-      .mutateAsync({
-        bridgeId,
-        deviceId,
-        method: "response",
-        screens: [parseInt(displayId)],
-      })
-      .catch(logger.error);
-
+    if (env.DISABLE_LIVE_PREVIEW) return;
     const interval = setInterval(() => {
       takeScreenshot
         .mutateAsync({

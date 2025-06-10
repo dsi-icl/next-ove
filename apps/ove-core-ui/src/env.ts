@@ -20,6 +20,7 @@ interface ImportMetaEnv {
   VITE_LOGGING_SERVER_API?: string;
   VITE_LOGGING_SERVER_SOCKET_ENDPOINT?: string;
   VITE_LOGGING_SERVER_SOCKET_PATH?: string;
+  VITE_DISABLE_LIVE_PREVIEW: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -53,6 +54,7 @@ const schema = z
     DISABLE_AUTH: z.boolean(), // only disable auth if under test
     LIVE_FEED_REFRESH_INTERVAL: z.number(),
     STATUS_REFRESH_INTERVAL: z.number(),
+    DISABLE_LIVE_PREVIEW: z.boolean(),
   })
   .refine((x) => x.MODE === "test" || !x.DISABLE_AUTH);
 
@@ -75,10 +77,11 @@ const parsedConfig = schema.parse({
   LIVE_FEED_REFRESH_INTERVAL: parseInt(env_.VITE_LIVE_FEED_REFRESH_INTERVAL),
   STATUS_REFRESH_INTERVAL: parseInt(env_.VITE_STATUS_REFRESH_INTERVAL),
   PAGE_SIZE: parseInt(env_.VITE_PAGE_SIZE),
+  DISABLE_LIVE_PREVIEW: env_.VITE_DISABLE_LIVE_PREVIEW === "true",
 });
 
 const staticConfig = {
-  CORE_API_VERSION: 1,
+  CORE_API_VERSION: 2,
   APP_NAME: "ove-core-ui",
   CONSTANTS: {
     SPECIAL_FILES: {

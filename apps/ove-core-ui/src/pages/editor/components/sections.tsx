@@ -14,14 +14,14 @@ import {
 import { env } from "../../../env";
 import { dataTypes } from "@ove/ove-types";
 import { Json, assert } from "@ove/ove-utils";
-import type { Section } from "@prisma/client";
+import type { Section } from "@ove/ove-server-utils";
 import { useSections } from "../hooks/sections";
 import { useStateStore } from "../hooks/stores";
 import React, { useMemo, useState } from "react";
 import { useProjectId } from "../hooks/projects";
 import { Import, PlusCircle, X } from "lucide-react";
 import { formatState, useStates } from "../hooks/states";
-import { ReorderableItem, ReorderableList } from "@ove/ui-reorderable-list";
+import { ReorderableItem, ReorderableList } from "@ove/ui-base-components";
 
 const setSectionsHandler = (curList: Section[], newList: Section[]) => {
   const newListOldOrder = Json.copy(newList).sort(

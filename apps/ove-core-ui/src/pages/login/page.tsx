@@ -1,5 +1,5 @@
 import { z } from "zod";
-import React from "react";
+import React, { useState } from "react";
 import {
   Button,
   Card,
@@ -9,10 +9,11 @@ import {
   CardTitle,
   Input,
   Label,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
+import { useLogin } from "../../hooks/auth";
 
 const LoginFormSchema = z.strictObject({
   username: z.string(),
@@ -21,11 +22,7 @@ const LoginFormSchema = z.strictObject({
 
 type LoginForm = z.infer<typeof LoginFormSchema>;
 
-const Login = ({
-  login,
-}: {
-  login: (username: string, password: string) => Promise<void>;
-}) => {
+const Login = () => {
   const {
     register,
     handleSubmit,
@@ -33,10 +30,14 @@ const Login = ({
   } = useForm<LoginForm>({
     resolver: zodResolver(LoginFormSchema),
   });
+  const [username, setUsername] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
+  useLogin(username, password);
   useFormErrorHandling(errors);
-  const onSubmit = handleSubmit(({ username, password }) =>
-    login(username, password),
-  );
+  const onSubmit = handleSubmit(({ username, password }) => {
+    setUsername(username);
+    setPassword(password);
+  });
 
   return (
     <main className="flex min-h-[90vh] items-center justify-center bg-gray-100">

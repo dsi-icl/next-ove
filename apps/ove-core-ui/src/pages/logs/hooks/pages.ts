@@ -1,5 +1,4 @@
-import { custom } from "../../../utils/api";
-import { useAuth } from "./auth";
+import { logs } from "../../../utils/api";
 import { assert } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import { env } from "../../../env";
@@ -16,18 +15,15 @@ export const usePages = (
   levels: string[] | undefined,
   keywords: string[] | undefined,
 ) => {
-  const token = useAuth();
   const [pageIndex, setPageIndex] = useState(0);
-  const getPages = custom.getPages.useQuery(
+  const getPages = logs.getPages.useQuery(
     {
-      token: token ?? "",
       url: assert(env.LOGGING?.SERVER?.API_ENDPOINT),
       dates,
       appIds,
       levels,
       keywords,
     },
-    { enabled: token !== null },
   );
 
   return {

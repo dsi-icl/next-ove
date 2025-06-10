@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
 import { useMemo, useState } from "react";
 import { env, logger } from "../../../env";
-import { api, custom } from "../../../utils/api";
+import { api, s3 } from "../../../utils/api";
 import { dataTypes, type File as TFile, isError } from "@ove/ove-types";
 
 export const toURL = (bucketName: string, name: string, version: string) =>
@@ -59,7 +59,7 @@ export const useUpload = (projectId: string, metadata: { name: string }) => {
     },
     { enabled: metadata.name !== "ERROR" },
   );
-  const uploadFile = custom.uploadFile.useMutation();
+  const uploadFile = s3.uploadFile.useMutation();
   const formatFile = api.projects.formatData.useMutation();
   const apiUtils = api.useUtils();
 
@@ -193,7 +193,7 @@ export const useData = (file: TFile) => {
     },
     { enabled: env.MODE !== "development" },
   );
-  const getData = custom.getFileData.useQuery(
+  const getData = s3.getFileData.useQuery(
     {
       url:
         getPresigned.status !== "success" || isError(getPresigned.data)

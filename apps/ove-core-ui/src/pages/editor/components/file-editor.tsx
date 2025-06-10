@@ -4,10 +4,10 @@ import {
   Button,
   DialogCloseX,
   DialogContent,
-  DialogHeader,
   DialogDescription,
-  DialogTitle,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Form,
   FormControl,
   FormField,
@@ -19,6 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import AceEditor from "react-ace";
 import { Save, X } from "lucide-react";
@@ -28,7 +29,6 @@ import { useForm } from "react-hook-form";
 import { useUpload } from "../hooks/files";
 import { useProjectId } from "../hooks/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 import tex from "ace-builds/src-noconflict/mode-tex";
@@ -42,13 +42,14 @@ import markdown from "ace-builds/src-noconflict/mode-markdown";
 import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
 
-ace.config.setModuleUrl("ace/mode/json", json);
-ace.config.setModuleUrl("ace/mode/markdown", markdown);
-ace.config.setModuleUrl("ace/mode/tex", tex);
-ace.config.setModuleUrl("ace/mode/html", html);
-ace.config.setModuleUrl("ace/mode/text", text);
-ace.config.setModuleUrl("ace/mode/css", css);
-ace.config.setModuleUrl("ace/mode/svg", svg);
+// TODO: review typecasts
+ace.config.setModuleUrl("ace/mode/json", json as unknown as string);
+ace.config.setModuleUrl("ace/mode/markdown", markdown as unknown as string);
+ace.config.setModuleUrl("ace/mode/tex", tex as unknown as string);
+ace.config.setModuleUrl("ace/mode/html", html as unknown as string);
+ace.config.setModuleUrl("ace/mode/text", text as unknown as string);
+ace.config.setModuleUrl("ace/mode/css", css as unknown as string);
+ace.config.setModuleUrl("ace/mode/svg", svg as unknown as string);
 
 const LanguageSchema = z.union([
   z.literal("css"),

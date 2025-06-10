@@ -18,10 +18,10 @@ import {
   PopoverTrigger,
   Switch,
 } from "@ove/ui-base-components";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { useAppIds } from "./hooks/app-ids";
 import { LogLevels } from "@ove/ove-logging";
 import { useSocketInit } from "./hooks/socket-init";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 const Logs = () => {
   const [mode, setMode] = useState<"live" | "historical">("live");

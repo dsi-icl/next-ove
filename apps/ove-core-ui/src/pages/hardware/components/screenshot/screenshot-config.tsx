@@ -18,11 +18,11 @@ import {
   PopoverTrigger,
   RadioGroup,
   RadioGroupItem,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import { Check, ChevronsUpDown } from "lucide-react";
 import React, { useCallback, useRef, useState } from "react";
-import { useFormErrorHandling } from "@ove/ui-components";
 
 type ScreenshotConfigProps = {
   displays: { value: number; label: string }[];

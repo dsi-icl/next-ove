@@ -10,12 +10,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import { useStore } from "../../../store";
 import React, { useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
 import { useObservatories, useObservatory } from "../../../hooks/observatories";
 
 const SpaceConfigFormSchema = z.strictObject({

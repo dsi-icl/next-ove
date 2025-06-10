@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { env } from "../../../env";
 import { assert } from "@ove/ove-utils";
 import type { Geometry } from "../types";
-import type { Section } from "@prisma/client";
+import type { Section } from "@ove/ove-server-utils";
 import ResizeContainer from "./resize-container";
 import { useCanvas, useCells } from "../hooks/canvas";
 import { type Bounds, dataTypes } from "@ove/ove-types";

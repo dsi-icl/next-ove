@@ -3,12 +3,13 @@ import {
   getLatest,
   hasVersion,
   toURL,
-  useFiles
+  useFiles,
 } from "../hooks/files";
 import { z } from "zod";
-import { useForm, type Control, type UseFormSetValue } from "react-hook-form";
+import { type Control, useForm, type UseFormSetValue } from "react-hook-form";
 import { toast } from "sonner";
 import {
+  Button,
   Form,
   FormControl,
   FormField,
@@ -19,28 +20,27 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { assert } from "@ove/ove-utils";
 import { useCells } from "../hooks/canvas";
-import { Button } from "@ove/ui-base-components";
 import { useProjectId } from "../hooks/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
 import type { Geometry as TGeometry, Observatory } from "../types";
 import { useObservatory } from "../../../hooks/observatories";
-import { Grid, Brush, Fullscreen } from "react-bootstrap-icons";
+import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 import { useSections, useUpdateSection } from "../hooks/sections";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
-import { type File, dataTypes, type DataType, Bounds } from "@ove/ove-types";
+import { Bounds, type DataType, dataTypes, type File } from "@ove/ove-types";
 
 const getDataTypeFromFile = (file: File) => {
   for (const dt of dataTypes) {
     if (
       dt.extensions.some((extension) =>
-        file.name.toLowerCase().endsWith(extension.toLowerCase())
+        file.name.toLowerCase().endsWith(extension.toLowerCase()),
       )
     ) {
       return dt.name;
@@ -63,7 +63,7 @@ const getRow = (
   space: {
     bounds: Bounds | null;
     cells: TGeometry[] | null;
-  }
+  },
 ) => {
   if (space.bounds === null || space.cells === null) return null;
   if (y === 0) return 0;
@@ -82,7 +82,7 @@ const getColumn = (
   space: {
     bounds: Bounds | null;
     cells: TGeometry[] | null;
-  }
+  },
 ) => {
   if (space.bounds === null || space.cells === null) return null;
   if (x === 0) return 0;
@@ -108,7 +108,7 @@ const SectionConfigFormSchema = z.strictObject({
   columnFrom: z.number(),
   columnTo: z.number(),
   dataType: z.string(),
-  asset: z.string()
+  asset: z.string(),
 });
 
 type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>;
@@ -125,7 +125,7 @@ const SectionConfig = () => {
   const { ordinary } = useFiles(assert(projectId));
   const section = useMemo(
     () => sections.find((section) => section.id === selected) ?? null,
-    [selected, sections]
+    [selected, sections],
   );
   const form = useForm<SectionConfigForm>({
     defaultValues: {
@@ -140,9 +140,9 @@ const SectionConfig = () => {
       asset: "",
       dataType: "",
       fileName: "",
-      fileVersion: ""
+      fileVersion: "",
     },
-    resolver: zodResolver(SectionConfigFormSchema)
+    resolver: zodResolver(SectionConfigFormSchema),
   });
   const { handleSubmit, setValue, resetField, watch } = form;
   useFormErrorHandling(form.formState.errors);
@@ -183,7 +183,7 @@ const SectionConfig = () => {
     bounds,
     cells,
     form,
-    ordinary
+    ordinary,
   ]);
 
   const onSubmit = (section: SectionConfigForm) => {
@@ -208,17 +208,17 @@ const SectionConfig = () => {
         mode === "custom"
           ? fromPercentage(assert(section.width))
           : (assert(section.columnTo) - assert(section.columnFrom)) *
-          (1 / assert(bounds).columns),
+            (1 / assert(bounds).columns),
       height:
         mode === "custom"
           ? fromPercentage(assert(section.height))
           : (assert(section.rowTo) - assert(section.rowFrom)) *
-          (1 / assert(bounds).rows),
+            (1 / assert(bounds).rows),
       assetId:
         ordinary.find(
           ({ name, version }) =>
             name === section.fileName &&
-            version.toString() === section.fileVersion
+            version.toString() === section.fileVersion,
         )?.name ?? null,
       asset: section.asset,
       dataType: section.dataType,
@@ -226,7 +226,7 @@ const SectionConfig = () => {
       ordering:
         sections.find((section) => section.id === selected)?.ordering ??
         sections.length,
-      projectId: assert(projectId)
+      projectId: assert(projectId),
     });
 
     form.reset();
@@ -240,13 +240,13 @@ const SectionConfig = () => {
       setValue("fileVersion", file === null ? "" : file.version);
       setValue(
         "fileName",
-        file === null ? "" : `${file.bucketName}/${file.name}`
+        file === null ? "" : `${file.bucketName}/${file.name}`,
       );
       if (file !== null) {
         setValue("dataType", getDataTypeFromFile(file) ?? "");
       }
     },
-    [setValue, ordinary]
+    [setValue, ordinary],
   );
 
   useEffect(() => {
@@ -345,7 +345,7 @@ const Geometry = ({
   control,
   setMode,
   setValue,
-  space
+  space,
 }: {
   mode: "custom" | "grid";
   setMode: (mode: "custom" | "grid") => void;

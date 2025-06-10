@@ -7,6 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   Input,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { X } from "lucide-react";
 import { logger } from "../../../env";
@@ -15,7 +16,6 @@ import { isError } from "@ove/ove-types";
 import { useForm } from "react-hook-form";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 

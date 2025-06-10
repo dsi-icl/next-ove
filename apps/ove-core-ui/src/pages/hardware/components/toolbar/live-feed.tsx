@@ -11,7 +11,7 @@ import { Video } from "lucide-react";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
-import { VideoStreams } from "@ove/ui-components";
+import { VideoStreams } from "@ove/ui-base-components";
 import React, { memo, useEffect, useState } from "react";
 
 const useStreams = (bridgeId: string, isOpen: boolean) => {

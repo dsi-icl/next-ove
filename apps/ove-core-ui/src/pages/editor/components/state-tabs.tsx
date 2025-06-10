@@ -17,10 +17,9 @@ import {
 import { env } from "../../../env";
 import { X } from "react-bootstrap-icons";
 import { useForm } from "react-hook-form";
-import { cn } from "@ove/ui-base-components";
 import { useStateStore } from "../hooks/stores";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
+import { cn, useFormErrorHandling } from "@ove/ui-base-components";
 
 const TitleFormSchema = z.strictObject({ name: z.string() });
 

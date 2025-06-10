@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectItem,
   SelectValue,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { env } from "../../../env";
 import { assert } from "@ove/ove-utils";
@@ -27,7 +28,6 @@ import { useProjectId } from "../hooks/projects";
 import React, { useMemo, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { dataTypes, File as FileT } from "@ove/ove-types";
-import { useFormErrorHandling } from "@ove/ui-components";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
 import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";

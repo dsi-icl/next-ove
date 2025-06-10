@@ -9,21 +9,21 @@ import React, { type ReactNode } from "react";
 const ProtectedRoute = ({
   condition,
   redirectTo,
-  children
-}: ConditionalRouteProps): ReactNode => condition ? <div>{children}</div> :
-  <Navigate to={redirectTo} replace />;
+  children,
+}: ConditionalRouteProps): ReactNode =>
+  condition ? <>{children}</> : <Navigate to={redirectTo} replace />;
 
 export type ConditionalRouteProps = {
   /**
    * Route is created if its condition is true.
    * For example, `condition={isLoggedIn}` or `condition={isAdmin}`
    */
-  condition: boolean
+  condition: boolean;
 
   /** The route to redirect to if `condition` is false */
-  redirectTo: string
+  redirectTo: string;
 
-  children?: ReactNode
-}
+  children?: ReactNode;
+};
 
 export default ProtectedRoute;

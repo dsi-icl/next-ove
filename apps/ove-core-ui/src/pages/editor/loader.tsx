@@ -1,11 +1,11 @@
 import React from "react";
 import ProjectEditor from "./page";
-import { useUser } from "./hooks/user";
 import { useInitProject } from "./hooks/projects";
 import { useInitSections } from "./hooks/sections";
+import { useStore } from "../../store";
 
 const Loader = () => {
-  const user = useUser();
+  const user = useStore((state) => state.user);
 
   const loadingProject = useInitProject(user);
   const loadingSections = useInitSections();

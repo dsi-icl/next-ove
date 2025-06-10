@@ -10,7 +10,7 @@ import {
 } from "@ove/ui-base-components";
 import { api } from "../../../../utils/api";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { Calendar as CalendarDisplay, useCalendar } from "@ove/ui-components";
+import { CalendarView, useCalendar } from "@ove/ui-base-components";
 
 const Calendar = ({ bridgeId }: { bridgeId: string }) => {
   const getCalendar = api.bridge.getCalendar.useQuery({ bridgeId });
@@ -33,7 +33,7 @@ const Calendar = ({ bridgeId }: { bridgeId: string }) => {
           <DialogDescription>View usage of the observatory</DialogDescription>
         </DialogHeader>
         <div className="flex h-[40vh] w-full flex-col items-center">
-          <CalendarDisplay calendar={calendar} />
+          <CalendarView calendar={calendar ?? []} />
           <div className="flex w-full py-4">
             <h4>Last Updated:</h4>
             <p className="ml-auto">{lastUpdated}</p>

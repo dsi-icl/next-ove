@@ -36,6 +36,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Textarea,
+  useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { actionColors } from "../utils";
 import { assert } from "@ove/ove-utils";
@@ -46,7 +47,6 @@ import { useProjectStore } from "../hooks/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePublications } from "../hooks/publications";
 import { useCollaborators } from "../hooks/collaborators";
-import { useFormErrorHandling } from "@ove/ui-components";
 import React, { useRef, useState, useEffect } from "react";
 import { Check, ChevronsUpDown, Paintbrush, X } from "lucide-react";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
