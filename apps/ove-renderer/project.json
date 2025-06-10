@@ -1,7 +1,7 @@
 {
-  "name": "ove-client-ui",
+  "name": "ove-renderer",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/ove-client-ui/src",
+  "sourceRoot": "apps/ove-renderer/src",
   "projectType": "application",
   "tags": [],
   "targets": {
@@ -10,8 +10,10 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/ove-client-ui",
-        "emptyOutDir": true
+        "emptyOutDir": true,
+        "buildLibsFromSource": true,
+        "outputPath": "dist/apps/ove-renderer",
+        "generatePackageJson": true
       },
       "configurations": {
         "development": {
@@ -19,7 +21,7 @@
         },
         "production": {
           "mode": "production",
-          "baseHref": "./"
+          "skipTypeCheck": true
         }
       }
     },
@@ -27,19 +29,19 @@
       "executor": "@nx/vite:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "ove-client-ui:build"
+        "buildTarget": "ove-renderer:build"
       },
       "configurations": {
         "development": {
-          "buildTarget": "ove-client-ui:build:development",
+          "buildTarget": "ove-renderer:build:development",
           "hmr": true
         },
         "production": {
-          "buildTarget": "ove-client-ui:build:production",
+          "buildTarget": "ove-renderer:build:production",
           "hmr": false
         },
         "linting": {
-          "buildTarget": "ove-client-ui:build:linting",
+          "buildTarget": "ove-renderer:build:linting",
           "hmr": true
         }
       }
@@ -48,34 +50,26 @@
       "executor": "@nx/vite:preview-server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "ove-client-ui:build"
+        "buildTarget": "ove-renderer:build"
       },
       "configurations": {
         "development": {
-          "buildTarget": "ove-client-ui:build:development"
+          "buildTarget": "ove-renderer:build:development"
         },
         "production": {
-          "buildTarget": "ove-client-ui:build:production"
+          "buildTarget": "ove-renderer:build:production"
         },
         "linting": {
-          "buildTarget": "ove-client-ui:build:linting"
+          "buildTarget": "ove-renderer:build:linting"
         }
       },
       "dependsOn": ["build"]
-    },
-    "test": {
-      "executor": "@nx/vite:test",
-      "outputs": ["coverage/apps/ove-client-ui"],
-      "options": {
-        "passWithNoTests": true,
-        "reportsDirectory": "../../coverage/apps/ove-client-ui"
-      }
     },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/ove-client-ui/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": ["apps/ove-renderer/**/*.{ts,js}"]
       }
     }
   }

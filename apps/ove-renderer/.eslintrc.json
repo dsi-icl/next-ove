@@ -1,6 +1,5 @@
 {
   "extends": [
-    "plugin:@nx/react",
     "../../.eslintrc.json",
     "prettier"
   ],
@@ -11,25 +10,18 @@
     {
       "files": [
         "*.ts",
-        "*.tsx",
-        "*.js",
-        "*.jsx"
+        "*.js"
       ],
       "rules": {
-        "react/jsx-indent-props": [
+        "@typescript-eslint/no-unused-vars": [
           "error",
-          "first"
-        ],
-        "indent": [
-          "error",
-          2,
           {
-            "SwitchCase": 1,
-            "ignoredNodes": [
-              "JSXAttribute"
-            ]
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
           }
-        ]
+        ],
+        "no-unused-vars": "off"
       }
     },
     {
@@ -38,6 +30,8 @@
         "*.tsx"
       ],
       "rules": {
+        "require-jsdoc": "off",
+        "no-invalid-this": "off",
         "spaced-comment": [
           "error",
           "always",
@@ -50,13 +44,6 @@
           }
         ]
       }
-    },
-    {
-      "files": [
-        "*.js",
-        "*.jsx"
-      ],
-      "rules": {}
     }
   ]
 }
