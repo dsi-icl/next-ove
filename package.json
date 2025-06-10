@@ -15,14 +15,14 @@
     "db": "node cli/db.cjs",
     "dev": "node cli/dev.cjs",
     "docs": "node cli/docs.cjs",
-    "files": "node cli/files.js",
+    "files": "node cli/files.cjs",
     "format": "prettier --check .",
-    "help": "node cli/help.js",
-    "lighthouse": "node cli/lighthouse.js",
+    "help": "node cli/help.cjs",
+    "lighthouse": "node cli/lighthouse.cjs",
     "lint": "pnx run-many --target=lint",
     "postinstall": "pnpm dev patch dockerfile-package-versions",
     "start": "pnx run-many --target=serve",
-    "test": "node cli/test.js"
+    "test": "node cli/test.cjs"
   },
   "private": true,
   "devDependencies": {

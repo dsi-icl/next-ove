@@ -5,7 +5,7 @@ const {
   parseArgs,
   defaultAlias,
   makeSchema,
-} = require("./utils");
+} = require("./utils.cjs");
 const z = require("zod").z;
 
 const tagline = "Development tools for next-ove";
@@ -38,7 +38,7 @@ const activePatches = {
     return `node ${src} ${args.timeout ?? defaults.timeout}`;
   },
   "dockerfile-package-versions": () =>
-    `node ${path.join(__dirname, "..", "dev", "patches", "dockerfile-package-versions.js")}`,
+    `node ${path.join(__dirname, "..", "dev", "patches", "dockerfile-package-versions.cjs")}`,
 };
 const supportedTools = {
   "sign-in": () =>

@@ -1,39 +1,40 @@
-const { z } = require('zod');
-const path = require('path');
+const { z } = require("zod");
+const path = require("path");
 const {
   makeSchema,
   parseArgs,
   defaultAlias,
   printSchemas,
-  run
-} = require('./utils');
-const tagline = 'Manage next-ove asset files';
-const help = 'Use "npm run files [COMMAND] -- --help" for more information about a command';
+  run,
+} = require("./utils.cjs");
+const tagline = "Manage next-ove asset files";
+const help =
+  'Use "npm run files [COMMAND] -- --help" for more information about a command';
 const descriptions = {
-  upload: 'Upload a file to the asset store'
+  upload: "Upload a file to the asset store",
 };
-const description = 'DESCRIPTION\n\tFile management for the next-ove system.';
+const description = "DESCRIPTION\n\tFile management for the next-ove system.";
 
 const schemas = {
   upload: z.strictObject({
-    __cmd__: z.literal('upload')
-  })
+    __cmd__: z.literal("upload"),
+  }),
 };
 
 const schema = makeSchema(schemas);
 
 const upload = () => {
-  const fp = path.join(__dirname, '..', 'tools', 'files', 'upload.js');
+  const fp = path.join(__dirname, "..", "tools", "files", "upload.js");
   run(`node ${fp}`, args.dryRun);
 };
 
-const runAnalysis = args => {
+const runAnalysis = (args) => {
   switch (args.__cmd__) {
-    case 'upload':
+    case "upload":
       upload(args);
       break;
     default:
-      throw new Error('Unknown command');
+      throw new Error("Unknown command");
   }
 };
 
