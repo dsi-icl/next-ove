@@ -447,3 +447,6 @@ dev/tools/auto-populate/data/global_buckets/*
 
 # Temp directory
 /temp/
+
+# db configuration
+!/libs/**/lib

@@ -25,7 +25,7 @@ export const assert = <T>(x: T | undefined | null) => {
 // @ts-ignore
 export const DeepProxy = <T extends object>(
   target: T,
-  onChange: () => void
+  onChange: () => void,
 ) => {
   const proxyCache = new WeakMap();
   return new Proxy(target, {
@@ -49,13 +49,13 @@ export const DeepProxy = <T extends object>(
       target[property] = newValue;
       onChange();
       return true;
-    }
+    },
   });
 };
 
 export const safe = async <T>(
   logger: TLogger,
-  handler: () => Promise<T>
+  handler: () => Promise<T>,
 ): Promise<Awaited<T> | OVEException> => {
   try {
     return await handler();
@@ -72,7 +72,7 @@ export const safe = async <T>(
 export const recordEquals = <T, U>(
   r1: Record<string, T>,
   r2: Record<string, U>,
-  equality: ((k1: string, v1: T, k2: string, v2: U) => boolean) | null = null
+  equality: ((k1: string, v1: T, k2: string, v2: U) => boolean) | null = null,
 ): boolean => {
   const entries1 = Object.entries(r1);
   const entries2 = Object.entries(r2);
@@ -81,10 +81,15 @@ export const recordEquals = <T, U>(
     equality = (k1: string, v1: T, k2: string, v2: U) => k1 === k2 && v1 === v2;
   }
 
-  return entries1.every(([k1, v1]) =>
-    entries2.find(([k2, v2]) =>
-      assert(equality)(k1, v1, k2, v2)) !== undefined);
+  return entries1.every(
+    ([k1, v1]) =>
+      entries2.find(([k2, v2]) => assert(equality)(k1, v1, k2, v2)) !==
+      undefined,
+  );
 };
 
 export const titleToBucketName = (title: string) =>
   title.replaceAll(" ", "-").toLowerCase();
+
+export const fixedEncodeURI = (str: string) =>
+  encodeURI(str).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16));
