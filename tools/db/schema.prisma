@@ -1,6 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  output        = env("CLIENT_OUTPUT")
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -58,6 +59,18 @@ model RefreshToken {
   // user the token authenticates
   userId  String   @unique @db.ObjectId
   user    User     @relation(fields: [userId], references: [id])
+}
+
+model TokenBlacklist {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  token String @unique
+}
+
+model Service {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  service String @unique
+  key     String @unique
+  role    String
 }
 
 model Project {

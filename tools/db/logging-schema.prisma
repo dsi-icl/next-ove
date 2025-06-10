@@ -15,7 +15,3 @@ model Log {
   appId   String
   message String
 }
-
-model Key {
-  key String @id @unique
-}
