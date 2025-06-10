@@ -13,19 +13,24 @@ ENV LOGGING_DATABASE_URL=file:///usr/src/app/logs.db
 COPY ../../nx.json ./
 COPY ../../dist/apps/ove-logs/package.json ./
 COPY ../../dist/apps/ove-logs/package-lock.json ./
-RUN npm ci
-RUN npm install zod@3.24.1 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.0.1  \
-    @prisma/client@6.0.1 esbuild@0.24.2
+RUN pnpm ci
+RUN pnpm install zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.8.2  \
+    @prisma/client@6.8.2 esbuild@0.24.2 tsconfig-paths@4.2.0 typescript@5.7.2 --legacy-peer-deps
 
 COPY ../../tools/db ./tools/db
 COPY ../../cli ./cli
 COPY ../../package.json ./
 COPY ../../tsconfig.base.json ./
 
-RUN npm run db sync -- --component=logging
-RUN npm run db push -- --component=logging
+RUN pnpm db sync -- --component=logging
+RUN pnpm db push -- --component=logging
 
 COPY ../../apps/ove-logs ./apps/ove-logs
+
+COPY ../../libs/ove-server-utils ./libs/ove-server-utils
+COPY ../../libs/ove-logging ./libs/ove-logging
+COPY ../../libs/ove-utils ./libs/ove-utils
+COPY ../../libs/ove-types ./libs/ove-types
 
 RUN npx nx run ove-logs:build:production
 

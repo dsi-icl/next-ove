@@ -23,9 +23,9 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "main": "apps/ove-logs/server.js",
+        "main": "apps/ove-logs/src/server.ts",
         "outputPath": "dist/apps/ove-logs",
-        "outputFileName": "main.js",
+        "outputFileName": "main.cjs",
         "tsConfig": "apps/ove-logs/tsconfig.json",
         "format": ["cjs"],
         "thirdParty": true,
@@ -46,9 +46,9 @@
       "executor": "@nx/esbuild:esbuild",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "main": "apps/ove-logs/server.js",
+        "main": "apps/ove-logs/src/server.ts",
         "outputPath": "dist/apps/ove-logs",
-        "outputFileName": "main.js",
+        "outputFileName": "main.cjs",
         "tsConfig": "apps/ove-logs/tsconfig.json",
         "format": ["cjs"],
         "thirdParty": false,
@@ -60,11 +60,15 @@
       "dependsOn": ["db"]
     },
     "serve": {
-      "command": "node server.js",
+      "executor": "@nx/js:node",
       "options": {
-        "cwd": "apps/ove-logs"
+        "buildTarget": "ove-logs:build:development"
       },
-      "dependsOn": ["db"]
+      "configurations": {
+        "production": {
+          "buildTarget": "ove-logs:build:production"
+        }
+      }
     },
     "make": {
       "command": "docker build ../../",
