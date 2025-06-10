@@ -3,7 +3,7 @@
 ## Services
 
 - ```mongo``` - central database for auth, project management etc.
-- ```mongo-express``` - frontend for mongo service
+- ```mongo-express``` - frontend for mongo auth
 - ```minio``` - asset storage using the S3 API
 - ```static``` - static assets for local mocking of optional external services
 
@@ -40,7 +40,7 @@ delete the container and rerun.
 
 Add any mock assets for external integrations to be served over HTTP.
 
-Examples include the monitoring camera service and calendar integrations.
+Examples include the monitoring camera auth and calendar integrations.
 
 These assets are stored in the ```public``` directory and loaded in when
 the ```static``` image is built.
@@ -69,11 +69,11 @@ available to all projects.
 
 ### services/data/minio/data/
 
-Mounted volume for Minio service.
+Mounted volume for Minio auth.
 
 ### services/data/mongo/database/
 
-Mounted volume for MongoDB service.
+Mounted volume for MongoDB auth.
 
 ### deployment/config/.env.release.example
 
