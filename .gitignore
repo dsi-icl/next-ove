@@ -444,3 +444,6 @@ dev/tools/auto-populate/data/global_buckets/*
 
 # Electron app build directory
 !/apps/ove-client/build/
+
+# Temp directory
+/temp/
