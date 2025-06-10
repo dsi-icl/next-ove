@@ -12,7 +12,6 @@ const listObjects = (
   bucketName: string
 ) => new Promise<BucketItem[]>((resolve, reject) => {
   const stream = s3
-    // @ts-expect-error – missing optional arguments parameter in library type
     .listObjects(bucketName, "", true, { IncludeVersion: true });
   const data: BucketItem[] = [];
   stream.on("data", obj => data.push(obj as typeof data[0]));

@@ -1,3 +1,33 @@
+FROM node:iron-alpine AS build-renderer
+LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
+
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=production
+ENV NX_DAEMON=false
+
+COPY ../../tsconfig.base.json ./
+COPY ../../tsconfig.json ./
+COPY ../../nx.json ./
+COPY ../../babel.config.json ./
+
+COPY ../../dist/apps/ove-renderer/package.json ./
+COPY ../../dist/apps/ove-renderer/package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+RUN npm install nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.7.2 @nx/vite@20.3.2 vite@6.1.0 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.3 vite-plugin-singlefile@2.1.0 --legacy-peer-deps
+RUN npm install date-fns@4.1.0 --legacy-peer-deps
+
+COPY ../../apps/ove-renderer ./apps/ove-renderer
+
+# reliant on following libraries
+COPY ../../libs/ove-logging ./libs/ove-logging
+COPY ../../libs/ove-utils ./libs/ove-utils
+COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../package.json ./
+
+RUN npm exec nx run ove-renderer:build:production
+
 FROM node:iron-alpine AS build-server
 LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
 
@@ -11,16 +41,18 @@ ENV NX_DAEMON=false
 COPY ../../tsconfig.base.json ./
 COPY ../../tsconfig.json ./
 COPY ../../nx.json ./
-COPY ../../dist/apps/ove-core/package.json ./
-COPY ../../dist/apps/ove-core/package-lock.json ./
 COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
+COPY ../../dist/apps/ove-core/package.json ./
+COPY ../../dist/apps/ove-core/package-lock.json ./
 RUN npm ci --legacy-peer-deps
-RUN npm install zod@3.24.1 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.0.1 @prisma/client@6.0.1 esbuild@0.24.2 typescript@5.7.2 --legacy-peer-deps
+
+RUN npm install zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.8.2 @prisma/client@6.8.2 esbuild@0.24.2 typescript@5.7.2 --legacy-peer-deps
 RUN npm install zod-openapi@4.1.0 date-fns@4.1.0 --legacy-peer-deps
 
 COPY ../../apps/ove-core ./apps/ove-core
+COPY ../../apps/ove-renderer ./apps/ove-renderer
 
 # reliant on following libraries
 COPY ../../cli ./cli
@@ -30,7 +62,7 @@ COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
 COPY ../../package.json ./
 
-RUN npm exec nx run ove-core:build
+RUN npm exec nx run ove-core:build:production
 
 RUN apk del .build-deps
 
@@ -53,10 +85,7 @@ COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
 RUN npm ci --legacy-peer-deps
-RUN npm install nx@20.3.2 @nx/vite@20.3.2 prisma@6.0.1 @prisma/client@6.0.1  \
-    vite@6.1.0 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20  \
-    @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0  \
-    typescript@5.7.2 vite-tsconfig-paths@5.1.3 --legacy-peer-deps
+RUN npm install nx@20.3.2 @nx/vite@20.3.2 prisma@6.8.2 @prisma/client@6.8.2 vite@6.1.0 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.7.2 vite-tsconfig-paths@5.1.3 --legacy-peer-deps
 RUN npm install react-big-calendar@1.16.3 --legacy-peer-deps
 
 COPY ../../apps/ove-core-ui ./apps/ove-core-ui
@@ -68,10 +97,8 @@ COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
 COPY ../../libs/ui-base-components ./libs/ui-base-components
-COPY ../../libs/ui-components ./libs/ui-components
-COPY ../../libs/ui-reorderable-list ./libs/ui-reorderable-list
 
-RUN npm exec nx run ove-core-ui:build
+RUN npm exec nx run ove-core-ui:build:production
 
 RUN apk del .build-deps
 
@@ -95,5 +122,7 @@ COPY --from=build-server /usr/src/app/dist/apps/ove-core/ ./
 
 COPY --from=build-ui /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin-ui
 COPY --from=build-ui /usr/src/app/dist/apps/ove-core-ui/ ./ui
+
+COPY --from=build-renderer /usr/src/app/dist/apps/ove-renderer/index.html /usr/src/app/dist/apps/ove-core/public/renderer.html
 
 CMD ["/bin/sh", "-c", "./env.sh;node main.cjs"]

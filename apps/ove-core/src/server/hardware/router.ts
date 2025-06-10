@@ -11,7 +11,7 @@ import { state } from "../state";
 import { logger } from "../../env";
 import { safe } from "@ove/ove-utils";
 import type { Socket } from "socket.io";
-import { protectedProcedure, router } from "../trpc";
+import { procedure, router } from "../trpc";
 
 const getSocket: (
   socketId: string,
@@ -25,7 +25,7 @@ const getSocket: (
 };
 
 const generateProcedure = <Key extends keyof TCoreAPI>(k: Key) =>
-  protectedProcedure
+  procedure
     .meta(CoreAPI[k].meta)
     .input<TCoreAPI[Key]["args"]>(CoreAPI[k].args)
     .output<TCoreAPI[Key]["bridge"]>(CoreAPI[k].bridge);

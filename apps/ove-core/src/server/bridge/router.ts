@@ -9,7 +9,7 @@ import { io } from "./sockets";
 import { state } from "../state";
 import { logger } from "../../env";
 import { safe } from "@ove/ove-utils";
-import { protectedProcedure, router } from "../trpc";
+import { procedure, router } from "../trpc";
 
 const getSocket = (socketId: string) => {
   const clientId = state.bridgeClients.get(socketId) ?? null;
@@ -18,7 +18,7 @@ const getSocket = (socketId: string) => {
 };
 
 const generateProcedure = <Key extends keyof TBridgeService>(k: Key) =>
-  protectedProcedure
+  procedure
     .meta(APIRoutes[k].meta)
     .input<TAPIRoutes[Key]["input"]>(APIRoutes[k].input)
     .output<TAPIRoutes[Key]["output"]>(APIRoutes[k].output);
@@ -33,7 +33,6 @@ const handler = async <
   input: T | undefined,
 ) => {
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
-  if (k === "getPublicKey") throw new Error("ILLEGAL ROUTE");
   const { bridgeId, ...args } = input;
   logger.info(`Handling: ${k}`);
 

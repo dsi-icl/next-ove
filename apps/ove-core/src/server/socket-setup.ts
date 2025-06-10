@@ -1,32 +1,32 @@
-import { prisma } from "./db";
+import auth from "./auth";
 import { logger } from "../env";
 import type { Namespace } from "socket.io";
+import { prisma } from "@ove/ove-server-utils";
 
 export const setupNamespace = <T extends Namespace>(
   io: T,
-  clients: Map<string, string>
+  clients: Map<string, string>,
 ) => {
-  io.use((socket, next) => {
-    const { username, password } = socket.handshake.auth;
-    prisma.user.findUnique({
-      where: {
-        username
-      }
-    }).then(user => {
-      if (user?.role === "bridge" && password.trim() === user.password.trim()) {
-        next();
-      } else {
+  io.use(async (socket, next) => {
+    try {
+      const { key } = socket.handshake.auth;
+      const { role } = await auth.validateApiKey(prisma, key);
+      if (!auth.authorize(role, io.name)) {
         next(new Error("UNAUTHORIZED"));
+        return;
       }
-    });
+      next();
+    } catch (e) {
+      next(new Error("UNAUTHORIZED"));
+    }
   });
 
-  io.on("connection", socket => {
+  io.on("connection", (socket) => {
     logger.info(`Socket ID: ${socket.handshake.auth.username}
      connected via ${io.name}`);
     clients.set(socket.handshake.auth.username, socket.id);
 
-    socket.on("disconnect", reason => {
+    socket.on("disconnect", (reason) => {
       logger.info(`${socket.handshake.auth.username}
        disconnected with reason: ${reason}`);
       clients.delete(socket.handshake.auth.username);

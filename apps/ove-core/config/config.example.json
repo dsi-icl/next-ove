@@ -11,16 +11,31 @@
     "PASSWORD": "salted+hashed"
   },
   "TOKENS": {
+    "SIGNING_KEYS": {
+      "PUBLIC": "",
+      "PRIVATE": "",
+      "PASSPHRASE": ""
+    },
     "ACCESS": {
-      "SECRET": "",
-      "PASSPHRASE": "",
-      "EXPIRY": "24h",
-      "ISSUER": "ove-core"
+      "EXPIRY": "3m",
+      "ISSUER": "ove-core",
+      "AUDIENCE": "",
+      "COOKIE": {
+        "ID": "ove-access",
+        "DOMAIN": ""
+      }
     },
     "REFRESH": {
-      "SECRET": "",
-      "PASSPHRASE": "",
-      "ISSUER": "ove-core"
+      "ISSUER": "ove-core",
+      "COOKIE": {
+        "ID": "ove-refresh",
+        "DOMAIN": ""
+      }
+    },
+    "OTP": {
+      "EXPIRY": "5s",
+      "ISSUER": "ove-core",
+      "AUDIENCE": ""
     }
   },
   "ASSET_STORE_CONFIG": {

@@ -2,23 +2,18 @@
 
 import http from "http";
 import path from "path";
+import auth from "../auth";
 import { File } from "buffer";
-import fetch from "node-fetch";
 import { env } from "../../env";
 import { nanoid } from "nanoid";
 import type { Client } from "minio";
-import service from "../auth/service";
 import { readFileSync } from "atomically";
 import unzip, { Entry } from "unzip-stream";
 import { S3Controller } from "./s3-controller";
 import { type DataTypes, isError } from "@ove/ove-types";
-import type {
-  Controller,
-  DataFormatConfigOptions,
-  InviteStatus,
-} from "./router";
-import type { PrismaClient, Project, Section } from "@prisma/client";
+import type { DataFormatConfigOptions, InviteStatus } from "./router";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
+import type { PrismaClient, Project, Section } from "@ove/ove-server-utils";
 
 import "@total-typescript/ts-reset";
 
@@ -354,10 +349,10 @@ const getProjectFiles = async (s3: Client, bucketName: string) => {
     .flat();
 };
 
-const getGlobalFiles = async (s3: Client): ReturnType<Controller["getFiles"]> =>
+const getGlobalFiles = async (s3: Client) =>
   (
     await Promise.all(
-      env.ASSET_STORE_CONFIG?.GLOBAL_BUCKETS.map(async (bucket) => {
+      env.SERVICES.ASSET_STORE?.GLOBAL_BUCKETS.map(async (bucket) => {
         const objects = (await S3Controller.listObjects(s3, bucket))
           .filter((obj) => !obj.name.includes("/") || obj.name.endsWith("dzi"))
           .map((obj) => ({
@@ -432,7 +427,7 @@ const getS3Version = async (
 ) => {
   const files = (
     await Promise.all(
-      assert(env.ASSET_STORE_CONFIG)
+      assert(env.SERVICES.ASSET_STORE)
         .GLOBAL_BUCKETS.concat([bucketName])
         .flatMap((bucket) => S3Controller.listObjects(s3, bucket)),
     )
@@ -482,7 +477,7 @@ const generateThumbnail = async (
   projectId: string,
   tags: string[],
 ) => {
-  if (env.THUMBNAIL_GENERATOR === undefined) {
+  if (env.SERVICES.THUMBNAIL_GENERATOR === undefined) {
     return raise("Thumbnail generator not configured");
   }
   const project = await prisma.project.findUnique({ where: { id: projectId } });
@@ -490,7 +485,19 @@ const generateThumbnail = async (
   if (project.thumbnail !== null) return raise("Thumbnail already exists");
   const prompt = encodeURI(tags.join(" "));
   const thumbnail = await (
-    await fetch(`${env.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`)
+    await fetch(
+      `${env.SERVICES.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`,
+      {
+        headers: {
+          Authorization: `Bearer ${encodeURIComponent(
+            auth.generateAccessToken({
+              username: env.APP_NAME,
+              role: "proxy",
+            }),
+          )}`,
+        },
+      },
+    )
   ).text();
   await prisma.project.update({
     data: {
@@ -556,7 +563,7 @@ const getEnv = async (
     "latest",
   );
   if (isError(url)) return url;
-  const data = await (await fetch(url)).json();
+  const data = (await (await fetch(url)).json()) as Record<string, string>;
   return Object.fromEntries(
     Object.entries(data)
       .filter(([k, _v]) => k.startsWith("OVE_PUBLIC_"))
@@ -590,11 +597,11 @@ const getController = async (
     data = await (await fetch(url)).text();
   }
 
-  if (env.CONTROLLER_FORMAT === undefined) {
+  if (env.TEMPLATES?.CONTROLLER === undefined) {
     return raise("Unable to format controller");
   }
 
-  for (const [k, v] of Object.entries(env.CONTROLLER_FORMAT)) {
+  for (const [k, v] of Object.entries(env.TEMPLATES.CONTROLLER)) {
     if (typeof v === "string") {
       data = data.replaceAll(`{{${k}}}`, v);
     } else {
@@ -607,40 +614,7 @@ const getController = async (
     .replaceAll("{{PROJECT_ID}}", projectId)
     .replaceAll("{{SPACE}}", observatory);
 
-  const user = await prisma.user.findUnique({
-    where: {
-      username,
-    },
-  });
-
-  if (user === null) throw new Error("Missing user");
-
-  const token = await prisma.refreshToken.findUnique({
-    where: {
-      userId: user.id,
-    },
-  });
-
-  let dataToken = token?.token;
-
-  if (token === null) {
-    const refreshToken = service.generateToken(
-      username,
-      env.TOKENS.REFRESH.SECRET,
-      env.TOKENS.REFRESH.ISSUER,
-      undefined,
-      env.TOKENS.REFRESH.ISSUER,
-    );
-    await prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId: user.id,
-      },
-    });
-    dataToken = refreshToken;
-  }
-
-  data = data.replaceAll("{{TOKEN}}", assert(dataToken));
+  // TODO: add OTP
 
   if (layout !== undefined) {
     data = data.replaceAll(
@@ -722,10 +696,10 @@ const formatLatex = async (title: string, data: string) => {
     path.join(__dirname, "assets", "latex-format.html"),
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
-  if (env.DATA_FORMATTER !== undefined) {
+  if (env.SERVICES.DATA_FORMATTER !== undefined) {
     data = await (
-      await fetch(`${env.DATA_FORMATTER}/latex`, {
-        headers: { "Content-Type": "text/plain" },
+      await fetch(`${env.SERVICES.DATA_FORMATTER}/latex`, {
+        headers: { "Content-Type": "text/plain", Authorization: `Bearer ${encodeURIComponent(auth.generateAccessToken({username: env.APP_NAME, role: "proxy"}))}` },
         method: "POST",
         body: data,
       })
@@ -739,10 +713,10 @@ const formatMarkdown = async (title: string, data: string) => {
     path.join(__dirname, "assets", "markdown-format.html"),
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
-  if (env.DATA_FORMATTER !== undefined) {
+  if (env.SERVICES.DATA_FORMATTER !== undefined) {
     data = await (
-      await fetch(`${env.DATA_FORMATTER}/markdown`, {
-        headers: { "Content-Type": "text/plain" },
+      await fetch(`${env.SERVICES.DATA_FORMATTER}/markdown`, {
+        headers: { "Content-Type": "text/plain", Authorization: `Bearer ${encodeURIComponent(auth.generateAccessToken({username: env.APP_NAME, role: "proxy"}))}` },
         method: "POST",
         body: data,
       })
@@ -797,10 +771,10 @@ const formatDZI = async (
   if (s3 === null) return raise("No S3 store configured");
   const url = await getPresignedGetURL(s3, bucketName, objectName, versionId);
   if (isError(url)) return url;
-  if (env.DATA_FORMATTER === undefined) {
+  if (env.SERVICES.DATA_FORMATTER === undefined) {
     return raise("No data formatter configured");
   }
-  const formatter = new URL(env.DATA_FORMATTER);
+  const formatter = new URL(env.SERVICES.DATA_FORMATTER);
   await new Promise((resolve) => {
     const data = Json.stringify({
       get_url: url,
@@ -814,6 +788,7 @@ const formatDZI = async (
       headers: {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(data),
+        Authorization: `Bearer ${encodeURIComponent(auth.generateAccessToken({username: env.APP_NAME, role: "proxy"}))}`
       },
     };
 
@@ -926,7 +901,7 @@ const getPendingInviteCount = async (
   });
 };
 
-const controller: Controller = {
+const controller = {
   getProjectsForUser,
   getProject,
   getTags,
