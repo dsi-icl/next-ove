@@ -1,13 +1,18 @@
-// eslint-disable-next-line spaced-comment
 /// <reference types="vitest" />
-import MillionLint from "@million/lint";
 import react from "@vitejs/plugin-react";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(_config => {
   return {
     root: __dirname,
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: "modern"
+        }
+      }
+    },
     build: {
       outDir: "../../dist/apps/ove-core-ui",
       reportCompressedSize: true,
@@ -27,8 +32,7 @@ export default defineConfig(({ mode }) => {
       port: 4203,
       host: "0.0.0.0"
     },
-    plugins: [react(), nxViteTsPaths()].concat(
-      mode === "linting" ? [MillionLint.vite()] : []),
+    plugins: [react(), nxViteTsPaths()],
     test: {
       reporters: ["default"],
       coverage: {

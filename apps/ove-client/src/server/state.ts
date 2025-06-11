@@ -11,7 +11,7 @@ type State = {
   authErrors: number
 };
 
-const generatePin = () => env.AUTHORISED_CREDENTIALS === undefined ? Array(4)
+const generatePin = () => env.AUTH.STORED_CREDENTIALS === undefined ? Array(4)
   .fill(0)
   .map(() => Math.floor(Math.random() * 10))
   .join("") : "";
@@ -24,7 +24,7 @@ export const state: State = {
   authErrors: 0
 };
 
-export const updatePin = env.AUTHORISED_CREDENTIALS === undefined ? () => {
+export const updatePin = env.AUTH.STORED_CREDENTIALS === undefined ? () => {
   state.pin = generatePin();
   if (state.pinUpdateCallback === null) {
     throw new Error("Missing pin update callback");

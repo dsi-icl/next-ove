@@ -1,19 +1,11 @@
 {
-  "extends": ["plugin:@nx/react", "../../.eslintrc.json"],
+  "extends": ["plugin:@nx/react", "../../.eslintrc.json", "prettier"],
   "ignorePatterns": ["!**/*"],
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
-        "react/jsx-indent-props": ["error", "first"],
-        "indent": [
-          "error",
-          2,
-          {
-            "SwitchCase": 1,
-            "ignoredNodes": ["JSXAttribute"]
-          }
-        ]
+        "react/prop-types": "off"
       }
     },
     {

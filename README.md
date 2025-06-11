@@ -52,11 +52,11 @@ for the ove-core cloud platform and is bundled within it.
 
 ```npm install``` - install NPM packages
 
-```npm run prisma:push``` - update DB schemas
+```npm run db push``` - update DB schemas
 
-```npm run prisma``` - update ORM types
+```npm run db sync``` - update ORM types
 
-```npm run user:add``` - add user to DB
+```npm run db user -- --action=add``` - add user to DB
 
 ```npm run start``` - serve all applications, including the UI as separate
 services
@@ -139,7 +139,7 @@ providing a real-time view of what is being rendered on the displays.
 This can be found under the tools directory of this repository and uses an AI
 model to generate thumbnails for projects to be displayed on the launcher page.
 
-Information for configuring this service can be found in
+Information for configuring this auth can be found in
 the [README](./tools/thumbnail-generator/README.md).
 
 ### Logging
@@ -155,6 +155,13 @@ the [ELK documentation](https://www.elastic.co/guide/index.html).
 Any distributed rendering client can be used with next-ove, however, the
 original Open Visualisation Environment (OVE) is recommended and will be
 integrated to become the default in a coming release.
+
+## Notes
+
+- Feature documentation has the following naming convention:
+  - all lowercase
+  - words separated by hyphens
+  - must be a pandoc convertible type, e.g. md. More information on supported input types can be found at https://en.wikipedia.org/wiki/Pandoc#Supported_file_formats.
 
 ## Acknowledgements
 

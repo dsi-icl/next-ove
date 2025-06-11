@@ -1,0 +1,33 @@
+{
+  "AUTH": {
+    "SERVER_URL": "http://localhost:3333/signing-key",
+    "COOKIE_ID": "ove-access",
+    "JWT_ALGORITHMS": [
+      "RS256"
+    ]
+  },
+  "SERVER": {
+    "PORT": 8080
+  },
+  "API": {
+    "PAGE_SIZE": 10,
+    "RATE_LIMIT": {
+      "WINDOW_MS": 60000,
+      "LIMIT": 1000,
+      "STANDARD_HEADERS": "draft-7",
+      "LEGACY_HEADERS": false
+    }
+  },
+  "DB": {
+    "CLEANUP": {
+      "INTERVAL": 900000,
+      "MAX_SIZE": 150000000,
+      "MAX_RECORDS": 50000,
+      "GET_SIZE_COMMAND": "du -h %DB_LOCATION% | numfmt --from=iec"
+    },
+    "LOCATION": "ove-logs/data/logs.db"
+  },
+  "SOCKETS": {
+    "PATH": "/sockets"
+  }
+}

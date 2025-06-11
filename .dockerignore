@@ -684,11 +684,23 @@ Temporary Items
 .apdisk
 
 # Custom rules
-!dist/apps/ove-core/
-!dist/apps/ove-core-ui/
 /tools/db/*
-!/tools/db/schema.prisma
+/tools/doc-viewer/.env
+!/tools/db/*.prisma
+!cli/
 /dist/apps/ove-core/config/config.json
 /dist/apps/ove-core/config/config.example.json
+
+!/dist/apps/ove-logs/package.json
+!/dist/apps/ove-logs/package-lock.json
+
+!/dist/apps/ove-core/package.json
+!/dist/apps/ove-core/package-lock.json
+
+!/dist/apps/ove-core-ui/package.json
+!/dist/apps/ove-core-ui/package-lock.json
+
+!/dist/apps/ove-renderer/package.json
+!/dist/apps/ove-renderer/package-lock.json
 
 Dockerfile

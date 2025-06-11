@@ -2,37 +2,37 @@ import { z } from "zod";
 import { logger } from "../../env";
 import { safe } from "@ove/ove-utils";
 import controller from "./controller";
-import { protectedProcedure, router } from "../trpc";
+import { procedure, router } from "../trpc";
 import { BoundsSchema, OVEExceptionSchema } from "@ove/ove-types";
 
 const ObservatorySchema = z.strictObject({
   name: z.string(),
-  isOnline: z.boolean()
+  isOnline: z.boolean(),
 });
 
 const ObservatoryBoundsSchema = z.record(z.string(), BoundsSchema);
 
 export const coreRouter = router({
-  getObservatories: protectedProcedure
+  getObservatories: procedure
     .meta({
       openapi: {
         method: "GET",
         path: "/core/observatories",
-        protect: true
-      }
+        protect: true,
+      },
     })
     .input(z.void())
     .output(z.union([ObservatorySchema.array(), OVEExceptionSchema]))
     .query(async ({ ctx }) => {
       return safe(logger, () => controller.getObservatories(ctx));
     }),
-  getObservatoryBounds: protectedProcedure
+  getObservatoryBounds: procedure
     .meta({
       openapi: {
         method: "GET",
         path: "/core/observatories/bounds",
-        protect: true
-      }
+        protect: true,
+      },
     })
     .input(z.void())
     .output(z.union([ObservatoryBoundsSchema, OVEExceptionSchema]))
@@ -40,18 +40,18 @@ export const coreRouter = router({
       logger.info("Getting observatory bounds");
       return safe(logger, () => controller.getObservatoryBounds(ctx));
     }),
-  getRenderer: protectedProcedure
+  getRenderer: procedure
     .meta({
       openapi: {
         method: "GET",
         path: "/core/renderer",
-        protect: true
-      }
+        protect: true,
+      },
     })
     .input(z.void())
     .output(z.union([z.string().nullable(), OVEExceptionSchema]))
     .query(async () => {
       logger.info("Getting renderer");
       return safe(logger, () => controller.getRenderer());
-    })
+    }),
 });

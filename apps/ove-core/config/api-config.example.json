@@ -1,0 +1,23 @@
+{
+  "NODE_ENV": "production",
+  "PORT": 3333,
+  "HOSTNAME": "0.0.0.0",
+  "PROTOCOL": "http",
+  "LOG_LEVEL": 6,
+  "TOKENS": {
+    "ACCESS": {
+      "SECRET": "",
+      "PASSPHRASE": "",
+      "ISSUER": "",
+      "EXPIRY": ""
+    },
+    "REFRESH": {
+      "SECRET": "",
+      "PASSPHRASE": "",
+      "ISSUER": ""
+    }
+  },
+  "DISABLE_AUTH": false,
+  "SOCKET_DIST": "node_modules/@socket.io/admin-ui/ui/dist",
+  "UI_URL": "next-ove/dist/apps/ove-core-ui"
+}

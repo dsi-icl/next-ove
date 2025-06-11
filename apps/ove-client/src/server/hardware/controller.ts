@@ -18,9 +18,9 @@ export const init = (
   service.init(createWindow, takeScreenshots, closeWindow,
     reloadWindow, reloadWindows);
 
-  if (env.AUTHORISED_CREDENTIALS === undefined && updatePin !== null) {
+  if (env.AUTH.STORED_CREDENTIALS === undefined && updatePin !== null) {
     state.pinUpdateCallback = triggerIPC["updatePin"];
-    state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
+    state.pinUpdateHandler = setInterval(updatePin, env.AUTH.PIN_UPDATE_DELAY);
   }
 };
 
@@ -76,7 +76,7 @@ const controller: TClientService = {
   closeBrowsers: async () => {
     logger.info("DELETE /browsers - closing all browsers");
     if (state.pinUpdateHandler === null && updatePin !== null) {
-      state.pinUpdateHandler = setInterval(updatePin, env.PIN_UPDATE_DELAY);
+      state.pinUpdateHandler = setInterval(updatePin, env.AUTH.PIN_UPDATE_DELAY);
     }
     service.closeBrowsers(state.browsers.keys());
     state.browsers.clear();
@@ -95,12 +95,14 @@ const controller: TClientService = {
   },
   setWindowConfig: async ({ config }) => {
     logger.info("POST /env/windowConfig - setting window config");
-    env.WINDOW_CONFIG = config;
+    if (env.RENDERER.MODE !== "legacy") throw new Error("Running with new renderer");
+    env.RENDERER.WINDOW_CONFIG = config;
     return true;
   },
   getWindowConfig: async () => {
     logger.info("GET /env/windowConfig - getting window config");
-    return env.WINDOW_CONFIG;
+    if (env.RENDERER.MODE !== "legacy") throw new Error("Running with new renderer");
+    return env.RENDERER.WINDOW_CONFIG;
   }
 };
 

@@ -1,21 +1,25 @@
 import { s3 } from "./s3";
-import { prisma } from "./db";
-import type {
-  NodeHTTPCreateContextFnOptions
-} from "@trpc/server/dist/adapters/node-http";
-import type { inferAsyncReturnType } from "@trpc/server";
+import type { Request } from "./app";
+import type { Response } from "express";
+import { prisma } from "@ove/ove-server-utils";
+import type { NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http"; // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ContextOptions = NodeHTTPCreateContextFnOptions<any, any>
+type ContextOptions = NodeHTTPCreateContextFnOptions<Request, Response>;
 
-export const createContext = async ({ req }: ContextOptions) => {
-  const user: string | null = req.headers.authorization ?
-    (req.headers.authorization as string).split(" ").at(-1) ?? null :
-    null;
-  return {
-    user,
+export const createContext = async ({ req, res }: ContextOptions) => {
+  if (req.username === undefined) throw new Error("Unable to identify user");
+  return <Context>{
+    req,
+    res,
+    username: req.username,
     prisma,
-    s3
+    s3,
   };
 };
-export type Context = inferAsyncReturnType<typeof createContext>;
+export type Context = {
+  req: Request;
+  res: Response;
+  username: string;
+  prisma: typeof prisma;
+  s3: typeof s3;
+};

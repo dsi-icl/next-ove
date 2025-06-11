@@ -1,38 +1,59 @@
 /* global process */
 
-import type {
-  THardwareServerToClientEvents,
-  THardwareClientToServerEvents
-} from "@ove/ove-types";
-import { server } from "./app";
+import auth from "./auth";
+import { server } from "./server";
 import { env, logger } from "../env";
+import cookieParser from "cookie-parser";
+import { prisma } from "@ove/ove-server-utils";
+import type { Request, Response } from "express";
 import { instrument } from "@socket.io/admin-ui";
 import { Server, type ServerOptions } from "socket.io";
 
-export const io: Server = new Server<
-  THardwareClientToServerEvents,
-  THardwareServerToClientEvents
->(
-  server,
-  {
-    cors: { origin: "*", methods: ["GET", "POST", "DELETE"] },
-    path: env.SOCKET_PATH
-  } as Partial<ServerOptions>
+export const io: Server = new Server(server, {
+  cors: {
+    origin: true,
+    methods: ["GET", "POST", "DELETE"],
+    credentials: true,
+  },
+  path: `${env.SOCKETS.PATH ?? ""}/${env.API_VERSION}`,
+  maxHttpBufferSize: env.SOCKETS.MAX_HTTP_BUFFER_SIZE,
+} as Partial<ServerOptions>);
+
+io.engine.use(cookieParser());
+io.engine.use(
+  async (
+    req: Request & { _query: { sid?: string } },
+    res: Response,
+    next: (arg?: unknown) => void,
+  ) => {
+    const handshake = req._query.sid === undefined;
+    if (!handshake) {
+      next();
+      return;
+    }
+    try {
+      const [access, refresh] = auth.extractCookies(req);
+      const { role } = await auth.validateCookies(res, prisma, access, refresh);
+      if (!auth.authorize(role, env.SOCKETS.PATH ?? "/socket.io")) {
+        next(new Error("UNAUTHORIZED"));
+        return;
+      }
+      next();
+    } catch (e) {
+      next(new Error("UNAUTHORIZED"));
+    }
+  },
 );
 
-const auth = env.SOCKET_ADMIN === undefined ? false : {
-  type: "basic" as const,
-  username: env.SOCKET_ADMIN.USERNAME,
-  password: env.SOCKET_ADMIN.PASSWORD
-};
 instrument(io, {
-  auth,
-  mode: process.env.NODE_ENV === "production" ? "production" : "development"
+  auth: false,
+  mode: env.ENVIRONMENT === "production" ? "production" : "development",
 });
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   logger.info(`New client connected: ${socket.id}`);
 
-  socket.on("disconnect", reason =>
-    logger.info(`${socket.id} disconnecting with reason: ${reason}`));
+  socket.on("disconnect", (reason) =>
+    logger.info(`${socket.id} disconnecting with reason: ${reason}`),
+  );
 });

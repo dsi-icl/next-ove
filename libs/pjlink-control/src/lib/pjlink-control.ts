@@ -4,7 +4,7 @@ import { Device, isError, OVEException, PJLinkSource } from "@ove/ove-types";
 import { replaceAll } from "@ove/ove-utils";
 import { z } from "zod";
 
-/* global Buffer, console */
+/* global Buffer, AbortController */
 
 type PJLinkState = {
   settings: {

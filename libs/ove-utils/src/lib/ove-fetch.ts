@@ -9,13 +9,15 @@ export const safeFetch = async <T extends z.ZodAny>(
   schema: T,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  args?: RequestInit
+  args?: RequestInit,
 ): Promise<z.infer<T> | null> => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   if (window === undefined) {
-    console.error("Attempting to use browser version of safeFetch" +
-      " in a server environment");
+    console.error(
+      "Attempting to use browser version of safeFetch" +
+        " in a server environment",
+    );
     return null;
   }
   try {
@@ -26,7 +28,7 @@ export const safeFetch = async <T extends z.ZodAny>(
 
     const parsed = schema.safeParse(res);
     return parsed.success ? parsed.data : null;
-  } catch (e) {
+  } catch (_e) {
     return null;
   }
 };

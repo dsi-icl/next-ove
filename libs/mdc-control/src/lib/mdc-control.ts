@@ -1,12 +1,17 @@
-/* global setTimeout */
+/* global AbortController, setTimeout */
 
 import { Socket } from "net";
-import { raise } from "@ove/ove-utils";
-import { isError, MDCSources, OVEException } from "@ove/ove-types";
+import { assert, raise } from "@ove/ove-utils";
+import {
+  isError,
+  type MDCInfo,
+  type MDCSource,
+  type OVEException
+} from "@ove/ove-types";
 
 const MDC_PORT = 1515;
 
-export const sources: MDCSources = {
+export const sources: MDCSource = {
   UNKNOWN: 0x00,
   PC: 0x14,
   DVI: 0x18,
@@ -26,7 +31,7 @@ export const sources: MDCSources = {
   DP3: 0x27
 } as const;
 
-type MDCSource = MDCSources[keyof MDCSources];
+type MDCSourceVal = MDCSource[keyof MDCSource];
 
 type CommandArgs = {
   ac?: AbortController
@@ -42,7 +47,7 @@ const sendCommand = (
   cmdArgs: CommandArgs,
   ...args: number[]
 ) => {
-  const socket = new Socket({signal: cmdArgs.ac?.signal});
+  const socket = new Socket({ signal: cmdArgs.ac?.signal });
   socket.setTimeout(cmdArgs.timeout);
 
   socket.on("timeout", () => {
@@ -92,7 +97,7 @@ export const getStatus = async (args: CommandArgs):
 
 export const setPower = async (
   args: CommandArgs,
-  state: "on" | "off" | "reboot",
+  state: "on" | "off" | "reboot"
 ): Promise<boolean | OVEException> => {
   const powerState = state === "off" ? 0x00 : (state === "on" ? 0x01 : 0x02);
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
@@ -103,7 +108,7 @@ export const setPower = async (
 
 export const setVolume = async (
   args: CommandArgs,
-  volume: number,
+  volume: number
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x12, args, volume));
@@ -113,7 +118,7 @@ export const setVolume = async (
 
 export const setIsMute = async (
   args: CommandArgs,
-  state: boolean,
+  state: boolean
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x13, args, state ? 0x01 : 0x00));
@@ -123,7 +128,7 @@ export const setIsMute = async (
 
 export const setSource = async (
   args: CommandArgs,
-  source: MDCSource,
+  source: MDCSourceVal
 ): Promise<boolean | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x14, args, source));
@@ -133,12 +138,7 @@ export const setSource = async (
 
 export const getInfo = async (
   args: CommandArgs
-): Promise<{
-  power: "off" | "on",
-  volume: number,
-  isMuted: boolean,
-  source: MDCSource
-} | OVEException> => {
+): Promise<MDCInfo | OVEException> => {
   const res = await new Promise<Uint8Array | OVEException>(resolve =>
     sendCommand(resolve, 0x00, args));
   if (isError(res)) return res;
@@ -148,6 +148,6 @@ export const getInfo = async (
     power: res[6] === 0x00 ? "off" : "on",
     volume: res[7],
     isMuted: res[8] !== 0x00,
-    source: res[9]
+    source: assert(Object.entries(sources).find(([_k, v]) => v === res[9])?.at(0)) as keyof MDCSource
   };
 };

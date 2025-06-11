@@ -114,15 +114,20 @@ const bluetooth = async () => ({
   type: "bluetooth" as const
 });
 
-const docker = async () => ({
-  docker: await si.dockerInfo(),
-  images: await si.dockerImages(),
-  containers: await si.dockerContainers(),
-  containerStats: await si.dockerContainerStats(),
-  containerProcesses: await si.dockerContainerProcesses(),
-  volumes: await si.dockerVolumes(),
-  type: "docker" as const
-});
+const docker = async () => {
+  const containers = await si.dockerContainers();
+  return ({
+    docker: await si.dockerInfo(),
+    images: await si.dockerImages(),
+    containers,
+    containerStats: await si.dockerContainerStats(),
+    containerProcesses: await Promise.all(containers.flatMap(async container =>
+      (await si.dockerContainerProcesses(container.id))
+        .map(process => ({ id: container.id, ...process })))),
+    volumes: await si.dockerVolumes(),
+    type: "docker" as const
+  });
+};
 
 const vbox = async () => ({
   vbox: await si.vboxInfo(),

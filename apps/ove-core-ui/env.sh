@@ -1,5 +1,5 @@
 #!/bin/sh
-for i in $(env | grep NEXT_OVE_)
+for i in $(env | grep NEXT_OVE_ | sort -r)
 do
     key=$(echo "$i" | cut -d '=' -f 1)
     value=$(echo "$i" | cut -d '=' -f 2-)

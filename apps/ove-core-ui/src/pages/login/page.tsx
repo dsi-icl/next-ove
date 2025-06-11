@@ -1,42 +1,103 @@
 import { z } from "zod";
-import React from "react";
+import React, { useState } from "react";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+  Label,
+  useFormErrorHandling,
+} from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormErrorHandling } from "@ove/ui-components";
-
-import styles from "./page.module.scss";
+import { useLogin } from "../../hooks/auth";
 
 const LoginFormSchema = z.strictObject({
   username: z.string(),
-  password: z.string()
+  password: z.string(),
 });
 
-type LoginForm = z.infer<typeof LoginFormSchema>
+type LoginForm = z.infer<typeof LoginFormSchema>;
 
-const Login = ({ login }: {
-  login: (username: string, password: string) => Promise<void>
-}) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
-    resolver: zodResolver(LoginFormSchema)
+const Login = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(LoginFormSchema),
   });
+  const [username, setUsername] = useState<string | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
+  useLogin(username, password);
   useFormErrorHandling(errors);
-  const onSubmit = handleSubmit(({
-    username,
-    password
-  }) => login(username, password));
+  const onSubmit = handleSubmit(({ username, password }) => {
+    setUsername(username);
+    setPassword(password);
+  });
 
-  return <main className={styles.main}>
-    <form method="post" spellCheck="false" onSubmit={onSubmit}>
-      <h1>Sign in</h1>
-      <label id={styles["username"]} htmlFor="username">Username</label>
-      <input {...register("username", { required: true })} type="text"
-             name="username" />
-      <label id={styles["password"]} htmlFor="password">Password</label>
-      <input {...register("password", { required: true })} id="password"
-             type="password" name="password" />
-      <button type="submit">Sign In</button>
-    </form>
-  </main>;
+  return (
+    <main className="flex min-h-[90vh] items-center justify-center bg-gray-100">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Login</CardTitle>
+          <CardDescription>
+            Enter your username and password to access your account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onSubmit}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  autoComplete="username"
+                  placeholder="Enter your username"
+                  autoCorrect="off"
+                  {...register("username", {
+                    required: "Username is required",
+                  })}
+                />
+                {errors.username && (
+                  <p className="text-sm text-red-500">
+                    {errors.username.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  {...register("password", {
+                    required: "Password is required",
+                    minLength: {
+                      value: 8,
+                      message: "Password must be at least 8 characters",
+                    },
+                  })}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button className="mt-4 w-full bg-[#002147]" type="submit">
+              Log in
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </main>
+  );
 };
 
 export default Login;

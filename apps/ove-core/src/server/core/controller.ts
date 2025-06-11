@@ -6,42 +6,51 @@ import { type Bounds, isError } from "@ove/ove-types";
 import { env } from "../../env";
 
 const getObservatories = async (ctx: Context) => {
-  const observatories = await ctx.prisma.user.findMany({
+  const observatories = await ctx.prisma.service.findMany({
     where: {
-      role: "bridge"
+      role: "bridge",
     },
     select: {
-      username: true
-    }
+      service: true,
+    },
   });
 
-  return observatories.map(({ username }) => {
-    return ({
-      name: username,
-      isOnline: state.bridgeClients.has(username)
-    });
+  return observatories.map(({ service }) => {
+    return {
+      name: service,
+      isOnline: state.bridgeClients.has(service),
+    };
   });
 };
 
 const getObservatoryBounds = async (ctx: Context) => {
-  const observatories =
-    (await getObservatories(ctx)).filter(({ isOnline }) => isOnline);
-  return (await Promise.all(observatories.map(async ({ name }) =>
-    assert(io.sockets.get(assert(state.bridgeClients.get(name))))
-      .emitWithAck("getGeometry", {}))))
-    .reduce((acc, x) => {
+  const observatories = (await getObservatories(ctx)).filter(
+    ({ isOnline }) => isOnline,
+  );
+  return (
+    await Promise.all(
+      observatories.map(async ({ name }) =>
+        assert(
+          io.sockets.get(assert(state.bridgeClients.get(name))),
+        ).emitWithAck("getGeometry", {}),
+      ),
+    )
+  ).reduce(
+    (acc, x) => {
       if (isError(x.response) || x.response === undefined) return acc;
       acc[x.meta.bridge] = x.response;
       return acc;
-    }, <Record<string, Bounds>>{});
+    },
+    <Record<string, Bounds>>{},
+  );
 };
 
-const getRenderer = async () => env.CONTROLLER_FORMAT?.RENDERER ?? null;
+const getRenderer = async () => env.TEMPLATES?.CONTROLLER?.RENDERER ?? null;
 
 const controller = {
   getObservatories,
   getObservatoryBounds,
-  getRenderer
+  getRenderer,
 };
 
 export default controller;

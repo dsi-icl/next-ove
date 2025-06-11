@@ -1,0 +1,76 @@
+{
+  "name": "ove-renderer",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-renderer/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "emptyOutDir": true,
+        "buildLibsFromSource": true,
+        "outputPath": "dist/apps/ove-renderer",
+        "generatePackageJson": true
+      },
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "mode": "production",
+          "skipTypeCheck": true
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "ove-renderer:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "ove-renderer:build:development",
+          "hmr": true
+        },
+        "production": {
+          "buildTarget": "ove-renderer:build:production",
+          "hmr": false
+        },
+        "linting": {
+          "buildTarget": "ove-renderer:build:linting",
+          "hmr": true
+        }
+      }
+    },
+    "preview": {
+      "executor": "@nx/vite:preview-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "ove-renderer:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "ove-renderer:build:development"
+        },
+        "production": {
+          "buildTarget": "ove-renderer:build:production"
+        },
+        "linting": {
+          "buildTarget": "ove-renderer:build:linting"
+        }
+      },
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-renderer/**/*.{ts,js}"]
+      }
+    }
+  }
+}

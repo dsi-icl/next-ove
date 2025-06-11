@@ -1,49 +1,99 @@
-import React, { useState } from "react";
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@ove/ui-base-components";
 import { assert } from "@ove/ove-utils";
-import { useStore } from "../../../../store";
-import PaginatedDialog from "../paginated-dialog/paginated-dialog";
+import { getPages } from "../../../../utils";
+import React, { useMemo, useState } from "react";
+import type { TransferMethod } from "./screenshot-config";
 
-import styles from "./screenshot.module.scss";
-
-const ScreenshotDisplay = () => {
+const ScreenshotDisplay = ({
+  deviceId,
+  screenshots,
+  transferMethod,
+}: {
+  deviceId: string | null;
+  transferMethod: TransferMethod;
+  screenshots: { deviceId: string; response: string[] }[];
+}) => {
   const [idx, setIdx] = useState(0);
-  const deviceAction = useStore(state => state.hardwareConfig.deviceAction);
-  const curScreenshots = useStore(state => state.hardwareConfig.screenshots);
-  const screenshotConfig = useStore(state =>
-    state.hardwareConfig.screenshotConfig);
-
-  let deviceId: string | null = null;
-  let screenshots: string[] | null = null;
-  let state: "no_data" | "multi" | "single" = "no_data";
-
-  if (curScreenshots !== null && curScreenshots.length > 0) {
-    if (typeof curScreenshots[0] === "string") {
-      screenshots = curScreenshots as string[];
-      deviceId = assert(deviceAction.deviceId);
-      state = "single";
-    } else {
-      const entry = assert((curScreenshots as {
-        deviceId: string,
-        response: string[]
-      }[])[idx]);
-      screenshots = entry.response;
-      deviceId = entry.deviceId;
-      state = "multi";
-    }
-  }
-
-  return state !== "no_data" ?
-    <PaginatedDialog idx={idx} setIdx={setIdx} maxLen={state === "single" ?
-      0 : assert(screenshots).length}>
-      <div className={styles.display}>
-        <h4>Info - {deviceId}</h4>
-        <ul>
-          {assert(screenshots).map((screenshot, i) => <li
-            key={screenshot}>{screenshotConfig?.method === "response" ? <img
-            src={screenshot} alt={`Screenshot - ${i}`} /> : screenshot}</li>)}
+  const current = useMemo(
+    () =>
+      screenshots.at(idx) ?? {
+        deviceId: "",
+        response: [],
+      },
+    [screenshots, idx],
+  );
+  return (
+    <DialogContent className="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle className="text-2xl font-bold">
+          Screenshots - {screenshots.at(idx)?.deviceId ?? ""}
+        </DialogTitle>
+        <DialogDescription>
+          {transferMethod === "response"
+            ? "View the screenshots"
+            : "View the location of the screenshots"}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex size-full flex-col items-center">
+        <ul className="overflow-y-scroll">
+          {assert(current.response).map((screenshot, i) => (
+            <li className="mt-2 max-w-full" key={screenshot}>
+              {transferMethod === "response" ? (
+                <img
+                  src={`data:image/png;base64,${screenshot}`}
+                  alt={`Screenshot - ${i}`}
+                />
+              ) : (
+                screenshot
+              )}
+            </li>
+          ))}
         </ul>
       </div>
-    </PaginatedDialog> : null;
+      <DialogFooter>
+        {deviceId === null ? (
+          <Pagination className="mb-6 mt-auto">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setIdx((cur) => Math.max(cur - 1, 0))}
+                />
+              </PaginationItem>
+              {getPages(idx, screenshots.length).map((ix) => (
+                <PaginationItem key={ix}>
+                  <PaginationLink
+                    isActive={idx === ix}
+                    onClick={() => setIdx(ix)}
+                  >
+                    {ix}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setIdx((cur) => Math.min(cur + 1, screenshots.length - 1))
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        ) : null}
+      </DialogFooter>
+    </DialogContent>
+  );
 };
 
 export default ScreenshotDisplay;

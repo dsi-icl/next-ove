@@ -12,7 +12,6 @@ const listObjects = (
   bucketName: string
 ) => new Promise<BucketItem[]>((resolve, reject) => {
   const stream = s3
-    // @ts-expect-error – missing optional arguments parameter in library type
     .listObjects(bucketName, "", true, { IncludeVersion: true });
   const data: BucketItem[] = [];
   stream.on("data", obj => data.push(obj as typeof data[0]));
@@ -22,7 +21,7 @@ const listObjects = (
 
 const createBucket = async (s3: Minio.Client, bucketName: string) => {
   await s3.makeBucket(bucketName);
-  const versioningConfig = { Status: "Enabled" };
+  const versioningConfig = { Status: "Enabled" as const };
   await s3.setBucketVersioning(bucketName, versioningConfig);
 };
 

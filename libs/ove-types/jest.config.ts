@@ -5,7 +5,7 @@ export default {
   displayName: 'ove-types',
   preset: '../../jest.preset.js',
   globals: {
-    "__BENCHMARKS__": "tools/type-benchmarks/benchmarks.json"
+    "__BENCHMARKS__": "../../out/benchmarks.json"
   },
   setupFiles: ["./helpers.js"],
   transform: {
@@ -23,6 +23,6 @@ export default {
     "<rootDir>/node_modules/(?!@arktype)"
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../coverage/libs/ove-types',
+  coverageDirectory: '../../out/coverage/tests/libs/ove-types',
   workerIdleMemoryLimit: "512MB"
 };

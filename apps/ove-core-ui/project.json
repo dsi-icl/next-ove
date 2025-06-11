@@ -3,13 +3,23 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/ove-core-ui/src",
   "projectType": "application",
+  "tags": [],
   "targets": {
+    "db": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["npm run db sync"]
+      }
+    },
     "build": {
       "executor": "@nx/vite:build",
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
+        "emptyOutDir": true,
         "generatePackageJson": true,
+        "buildLibsFromSource": true,
         "outputPath": "dist/apps/ove-core-ui"
       },
       "configurations": {
@@ -17,12 +27,11 @@
           "mode": "development"
         },
         "production": {
-          "mode": "production"
-        },
-        "linting": {
-          "mode": "linting"
+          "mode": "production",
+          "skipTypeCheck": true
         }
-      }
+      },
+      "dependsOn": ["db"]
     },
     "serve": {
       "executor": "@nx/vite:dev-server",
@@ -61,7 +70,8 @@
         "linting": {
           "buildTarget": "ove-core-ui:build:linting"
         }
-      }
+      },
+      "dependsOn": ["build"]
     },
     "test": {
       "executor": "@nx/vite:test",
@@ -72,7 +82,7 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["apps/ove-core-ui/**/*.{ts,tsx,js,jsx}"]
@@ -84,6 +94,5 @@
         "buildTarget": "ove-core-ui:build"
       }
     }
-  },
-  "tags": []
+  }
 }

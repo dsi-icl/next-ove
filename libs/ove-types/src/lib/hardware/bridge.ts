@@ -1,3 +1,5 @@
+/* global AbortController */
+
 import { z } from "zod";
 import { type Device, type Optional } from "../hardware";
 import { type TBridgeRoutesSchema } from "./bridge-transform";

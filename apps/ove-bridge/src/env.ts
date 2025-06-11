@@ -1,90 +1,133 @@
 import {
-  AutoScheduleSchema, BoundsSchema,
+  AutoScheduleSchema,
+  BoundsSchema,
   CalendarSchema,
   DeviceSchema,
-  PowerModeSchema
+  PowerModeSchema,
 } from "@ove/ove-types";
 import { z } from "zod";
-import { nanoid } from "nanoid";
 import * as path from "path";
-import { app } from "electron";
+import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
-import { generateKeyPairSync } from "crypto";
 import { setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
-  LOGGING_SERVER: z.string().optional(),
-  RENDER_CONFIG: z.strictObject({
-    PORT: z.number(),
-    HOSTNAME: z.string(),
-    PROTOCOL: z.string()
-  }).optional(),
-  SOCKET_PATH: z.string().optional(),
-  LOG_LEVEL: z.number().optional(),
-  CORE_URL: z.string().optional(),
-  BRIDGE_NAME: z.string().optional(),
-  POWER_MODE: PowerModeSchema,
-  HARDWARE: z.array(DeviceSchema),
-  CALENDAR_URL: z.string().optional(),
-  CALENDAR: CalendarSchema.optional(),
-  AUTO_SCHEDULE: AutoScheduleSchema.optional(),
-  PRIVATE_KEY: z.string(),
-  PUBLIC_KEY: z.string(),
-  PASSPHRASE: z.string(),
-  VIDEO_STREAMS: z.array(z.string()).optional(),
-  START_VIDEO_SCRIPT: z.string().optional(),
-  STOP_VIDEO_SCRIPT: z.string().optional(),
-  GEOMETRY: BoundsSchema.optional(),
-  NODE_TIMEOUT: z.number(),
-  MDC_TIMEOUT: z.number(),
-  PJLINK_TIMEOUT: z.number(),
-  MDC_RESTART_TIMEOUT: z.number(),
-  RECONCILIATION_TIMEOUT: z.number(),
-  SYN_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
-  ARP_SCAN_COMMAND: z.string().optional(), // include %IP% for IP replacement
-  WOL_ADDRESS: z.string().optional(),
-  RECONCILE: z.boolean()
+  LOGGING: z
+    .strictObject({
+      SERVER: z.string().optional(),
+      LEVEL: z.number().optional(),
+    })
+    .optional(),
+  CORE: z.strictObject({
+    SOCKET_PATH: z.string().optional(),
+    URL: z.string(),
+  }),
+  CALENDAR: z
+    .strictObject({
+      URL: z.string().optional(),
+      DATA: CalendarSchema.optional(),
+    })
+    .optional(),
+  POWER: z.strictObject({
+    MODE: PowerModeSchema,
+    SCHEDULE: AutoScheduleSchema.optional(),
+  }),
+  AUTH: z.strictObject({
+    NAME: z.string(),
+    API_KEY: z.string(),
+  }),
+  RECONCILIATION: z.strictObject({
+    TIMEOUT: z.number(),
+    STATUS: z.boolean(),
+  }),
+  HARDWARE: z.strictObject({
+    DEVICES: z.array(DeviceSchema),
+    GEOMETRY: BoundsSchema.optional(),
+    WOL_ADDRESS: z.string().optional(),
+    TIMEOUTS: z.strictObject({
+      NODE: z.number(),
+      MDC: z.number(),
+      PJLINK: z.number(),
+      MDC_RESTART: z.number(),
+    }),
+    SCRIPTS: z
+      .strictObject({
+        SYN_SCAN: z.string().optional(), // include %IP% for IP replacement
+        ARP_SCAN: z.string().optional(), // include %IP% for IP replacement
+        START_NODE: z.string().optional(),
+      })
+      .optional(),
+  }),
+  LIVE_VIEW: z
+    .strictObject({
+      SOURCES: z.array(z.string()).optional(),
+      SCRIPTS: z
+        .strictObject({
+          START: z.string().optional(),
+          STOP: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 const staticConfig = {
   APP_NAME: "ove-bridge",
   UI_ALIAS: "ove-bridge-ui",
-  CLIENT_VERSION: "1"
+  CLIENT_API_VERSION: "1",
+  CORE_API_VERSION: "2",
 } as const;
 
-const passPhrase = nanoid(16);
-
-const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-  modulusLength: 4096,
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem"
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-    cipher: "aes-256-cbc",
-    passphrase: passPhrase
-  }
-});
+const apiKey = nanoid(16);
 
 const defaultConfig: z.infer<typeof schema> = {
-  POWER_MODE: "manual",
-  HARDWARE: [],
-  PUBLIC_KEY: publicKey,
-  PRIVATE_KEY: privateKey,
-  PASSPHRASE: passPhrase,
-  NODE_TIMEOUT: 5_000,
-  MDC_TIMEOUT: 5_000,
-  MDC_RESTART_TIMEOUT: 1_000,
-  PJLINK_TIMEOUT: 5_000,
-  RECONCILIATION_TIMEOUT: 60_000,
-  RECONCILE: true
+  CORE: {
+    URL: "http://localhost:3333",
+  },
+  AUTH: {
+    NAME: "ove-bridge",
+    API_KEY: apiKey,
+  },
+  POWER: {
+    MODE: "manual",
+  },
+  HARDWARE: {
+    DEVICES: [],
+    TIMEOUTS: {
+      NODE: 5_000,
+      MDC: 5_000,
+      MDC_RESTART: 1_000,
+      PJLINK: 5_000,
+    },
+  },
+  RECONCILIATION: {
+    TIMEOUT: 60_000,
+    STATUS: true,
+  },
 };
 
-const configPath = path.join(app.getPath("userData"), "ove-bridge-config.json");
+export type Environment = z.infer<typeof schema> & typeof staticConfig;
+
+const configPath =
+  process.env.NODE_ENV === "production"
+    ? path.join(__dirname, "config", "config.json")
+    : path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "apps",
+        "ove-bridge",
+        "config",
+        "config.json",
+      );
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
+export const logger = Logger(
+  env.APP_NAME,
+  env.LOGGING?.LEVEL,
+  env.LOGGING?.SERVER,
+);
+export const version = process.env.npm_package_version ?? "UNKNOWN-VERSION";
 
-export const logger = Logger(env.APP_NAME, env.LOG_LEVEL, env.LOGGING_SERVER);
 logger.info(`Loaded configuration from ${configPath}`);

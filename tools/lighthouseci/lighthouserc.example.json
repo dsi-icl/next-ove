@@ -1,0 +1,16 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "/",
+        "/login",
+        "/hardware"
+      ]
+    },
+    "upload": {
+      "target": "lhci",
+      "serverBaseUrl": "",
+      "token": ""
+    }
+  }
+}

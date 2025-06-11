@@ -1,46 +1,40 @@
 import React from "react";
-import type { HardwareInfo } from "../../types";
-import MultiActions from "../actions/multi-actions";
-import SearchSelect from "../search-select/search-select";
+import HardwareControls, {
+  type HardwareControlsProps,
+} from "./hardware-controls";
+import Calendar from "./calendar";
+import LiveFeed from "./live-feed";
+import PowerMode from "./power-mode";
+import PowerControls from "./power-controls";
+import Reconciliation from "./reconciliation";
 
-import styles from "./toolbar.module.scss";
-
-type ToolbarProps = {
-  hardware: HardwareInfo[]
-  setFilterType: (type: "id" | "tags") => void
-  setFilter: (filter: string | null) => void
-  filterType: "id" | "tags"
-  filter: string | null
-  name: string
-}
+type ToolbarProps = HardwareControlsProps;
 
 const Toolbar = ({
-  hardware,
+  devices,
   setFilterType,
   setFilter,
   filterType,
+  selected,
   filter,
-  name
-}: ToolbarProps) => <div className={styles.toolbar}>
-  <p>Filter by</p>
-  <div className={styles["filter-type-container"]}>
-    <button className={filterType === "id" ? styles.active : undefined}
-            onClick={() => setFilterType("id")}>ID
-    </button>
-    <button className={filterType === "tags" ? styles.active : undefined}
-            onClick={() => setFilterType("tags")}>Tags
-    </button>
+  bridgeId,
+}: ToolbarProps) => (
+  <div className="mb-2 flex w-full flex-wrap items-center justify-between gap-6">
+    <Reconciliation bridgeId={bridgeId} />
+    <LiveFeed bridgeId={bridgeId} />
+    <Calendar bridgeId={bridgeId} />
+    <PowerMode bridgeId={bridgeId} />
+    <HardwareControls
+      devices={devices}
+      filterType={filterType}
+      filter={filter}
+      selected={selected}
+      setFilterType={setFilterType}
+      setFilter={setFilter}
+      bridgeId={bridgeId}
+    />
+    <PowerControls bridgeId={bridgeId} />
   </div>
-  <SearchSelect setFilter={setFilter} filter={filter}
-                values={hardware.flatMap(({
-                  device: {
-                    id,
-                    tags
-                  }
-                }) => filterType === "id" ? [id] : tags)} />
-  <div className={styles["multi-actions"]}>
-    <MultiActions bridgeId={name} type={filterType} value={filter} />
-  </div>
-</div>;
+);
 
 export default Toolbar;
