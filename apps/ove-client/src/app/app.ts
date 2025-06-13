@@ -39,7 +39,7 @@ const initWindow = (url: string, displayId?: number) => {
       backgroundThrottling: true,
       sandbox: true,
       nodeIntegration: false,
-      preload: join(__dirname, "main.preload.js"),
+      preload: join(__dirname, "main.preload.cjs"),
     },
   });
   const idx = generateNewBrowserId();

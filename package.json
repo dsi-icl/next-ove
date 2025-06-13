@@ -20,7 +20,7 @@
     "help": "node cli/help.cjs",
     "lighthouse": "node cli/lighthouse.cjs",
     "lint": "pnx run-many --target=lint",
-    "postinstall": "pnpm dev patch dockerfile-package-versions",
+    "postinstall": "pnpm dev patch",
     "start": "pnx run-many --target=serve",
     "test": "node cli/test.cjs"
   },
@@ -234,6 +234,7 @@
       "bcrypt",
       "@prisma/client",
       "@prisma/engines",
+      "electron",
       "prisma",
       "trpc-to-openapi"
     ]

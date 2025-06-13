@@ -16582,7 +16582,7 @@ snapshots:
       '@pnpm/crypto.base32-hash': 1.0.1
       '@pnpm/types': 8.10.0
       encode-registry: 3.0.1
-      semver: 7.5.2
+      semver: 7.7.1
 
   '@pnpm/error@4.0.0':
     dependencies:
@@ -16612,7 +16612,7 @@ snapshots:
       js-yaml: '@zkochan/js-yaml@0.0.6'
       normalize-path: 3.0.0
       ramda: '@pnpm/ramda@0.28.1'
-      semver: 7.5.2
+      semver: 7.7.1
       sort-keys: 4.2.0
       strip-bom: 4.0.0
       write-file-atomic: 4.0.2
@@ -16656,14 +16656,14 @@ snapshots:
       '@pnpm/lockfile-types': 4.3.5
       comver-to-semver: 1.0.0
       ramda: '@pnpm/ramda@0.28.1'
-      semver: 7.5.2
+      semver: 7.7.1
 
   '@pnpm/merge-lockfile-changes@4.0.3':
     dependencies:
       '@pnpm/lockfile-types': 4.3.6
       comver-to-semver: 1.0.0
       ramda: '@pnpm/ramda@0.28.1'
-      semver: 7.5.2
+      semver: 7.7.1
 
   '@pnpm/ramda@0.28.1': {}
 
@@ -21413,7 +21413,7 @@ snapshots:
       '@pnpm/crypto.base32-hash': 1.0.1
       '@pnpm/types': 8.9.0
       encode-registry: 3.0.1
-      semver: 7.5.2
+      semver: 7.7.1
 
   deps-regex@0.2.0: {}
 

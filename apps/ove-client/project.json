@@ -34,7 +34,8 @@
         "tsConfig": "apps/ove-client/tsconfig.app.json",
         "assets": [
           "apps/ove-client/src/assets"
-        ]
+        ],
+        "webpackConfig": "apps/ove-client/webpack.config.cjs"
       },
       "configurations": {
         "production": {
@@ -50,14 +51,17 @@
     "serve": {
       "executor": "nx-electron:execute",
       "options": {
-        "buildTarget": "ove-client:build"
+        "buildTarget": "ove-client:build",
+        "args": [
+          "dist/apps/ove-client/main.cjs"
+        ]
       }
     },
     "package": {
       "executor": "nx-electron:package",
       "options": {
         "name": "ove-client",
-        "outputPath": "dist/packages",
+        "outputPath": "dist/packages/ove-client",
         "prepackageOnly": true
       },
       "configurations": {
@@ -79,7 +83,7 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
-        "outputPath": "dist/executables",
+        "outputPath": "dist/executables/ove-client",
         "publishPolicy": "never"
       },
       "configurations": {
@@ -101,8 +105,7 @@
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
-        "frontendProject": "ove-client-ui",
-        "outputPath": "dist/executables",
+        "outputPath": "dist/executables/ove-client",
         "publishPolicy": "always"
       },
       "configurations": {
@@ -137,7 +140,7 @@
         "coverage/apps/ove-client"
       ],
       "options": {
-        "jestConfig": "apps/ove-client/jest.config.js",
+        "jestConfig": "apps/ove-client/jest.config.ts",
         "passWithNoTests": true
       }
     }

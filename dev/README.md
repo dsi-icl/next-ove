@@ -113,7 +113,7 @@ documentation.
 ### services/auto-populate/data/credentials.example.json
 
 Example credentials.json file to be auto-populated into the database by the
-auto-populate.js script. One admin user and the credentials of a bridge are
+auto-populate.cjs script. One admin user and the credentials of a bridge are
 recommended to be provided.
 
 ### services/config/dev.example.conf
@@ -124,7 +124,7 @@ Example nginx configuration for testing services behind a reverse proxy.
 
 Docker Compose file for managing development services.
 
-### cli/generate-token.js
+### cli/generate-token.cjs
 
 Script for generating JWTs from next-ove for authenticating the REST API without
 using ove-core-ui.
@@ -134,11 +134,11 @@ using ove-core-ui.
 Example MapLayers.json file for configuring the available layers to the OVE Maps
 App.
 
-### cli/mdc-control.js
+### cli/mdc-control.cjs
 
 Script for controlling MDC screens, based on next-ove implementation.
 
-### testing/mock-bridge.js
+### testing/mock-bridge.cjs
 
 Script for creating a mock ove-bridge instance, allowing dummy data to be passed
 to the core cloud platform.

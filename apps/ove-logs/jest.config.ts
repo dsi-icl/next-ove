@@ -1,17 +1,17 @@
 /* eslint-disable */
 export default {
-  displayName: 'ove-utils',
+  displayName: 'ove-logs',
   preset: '../../jest.preset.ts',
   globals: {},
   testEnvironment: 'node',
   transform: {
-    '^.+\\.[tj]sx?$': [
+    '^.+\\.[tj]s$': [
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.spec.json',
       },
     ],
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  coverageDirectory: '../../out/coverage/tests/libs/ove-utils',
+  moduleFileExtensions: ['ts', 'js', 'html'],
+  coverageDirectory: '../../out/coverage/tests/apps/ove-logs',
 };
