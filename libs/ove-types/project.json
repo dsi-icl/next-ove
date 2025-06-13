@@ -4,6 +4,13 @@
   "sourceRoot": "libs/ove-types/src",
   "projectType": "library",
   "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p libs/ove-types/tsconfig.lib.json --noEmit --incremental"]
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],

@@ -198,7 +198,10 @@ const services = (args) => {
 
 const tools = (args) => run(supportedTools[args.name](args), args.dryRun);
 
-const patch = (args) => run(activePatches[args.name](args), args.dryRun);
+const patch = (args) => {
+  run(activePatches[args.name](args), args.dryRun);
+  console.log("Patch applied");
+};
 
 const deploy = (args) => {
   let asset = "";

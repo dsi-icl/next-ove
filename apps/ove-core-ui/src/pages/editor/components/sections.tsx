@@ -14,7 +14,7 @@ import {
 import { env } from "../../../env";
 import { dataTypes } from "@ove/ove-types";
 import { Json, assert } from "@ove/ove-utils";
-import type { Section } from "@ove/ove-server-utils";
+import type { Section } from ".prisma/client";
 import { useSections } from "../hooks/sections";
 import { useStateStore } from "../hooks/stores";
 import React, { useMemo, useState } from "react";

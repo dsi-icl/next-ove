@@ -1,3 +1,5 @@
+/* global console, Buffer */
+
 import { env } from "../env";
 import { nanoid } from "nanoid";
 import { state } from "./state";
@@ -5,7 +7,7 @@ import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import type { Request, Response } from "express";
 import type { TokenPayload } from "@ove/ove-types";
-import type { PrismaClient } from "@ove/ove-server-utils";
+import type { PrismaClient } from "@prisma/client";
 
 const conditionalPut = <T extends object, Key extends keyof T>(
   k: Key,
@@ -244,7 +246,7 @@ const generateRefreshCookie = async (
   payload: TokenPayload,
 ) => {
   let id;
-  let user = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       username: payload.username,
     },
@@ -255,7 +257,7 @@ const generateRefreshCookie = async (
   });
 
   if (user === null) {
-    let service = await prisma.service.findUniqueOrThrow({
+    const service = await prisma.service.findUniqueOrThrow({
       where: {
         service: payload.username,
       },

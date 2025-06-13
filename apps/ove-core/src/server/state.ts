@@ -1,5 +1,5 @@
 import type { Namespace } from "socket.io";
-import type { Project, Section } from "@ove/ove-server-utils";
+import type { Project, Section } from ".prisma/client";
 
 type ObservatoryState = {
   project: Project;

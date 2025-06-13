@@ -1,4 +1,4 @@
-/* global process, __dirname, Buffer */
+/* global process, __dirname */
 
 import { z } from "zod";
 import dotenv from "dotenv";

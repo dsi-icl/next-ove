@@ -8,7 +8,14 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
-        "commands": ["npm run db sync -- --component=logging"]
+        "commands": ["pnpm db sync --component=logging"]
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-logs/tsconfig.app.json --noEmit --incremental"]
       }
     },
     "lint": {
@@ -71,10 +78,19 @@
       }
     },
     "make": {
-      "command": "docker build ../../",
+      "executor": "nx:run-commands",
       "options": {
-        "args": ["--progress=plain", "-t next-ove/logs:latest", "--platform linux/amd64", "-f Dockerfile"],
-        "cwd": "apps/ove-logs"
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "docker build --rm -t next-ove/logs:latest --platform linux/amd64 -f apps/ove-logs/Dockerfile ."
+        ]
+      },
+      "configurations": {
+        "arm": {
+          "commands": [
+            "docker build --rm -t next-ove/logs:latest --platform linux/arm64 -f apps/ove-logs/Dockerfile ."
+          ]
+        }
       },
       "dependsOn": ["prebuild"]
     }

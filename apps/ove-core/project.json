@@ -12,8 +12,15 @@
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": [
-          "npm run db sync"
+          "pnpm db sync"
         ]
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-core/tsconfig.app.json --noEmit --incremental"]
       }
     },
     "make": {
@@ -21,13 +28,13 @@
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": [
-          "docker build --progress=plain --rm -t next-ove/core:latest --platform linux/amd64 -f apps/ove-core/Dockerfile ."
+          "docker build --rm -t next-ove/core:latest --platform linux/amd64 -f apps/ove-core/Dockerfile ."
         ]
       },
       "configurations": {
         "arm": {
           "commands": [
-            "docker build --progress=plain --rm -t next-ove/core:latest --platform linux/arm64 -f apps/ove-core/Dockerfile ."
+            "docker build --rm -t next-ove/core:latest --platform linux/arm64 -f apps/ove-core/Dockerfile ."
           ]
         }
       },
@@ -62,7 +69,8 @@
             "glob": "**/*",
             "input": "apps/ove-core/src/assets",
             "output": "assets"
-          }
+          },
+          "apps/ove-core/.env"
         ],
         "generatePackageJson": true,
         "external": [

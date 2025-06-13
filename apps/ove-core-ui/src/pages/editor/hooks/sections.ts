@@ -4,7 +4,7 @@ import { api } from "../../../utils/api";
 import { isError } from "@ove/ove-types";
 import { useProjectId } from "./projects";
 import { useSectionStore } from "./stores";
-import { type Section } from "@ove/ove-server-utils";
+import { type Section } from ".prisma/client";
 import { useCallback, useEffect, useState } from "react";
 
 export const useInitSections = () => {

@@ -13,7 +13,7 @@ import type { AppRouter } from "../../../ove-core/src/server/router";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { Log } from "../pages/logs/hooks/log-store";
 import { env } from "../env";
-import type { User } from "@ove/ove-server-utils";
+import type { User } from ".prisma/client";
 
 /**
  * A set of typesafe react-query hooks for your tRPC API
@@ -190,7 +190,7 @@ export const auth = {
           password: string;
         }) =>
           (await (
-            await fetch(`${env.CORE_URL}/login`, {
+            await fetch(`${env.CORE_URL}/api/login`, {
               method: "POST",
               headers: {
                 Authorization: `Basic ${encodeURIComponent(btoa(`${username}:${password}`))}`
@@ -206,7 +206,7 @@ export const auth = {
         ...(options ?? {}),
         mutationKey: ["logout"],
         mutationFn: async ({}: {}) => {
-          await fetch(`${env.CORE_URL}/logout`, {
+          await fetch(`${env.CORE_URL}/api/logout`, {
             method: "POST",
             credentials: "include"
           });
@@ -220,7 +220,7 @@ export const auth = {
         queryKey: ["generateOTP"],
         queryFn: async () => {
           return (await (
-            await fetch(`${env.CORE_URL}/otp`, {
+            await fetch(`${env.CORE_URL}/api/otp`, {
               credentials: "include"
             })
           ).text()) as string;

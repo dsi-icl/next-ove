@@ -20,7 +20,7 @@ import {
 } from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Project, Section } from "@prisma/client";
+import type { Project, Section } from ".prisma/client";
 import { useObservatories } from "../../hooks/observatories";
 import { useSectionStore } from "../../pages/editor/hooks/stores";
 

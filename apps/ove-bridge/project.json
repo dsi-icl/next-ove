@@ -8,7 +8,14 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
-        "commands": ["npm run db sync"]
+        "commands": ["pnpm db sync"]
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-bridge/tsconfig.app.json --noEmit --incremental"]
       }
     },
     "make": {

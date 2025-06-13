@@ -1,4 +1,4 @@
-/* global __dirname, URL, Buffer */
+/* global __dirname, fetch, URL, Buffer */
 
 import http from "http";
 import path from "path";
@@ -11,9 +11,9 @@ import { readFileSync } from "atomically";
 import unzip, { Entry } from "unzip-stream";
 import { S3Controller } from "./s3-controller";
 import { type DataTypes, isError } from "@ove/ove-types";
+import type { PrismaClient, Project, Section } from ".prisma/client";
 import type { DataFormatConfigOptions, InviteStatus } from "./router";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
-import type { PrismaClient, Project, Section } from "@ove/ove-server-utils";
 
 import "@total-typescript/ts-reset";
 

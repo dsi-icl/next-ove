@@ -12,8 +12,15 @@
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": [
-          "npm run db sync"
+          "pnpm db sync"
         ]
+      }
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-client/tsconfig.app.json --noEmit --incremental"]
       }
     },
     "build": {
