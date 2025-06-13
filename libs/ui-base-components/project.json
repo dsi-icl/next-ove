@@ -5,6 +5,13 @@
   "projectType": "library",
   "tags": [],
   "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p libs/ui-base-components/tsconfig.lib.json --noEmit --incremental"]
+      }
+    },
     "lint": {
       "executor": "@nx/eslint:lint",
       "outputs": ["{options.outputFile}"],

@@ -14,6 +14,7 @@ Object.entries(packageJson.devDependencies).map(loadDependencies);
 const paths = [
   path.join(__dirname, "..", "..", "apps", "ove-core", "Dockerfile"),
   path.join(__dirname, "..", "..", "apps", "ove-logs", "Dockerfile"),
+  path.join(__dirname, "..", "..", "apps", "ove-docs", "Dockerfile"),
 ];
 
 const rebuildDockerfile = (path) => {

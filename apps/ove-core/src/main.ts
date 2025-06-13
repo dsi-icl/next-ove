@@ -1,23 +1,26 @@
+/* global process, __dirname */
+
 import * as path from "path";
 import cors from "cors";
 import { env } from "./env";
 import auth from "./server/auth";
+import * as dotenv from "dotenv";
 import * as express from "express";
+import { prisma } from "./server/db";
 import cookieParser from "cookie-parser";
 import { appRouter } from "./server/router";
+import FileUtils from "@ove/ove-server-utils";
 import { app, type Request } from "./server/app";
 import { createContext } from "./server/context";
 import { openApiDocument } from "./server/open-api";
-import FileUtils, { prisma } from "@ove/ove-server-utils";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
 
+dotenv.config();
+
+// console.log("PRISMA ENGINE BINARY:", process.env.PRISMA_QUERY_ENGINE_BINARY);
 if (process.env.PRISMA_QUERY_ENGINE_BINARY === undefined) {
-  process.env.PRISMA_QUERY_ENGINE_BINARY = path.join(
-    __dirname,
-    "..",
-    "libquery_engine-darwin-arm64.dylib.node",
-  );
+  process.exit(1);
 }
 
 // noinspection DuplicatedCode
@@ -26,11 +29,11 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/signing-key", (_req, res) => {
+app.get("/api/signing-key", (_req, res) => {
   res.send(env.TOKENS.SIGNING_KEYS.PUBLIC);
 });
 
-app.use("/otp", async (req: Request, res, next) => {
+app.use("/api/otp", async (req: Request, res, next) => {
   try {
     const [access, refresh] = auth.extractCookies(req);
     const { username, role } = await auth.validateCookies(
@@ -47,12 +50,15 @@ app.use("/otp", async (req: Request, res, next) => {
 
     req.username = username;
     req.role = role;
-  } catch (e) {}
+  } catch (_e) {
+    res.sendStatus(401);
+    return;
+  }
 
   next();
 });
 
-app.use("/otp", async (req: Request, res, next) => {
+app.use("/api/otp", async (req: Request, res, next) => {
   try {
     const key = auth.extractKey(req);
     const authentication = await auth.validateApiKey(prisma, key);
@@ -65,12 +71,12 @@ app.use("/otp", async (req: Request, res, next) => {
     req.username = authentication.username;
     req.role = authentication.role;
     next();
-  } catch (e) {
+  } catch (_e) {
     res.sendStatus(401);
   }
 });
 
-app.get("/otp", async (req: Request, res) => {
+app.get("/api/otp", async (req: Request, res) => {
   if (req.username === undefined || req.role === undefined) {
     res.sendStatus(401);
     return;
@@ -79,7 +85,7 @@ app.get("/otp", async (req: Request, res) => {
   res.send(auth.generateOTP({ username: req.username, role: req.role }));
 });
 
-app.use("/login", async (req: Request, res, next) => {
+app.use("/api/login", async (req: Request, res, next) => {
   try {
     const credentials = auth.extractCredentials(req);
     const { username, role } = await auth.validatePassword(prisma, credentials);
@@ -91,12 +97,15 @@ app.use("/login", async (req: Request, res, next) => {
 
     req.username = username;
     req.role = role;
-  } catch (e) {}
+  } catch (_e) {
+    res.sendStatus(401);
+    return;
+  }
 
   next();
 });
 
-app.use("/login", async (req: Request, res, next) => {
+app.use("/api/login", async (req: Request, res, next) => {
   if (req.username !== undefined && req.role !== undefined) {
     next();
     return;
@@ -113,12 +122,12 @@ app.use("/login", async (req: Request, res, next) => {
     req.username = username;
     req.role = role;
     next();
-  } catch (e) {
+  } catch (_e) {
     res.sendStatus(401);
   }
 });
 
-app.post("/login", async (req: Request, res) => {
+app.post("/api/login", async (req: Request, res) => {
   if (req.username === undefined || req.role === undefined) {
     res.sendStatus(401);
     return;
@@ -146,7 +155,7 @@ app.post("/login", async (req: Request, res) => {
   );
 });
 
-app.post("/logout", async (req, res) => {
+app.post("/api/logout", async (req, res) => {
   try {
     const [access, refresh] = auth.extractCookies(req);
     const { username } = await auth.validateCookies(
@@ -156,7 +165,7 @@ app.post("/logout", async (req, res) => {
       refresh,
     );
     await auth.logout(res, prisma, username);
-  } catch (e) {
+  } catch (_e) {
     res.clearCookie(env.TOKENS.ACCESS.COOKIE.ID);
     res.clearCookie(env.TOKENS.REFRESH.COOKIE.ID);
   }
@@ -164,7 +173,7 @@ app.post("/logout", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.get("/redirect", async (req, res) => {
+app.get("/api/redirect", async (req, res) => {
   try {
     const otp = auth.extractOTP(req);
     const to = req.query?.["to"] as string | undefined;
@@ -184,12 +193,12 @@ app.get("/redirect", async (req, res) => {
     await auth.generateRefreshCookie(res, prisma, { role, username });
 
     res.redirect(to ?? "/");
-  } catch (e) {
+  } catch (_e) {
     res.sendStatus(401);
   }
 });
 
-app.use("/admin", async (req, res, next) => {
+app.use("/sockets/admin", async (req, res, next) => {
   try {
     const [access, refresh] = auth.extractCookies(req);
 
@@ -206,12 +215,12 @@ app.use("/admin", async (req, res, next) => {
     }
 
     next();
-  } catch (e) {
+  } catch (_e) {
     res.sendStatus(401);
   }
 });
 
-app.use("/admin", express.static(env.SOCKETS.DIST_DIR));
+app.use("/sockets/admin", express.static(env.SOCKETS.DIST_DIR));
 
 app.use(`/api/v${env.API_VERSION}/trpc`, async (req: Request, res, next) => {
   try {
@@ -232,7 +241,7 @@ app.use(`/api/v${env.API_VERSION}/trpc`, async (req: Request, res, next) => {
     req.username = username;
     req.role = role;
     next();
-  } catch (e) {
+  } catch (_e) {
     res.sendStatus(401);
     return;
   }
@@ -265,7 +274,7 @@ app.use(`/api/v${env.API_VERSION}`, async (req: Request, res, next) => {
     req.username = username;
     req.role = role;
     next();
-  } catch (e) {
+  } catch (_e) {
     res.sendStatus(401);
     return;
   }
@@ -291,28 +300,6 @@ FileUtils.saveOpenApi(
   path.join(`v${env.API_VERSION}`, "ove-core.swagger.json"),
   openApiDocument,
 );
-
-app.use(async (req, res, next) => {
-  try {
-    const [access, refresh] = auth.extractCookies(req);
-
-    const authenticated = await auth.validateCookies(
-      res,
-      prisma,
-      access,
-      refresh,
-    );
-
-    if (!auth.authorize(authenticated.role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    next();
-  } catch (e) {
-    res.sendStatus(401);
-  }
-});
 
 app.use((req, res, next) => {
   const reqPath = req.path.endsWith("/")

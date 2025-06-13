@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
   displayName: 'mdc-control',
-  preset: '../../jest.preset.js',
+  preset: '../../jest.preset.ts',
   globals: {},
   transform: {
     '^.+\\.[tj]sx?$': [

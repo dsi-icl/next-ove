@@ -4,7 +4,7 @@ import { isError } from "@ove/ove-types";
 import ProjectCard from "./project-card";
 import { PlusCircle } from "lucide-react";
 import { Dialog } from "@ove/ui-base-components";
-import type { Project, User } from "@ove/ove-server-utils";
+import type { Project, User } from ".prisma/client";
 import LaunchConfig, {
   type TLaunchConfig,
 } from "../../components/launch-config/launch-config";

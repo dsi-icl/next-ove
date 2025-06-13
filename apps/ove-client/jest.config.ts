@@ -1,6 +1,6 @@
 module.exports = {
   displayName: 'ove-client',
-  preset: '../../jest.preset.js',
+  preset: '../../jest.preset.ts',
   globals: {},
   testEnvironment: 'node',
   transform: {

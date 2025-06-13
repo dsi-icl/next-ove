@@ -1,7 +1,7 @@
 services:
   ove-core:
     image: next-ove/core:latest
-    container_name: core
+    container_name: ove-core
     platform: linux/amd64
     ports:
       - "8080:8080"
@@ -11,20 +11,19 @@ services:
       - ./tools/db/.env.production:/usr/src/app/.env:ro
     env_file:
       apps/ove-core-ui/.env.docker
-  docs:
+  ove-docs:
     image: next-ove/docs:latest
-    container_name: docs
+    container_name: ove-docs
     build:
       context: .
       dockerfile: tools/doc-viewer/Dockerfile
+    platform: linux/amd64
     ports:
       - "8081:8080"
     restart: "on-failure"
-    volumes:
-      - ./tools/doc-viewer/.env.production:/usr/src/app/.env:ro
-  logs:
+  ove-logs:
     image: next-ove/logs:latest
-    container_name: logs
+    container_name: ove-logs
     build:
       context: .
       dockerfile: apps/ove-logs/Dockerfile

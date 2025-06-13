@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { User } from "@ove/ove-server-utils";
+import type { User } from ".prisma/client";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 type Store = {

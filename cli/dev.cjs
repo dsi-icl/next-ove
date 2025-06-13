@@ -22,21 +22,23 @@ const descriptions = {
 const description = "DESCRIPTION\n\tDevelopment tools for next-ove.";
 
 const activePatches = {
-  "optional-deps": () =>
-    path.join(__dirname, "..", "dev", "patches", "remove-optional-deps.sh"),
+  // "optional-deps": () =>
+  //   path.join(__dirname, "..", "dev", "patches", "remove-optional-deps.sh"),
   "sandworm-timeout": (args) => {
     const src = path.join(
       __dirname,
       "..",
       "dev",
       "patches",
-      "sandworm-timeout.js",
+      "sandworm-timeout.cjs",
     );
     const defaults = {
       timeout: 30_000,
     };
     return `node ${src} ${args.timeout ?? defaults.timeout}`;
   },
+  "nx-electron-commonjs": () =>
+    `node ${path.join(__dirname, "..", "dev", "patches", "nx-electron-commonjs.cjs")}`,
   "dockerfile-package-versions": () =>
     `node ${path.join(__dirname, "..", "dev", "patches", "dockerfile-package-versions.cjs")}`,
 };
@@ -91,7 +93,7 @@ const schemas = {
   }),
   patch: z.strictObject({
     __cmd__: z.literal("patch"),
-    name: z.string().refine((x) => Object.keys(activePatches).includes(x)),
+    name: z.string().refine((x) => Object.keys(activePatches).includes(x)).optional(),
     timeout: z.coerce.number().optional(),
   }),
   tools: z.strictObject({
@@ -198,7 +200,15 @@ const services = (args) => {
 
 const tools = (args) => run(supportedTools[args.name](args), args.dryRun);
 
-const patch = (args) => run(activePatches[args.name](args), args.dryRun);
+const patch = (args) => {
+  if (args.name === undefined) {
+    Object.values(activePatches).forEach((x) => run(x(args), args.dryRun));
+    console.log("Patches applied");
+  } else {
+    run(activePatches[args.name](args), args.dryRun);
+    console.log("Patch applied");
+  }
+};
 
 const deploy = (args) => {
   let asset = "";

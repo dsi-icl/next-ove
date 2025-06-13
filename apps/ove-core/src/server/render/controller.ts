@@ -1,9 +1,9 @@
+import { prisma } from "../db";
 import { state } from "../state";
 import { logger } from "../../env";
 import { raise } from "@ove/ove-utils";
-import { prisma } from "@ove/ove-server-utils";
 import { io as SocketServer } from "../sockets";
-import type { Project, Section } from "@ove/ove-server-utils";
+import type { Project, Section } from ".prisma/client";
 
 const initObservatory = async (
   observatory: string,

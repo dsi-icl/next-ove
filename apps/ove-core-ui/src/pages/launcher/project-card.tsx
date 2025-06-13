@@ -2,7 +2,7 @@ import React from "react";
 import { api } from "../../utils/api";
 import { isError } from "@ove/ove-types";
 import { useNavigate } from "react-router-dom";
-import type { Project, User } from "@ove/ove-server-utils";
+import type { Project, User } from ".prisma/client";
 import { Button, DialogTrigger } from "@ove/ui-base-components";
 
 type ProjectCardProps = {

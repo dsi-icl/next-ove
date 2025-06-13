@@ -1,4 +1,4 @@
-import { PrismaClient } from "../../../generator/logging"; // TODO: fix import
+import { PrismaClient } from ".prisma/logging-client";
 import { execSync } from "child_process";
 import { env } from "./env";
 

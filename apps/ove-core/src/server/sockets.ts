@@ -1,10 +1,8 @@
-/* global process */
-
 import auth from "./auth";
+import { prisma } from "./db";
 import { server } from "./server";
 import { env, logger } from "../env";
 import cookieParser from "cookie-parser";
-import { prisma } from "@ove/ove-server-utils";
 import type { Request, Response } from "express";
 import { instrument } from "@socket.io/admin-ui";
 import { Server, type ServerOptions } from "socket.io";
@@ -39,7 +37,7 @@ io.engine.use(
         return;
       }
       next();
-    } catch (e) {
+    } catch (_e) {
       next(new Error("UNAUTHORIZED"));
     }
   },

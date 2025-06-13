@@ -6,17 +6,20 @@ WORKDIR /usr/src/app
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
 
+RUN npm install -g pnpm
+
 COPY ../../tsconfig.base.json ./
 COPY ../../tsconfig.json ./
 COPY ../../nx.json ./
 COPY ../../babel.config.json ./
 
 COPY ../../dist/apps/ove-renderer/package.json ./
-COPY ../../dist/apps/ove-renderer/package-lock.json ./
-RUN npm ci --legacy-peer-deps
+COPY ../../dist/apps/ove-renderer/pnpm-lock.yaml ./
 
-RUN npm install nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.7.2 @nx/vite@20.3.2 vite@6.1.0 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.3 vite-plugin-singlefile@2.1.0 --legacy-peer-deps
-RUN npm install date-fns@4.1.0 --legacy-peer-deps
+RUN pnpm install --frozen-lockfile
+
+RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.8.3 @nx/vite@20.3.2 vite@6.1.0 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.3 vite-plugin-singlefile@2.1.0
+RUN pnpm add date-fns@4.1.0
 
 COPY ../../apps/ove-renderer ./apps/ove-renderer
 
@@ -26,7 +29,7 @@ COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
 COPY ../../package.json ./
 
-RUN npm exec nx run ove-renderer:build:production
+RUN pnpx nx run ove-renderer:build:production
 
 FROM node:iron-alpine AS build-server
 LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
@@ -37,6 +40,9 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
+ENV CLIENT_OUTPUT=/usr/src/app/node_modules/.prisma/client
+
+RUN npm install -g pnpm
 
 COPY ../../tsconfig.base.json ./
 COPY ../../tsconfig.json ./
@@ -45,11 +51,12 @@ COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
 COPY ../../dist/apps/ove-core/package.json ./
-COPY ../../dist/apps/ove-core/package-lock.json ./
-RUN npm ci --legacy-peer-deps
+COPY ../../dist/apps/ove-core/pnpm-lock.yaml ./
 
-RUN npm install zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.8.2 @prisma/client@6.8.2 esbuild@0.24.2 typescript@5.7.2 --legacy-peer-deps
-RUN npm install zod-openapi@4.1.0 date-fns@4.1.0 --legacy-peer-deps
+RUN pnpm install --frozen-lockfile
+
+RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.9.0 @prisma/client@6.9.0 esbuild@0.24.2 typescript@5.8.3
+RUN pnpm add zod-openapi@4.1.0 date-fns@4.1.0
 
 COPY ../../apps/ove-core ./apps/ove-core
 COPY ../../apps/ove-renderer ./apps/ove-renderer
@@ -62,7 +69,7 @@ COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
 COPY ../../package.json ./
 
-RUN npm exec nx run ove-core:build:production
+RUN pnpx nx run ove-core:build:production
 
 RUN apk del .build-deps
 
@@ -76,17 +83,19 @@ WORKDIR /usr/src/app
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
 
+RUN npm install -g pnpm
+
 COPY ../../tsconfig.base.json ./
 COPY ../../tsconfig.json ./
 COPY ../../nx.json ./
 COPY ../../dist/apps/ove-core-ui/package.json ./
-COPY ../../dist/apps/ove-core-ui/package-lock.json ./
+COPY ../../dist/apps/ove-core-ui/pnpm-lock.yaml ./
 COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
-RUN npm ci --legacy-peer-deps
-RUN npm install nx@20.3.2 @nx/vite@20.3.2 prisma@6.8.2 @prisma/client@6.8.2 vite@6.1.0 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.7.2 vite-tsconfig-paths@5.1.3 --legacy-peer-deps
-RUN npm install react-big-calendar@1.16.3 --legacy-peer-deps
+RUN pnpm install --frozen-lockfile
+RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.9.0 @prisma/client@6.9.0 vite@6.1.0 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.8.3 vite-tsconfig-paths@5.1.3
+RUN pnpm add react-big-calendar@1.16.3
 
 COPY ../../apps/ove-core-ui ./apps/ove-core-ui
 COPY ../../package.json ./
@@ -98,7 +107,7 @@ COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
 COPY ../../libs/ui-base-components ./libs/ui-base-components
 
-RUN npm exec nx run ove-core-ui:build:production
+RUN pnpx nx run ove-core-ui:build:production
 
 RUN apk del .build-deps
 
@@ -111,8 +120,11 @@ EXPOSE 8080
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
+ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/libquery_engine-linux-musl-openssl-3.0.x.so.node
 
-RUN npm install bcrypt
+RUN npm install -g pnpm
+
+RUN pnpm add bcrypt
 
 COPY ../../apps/ove-core-ui/env.sh ./
 RUN chmod +x ./env.sh

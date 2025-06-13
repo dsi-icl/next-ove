@@ -17,7 +17,7 @@ import {
   reloadWindow,
   reloadWindows,
   takeScreenshots,
-  triggerIPC,
+  triggerIPC
 } from "./electron";
 import { env, logger } from "./env";
 import * as http from "node:http";
@@ -32,7 +32,7 @@ export const start = () => {
     closeWindow,
     reloadWindow,
     reloadWindows,
-    triggerIPC,
+    triggerIPC
   );
 
   app.use(cors({ origin: "*" }));
@@ -44,8 +44,8 @@ export const start = () => {
       createContext,
       onError: ({ error }) => {
         logger.error(error);
-      },
-    }),
+      }
+    })
   );
 
   const openapi = createOpenApiExpressMiddleware({
@@ -53,11 +53,11 @@ export const start = () => {
     createContext,
     onError: ({ error }) => {
       logger.error(error);
-    },
+    }
   });
   app.use(
     `/api/v${env.API_VERSION}`,
-    openapi as unknown as () => Awaited<ReturnType<typeof openapi>>,
+    openapi as unknown as () => Awaited<ReturnType<typeof openapi>>
   );
 
   app.use("/", swaggerUi.serve);
@@ -66,27 +66,27 @@ export const start = () => {
   if (process.env.NODE_ENV === "development") {
     FileUtils.saveOpenApi(
       path.join(`v${env.API_VERSION}`, "client.swagger.json"),
-      openApiDocument,
+      openApiDocument
     );
   }
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
   const server =
-    env.PROTOCOL.TYPE === "http"
+    env.SERVER.PROTOCOL.TYPE === "http"
       ? http.createServer(app)
       : https.createServer(
-          {
-            key: readFileSync(env.PROTOCOL.KEY),
-            cert: readFileSync(env.PROTOCOL.CERTIFICATE),
-            ca: readFileSync(env.PROTOCOL.CA),
-          },
-          app,
-        );
+        {
+          key: readFileSync(env.SERVER.PROTOCOL.KEY),
+          cert: readFileSync(env.SERVER.PROTOCOL.CERTIFICATE),
+          ca: readFileSync(env.SERVER.PROTOCOL.CA)
+        },
+        app
+      );
 
-  server.listen(env.PORT, `${env.HOSTNAME}`, () => {
+  server.listen(env.SERVER.PORT, `${env.SERVER.HOSTNAME}`, () => {
     logger.info(
-      `Listening at ${env.PROTOCOL.TYPE}://${env.HOSTNAME}:${env.PORT}`,
+      `Listening at ${env.SERVER.PROTOCOL.TYPE}://${env.SERVER.HOSTNAME}:${env.SERVER.PORT}`
     );
   });
 

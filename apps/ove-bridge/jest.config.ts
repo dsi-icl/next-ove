@@ -1,7 +1,7 @@
 /* eslint-disable */
 export default {
   displayName: "ove-bridge",
-  preset: "../../jest.preset.js",
+  preset: "../../jest.preset.ts",
   globals: {},
   testEnvironment: "node",
   transform: {

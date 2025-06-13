@@ -1,7 +1,7 @@
 import auth from "./auth";
+import { prisma } from "./db";
 import { logger } from "../env";
 import type { Namespace } from "socket.io";
-import { prisma } from "@ove/ove-server-utils";
 
 export const setupNamespace = <T extends Namespace>(
   io: T,
@@ -16,7 +16,7 @@ export const setupNamespace = <T extends Namespace>(
         return;
       }
       next();
-    } catch (e) {
+    } catch (_e) {
       next(new Error("UNAUTHORIZED"));
     }
   });

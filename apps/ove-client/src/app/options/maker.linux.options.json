@@ -1,7 +1,7 @@
 {
   "$schema": "../../../../../node_modules/nx-electron/src/validation/maker.schema.json",
   "appId": "org.next-ove.client",
-  "productName": "Next-OVE Client",
+  "productName": "next-ove-client",
   "copyright": "Copyright © 2023 Data Science Institute",
   "files": [
     "!**/.env*",
@@ -35,5 +35,11 @@
     "releaseType": "release",
     "publishAutoUpdate": false,
     "private": true
-  }
+  },
+  "buildDependenciesFromSource": false,
+  "npmRebuild": false,
+  "extraMetadata": {
+    "main": "index.cjs"
+  },
+  "artifactName": "${productName}-${version}-${arch}.${ext}"
 }

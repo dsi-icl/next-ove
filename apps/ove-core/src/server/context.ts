@@ -1,7 +1,7 @@
 import { s3 } from "./s3";
+import { prisma } from "./db";
 import type { Request } from "./app";
 import type { Response } from "express";
-import { prisma } from "@ove/ove-server-utils";
 import type { NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http"; // eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 type ContextOptions = NodeHTTPCreateContextFnOptions<Request, Response>;

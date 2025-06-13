@@ -4,21 +4,29 @@
   "sourceRoot": "apps/ove-docs/src",
   "projectType": "application",
   "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-docs/tsconfig.app.json --noEmit --incremental"]
+      }
+    },
     "make": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": [
-          "docker build --progress=plain --rm -t next-ove/docs:latest --platform linux/amd64 -f apps/ove-docs/Dockerfile ."
+          "docker build --rm -t next-ove/docs:latest --platform linux/amd64 -f apps/ove-docs/Dockerfile ."
         ]
       },
       "configurations": {
         "arm": {
           "commands": [
-            "docker build --progress=plain --rm -t next-ove/docs:latest --platform linux/arm64 -f apps/ove-docs/Dockerfile ."
+            "docker build --rm -t next-ove/docs:latest --platform linux/arm64 -f apps/ove-docs/Dockerfile ."
           ]
         }
-      }
+      },
+      "dependsOn": ["prebuild"]
     },
     "build": {
       "executor": "@nx/esbuild:esbuild",
@@ -46,9 +54,6 @@
             "input": "apps/ove-docs/assets",
             "output": "assets"
           }
-        ],
-        "external": [
-          "swagger-ui-express"
         ],
         "generatePackageJson": true,
         "platform": "node"

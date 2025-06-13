@@ -1,6 +1,6 @@
 import { env } from "../../../env";
 import { create } from "zustand/index";
-import type { Section } from "@ove/ove-server-utils";
+import type { Section } from ".prisma/client";
 
 type SectionStore = {
   sections: Section[]

@@ -3,11 +3,11 @@
 declare const __BENCHMARKS__: string
 export default {
   displayName: 'ove-types',
-  preset: '../../jest.preset.js',
+  preset: '../../jest.preset.ts',
   globals: {
     "__BENCHMARKS__": "../../out/benchmarks.json"
   },
-  setupFiles: ["./helpers.js"],
+  setupFiles: ["./helpers.cjs"],
   transform: {
     '^.+\\.[tj]sx?$': [
       'ts-jest',
