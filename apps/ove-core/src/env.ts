@@ -19,11 +19,12 @@ const schema = z.strictObject({
   ENVIRONMENT: z.union([
     z.literal("production"),
     z.literal("development"),
-    z.literal("test"),
+    z.literal("testing"),
     z.literal("api"),
   ]),
   TESTING: z.strictObject({
-    TEST_USER: z.string(),
+    USERNAME: z.string(),
+    ROLE: z.string(),
   }),
   SOCKETS: z.strictObject({
     PATH: z.string().optional(),
@@ -144,10 +145,11 @@ const defaultConfig: z.infer<typeof schema> = {
   ENVIRONMENT: process.env.NODE_ENV as
     | "production"
     | "development"
-    | "test"
+    | "testing"
     | "api",
   TESTING: {
-    TEST_USER: "test",
+    USERNAME: "testing",
+    ROLE: "admin"
   },
   SERVER: {
     PORT: 3333,

@@ -10,15 +10,27 @@ import { prisma } from "./server/db";
 import cookieParser from "cookie-parser";
 import { appRouter } from "./server/router";
 import FileUtils from "@ove/ove-server-utils";
-import { app, type Request } from "./server/app";
+import { app } from "./server/app";
+import { state } from "./server/state";
 import { createContext } from "./server/context";
 import { openApiDocument } from "./server/open-api";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
+import {
+  type Request,
+  credentialsMiddleware,
+  apiKeyMiddleware,
+  generateOTP,
+  cookieMiddleware,
+  setCookies,
+  getUser,
+  clearCookies,
+  otpMiddleware,
+  redirectMiddleware,
+} from "@ove/ove-auth";
 
 dotenv.config();
 
-// console.log("PRISMA ENGINE BINARY:", process.env.PRISMA_QUERY_ENGINE_BINARY);
 if (process.env.PRISMA_QUERY_ENGINE_BINARY === undefined) {
   process.exit(1);
 }
@@ -33,48 +45,13 @@ app.get("/api/signing-key", (_req, res) => {
   res.send(env.TOKENS.SIGNING_KEYS.PUBLIC);
 });
 
-app.use("/api/otp", async (req: Request, res, next) => {
-  try {
-    const [access, refresh] = auth.extractCookies(req);
-    const { username, role } = await auth.validateCookies(
-      res,
-      prisma,
-      access,
-      refresh,
-    );
+app.use("/api/otp", async (req: Request, res, next) =>
+  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+);
 
-    if (!auth.authorize(role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    req.username = username;
-    req.role = role;
-  } catch (_e) {
-    res.sendStatus(401);
-    return;
-  }
-
-  next();
-});
-
-app.use("/api/otp", async (req: Request, res, next) => {
-  try {
-    const key = auth.extractKey(req);
-    const authentication = await auth.validateApiKey(prisma, key);
-
-    if (!auth.authorize(authentication.role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    req.username = authentication.username;
-    req.role = authentication.role;
-    next();
-  } catch (_e) {
-    res.sendStatus(401);
-  }
-});
+app.use("/api/otp", async (req: Request, res, next) =>
+  apiKeyMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
+);
 
 app.get("/api/otp", async (req: Request, res) => {
   if (req.username === undefined || req.role === undefined) {
@@ -82,50 +59,16 @@ app.get("/api/otp", async (req: Request, res) => {
     return;
   }
 
-  res.send(auth.generateOTP({ username: req.username, role: req.role }));
+  res.send(generateOTP({ username: req.username, role: req.role }, env.TOKENS));
 });
 
-app.use("/api/login", async (req: Request, res, next) => {
-  try {
-    const credentials = auth.extractCredentials(req);
-    const { username, role } = await auth.validatePassword(prisma, credentials);
+app.use("/api/login", async (req: Request, res, next) =>
+  credentialsMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
+);
 
-    if (!auth.authorize(role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    req.username = username;
-    req.role = role;
-  } catch (_e) {
-    res.sendStatus(401);
-    return;
-  }
-
-  next();
-});
-
-app.use("/api/login", async (req: Request, res, next) => {
-  if (req.username !== undefined && req.role !== undefined) {
-    next();
-    return;
-  }
-  try {
-    const key = auth.extractKey(req);
-    const { username, role } = await auth.validateApiKey(prisma, key);
-
-    if (!auth.authorize(role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    req.username = username;
-    req.role = role;
-    next();
-  } catch (_e) {
-    res.sendStatus(401);
-  }
-});
+app.use("/api/login", async (req: Request, res, next) =>
+  apiKeyMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
+);
 
 app.post("/api/login", async (req: Request, res) => {
   if (req.username === undefined || req.role === undefined) {
@@ -133,119 +76,67 @@ app.post("/api/login", async (req: Request, res) => {
     return;
   }
 
-  auth.generateAccessCookie(res, { username: req.username, role: req.role });
-  await auth.generateRefreshCookie(res, prisma, {
-    username: req.username,
-    role: req.role,
-  });
+  await setCookies(prisma, res, { username: req.username, role: req.role }, env.TOKENS);
 
-  res.send(
-    await prisma.user.findUnique({
-      where: {
-        username: req.username,
-      },
-      select: {
-        username: true,
-        email: true,
-        name: true,
-        icon: true,
-        role: true,
-      },
-    }),
-  );
+  res.send(getUser(req.username, prisma));
 });
 
-app.post("/api/logout", async (req, res) => {
-  try {
-    const [access, refresh] = auth.extractCookies(req);
-    const { username } = await auth.validateCookies(
-      res,
-      prisma,
-      access,
-      refresh,
-    );
-    await auth.logout(res, prisma, username);
-  } catch (_e) {
-    res.clearCookie(env.TOKENS.ACCESS.COOKIE.ID);
-    res.clearCookie(env.TOKENS.REFRESH.COOKIE.ID);
-  }
+app.use("/api/logout", async (req, res, next) =>
+  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+);
 
-  res.sendStatus(200);
-});
-
-app.get("/api/redirect", async (req, res) => {
-  try {
-    const otp = auth.extractOTP(req);
-    const to = req.query?.["to"] as string | undefined;
-
-    if (to === undefined) {
-      res.sendStatus(400);
-      return;
-    }
-
-    const { role, username } = await auth.validateOTP(otp);
-    if (!auth.authorize(role, to)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    auth.generateAccessCookie(res, { role, username });
-    await auth.generateRefreshCookie(res, prisma, { role, username });
-
-    res.redirect(to ?? "/");
-  } catch (_e) {
-    res.sendStatus(401);
-  }
-});
-
-app.use("/sockets/admin", async (req, res, next) => {
-  try {
-    const [access, refresh] = auth.extractCookies(req);
-
-    const authenticated = await auth.validateCookies(
-      res,
-      prisma,
-      access,
-      refresh,
-    );
-
-    if (!auth.authorize(authenticated.role, "/admin")) {
-      res.sendStatus(403);
-      return;
-    }
-
-    next();
-  } catch (_e) {
-    res.sendStatus(401);
-  }
-});
-
-app.use("/sockets/admin", express.static(env.SOCKETS.DIST_DIR));
-
-app.use(`/api/v${env.API_VERSION}/trpc`, async (req: Request, res, next) => {
-  try {
-    const [access, refresh] = auth.extractCookies(req);
-
-    const { role, username } = await auth.validateCookies(
-      res,
-      prisma,
-      access,
-      refresh,
-    );
-
-    if (!auth.authorize(role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    req.username = username;
-    req.role = role;
-    next();
-  } catch (_e) {
+app.post("/api/logout", async (req: Request, res) => {
+  if (req.username === undefined || req.role === undefined) {
     res.sendStatus(401);
     return;
   }
+
+  try {
+    await clearCookies(
+      env.TOKENS.ACCESS.COOKIE.ID,
+      env.TOKENS.REFRESH.COOKIE.ID,
+      prisma,
+      req.username,
+      res,
+    );
+
+    res.sendStatus(200);
+  } catch (_e) {
+    res.sendStatus(401);
+  }
 });
+
+app.use("/api/redirect", async (req, res, next) =>
+  otpMiddleware(state.otps, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+);
+app.use("/api/redirect", async (req, res, next) =>
+  redirectMiddleware(req, res, next, auth.authorize),
+);
+
+app.get("/api/redirect", async (req: Request, res) => {
+  if (
+    req.role === undefined ||
+    req.username === undefined ||
+    req.to === undefined
+  ) {
+    res.sendStatus(403);
+    return;
+  }
+
+  await setCookies(prisma, res, { username: req.username, role: req.role }, env.TOKENS);
+
+  res.redirect(req.to);
+});
+
+app.use("/sockets/admin", async (req, res, next) =>
+  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+);
+
+app.use("/sockets/admin", express.static(env.SOCKETS.DIST_DIR));
+
+app.use(`/api/v${env.API_VERSION}/trpc`, async (req: Request, res, next) =>
+  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+);
 
 app.use(
   `/api/v${env.API_VERSION}/trpc`,
@@ -255,30 +146,9 @@ app.use(
   }),
 );
 
-app.use(`/api/v${env.API_VERSION}`, async (req: Request, res, next) => {
-  try {
-    const [access, refresh] = auth.extractCookies(req);
-
-    const { role, username } = await auth.validateCookies(
-      res,
-      prisma,
-      access,
-      refresh,
-    );
-
-    if (!auth.authorize(role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-
-    req.username = username;
-    req.role = role;
-    next();
-  } catch (_e) {
-    res.sendStatus(401);
-    return;
-  }
-});
+app.use(`/api/v${env.API_VERSION}`, async (req: Request, res, next) =>
+  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+);
 
 app.use(
   `/api/v${env.API_VERSION}`,
@@ -288,6 +158,7 @@ app.use(
   }) as Parameters<typeof app.use>[1],
 );
 
+// TODO: merge OpenApi schema with routes in this file
 app.get("/api/ove-core.json", (_req, res) => {
   res.send(openApiDocument);
 });

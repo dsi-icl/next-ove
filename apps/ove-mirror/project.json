@@ -1,0 +1,56 @@
+{
+  "name": "ove-mirror",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-mirror",
+  "projectType": "application",
+  "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-mirror/tsconfig.app.json --noEmit --incremental"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-mirror/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "entryPoints": [
+          "apps/ove-mirror/src/background.ts",
+          "apps/ove-mirror/src/content.ts",
+          "apps/ove-mirror/src/seed-hook.ts"
+        ],
+        "bundle": true,
+        "platform": "browser",
+        "target": "chrome109",
+        "format": "iife",
+        "outdir": "dist/apps/ove-mirror",
+        "tsConfig": "apps/ove-mirror/tsconfig.json",
+        "skipTypeCheck": true,
+        "assets": [
+          {
+            "input": "apps/ove-mirror/src",
+            "glob": "manifest.json",
+            "output": "."
+          }
+        ]
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      }
+    }
+  }
+}

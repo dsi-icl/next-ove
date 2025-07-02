@@ -11,6 +11,7 @@ interface ImportMetaEnv {
   VITE_SOCKET_PATH: string;
   VITE_LOG_LEVEL?: string;
   VITE_LOGGING_SERVER?: string;
+  VITE_CORE_SERVER: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -20,6 +21,9 @@ const isConfigured = (key: string | undefined) =>
 
 const schema = z
   .strictObject({
+    CORE: z.strictObject({
+      SERVER: z.string(),
+    }),
     SOCKETS: z.strictObject({
       URL: z.string(),
       PATH: z.string().optional(),
@@ -33,6 +37,9 @@ const schema = z
   })
 
 const parsedConfig = schema.parse({
+  CORE: {
+    SERVER: env_.VITE_CORE_SERVER,
+  },
   SOCKETS: {
     URL: env_.VITE_SOCKET_URL,
     PATH: env_.VITE_SOCKET_PATH,

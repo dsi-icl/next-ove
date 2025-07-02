@@ -391,7 +391,7 @@ dev/tools/auto-populate/data/global_buckets/*
 # Core UI logging component
 !/apps/ove-core-ui/src/pages/logs
 
-# Bridge auth environment config
+# Bridge environment config
 /apps/ove-bridge/config/*.json
 !/apps/ove-bridge/config/*.example.json
 

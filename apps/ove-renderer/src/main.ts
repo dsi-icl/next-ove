@@ -12,46 +12,49 @@ import { init as initVideoController } from "./videos/controller";
 import { init as initVideoView } from "./videos/view";
 import { init as initWebRTCController } from "./web-rtc/controller";
 import { init as initWebRTCView } from "./web-rtc/view";
+import { api, state } from "./state";
+import { isError } from "@ove/ove-types";
 
-const params = new URLSearchParams(window.location.search);
-
-const type = params.get("type") as "view" | "controller";
-window.onload = () => {
-  switch (params.get("data-type")) {
+window.onload = async () => {
+  const bounds = await api.core.getObservatoryBounds.query();
+  if (!isError(bounds)) {
+    state.observatory.bounds = bounds[state.observatory.name];
+  }
+  switch (state.dataType) {
     case "html": {
-      if (type === "controller") {
+      if (state.type === "controller") {
         initHTMLController();
       } else {
         initHTMLView();
       }
       break;
     }
-    case "images": {
-      if (type === "controller") {
+    case "image": {
+      if (state.type === "controller") {
         initImagesController();
       } else {
         initImagesView();
       }
       break;
     }
-    case "maps": {
-      if (type === "controller") {
+    case "map": {
+      if (state.type === "controller") {
         initMapsController();
       } else {
         initMapsView();
       }
       break;
     }
-    case "networks": {
-      if (type === "controller") {
+    case "network": {
+      if (state.type === "controller") {
         initNetworkController();
       } else {
         initNetworkView();
       }
       break;
     }
-    case "videos": {
-      if (type === "controller") {
+    case "video": {
+      if (state.type === "controller") {
         initVideoController();
       } else {
         initVideoView();
@@ -59,7 +62,7 @@ window.onload = () => {
       break;
     }
     case "web-rtc": {
-      if (type === "controller") {
+      if (state.type === "controller") {
         initWebRTCController();
       } else {
         initWebRTCView();
@@ -67,11 +70,10 @@ window.onload = () => {
       break;
     }
     default:
-      if (type === "controller") {
+      if (state.type === "controller") {
         initController();
       } else {
-        // TODO: update identifier
-        initView(params.get("observatory") ?? "", "");
+        initView();
       }
       break;
   }

@@ -35,7 +35,7 @@ const initWindow = (url: string, displayId?: number) => {
     fullscreen: true,
     show: false,
     webPreferences: {
-      contextIsolation: true,
+      contextIsolation: false,
       backgroundThrottling: true,
       sandbox: true,
       nodeIntegration: false,

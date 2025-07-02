@@ -3,10 +3,11 @@ import { app, server } from "./app";
 import v1 from "./v1/router";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import * as auth from "./auth";
+import { authorize } from "./auth";
 import { env } from "./env";
+import { thirdPartyCookieMiddleware } from "@ove/ove-auth";
 
-app.use(cors({origin: true, credentials: true}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(
   rateLimit({
@@ -17,20 +18,20 @@ app.use(
   }),
 );
 
-app.use((req, res, next) => {
-  try {
-    const access = auth.extractCookie(req);
-    const { role } = auth.validateCookie(access);
-    if (!auth.authorize(role, req.originalUrl)) {
-      res.sendStatus(403);
-      return;
-    }
-    next();
-  } catch (e) {
-    console.error(e);
-    res.sendStatus(401);
-  }
-});
+app.use((req, res, next) =>
+  thirdPartyCookieMiddleware(
+    req,
+    res,
+    next,
+    {
+      signingKey,
+      audience: env.APP_NAME,
+      algorithm: env.AUTH?.JWT_ALGORITHMS,
+      cookieId: env.AUTH?.COOKIE_ID,
+    },
+    authorize,
+  ),
+);
 
 app.use("/api/v1", v1);
 

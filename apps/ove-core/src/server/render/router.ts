@@ -47,17 +47,11 @@ export const renderRouter = router({
       }),
     )
     .output(z.union([z.undefined(), OVEExceptionSchema]))
-    .mutation(async ({ input: { observatory, project, layout } }) => {
+    .mutation(async ({ input: { observatory } }) => {
       logger.info(`Initialising render on ${observatory}`);
       return await safe(logger, async () =>
         controller.initObservatory(
           observatory,
-          {
-            ...project,
-            created: new Date(project.created),
-            updated: new Date(project.updated),
-          },
-          layout,
         ),
       );
     }),
