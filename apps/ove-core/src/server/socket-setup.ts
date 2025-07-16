@@ -2,24 +2,21 @@ import auth from "./auth";
 import { prisma } from "./db";
 import { logger } from "../env";
 import type { Namespace } from "socket.io";
+import { socketApiKeyMiddleware } from "@ove/ove-auth";
 
 export const setupNamespace = <T extends Namespace>(
   io: T,
   clients: Map<string, string>,
 ) => {
-  io.use(async (socket, next) => {
-    try {
-      const { key } = socket.handshake.auth;
-      const { role } = await auth.validateApiKey(prisma, key);
-      if (!auth.authorize(role, io.name)) {
-        next(new Error("UNAUTHORIZED"));
-        return;
-      }
-      next();
-    } catch (_e) {
-      next(new Error("UNAUTHORIZED"));
-    }
-  });
+  io.use(async (socket, next) =>
+    socketApiKeyMiddleware(
+      socket.handshake.auth.key,
+      prisma,
+      next,
+      (role: string) => auth.authorize(role, io.name),
+      auth.getCredentials(),
+    ),
+  );
 
   io.on("connection", (socket) => {
     logger.info(`Socket ID: ${socket.handshake.auth.username}

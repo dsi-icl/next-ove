@@ -5,6 +5,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import * as auth from "./auth";
 import { env } from "./env";
+import { loadSigningKey, thirdPartySocketCookieMiddleware } from "@ove/ove-auth";
 
 export const app = express();
 export const server = http.createServer(app);
@@ -25,37 +26,22 @@ io.engine.use(
     },
     _res: Response,
     next: (err?: Error) => void,
-  ) => {
-    const handshake = req._query.sid === undefined;
-    if (!handshake) {
-      next();
-      return;
-    }
-    try {
-      const access = auth.extractCookie(req);
-      const { role } = auth.validateCookie(access);
-      if (!auth.authorize(role, env.SOCKETS.PATH)) {
-        next(new Error("UNAUTHORIZED"));
-        return;
-      }
-      next();
-    } catch (e) {
-      next(new Error("UNAUTHORIZED"));
-    }
-  },
+  ) =>
+    thirdPartySocketCookieMiddleware(
+      req,
+      next,
+      {
+        signingKey,
+        cookieId: env.AUTH?.COOKIE_ID ?? "",
+        algorithm: env.AUTH?.JWT_ALGORITHMS,
+        audience: env.APP_NAME,
+      },
+      (role: string) => auth.authorize(role, env.SOCKETS.PATH),
+    ),
 );
 
 export let signingKey: string | null = null;
 
-const load = async () => {
-  if (env.AUTH?.SERVER_URL === undefined) return;
-  try {
-    signingKey = await (await fetch(env.AUTH.SERVER_URL, {
-      credentials: "include"
-    })).text();
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-load().catch(console.error);
+loadSigningKey(env.AUTH?.SERVER_URL).then(key => {
+  signingKey = key;
+}).catch(console.error);

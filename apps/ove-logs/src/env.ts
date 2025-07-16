@@ -11,7 +11,7 @@ const schema = z.strictObject({
     .strictObject({
       SERVER_URL: z.string(),
       COOKIE_ID: z.string(),
-      JWT_ALGORITHMS: z.custom<Algorithm>(isAlgorithm).array(),
+      JWT_ALGORITHMS: z.custom<Algorithm>(isAlgorithm),
     })
     .optional(),
   SERVER: z.strictObject({

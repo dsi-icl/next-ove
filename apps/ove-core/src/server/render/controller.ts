@@ -1,35 +1,30 @@
 import { prisma } from "../db";
 import { state } from "../state";
-import { logger } from "../../env";
+import { env, logger } from "../../env";
 import { raise } from "@ove/ove-utils";
 import { io as SocketServer } from "../sockets";
-import type { Project, Section } from ".prisma/client";
+import type { Namespace } from "socket.io";
 
 const initObservatory = async (
   observatory: string,
-  project: Project,
-  layout: Section[],
 ) => {
   let observatoryState = state.rendering.get(observatory);
   // allow for virtual observatories
   if (observatoryState === undefined) {
     const io = SocketServer.of(`/socket/render/${observatory}`);
     observatoryState = {
-      state: null,
-      clients: {
-        state: new Map(),
-        io,
+      state: {
+        sections: [],
+        state: "__DEFAULT__",
+        type: "observatory",
       },
-      sections: new Map(),
-      lastUpdated: new Date(),
-      type: "hardware",
+      clients: io,
     };
     state.rendering.set(observatory, observatoryState);
     initObservatorySockets(observatory);
   }
 
-  observatoryState.state = { project, layout, state: "__DEFAULT__" };
-  observatoryState.sections = new Map();
+  observatoryState.state = { sections: [], state: "__DEFAULT__", type: "observatory" };
   return undefined;
 };
 
@@ -38,9 +33,18 @@ const clearObservatory = async (observatory: string) => {
   return undefined;
 };
 
-const initSectionSockets = (observatory: string, id: string) => {
-  logger.info(observatory, id);
-};
+export const initSockets = (stateId: string, clients: Namespace) => {
+  clients.on("connection", (socket) => {
+    logger.info(`Socket ID: ${socket.handshake.auth.username}
+     connected via ${clients.name}`);
+    socket.emit("init", state.rendering.get(stateId)?.state ?? {});
+
+    socket.on("disconnect", (reason) => {
+      logger.info(`${socket.handshake.auth.username}
+       disconnected with reason: ${reason}`);
+    });
+  });
+}
 
 export const initObservatorySockets = (observatory: string) => {
   const observatoryState = state.rendering.get(observatory);
@@ -48,46 +52,14 @@ export const initObservatorySockets = (observatory: string) => {
     return raise("Missing observatory state");
   }
 
-  observatoryState.clients.io.on("connection", (socket) => {
+  observatoryState.clients.on("connection", (socket) => {
     logger.info(`Socket ID: ${socket.handshake.auth.username}
-     connected via ${observatoryState.clients.io.name}`);
-    observatoryState.clients.state.set(socket.id, {
-      type: socket.handshake.auth.type,
-    });
+     connected via ${observatoryState.clients.name}`);
     socket.emit("init", observatoryState.state);
 
     socket.on("disconnect", (reason) => {
       logger.info(`${socket.handshake.auth.username}
        disconnected with reason: ${reason}`);
-      observatoryState.clients.state.delete(socket.id);
-    });
-
-    socket.on("setState", (s) => {
-      const observatoryState = state.rendering.get(observatory);
-      if (observatoryState === undefined || observatoryState.state === null) {
-        return raise("Missing observatory state");
-      }
-
-      for (const section of observatoryState.state.layout) {
-        if (section.states.includes(observatoryState.state.state)) {
-          if (section.states.includes(s)) continue;
-          observatoryState.clients.io.emit("deleteSection", section.id);
-          observatoryState.sections.delete(section.id);
-        } else if (section.states.includes(s)) {
-          const sectionIO = SocketServer.of(
-            `/socket/render/${observatory}/${section.id}`,
-          );
-          observatoryState.clients.io.emit("createSection", section);
-          observatoryState.sections.set(section.id, {
-            state: { layout: section },
-            clients: {
-              state: new Map(),
-              io: sectionIO,
-            },
-          });
-          initSectionSockets(observatory, section.id);
-        }
-      }
     });
   });
 };
@@ -95,49 +67,18 @@ export const initObservatorySockets = (observatory: string) => {
 prisma.service.findMany({ where: { role: "bridge" } }).then((services) => {
   for (const { service } of services) {
     const io = SocketServer.of(`/socket/render/${service}`);
+    initSockets(service, io);
+    const sectionIO = SocketServer.of(`/socket/render/section-id`);
+    initSockets("section-id", sectionIO);
+    console.log("Initialising socket:", SocketServer.path(), env.SOCKETS.PATH, env.API_VERSION, `/socket/render/${service}`);
     state.rendering.set(service, {
       state: {
-        project: {
-          id: "project-id",
-          description: "Project description.",
-          creatorId: "example-user",
-          created: new Date(),
-          updated: new Date(),
-          title: "Test Project",
-          thumbnail: null,
-          publications: [],
-          presenterNotes: "",
-          notes: "",
-          bucket: null,
-          tags: [],
-          isPublic: true,
-        },
-        layout: [
-          {
-            id: "section-id",
-            width: 0.2,
-            height: 0.2,
-            x: 0,
-            y: 0,
-            asset: "https://www.bbc.co.uk",
-            assetId: null,
-            dataType: "html",
-            states: ["__DEFAULT__"],
-            ordering: 0,
-            projectId: "project-id"
-          }
-        ],
-        state: "__DEFAULT__"
+        sections: [],
+        state: "__DEFAULT__",
+        type: "observatory",
       },
-      clients: {
-        state: new Map(),
-        io,
-      },
-      sections: new Map(),
-      lastUpdated: new Date(),
-      type: "hardware",
+      clients: io,
     });
-    initObservatorySockets(service);
   }
 });
 

@@ -29,6 +29,13 @@ ol[role='list'] {
 body {
     min-height: 100vh;
     line-height: 1.5;
+    margin: 0;
+    position: relative;
+    padding: 0;
+    /*overflow: hidden;*/
+    background-color: #0004CD;
+    width: 100vw;
+    height: 100vh;
 }
 
 /* Set shorter line heights on headings and interactive elements */

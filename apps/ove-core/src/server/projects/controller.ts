@@ -2,7 +2,6 @@
 
 import http from "http";
 import path from "path";
-import auth from "../auth";
 import { File } from "buffer";
 import { env } from "../../env";
 import { nanoid } from "nanoid";
@@ -16,6 +15,7 @@ import type { DataFormatConfigOptions, InviteStatus } from "./router";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
 
 import "@total-typescript/ts-reset";
+import { generateToken } from "@ove/ove-auth";
 
 const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUnique({
@@ -484,17 +484,23 @@ const generateThumbnail = async (
   if (project === null) return raise("Project not found");
   if (project.thumbnail !== null) return raise("Thumbnail already exists");
   const prompt = encodeURI(tags.join(" "));
+  const token = generateToken(
+    { username: env.APP_NAME, role: "proxy" },
+    {
+      key: env.TOKENS.SIGNING_KEYS.PRIVATE,
+      passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
+    },
+    env.TOKENS.ACCESS.ISSUER,
+    env.TOKENS.ACCESS.ALGORITHM,
+    env.TOKENS.ACCESS.EXPIRY,
+    env.TOKENS.ACCESS.AUDIENCE,
+  );
   const thumbnail = await (
     await fetch(
       `${env.SERVICES.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`,
       {
         headers: {
-          Authorization: `Bearer ${encodeURIComponent(
-            auth.generateAccessToken({
-              username: env.APP_NAME,
-              role: "proxy",
-            }),
-          )}`,
+          Authorization: `Bearer ${encodeURIComponent(token)}`,
         },
       },
     )
@@ -697,9 +703,23 @@ const formatLatex = async (title: string, data: string) => {
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.SERVICES.DATA_FORMATTER !== undefined) {
+    const token = generateToken(
+      { username: env.APP_NAME, role: "proxy" },
+      {
+        key: env.TOKENS.SIGNING_KEYS.PRIVATE,
+        passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
+      },
+      env.TOKENS.ACCESS.ISSUER,
+      env.TOKENS.ACCESS.ALGORITHM,
+      env.TOKENS.ACCESS.EXPIRY,
+      env.TOKENS.ACCESS.AUDIENCE,
+    );
     data = await (
       await fetch(`${env.SERVICES.DATA_FORMATTER}/latex`, {
-        headers: { "Content-Type": "text/plain", Authorization: `Bearer ${encodeURIComponent(auth.generateAccessToken({username: env.APP_NAME, role: "proxy"}))}` },
+        headers: {
+          "Content-Type": "text/plain",
+          Authorization: `Bearer ${encodeURIComponent(token)}`,
+        },
         method: "POST",
         body: data,
       })
@@ -714,9 +734,23 @@ const formatMarkdown = async (title: string, data: string) => {
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.SERVICES.DATA_FORMATTER !== undefined) {
+    const token = generateToken(
+      { username: env.APP_NAME, role: "proxy" },
+      {
+        key: env.TOKENS.SIGNING_KEYS.PRIVATE,
+        passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
+      },
+      env.TOKENS.ACCESS.ISSUER,
+      env.TOKENS.ACCESS.ALGORITHM,
+      env.TOKENS.ACCESS.EXPIRY,
+      env.TOKENS.ACCESS.AUDIENCE,
+    );
     data = await (
       await fetch(`${env.SERVICES.DATA_FORMATTER}/markdown`, {
-        headers: { "Content-Type": "text/plain", Authorization: `Bearer ${encodeURIComponent(auth.generateAccessToken({username: env.APP_NAME, role: "proxy"}))}` },
+        headers: {
+          "Content-Type": "text/plain",
+          Authorization: `Bearer ${encodeURIComponent(token)}`,
+        },
         method: "POST",
         body: data,
       })
@@ -780,6 +814,18 @@ const formatDZI = async (
       get_url: url,
     });
 
+    const token = generateToken(
+      { username: env.APP_NAME, role: "proxy" },
+      {
+        key: env.TOKENS.SIGNING_KEYS.PRIVATE,
+        passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
+      },
+      env.TOKENS.ACCESS.ISSUER,
+      env.TOKENS.ACCESS.ALGORITHM,
+      env.TOKENS.ACCESS.EXPIRY,
+      env.TOKENS.ACCESS.AUDIENCE,
+    );
+
     const options = {
       host: formatter.hostname,
       port: formatter.port,
@@ -788,7 +834,7 @@ const formatDZI = async (
       headers: {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(data),
-        Authorization: `Bearer ${encodeURIComponent(auth.generateAccessToken({username: env.APP_NAME, role: "proxy"}))}`
+        Authorization: `Bearer ${encodeURIComponent(token)}`,
       },
     };
 

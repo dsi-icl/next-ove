@@ -44,11 +44,11 @@ const activePatches = {
 };
 const supportedTools = {
   "sign-in": () =>
-    `node ${path.join(__dirname, "..", "dev", "tools", "generate-token.js")}`,
+    `node ${path.join(__dirname, "..", "dev", "tools", "generate-token.cjs")}`,
   "screen-control": () =>
-    `node ${path.join(__dirname, "..", "dev", "tools", "mdc-control.js")}`,
+    `node ${path.join(__dirname, "..", "dev", "tools", "mdc-control.cjs")}`,
   "generate-geometry": () =>
-    `node ${path.join(__dirname, "..", "dev", "tools", "generate-geometry.js")}`,
+    `node ${path.join(__dirname, "..", "dev", "tools", "generate-geometry.cjs")}`,
 };
 
 const schemas = {
@@ -183,7 +183,7 @@ const services = (args) => {
     "dev",
     "cli",
     "auto-populate",
-    "auto-populate.js",
+    "auto-populate.cjs",
   );
   switch (args.action) {
     case "start":

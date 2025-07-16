@@ -20,7 +20,7 @@ export const App = () => {
               return fetch(url, {
                 ...options,
                 credentials: "include",
-              });
+              } as Parameters<(typeof fetch)>[1]);
             },
           }),
         ],

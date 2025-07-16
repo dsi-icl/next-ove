@@ -18,7 +18,9 @@
     "baseUrl": ".",
     "paths": {
       "@ove/mdc-control": ["libs/mdc-control/src/index.ts"],
+      "@ove/ove-auth": ["libs/ove-auth/src/index.ts"],
       "@ove/ove-logging": ["libs/ove-logging/src/index.ts"],
+      "@ove/ove-mirror-tools": ["libs/ove-mirror-tools/src/index.ts"],
       "@ove/ove-server-utils": ["libs/ove-server-utils/src/index.ts"],
       "@ove/ove-types": ["libs/ove-types/src/index.ts"],
       "@ove/ove-utils": ["libs/ove-utils/src/index.ts"],

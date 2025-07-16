@@ -138,7 +138,7 @@ App.
 
 Script for controlling MDC screens, based on next-ove implementation.
 
-### testing/mock-bridge.cjs
+### testing/mock-bridge.js
 
 Script for creating a mock ove-bridge instance, allowing dummy data to be passed
 to the core cloud platform.

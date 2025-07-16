@@ -1,3 +1,5 @@
+import { logger } from "../env";
+
 export const init = () => {
-  console.log("I am an images view");
+  logger.debug('I am an images view');
 };

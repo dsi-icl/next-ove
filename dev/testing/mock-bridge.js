@@ -106,7 +106,7 @@ let cookie = null;
 
 const fetchCookie = async () => {
   try {
-    const res = await fetch("http://localhost:3333/login", {
+    const res = await fetch(`${env.CORE_URL}/api/login`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -114,7 +114,7 @@ const fetchCookie = async () => {
       },
     });
     cookie = res.headers.getSetCookie();
-  } catch (e) {}
+  } catch (_e) {}
 };
 
 await fetchCookie();

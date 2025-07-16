@@ -14,7 +14,7 @@ COPY ../../dist/apps/ove-docs/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2  \
-    tsconfig-paths@4.2.0 typescript@5.8.3
+    tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618
 
 COPY ../../cli ./cli
 COPY ../../package.json ./
