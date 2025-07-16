@@ -4,7 +4,14 @@ import seedrandom from "seedrandom";
 
 const SEED = "ove-mirror";
 
+declare global {
+  interface Window {
+    originalRandom: (() => number) | undefined;
+  }
+}
+
 export const syncRandom = () => {
+  window.originalRandom = Math.random;
   seedrandom(SEED, { global: true });
 };
 

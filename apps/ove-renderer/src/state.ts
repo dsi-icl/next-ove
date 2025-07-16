@@ -5,6 +5,9 @@ import type { AppRouter } from "../../ove-core/src/server/router";
 import type { Section } from ".prisma/client";
 
 export const params = new URLSearchParams(window.location.search);
+if (window.originalRandom !== undefined) {
+  Math.random = window.originalRandom;
+}
 
 type DataType = "html" | "image" | "map" | "network" | "video" | "web-rtc";
 type RendererType = "view" | "controller";

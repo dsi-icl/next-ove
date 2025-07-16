@@ -15,6 +15,12 @@ import { init as initWebRTCView } from "./web-rtc/view";
 import { api, state } from "./state";
 import { isError } from "@ove/ove-types";
 
+declare global {
+  interface Window {
+    originalRandom: (() => number) | undefined;
+  }
+}
+
 window.onload = async () => {
   const bounds = await api.core.getObservatoryBounds.query();
   if (!isError(bounds)) {
