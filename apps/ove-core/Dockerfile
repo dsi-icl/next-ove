@@ -27,6 +27,7 @@ COPY ../../apps/ove-renderer ./apps/ove-renderer
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../libs/ove-auth ./libs/ove-auth
 COPY ../../package.json ./
 
 RUN pnpx nx run ove-renderer:build:production
