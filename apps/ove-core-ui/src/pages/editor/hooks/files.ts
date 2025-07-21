@@ -128,7 +128,10 @@ export const useLatest = (
 };
 
 export const useFiles = (projectId: string) => {
-  const getFiles = api.projects.getFiles.useQuery({ projectId });
+  const getFiles = api.projects.getFiles.useQuery(
+    { projectId },
+    { enabled: projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH },
+  );
 
   const files = useMemo(() => {
     if (env.MODE === "development") {

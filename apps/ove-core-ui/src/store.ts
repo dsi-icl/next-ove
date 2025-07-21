@@ -1,12 +1,15 @@
 import { create } from "zustand";
 import type { User } from ".prisma/client";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { nanoid } from "nanoid";
+import { env } from "./env";
 
 type Store = {
   user: Omit<User, "password"> | null;
   setUser: (user: Omit<User, "password"> | null) => void;
   observatory: string | null;
   setObservatory: (observatory: string | null) => void;
+  defaultProjectId: string;
 };
 
 export const useStore = create<Store>()(
@@ -15,6 +18,7 @@ export const useStore = create<Store>()(
       user: null,
       setUser: (user) => set({ user }),
       observatory: null,
+      defaultProjectId: nanoid(env.CONSTANTS.NEW_PROJECT_ID_LENGTH),
       setObservatory: (observatory) => set({ observatory }),
     }),
     {

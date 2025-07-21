@@ -27,6 +27,7 @@ COPY ../../apps/ove-renderer ./apps/ove-renderer
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../libs/ove-auth ./libs/ove-auth
 COPY ../../package.json ./
 
 RUN pnpx nx run ove-renderer:build:production
@@ -67,6 +68,7 @@ COPY ../../libs/ove-server-utils ./libs/ove-server-utils
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../libs/ove-auth ./libs/ove-auth
 COPY ../../package.json ./
 
 RUN pnpx nx run ove-core:build:production
@@ -105,6 +107,7 @@ COPY ../../cli ./cli
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../libs/ove-auth ./libs/ove-auth
 COPY ../../libs/ui-base-components ./libs/ui-base-components
 
 RUN pnpx nx run ove-core-ui:build:production

@@ -113,7 +113,7 @@ const Projects = () => {
             </section>
             {!open ? (
               <a
-                href="/project-editor"
+                href="/editor"
                 className="fixed bottom-8 right-8 z-[100] ml-auto rounded-[50%] bg-[#002147] p-2 text-white"
               >
                 <PlusCircle />

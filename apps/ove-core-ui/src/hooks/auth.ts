@@ -38,6 +38,7 @@ export const useLogin = (username: string | null, password: string | null) => {
   }, [location.search]);
   const login = auth.login.useMutation({
     onSuccess: (data) => {
+      console.log("Successful login", data);
       setUser(data);
       navigate(to);
     },
