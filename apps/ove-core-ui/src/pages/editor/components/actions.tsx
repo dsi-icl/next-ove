@@ -1,5 +1,4 @@
-import { Joystick, Settings, EyeOff, Rocket, Save, Upload } from "lucide-react";
-import { assert } from "@ove/ove-utils";
+import { EyeOff, Joystick, Rocket, Save, Settings, Upload } from "lucide-react";
 import { env, logger } from "../../../env";
 import type { TActions } from "../hooks/dialog";
 import { DialogTrigger } from "@ove/ui-base-components";
@@ -83,7 +82,7 @@ const Actions = ({ setAction }: ActionsProps) => {
                 (icon.action === "controller" ||
                   icon.action === "env" ||
                   icon.action === "upload") &&
-                assert(projectId).length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH
+                projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH
               }
               style={{ backgroundColor: icon.color }}
               className="rounded-[50%] p-3 text-white"

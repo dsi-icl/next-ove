@@ -78,7 +78,7 @@ app.post("/api/login", async (req: Request, res) => {
 
   await setCookies(prisma, res, { username: req.username, role: req.role }, env.TOKENS);
 
-  res.send(getUser(req.username, prisma));
+  res.send(await getUser(req.username, prisma));
 });
 
 app.use("/api/logout", async (req, res, next) =>

@@ -122,7 +122,7 @@ const SectionConfig = () => {
   const cells = useCells();
   const updateSection = useUpdateSection();
   const { bounds } = useObservatory();
-  const { ordinary } = useFiles(assert(projectId));
+  const { ordinary } = useFiles(projectId);
   const section = useMemo(
     () => sections.find((section) => section.id === selected) ?? null,
     [selected, sections],
