@@ -10,24 +10,9 @@
   ],
   "win": {
     "target": [
-      "nsis",
-      "portable",
-      "zip"
+      "portable"
     ],
     "icon": "apps/ove-client/build/icon.png"
-  },
-  "nsis": {
-    "oneClick": false,
-    "allowElevation": true,
-    "license": "./LICENSE"
-  },
-  "linux": {
-    "target": [
-      "AppImage",
-      "deb",
-      "rpm"
-    ],
-    "category": "Development"
   },
   "publish": {
     "provider": "github",
