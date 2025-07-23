@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../../../node_modules/nx-electron/src/validation/maker.schema.json",
+  "appId": "org.next-ove.client",
+  "productName": "next-ove-client",
+  "copyright": "Copyright © 2023 Data Science Institute",
+  "files": [
+    "!**/.env*",
+    "!**/.vscode",
+    "!**/config"
+  ],
+  "win": {
+    "target": [
+      "nsis",
+      "portable",
+      "zip"
+    ],
+    "icon": "apps/ove-client/build/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "license": "./LICENSE"
+  },
+  "linux": {
+    "target": [
+      "AppImage",
+      "deb",
+      "rpm"
+    ],
+    "category": "Development"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "dsi-icl",
+    "releaseType": "release",
+    "publishAutoUpdate": false,
+    "private": true
+  },
+  "buildDependenciesFromSource": false,
+  "npmRebuild": false,
+  "extraMetadata": {
+    "main": "index.cjs"
+  },
+  "artifactName": "${productName}-${version}-${arch}.${ext}"
+}
