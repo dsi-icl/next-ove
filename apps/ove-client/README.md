@@ -39,9 +39,8 @@ in this directory.
 To run ove-client locally, use the following commands:
 
 ```shell
-npm install
-npx nx run ove-client-ui:serve
-npx nx run ove-client:serve
+pnpm install
+pnx run ove-client:serve
 ```
 
 ## Building
@@ -49,9 +48,9 @@ npx nx run ove-client:serve
 To build ove-client locally, use the following commands:
 
 ```shell
-npm install
-npx nx run ove-client:build
-npx nx run ove-client:make:{PLATFORM}
+pnpm install
+pnx run ove-client:build
+pnx run ove-client:make:{PLATFORM}
 ```
 
 where PLATFORM is the operating system of the building device - windows, linux

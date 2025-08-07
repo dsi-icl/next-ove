@@ -18,9 +18,9 @@ provided.
 To run ove-core locally, use the following commands:
 
 ```shell
-npm install
-npx nx run ove-core-ui:serve
-npx nx run ove-core:serve
+pnpm install
+pnx run ove-core-ui:serve
+pnx run ove-core:serve
 ```
 
 ## Building
@@ -28,9 +28,9 @@ npx nx run ove-core:serve
 To build ove-core locally, use the following commands:
 
 ```shell
-npm install
-npx nx run ove-core-ui:build
-npx nx run ove-core:build
+pnpm install
+pnx run ove-core-ui:build
+pnx run ove-core:build
 ```
 
 The ove-core-ui folder will contain dummy environment variables, which are
@@ -42,11 +42,11 @@ To build ove-core as a Docker image, use the following commands, for Intel and
 Arm builds respectively:
 
 ```shell
-docker build --no-cache --progress=plain -t next-ove-core:latest --platform linux/amd64 -f apps/ove-core/Dockerfile .
+pnx run ove-core:make
 ```
 
 ```shell
-docker build --no-cache --progress=plain -t next-ove-core:latest-arm --platform linux/arm64 -f apps/ove-core/Dockerfile .
+pnx run ove-core:make:arm
 ```
 
 ## Installing from Release

@@ -95,11 +95,25 @@ to the User table of the Mongo database.
 To build ove-bridge locally, use the following commands:
 
 ```shell
-npm install
-npx nx run ove-bridge:build
+pnpm install
+pnx run ove-bridge:build
 ```
 
-## Installing from Release
+## Mocking
 
-Download the Docker image tarball application from the next-ove GitHub Releases
-page.
+To create a mock bridge component, use the following command:
+
+```shell
+pnpm dev mock --component=bridge
+```
+
+This mocked component needs configuration files to run, in the dev/testing/data
+directory, including files containing device, geometry and system information. A
+screens subdirectory can also be created containing PNGs for use when mocking
+the screenshot functionality.
+
+To generate system information data for mocking, use the following command:
+
+```shell
+pnpm dev tools --name=generate-system-info
+```

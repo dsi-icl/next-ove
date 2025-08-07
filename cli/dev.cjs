@@ -49,6 +49,8 @@ const supportedTools = {
     `node ${path.join(__dirname, "..", "dev", "tools", "mdc-control.cjs")}`,
   "generate-geometry": () =>
     `node ${path.join(__dirname, "..", "dev", "tools", "generate-geometry.cjs")}`,
+  "generate-system-info": () =>
+    `node ${path.join(__dirname, "..", "dev", "testing", "generate-system-info.js")}`,
 };
 
 const schemas = {
