@@ -9,7 +9,7 @@ const z = require("zod").z;
 
 const tagline = "Test the next-ove system";
 const help =
-  'Use "npm run test [COMMAND] -- --help" for more information about a command';
+  'Use "pnpm run test [COMMAND] -- --help" for more information about a command';
 const descriptions = {
   unit: "Run unit tests",
   integration: "Run integration tests",
@@ -29,11 +29,11 @@ const schemas = {
 const schema = makeSchema(schemas);
 
 const unit = () => {
-  run("npx nx run-many --target=test -- --coverage", args.dryRun);
+  run("pnx run-many --target=test -- --coverage", args.dryRun);
 };
 
 const integration = () => {
-  run("npx jest --coverage --config jest.integration.config.ts", args.dryRun);
+  run("pnpx jest --coverage --config jest.integration.config.ts", args.dryRun);
 };
 
 const runTest = (args) => {
