@@ -2,7 +2,7 @@ import { env } from "../env";
 
 export const updateCookie = async () => {
   try {
-    const res = await fetch(`${env.CORE.URL}/login`, {
+    const res = await fetch(`${env.CORE.URL}/api/login`, {
       method: "POST",
       credentials: "include",
       headers: {
