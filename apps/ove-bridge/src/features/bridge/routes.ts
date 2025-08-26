@@ -10,9 +10,11 @@ import { env, logger } from "../../env";
 import { controller } from "./controller";
 import type { TCallback, TParameters, TSocketOutEvents } from "@ove/ove-types";
 import { updateCookie } from "../../utils/auth";
+import { getAgent } from "../../utils/agent";
 
 export const initBridge = async () => {
   if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
+  const agent = getAgent();
   setSocket(
     io(`${env.CORE.URL}/socket/bridge`, {
       auth: {
@@ -24,6 +26,10 @@ export const initBridge = async () => {
       extraHeaders: {
         Cookie: (await updateCookie()) as unknown as string,
       },
+      transportOptions: {
+        polling: { agent },
+        websocket: { agent }
+      }
     }),
   );
   if (socket === null) throw new Error("ILLEGAL");

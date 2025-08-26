@@ -21,6 +21,11 @@ const schema = z.strictObject({
   CORE: z.strictObject({
     SOCKET_PATH: z.string().optional(),
     URL: z.string(),
+    SSL: z.strictObject({
+      KEY: z.string(),
+      CERT: z.string(),
+      CA: z.string(),
+    }).optional(),
   }),
   CALENDAR: z
     .strictObject({
