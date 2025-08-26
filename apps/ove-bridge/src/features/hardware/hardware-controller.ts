@@ -9,7 +9,6 @@ import { env, logger } from "../../env";
 import { io, type Socket } from "socket.io-client";
 import { startReconciliation, stopReconciliation } from "./reconciliation";
 import { updateCookie } from "../../utils/auth";
-import { getAgent } from "../../utils/agent";
 
 let socket: Socket<
   THardwareServerToClientEvents,
@@ -37,7 +36,6 @@ export const initHardware = async () => {
       logger.info(e);
     }
   }
-  const agent = getAgent();
   socket = io(`${env.CORE.URL}/socket/hardware`, {
     auth: {
       username: env.AUTH.NAME,
@@ -48,10 +46,6 @@ export const initHardware = async () => {
     extraHeaders: {
       Cookie: (await updateCookie()) as unknown as string,
     },
-    transportOptions: {
-      polling: { agent },
-      websocket: { agent }
-    }
   });
 
   socket.on("connect", () => {
