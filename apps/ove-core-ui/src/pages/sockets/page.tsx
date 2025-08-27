@@ -6,9 +6,9 @@ const Sockets = () => {
     <main>
       <iframe
         id="content"
-        src={`${env.CORE_URL}/admin/index.html`}
+        src={`${env.CORE_URL}/sockets/admin/index.html`}
         title="Socket.IO Admin UI"
-        style={{ width: "100vw", height: "90vh" }}
+        className="w-screen h-[90vh]"
       ></iframe>
     </main>
   );
