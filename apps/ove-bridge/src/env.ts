@@ -12,6 +12,10 @@ import { Logger } from "@ove/ove-logging";
 import { setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
+  METRICS: z.strictObject({
+    HOST: z.string(),
+    PORT: z.number(),
+  }),
   LOGGING: z
     .strictObject({
       SERVER: z.string().optional(),
@@ -81,6 +85,10 @@ const staticConfig = {
 const apiKey = nanoid(16);
 
 const defaultConfig: z.infer<typeof schema> = {
+  METRICS: {
+    HOST: "127.0.0.1",
+    PORT: 9100,
+  },
   CORE: {
     URL: "http://localhost:3333",
   },
