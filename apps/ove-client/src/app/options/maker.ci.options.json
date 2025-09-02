@@ -14,6 +14,14 @@
     ],
     "icon": "apps/ove-client/build/icon.png"
   },
+  "linux": {
+    "target": [
+      "AppImage",
+      "deb",
+      "rpm"
+    ],
+    "category": "Development"
+  },
   "publish": {
     "provider": "github",
     "owner": "dsi-icl",
