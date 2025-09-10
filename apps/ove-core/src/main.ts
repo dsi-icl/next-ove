@@ -9,6 +9,7 @@ import * as express from "express";
 import { prisma } from "./server/db";
 import cookieParser from "cookie-parser";
 import { appRouter } from "./server/router";
+import promBundle from "express-prom-bundle";
 import FileUtils from "@ove/ove-server-utils";
 import { app } from "./server/app";
 import { state } from "./server/state";
@@ -29,12 +30,18 @@ import {
   redirectMiddleware,
 } from "@ove/ove-auth";
 
+const metricsMiddleware = promBundle({
+  includeMethod: true,
+  metricsPath: "/metrics",
+});
+
 dotenv.config();
 
 if (process.env.PRISMA_QUERY_ENGINE_BINARY === undefined) {
   process.exit(1);
 }
 
+app.use(metricsMiddleware);
 // noinspection DuplicatedCode
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
