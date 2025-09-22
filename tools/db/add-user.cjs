@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const prompt = require("prompt");
-const PrismaClient = require("@prisma/client").PrismaClient;
+const PrismaClient = require(".prisma/client").PrismaClient;
 
 const SALT_ROUNDS = 10;
 

@@ -117,3 +117,12 @@ To generate system information data for mocking, use the following command:
 ```shell
 pnpm dev tools --name=generate-system-info
 ```
+
+This mocked component needs a corresponding **Service** record in the database with a one-time
+API key. To create a record, use the following command:
+
+```shell
+pnpm run db service add
+```
+
+Copy the printed key and configure the mock to use it.
