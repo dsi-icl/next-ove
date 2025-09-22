@@ -16,6 +16,8 @@ const descriptions = {
   push: "Push schema changes to the database",
   pull: "Pull schema changes from the database",
   user: "User management functionality. Currently supports adding users",
+  service:
+    "Service management functionality. Currently supports adding services",
   show: "Open database viewer in browser",
 };
 const description = "DESCRIPTION\n\tManage the next-ove database.";
@@ -35,6 +37,10 @@ const schemas = {
   }),
   user: z.strictObject({
     __cmd__: z.literal("user"),
+    action: z.union([z.literal("add")]),
+  }),
+  service: z.strictObject({
+    __cmd__: z.literal("service"),
     action: z.union([z.literal("add")]),
   }),
   show: z.strictObject({
@@ -71,7 +77,21 @@ const user = (args) => {
 
   switch (args.action) {
     case "add":
-      script = path.join(__dirname, "..", "tools", "db", "add-user.js");
+      script = path.join(__dirname, "..", "tools", "db", "add-user.cjs");
+      break;
+    default:
+      throw new Error("Unknown action");
+  }
+
+  run(`node ${script}`, args.dryRun);
+};
+
+const service = (args) => {
+  let script;
+
+  switch (args.action) {
+    case "add":
+      script = path.join(__dirname, "..", "tools", "db", "add-service.cjs");
       break;
     default:
       throw new Error("Unknown action");
@@ -96,6 +116,9 @@ const runDB = (args) => {
     case "user":
       user(args);
       break;
+    case "service":
+      service(args);
+      break;
     case "show":
       show(schema);
       break;
@@ -106,6 +129,7 @@ const runDB = (args) => {
 
 const args = parseArgs(schema, true, defaultAlias, {
   user: ["action"],
+  service: ["action"],
 });
 
 if (args.__cmd__ === undefined && args.help) {
