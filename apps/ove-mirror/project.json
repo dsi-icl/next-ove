@@ -19,37 +19,16 @@
       }
     },
     "build": {
-      "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
+      "executor": "nx:run-commands",
       "defaultConfiguration": "production",
       "options": {
-        "entryPoints": [
-          "apps/ove-mirror/src/background.ts",
-          "apps/ove-mirror/src/content.ts",
-          "apps/ove-mirror/src/seed-hook.ts"
-        ],
-        "bundle": true,
-        "platform": "browser",
-        "target": "chrome109",
-        "format": "iife",
-        "outdir": "dist/apps/ove-mirror",
-        "tsConfig": "apps/ove-mirror/tsconfig.json",
-        "skipTypeCheck": true,
-        "assets": [
-          {
-            "input": "apps/ove-mirror/src",
-            "glob": "manifest.json",
-            "output": "."
-          }
+        "parallel": false,
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "rm -rf dist/{projectRoot}",
+          "esbuild {projectRoot}/src/content.ts {projectRoot}/src/seed-hook.ts --bundle --platform=browser --target=chrome109 --format=iife --outdir=dist/{projectRoot} --tsconfig={projectRoot}/tsconfig.json --minify",
+          "cp \"{projectRoot}/src/manifest.json\" dist/{projectRoot}"
         ]
-      },
-      "configurations": {
-        "development": {
-          "minify": false
-        },
-        "production": {
-          "minify": true
-        }
       }
     }
   }

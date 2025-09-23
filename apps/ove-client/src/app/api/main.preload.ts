@@ -5,13 +5,6 @@ import {
   type OutboundAPI,
   type OutboundAPIChannels
 } from "../../ipc-routes";
-import { syncRandom, setup } from "@ove/ove-mirror-tools";
-import { generateUUID } from "@ove/ove-utils";
-
-// NOTE: must be called here, to allow for random ID generation
-let id = generateUUID();
-
-syncRandom();
 
 // noinspection DuplicatedCode
 const ExposedAPI: InboundAPI =
@@ -34,14 +27,3 @@ contextBridge.exposeInMainWorld("client", {
   },
   ...ExposedAPI
 });
-
-let sectionId = new URLSearchParams(window.location.search.substring(1)).get("sectionId");
-
-if (
-  document.readyState === 'complete' ||
-  document.readyState === 'interactive'
-) {
-  setup(id, sectionId);
-} else {
-  document.addEventListener('DOMContentLoaded', () => setup(id, sectionId));
-}

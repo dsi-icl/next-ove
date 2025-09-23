@@ -6,7 +6,7 @@ import { exit } from "process";
 import { pathToFileURL } from "url";
 import { env, logger } from "../env";
 import { assert, fixedEncodeURI } from "@ove/ove-utils";
-import { type App, BrowserWindow as BW, type Screen } from "electron";
+import { type App, BrowserWindow as BW, type Screen, session } from "electron";
 import { state } from "../server/state";
 
 let application: App;
@@ -28,20 +28,34 @@ const initWindow = (url: string, displayId?: number) => {
     bounds = primary.bounds;
     displayId = primary.id;
   }
-
   const mw = new BrowserWindow({
     x: bounds.x + 50,
     y: bounds.y + 50,
     fullscreen: true,
     show: false,
     webPreferences: {
-      contextIsolation: false,
+      contextIsolation: true,
       backgroundThrottling: true,
       sandbox: true,
       nodeIntegration: false,
       preload: join(__dirname, "main.preload.cjs"),
     },
   });
+  // session.defaultSession.webRequest.onHeadersReceived((d, cb) => {
+  //   const h = d.responseHeaders!;
+  //   const cspKey = Object.keys(h)
+  //     .find(k => k.toLowerCase() === 'content-security-policy');
+  //   if (cspKey) {
+  //     h[cspKey] = h[cspKey]!.map(v =>
+  //       insert our CDN into the script-src
+  // v.replace(
+  //   /script-src([^;]*)/,
+  //   `script-src$1 https://cdn.jsdelivr.net`
+  // )
+  // );
+  // }
+  // cb({ responseHeaders: h });
+  // });
   const idx = generateNewBrowserId();
   windows.set(idx, mw);
   state.browsers.set(idx, { displayId, url });
@@ -64,7 +78,6 @@ const initWindow = (url: string, displayId?: number) => {
 };
 
 const loadURL = (idx: number, url: string, isFatal = false) => {
-  console.log("url:", url);
   if (!windows.has(idx)) throw new Error("Missing window");
   assert(windows.get(idx))
     ?.loadURL(url)
@@ -117,20 +130,29 @@ const loadDefaultWindows = async () => {
         );
         const idx =
           browser === undefined ? initWindow(v, parseInt(k)) : browser[0];
-        await new Promise((resolve) => setTimeout(resolve, env.RENDERER.BROWSER_DELAY));
+        await new Promise((resolve) =>
+          setTimeout(resolve, env.RENDERER.BROWSER_DELAY),
+        );
         idxs.push(idx);
         loadURL(idx, v);
       }
     } else {
       for (const idx of state.browsers.keys()) {
-        await new Promise((resolve) => setTimeout(resolve, env.RENDERER.BROWSER_DELAY));
+        await new Promise((resolve) =>
+          setTimeout(resolve, env.RENDERER.BROWSER_DELAY),
+        );
         idxs.push(idx);
-        const otp = (await (await fetch(`${env.AUTH.SERVER_URL}/otp`, {
-          headers: {
-            Authorization: `Bearer ${env.AUTH.API_KEY}`
-          }
-        })).text());
-        loadURL(idx, `${env.AUTH.SERVER_URL}/redirect?otp=${otp}&to=${fixedEncodeURI(env.RENDERER.ENDPOINT)}`)
+        const otp = await (
+          await fetch(`${env.AUTH.SERVER_URL}/otp`, {
+            headers: {
+              Authorization: `Bearer ${env.AUTH.API_KEY}`,
+            },
+          })
+        ).text();
+        loadURL(
+          idx,
+          `${env.AUTH.SERVER_URL}/redirect?otp=${otp}&to=${fixedEncodeURI(env.RENDERER.ENDPOINT)}`,
+        );
       }
     }
   }
@@ -171,7 +193,19 @@ const init = (
     closeServer();
     exit(0);
   });
-  application.on("ready", loadDefaultWindows);
+  application.on("ready", async () => {
+    const extensionPath =
+      "/Users/bc2918/WebstormProjects/next-ove/dist/apps/ove-mirror";
+    try {
+      const ext = await session.defaultSession.loadExtension(extensionPath, {
+        allowFileAccess: true, // if your extension needs to read file:// URLs
+      });
+      logger.info(`Loaded extension: ${ext.name} (${ext.id})`);
+    } catch (e) {
+      logger.error("⚠️ failed to load extension", e);
+    }
+    await loadDefaultWindows();
+  });
   application.on("activate", onActivate);
   application.on("will-quit", closeServer);
 

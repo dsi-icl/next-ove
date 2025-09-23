@@ -11,9 +11,6 @@
   "host_permissions": [
     "<all_urls>"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
   "content_scripts": [
     {
       "matches": [
@@ -24,6 +21,19 @@
       ],
       "run_at": "document_idle",
       "all_frames": true,
+      "world": "MAIN",
+      "match_about_blank": true
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "seed-hook.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN",
       "match_about_blank": true
     }
   ]
