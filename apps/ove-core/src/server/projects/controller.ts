@@ -159,7 +159,7 @@ const createProject = async (
   prisma: PrismaClient,
   s3: Client | null,
   username: string,
-  project: Pick<Project, "title"> | undefined,
+  project: Omit<Project, "id" | "creatorId" | "created" | "updated" | "bucket"> | undefined,
   layout: Omit<Section, "id" | "projectId">[] | undefined,
   files: string[] | undefined,
 ) => {
@@ -172,23 +172,27 @@ const createProject = async (
     return raise("User cannot be null");
   }
 
+  const input = project ?? {};
   const title = project?.title ?? nanoid(16);
+  const bucketName = titleToBucketName(title);
   let files_: string[] | undefined = undefined;
 
   const project_ = await prisma.project.create({
     data: {
+      ...input, 
       title,
       creatorId: user.id,
+      bucket: bucketName,
     },
   });
 
   if (s3 !== null) {
-    await S3Controller.createBucket(s3, titleToBucketName(title));
+    await S3Controller.createBucket(s3, bucketName);
 
     if (files === undefined || !files.includes("env.json")) {
       await S3Controller.uploadFile(
         s3,
-        titleToBucketName(title),
+        bucketName,
         "env.json",
         Json.EMPTY,
       );
@@ -199,7 +203,7 @@ const createProject = async (
       ).toString();
       await S3Controller.uploadFile(
         s3,
-        titleToBucketName(title),
+        bucketName,
         "control.html",
         template,
       );
@@ -208,7 +212,7 @@ const createProject = async (
     if (files !== undefined) {
       files_ = await Promise.all(
         files.map((file) =>
-          S3Controller.getPresignedPutURL(s3, titleToBucketName(title), file),
+          S3Controller.getPresignedPutURL(s3, bucketName, file),
         ),
       );
     }

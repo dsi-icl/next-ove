@@ -155,7 +155,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
       </DialogHeader>
       <ul className="flex h-[40vh] w-full flex-col items-center overflow-y-scroll">
         {groupedFiles.map(([label, group]) => (
-          <>
+          <div key={label} className="w-full">
             <h6 className="w-full text-start font-semibold">Bucket: {label}</h6>
             {group.map((file) => (
               <FileView
@@ -164,7 +164,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
                 files={files}
               />
             ))}
-          </>
+          </div>
         ))}
       </ul>
       <DialogFooter className="w-full">

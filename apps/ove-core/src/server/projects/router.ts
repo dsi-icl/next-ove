@@ -186,7 +186,13 @@ export const projectsRouter = router({
     })
     .input(
       z.strictObject({
-        project: ProjectSchema.pick({ title: true }).optional(),
+        project: ProjectSchema.omit({
+          id: true, 
+          creatorId: true, 
+          created: true, 
+          updated: true, 
+          bucket: true
+        }).optional(),
         layout: SectionSchema.omit({
           id: true,
           projectId: true,

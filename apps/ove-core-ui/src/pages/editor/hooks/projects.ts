@@ -53,7 +53,16 @@ export const useSave = () => {
     }
     if (project.id.length === 32) {
       const res = await createProject.mutateAsync({
-        project: { title: project.title },
+        project: {
+          title: project.title,
+          description: project.description,
+          notes: project.notes,
+          thumbnail: project.thumbnail,
+          publications: project.publications,
+          presenterNotes: project.presenterNotes,
+          tags: project.tags,
+          isPublic: project.isPublic,
+        },
         layout: layout.map((x) => {
           const { id: _id, projectId: _projectId, ...data } = x;
           return data;
@@ -70,6 +79,8 @@ export const useSave = () => {
         updated: new Date(res.project.updated),
       };
       setProject((cur) => ({ ...cur, ...updatedProject }));
+      toast.success("Successfully created project!");
+      return;
     }
     saveProject
       .mutateAsync({
