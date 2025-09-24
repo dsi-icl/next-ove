@@ -24,10 +24,9 @@ ace.config.setModuleUrl("ace/mode/json", url as unknown as string);
 type EnvEditorProps = {
   projectId: string;
   bucket: string;
-  close: () => void;
 };
 
-const EnvEditor = ({ projectId, bucket, close }: EnvEditorProps) => {
+const EnvEditor = ({ projectId, bucket }: EnvEditorProps) => {
   const {
     data,
     setData,
@@ -38,13 +37,11 @@ const EnvEditor = ({ projectId, bucket, close }: EnvEditorProps) => {
 
   const save = useCallback(async () => {
     await uploadFile(new File([data], env.name, { type: "text/plain" }));
-    close();
-  }, [uploadFile, data, env.name, close]);
+  }, [uploadFile, data, env.name]);
 
   return (
     <DialogContent
       className="m-0 aspect-video w-[80vw] max-w-[unset] gap-0 space-y-0 rounded-xl border-0 border-transparent bg-transparent p-0 text-white"
-      hasClose={false}
     >
       <DialogHeader
         className="h-16 justify-center space-y-0 rounded-t-xl bg-[#002147] pl-4 text-white">
@@ -52,9 +49,6 @@ const EnvEditor = ({ projectId, bucket, close }: EnvEditorProps) => {
         <DialogDescription>
           Add environment variables for the demo
         </DialogDescription>
-        <DialogCloseX onClick={close}>
-          <X />
-        </DialogCloseX>
       </DialogHeader>
       {initial !== null ? (
         <AceEditor

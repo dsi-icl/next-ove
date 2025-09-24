@@ -130,42 +130,11 @@ export const useLatest = (
 export const useFiles = (projectId: string) => {
   const getFiles = api.projects.getFiles.useQuery(
     { projectId },
-    { enabled: projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH },
+    { enabled: projectId.length !== env.CONSTANTS.NEW_PROJECT_ID_LENGTH },
   );
 
   const files = useMemo(() => {
-    if (env.MODE === "development") {
-      return [
-        {
-          bucketName: "test",
-          name: "control.html",
-          isLatest: true,
-          version: "0",
-          isGlobal: false,
-        },
-        {
-          bucketName: "test",
-          name: "env.json",
-          isLatest: true,
-          version: "0",
-          isGlobal: false,
-        },
-        {
-          bucketName: "test",
-          name: "example.png",
-          isLatest: true,
-          version: "0",
-          isGlobal: false,
-        },
-        {
-          bucketName: "imperial",
-          name: "example.jpg",
-          isLatest: true,
-          version: "0",
-          isGlobal: true,
-        },
-      ];
-    } else if (getFiles.status !== "success" || isError(getFiles.data)) {
+    if (getFiles.status !== "success" || isError(getFiles.data)) {
       return [];
     } else {
       return getFiles.data;
