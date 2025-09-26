@@ -23,11 +23,13 @@
     "category": "Development"
   },
   "publish": {
-    "provider": "github",
-    "owner": "dsi-icl",
-    "releaseType": "release",
-    "publishAutoUpdate": false,
-    "private": true
+    "provider": "s3",
+    "bucket": "ove-client",
+    "endpoint": "https://do-store.dsi.ic.ac.uk",
+    "region": "eu-west-2",
+    "pathStyle": true,
+    "acl": "private",
+    "channel": "latest"
   },
   "buildDependenciesFromSource": false,
   "npmRebuild": false,
