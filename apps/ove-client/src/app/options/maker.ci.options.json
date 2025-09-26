@@ -22,7 +22,7 @@
     ],
     "category": "Development"
   },
-  "publish": {
+  "publish": [{
     "provider": "s3",
     "bucket": "ove-client",
     "endpoint": "https://do-store.dsi.ic.ac.uk",
@@ -30,7 +30,7 @@
     "pathStyle": true,
     "acl": "private",
     "channel": "latest"
-  },
+  }],
   "buildDependenciesFromSource": false,
   "npmRebuild": false,
   "extraMetadata": {
