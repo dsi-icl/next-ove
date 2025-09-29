@@ -9,6 +9,7 @@ import type { Project, User } from ".prisma/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStore } from "../../../store";
 import { env } from "../../../env";
+import { useNavigate } from "react-router-dom";
 
 const loadNewProject = (username: string) => ({
   id: nanoid(32),
@@ -36,6 +37,7 @@ export const useProjectId = () => {
 };
 
 export const useSave = () => {
+  const navigate = useNavigate();
   const saveProject = api.projects.saveProject.useMutation({
     retry: false,
   });
@@ -79,6 +81,7 @@ export const useSave = () => {
         updated: new Date(res.project.updated),
       };
       setProject((cur) => ({ ...cur, ...updatedProject }));
+      navigate(`?project=${res.project.id}`, { replace: true });
       toast.success("Successfully created project!");
       return;
     }
@@ -93,7 +96,7 @@ export const useSave = () => {
       })
       .then(() => toast.success("Successfully saved project!"))
       .catch(() => toast.error("Error saving project"));
-  }, [project, layout, createProject, saveProject, setProject]);
+  }, [project, layout, createProject, saveProject, setProject, navigate]);
 };
 
 export const useInitProject = (user: Omit<User, "password"> | null) => {
