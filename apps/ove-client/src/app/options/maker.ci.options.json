@@ -10,9 +10,15 @@
   ],
   "win": {
     "target": [
-      "portable"
+      "portable",
+      "nsis"
     ],
     "icon": "apps/ove-client/build/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "license": "./LICENSE"
   },
   "linux": {
     "target": [
