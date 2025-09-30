@@ -91,8 +91,22 @@ function drawObservatory(
 
   function dragStart(this: Element) {
     const section = d3.select(this);
+    const currId = section.attr("id").slice(8);
+
+    if (selected && selected !== currId) {
+      const prevSection  = d3.select(`#section-${selected}`);
+      const prevLabel = d3.select(`#label-${selected}`);
+      if (!prevSection.empty() && !prevLabel.empty()) {
+        const base = Math.min(parseFloat(prevSection.attr("width")), parseFloat(prevSection.attr("height"))) / 8;
+        prevLabel.style("font-size", `${base}px`).style("font-weight", "400");
+      }
+    }
+
     section.style("stroke", "");
-    select(section.attr("id").slice(8));
+    const sectionTextSize = Math.min(parseFloat(section.attr("width")), parseFloat(section.attr("height"))) / 8;
+    d3.select(`#label-${currId}`)
+      .style("font-size", `${sectionTextSize * 2}px`)
+      .style("font-weight", "700");
   }
 
   const clampX = (x: number, w: number) => {
@@ -170,37 +184,31 @@ function drawObservatory(
         "y",
         y(clampY(inverseY(ny), inverseY(parseFloat(section.attr("height"))))),
       );
-    const sectionTextSize =
-      Math.min(
-        x(parseFloat(section.attr("width"))),
-        y(parseFloat(section.attr("height"))),
-      ) / 8;
+
     label
       .attr(
         "x",
-        +nx +
-          +section.attr("width") / 2 -
-          (selected === section.attr("id").slice(8)
-            ? sectionTextSize * 2
-            : sectionTextSize) *
-            0.25,
+        +nx + +section.attr("width") / 2 
       )
       .attr(
         "y",
-        +ny +
-          +section.attr("height") / 2 +
-          (selected === section.attr("id").slice(8)
-            ? sectionTextSize * 2
-            : sectionTextSize) *
-            0.5,
+        +ny + +section.attr("height") / 2 
       );
   }
 
   function dragEnd(this: Element) {
     const section = d3.select(this);
+    const id = d3.select(this).attr("id").slice(8);
+
+    const sectionTextSize = Math.min(parseFloat(section.attr("width")), parseFloat(section.attr("height"))) / 8;
+    d3.select(`#label-${id}`)
+      .style("font-size", `${sectionTextSize}px`)
+      .style("font-weight", "400");
+
+    select(id);
     section.style("stroke", "black");
     dragSection(
-      section.attr("id").slice(8),
+      id,
       inverseX(parseFloat(section.attr("x"))) / assert(bounds).width,
       inverseY(parseFloat(section.attr("y"))) / assert(bounds).height,
     );
@@ -213,20 +221,11 @@ function drawObservatory(
     .append("text")
     .text((d) => d.ordering)
     .attr("id", (d) => `label-${d.id}`)
-    .attr("x", (d) => {
-      const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
-      return (
-        x(+d.x + +d.width / 2) -
-        (d.id === selected ? sectionTextSize * 2 : sectionTextSize) * 0.25
-      );
-    })
-    .attr("y", (d) => {
-      const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
-      return (
-        y(+d.y + +d.height / 2) +
-        (d.id === selected ? sectionTextSize * 2 : sectionTextSize) * 0.5
-      );
-    })
+    .attr("text-anchor", "middle")
+    .attr("dominant-baseline", "central")
+    .attr("alignment-baseline", "middle") 
+    .attr("x", (d) => x(+d.x + +d.width / 2))
+    .attr("y", (d) => y(+d.y + +d.height / 2))
     .style("font-size", (d) => {
       const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
       return `${d.id === selected ? sectionTextSize * 2 : sectionTextSize}px`;
