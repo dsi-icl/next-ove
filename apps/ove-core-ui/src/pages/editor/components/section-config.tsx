@@ -283,8 +283,6 @@ const SectionConfig = () => {
 
   const isDisabled = section === null;
 
-  console.log({isDisabled, section})
-
   return (
     <section className="h-full px-4">
       <h2 className="mt-2 w-full text-center text-base font-bold">
