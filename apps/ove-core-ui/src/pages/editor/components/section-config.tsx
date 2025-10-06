@@ -320,6 +320,7 @@ const SectionConfig = () => {
               control={form.control}
               fileName={fileName}
               files={ordinary}
+              disabled={isDisabled}
             />
             <FormField
               control={form.control}
@@ -329,7 +330,8 @@ const SectionConfig = () => {
                   <FormLabel className="font-semibold">Data Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
+                    disabled={isDisabled}
                   >
                     <FormControl>
                       <SelectTrigger>

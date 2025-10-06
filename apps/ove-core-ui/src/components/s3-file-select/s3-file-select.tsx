@@ -55,7 +55,10 @@ const S3FileSelect = <T extends FieldValues>({
             <VisuallyHidden>
               <FormLabel className="font-semibold">File Name:</FormLabel>
             </VisuallyHidden>
-            <Select {...field} disabled={disabled ?? false}>
+            <Select 
+              disabled={disabled ?? false}  
+              value={field.value ?? ""}
+              onValueChange={field.onChange}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a file" />
@@ -79,7 +82,10 @@ const S3FileSelect = <T extends FieldValues>({
             <VisuallyHidden>
               <FormLabel className="font-semibold">File Version:</FormLabel>
             </VisuallyHidden>
-            <Select {...field} disabled={disabled ?? false}>
+            <Select
+              disabled={disabled ?? false} 
+              value={field.value ?? ""}
+              onValueChange={field.onChange}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a version" />

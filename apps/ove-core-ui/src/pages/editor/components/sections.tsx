@@ -141,12 +141,12 @@ const Sections = () => {
           })}
         </ReorderableList>
       </ul>
-      <div className="absolute bottom-0 right-0 m-2 flex">
+      <div className="absolute bottom-0 m-2 flex w-[calc(100%-1rem)] gap-2">
         {states.length > 1 ? (
           <DropdownMenu open={importerOpen} onOpenChange={setImporterOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" title="Import" className="m-0 px-2 py-0">
-                <Import className="m-0 size-4 p-0" />
+              <Button title="Import" className="flex-1">
+                Import Section
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
@@ -188,14 +188,13 @@ const Sections = () => {
           </DropdownMenu>
         ) : null}
         <Button
-          variant="ghost"
-          className="m-0 px-2 py-0"
-          title="Add"
+          className="flex-1 "
+          title="Add Section"
           onClick={() =>
             sections.generateSection(selectedState, assert(projectId))
           }
         >
-          <PlusCircle className="m-0 size-4 p-0" />
+          Add Section
         </Button>
       </div>
     </section>
