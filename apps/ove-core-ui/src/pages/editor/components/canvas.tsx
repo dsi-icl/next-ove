@@ -46,68 +46,83 @@ function drawObservatory(
     .attr("width", () => container.width)
     .attr("height", () => container.height);
 
-  svg.selectAll("*").remove();
-
   svg
-    .selectAll("rect")
-    .data(() => assert(cells))
-    .enter()
-    .append("rect")
-    .attr("x", (d) => x(d.x))
-    .attr("y", (d) => y(d.y))
-    .attr("width", (d) => x(d.width))
-    .attr("height", (d) => y(d.height))
-    .classed("fill-[#002147] stroke-white stroke-1", true)
-    .append("title")
-    .text((_d, i) => `Cell No: ${i}`);
-
-  svg
-    .selectAll(".sections")
-    .data(() => sections)
-    .enter()
-    .append("rect")
-    .call(
-      d3
-        .drag()
-        .on("start", dragStart)
-        .on("drag", dragging)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .on("end", dragEnd) as any,
+    .selectAll<SVGRectElement, Geometry>("rect.cell")
+    .data(assert(cells), (_d, i) => i)
+    .join(
+      enter =>
+        enter
+          .append("rect")
+          .attr("class", "cell fill-[#002147] stroke-white stroke-1")
+          .append("title"),
+      update => update,
+      exit => exit.remove()
     )
     .attr("x", (d) => x(d.x))
     .attr("y", (d) => y(d.y))
     .attr("width", (d) => x(d.width))
     .attr("height", (d) => y(d.height))
-    .attr("id", (d) => `section-${d.id}`)
-    .style(
-      "fill",
-      (d) =>
-        assert(dataTypes.find(({ name }) => name === d.dataType.toLowerCase()))
-          .color,
+    .select("title").text((_d, i) => `Cell No: ${i}`);
+
+  const sectionG = svg
+    .selectAll<SVGGElement, Section>("g.section")
+    .data(sections, (d: any) => d.id)
+    .join(
+      enter => {
+        const g = enter.append("g").attr("class", "section");
+
+        g.append("rect")
+          .attr("id", (d) => `section-${d.id}`)
+          .attr("rx", 0)
+          .attr("ry", 0)
+          .classed("stroke-none opacity-70 stroke-0", true)
+          .append("title")
+          .text((d) => `Section No.: ${d.ordering}\nAsset URL: ${d.asset}`);
+
+        g.append("text")
+          .attr("id", (d) => `label-${d.id}`)
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "central")
+          .attr("alignment-baseline", "middle")
+          .classed("fill-white section-label", true);
+
+        g.call(
+          d3
+            .drag<SVGGElement, Section>()
+            .on("start", dragStart)
+            .on("drag", dragging)
+            .on("end", dragEnd) as any
+        );
+
+        return g;
+      },
+      update => update,
+      exit => exit.remove()
+    );
+
+  sectionG.select("rect")
+    .style("fill", d =>
+      assert(dataTypes.find(({ name }) => name === d.dataType.toLowerCase()))!.color
     )
-    .classed("stroke-none opacity-70 stroke-0", true)
-    .append("title")
-    .text((d) => `Section No.: ${d.ordering}\nAsset URL: ${d.asset}`);
 
-  function dragStart(this: Element) {
-    const section = d3.select(this);
-    const currId = section.attr("id").slice(8);
+  sectionG.each(function (d) {
+    const g = d3.select(this);
 
-    if (selected && selected !== currId) {
-      const prevSection  = d3.select(`#section-${selected}`);
-      const prevLabel = d3.select(`#label-${selected}`);
-      if (!prevSection.empty() && !prevLabel.empty()) {
-        const base = Math.min(parseFloat(prevSection.attr("width")), parseFloat(prevSection.attr("height"))) / 8;
-        prevLabel.style("font-size", `${base}px`).style("font-weight", "400");
-      }
-    }
+    g.attr("transform", `translate(${x(d.x)}, ${y(d.y)})`);
 
-    section.style("stroke", "");
-    const sectionTextSize = Math.min(parseFloat(section.attr("width")), parseFloat(section.attr("height"))) / 8;
-    d3.select(`#label-${currId}`)
-      .style("font-size", `${sectionTextSize * 2}px`)
-      .style("font-weight", "700");
-  }
+    g.select("rect")
+      .attr("width", x(d.width))
+      .attr("height", y(d.height));
+
+    const baseSize = Math.min(x(d.width), y(d.height)) / 8;
+
+    g.select("text")
+      .text(d.ordering)
+      .attr("x", x(d.width) / 2)
+      .attr("y", y(d.height) / 2)
+      .style("font-size", `${d.id === selected ? baseSize * 2 : baseSize}px`)
+      .style("font-weight", d.id === selected ? 700 : 400);
+  });
 
   const clampX = (x: number, w: number) => {
     for (const cell of assert(cells)) {
@@ -149,89 +164,63 @@ function drawObservatory(
     return y;
   };
 
-  function dragging(
-    this: Element,
-    event: {
-      x: number;
-      y: number;
-      subject: { x: number; y: number };
-    },
-  ) {
-    const section = d3.select(this);
-    const label = d3.select(`#label-${section.attr("id").slice(8)}`);
+  function dragStart(this: SVGGElement, _event: any, d: Section) {
+    select(d.id);
 
-    const nx = Math.max(
-      0,
-      Math.min(
-        x(assert(bounds).width) - parseFloat(section.attr("width")),
-        x(event.subject.x) + (event.x - event.subject.x),
-      ),
-    );
-    const ny = Math.max(
-      0,
-      Math.min(
-        y(assert(bounds).height) - parseFloat(section.attr("height")),
-        y(event.subject.y) + (event.y - event.subject.y),
-      ),
-    );
+    d3.select(this).raise();
 
-    section
-      .attr(
-        "x",
-        x(clampX(inverseX(nx), inverseX(parseFloat(section.attr("width"))))),
-      )
-      .attr(
-        "y",
-        y(clampY(inverseY(ny), inverseY(parseFloat(section.attr("height"))))),
-      );
+    const rect = d3.select(this).select<SVGRectElement>("rect");
+    const w = parseFloat(rect.attr("width"));
+    const h = parseFloat(rect.attr("height"));
+    const base = Math.min(w, h) / 8;
 
-    label
-      .attr(
-        "x",
-        +nx + +section.attr("width") / 2 
-      )
-      .attr(
-        "y",
-        +ny + +section.attr("height") / 2 
-      );
+    d3.select(this)
+      .select("text")
+      .style("font-size", `${base * 2}px`)
+      .style("font-weight", "700");
   }
 
-  function dragEnd(this: Element) {
-    const section = d3.select(this);
-    const id = d3.select(this).attr("id").slice(8);
+  function dragging(this: SVGGElement, event: any, d: Section) {
+    const g = d3.select(this);
+    const rect = g.select<SVGRectElement>("rect");
+    const w = +rect.attr("width");
+    const h = +rect.attr("height");
 
-    const sectionTextSize = Math.min(parseFloat(section.attr("width")), parseFloat(section.attr("height"))) / 8;
-    d3.select(`#label-${id}`)
-      .style("font-size", `${sectionTextSize}px`)
+    const m = g.node()!.transform.baseVal.consolidate()?.matrix;
+    const px0 = m ? m.e : x(d.x);
+    const py0 = m ? m.f : y(d.y);
+
+    const nx = Math.max(0, Math.min(x(assert(bounds).width) - w, px0 + event.dx));
+    const ny = Math.max(0, Math.min(y(assert(bounds).height) - h, py0 + event.dy));
+
+    const snappedX = x(clampX(inverseX(nx), inverseX(w)));
+    const snappedY = y(clampY(inverseY(ny), inverseY(h)));
+
+    g.attr("transform", `translate(${snappedX}, ${snappedY})`);
+  }
+
+  function dragEnd(this: SVGGElement, _event: any, d: Section) {
+    const g = d3.select(this);
+    const rect = g.select<SVGRectElement>("rect");
+    const w = +rect.attr("width");
+    const h = +rect.attr("height");
+    const base = Math.min(w, h) / 8;
+
+    g.select("text")
+      .style("font-size", `${base}px`)
       .style("font-weight", "400");
 
-    select(id);
-    section.style("stroke", "black");
-    dragSection(
-      id,
-      inverseX(parseFloat(section.attr("x"))) / assert(bounds).width,
-      inverseY(parseFloat(section.attr("y"))) / assert(bounds).height,
-    );
-  }
+    select(d.id);
 
-  svg
-    .selectAll(".section-label")
-    .data(() => sections)
-    .enter()
-    .append("text")
-    .text((d) => d.ordering)
-    .attr("id", (d) => `label-${d.id}`)
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "central")
-    .attr("alignment-baseline", "middle") 
-    .attr("x", (d) => x(+d.x + +d.width / 2))
-    .attr("y", (d) => y(+d.y + +d.height / 2))
-    .style("font-size", (d) => {
-      const sectionTextSize = Math.min(x(d.width), y(d.height)) / 8;
-      return `${d.id === selected ? sectionTextSize * 2 : sectionTextSize}px`;
-    })
-    .style("font-weight", (d) => (d.id === selected ? 700 : 400))
-    .classed("fill-white", true);
+    const m = g.node()!.transform.baseVal.consolidate()!.matrix;
+    dragSection(
+      d.id,
+      inverseX(m.e) / assert(bounds).width,
+      inverseY(m.f) / assert(bounds).height
+    );
+
+    g.select("rect").style("stroke", "black");
+  }
 }
 
 const Canvas = () => {
