@@ -36,14 +36,14 @@ export const useStateStore = create<StateStore>(set => ({
   setStates: arg => set(state => Array.isArray(arg) ? { states: arg } : { states: arg(state.states) }),
   addState: () => set(state => ({
     selectedState: `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`,
-    customStates: [...state.states, `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`],
+    states: [...state.states, `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`],
   })),
   updateState: (oldState: string, newState: string) => set(state => ({
     selectedState: newState,
-    customStates: state.states.map(c => c === oldState ? newState : c)
+    states: state.states.map(c => c === oldState ? newState : c)
   })),
   removeState: (state: string) => set(store => ({
-    customStates: store.states.filter(c => c !== state),
+    states: store.states.filter(c => c !== state),
     selectedState: env.CONSTANTS.DEFAULT_STATE,
   }))
 }));

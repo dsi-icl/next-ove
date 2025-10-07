@@ -72,7 +72,7 @@ const Sections = () => {
   );
 
   return (
-    <section className="relative h-full">
+    <section className="h-full grid grid-rows-[auto,1fr,auto]">
       <h2 className="min-h-8 w-full border-b border-[#dadedf] text-center align-middle font-bold">
         Sections
       </h2>
@@ -141,7 +141,7 @@ const Sections = () => {
           })}
         </ReorderableList>
       </ul>
-      <div className="absolute bottom-0 m-2 flex w-[calc(100%-1rem)] gap-2">
+      <div className="m-2 flex gap-2 pt-2">
         {states.length > 1 ? (
           <DropdownMenu open={importerOpen} onOpenChange={setImporterOpen}>
             <DropdownMenuTrigger asChild>
