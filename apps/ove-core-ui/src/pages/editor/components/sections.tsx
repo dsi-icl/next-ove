@@ -115,7 +115,7 @@ const Sections = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="overflow-hidden text-ellipsis text-nowrap font-medium">
+                      <p className="overflow-hidden text-ellipsis font-medium" style={{ overflowWrap: "anywhere" }}>
                         {section.asset}
                       </p>
                       <p className="text-sm text-gray-500">

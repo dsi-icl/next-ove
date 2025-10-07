@@ -24,6 +24,7 @@ type StateStore = {
   setSelectedState: (selectedState: string) => void
   states: string[]
   setStates: (arg: ((customStates: string[]) => string[]) | string[]) => void
+  nextIndex: number
   addState: () => void
   updateState: (oldState: string, newState: string) => void
   removeState: (state: string) => void
@@ -34,9 +35,11 @@ export const useStateStore = create<StateStore>(set => ({
   setSelectedState: selectedState => set({ selectedState }),
   states: [env.CONSTANTS.DEFAULT_STATE],
   setStates: arg => set(state => Array.isArray(arg) ? { states: arg } : { states: arg(state.states) }),
+  nextIndex: 1,
   addState: () => set(state => ({
-    selectedState: `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`,
-    states: [...state.states, `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`],
+    selectedState: `${env.CONSTANTS.NEW_STATE_PREFIX}${state.nextIndex}`,
+    states: [...state.states, `${env.CONSTANTS.NEW_STATE_PREFIX}${state.nextIndex}`],
+    nextIndex: state.nextIndex + 1,
   })),
   updateState: (oldState: string, newState: string) => set(state => ({
     selectedState: newState,
