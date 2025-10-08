@@ -25,7 +25,7 @@ import AceEditor from "react-ace";
 import { Save, X } from "lucide-react";
 import React, { useState } from "react";
 import { assert } from "@ove/ove-utils";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useUpload } from "../hooks/files";
 import { useProjectId } from "../hooks/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -97,7 +97,7 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
   );
   const form = useForm<TForm>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { language },
+    defaultValues: { language, data: file?.data ?? "", name: "" },
   });
   useFormErrorHandling(form.formState.errors);
   const name = form.watch("name");
@@ -130,26 +130,32 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
           <X />
         </DialogCloseX>
       </DialogHeader>
-      <AceEditor
-        placeholder="File Contents"
-        theme="dracula"
-        mode={languageToMode(language)}
-        name="custom-file"
-        style={{ width: "100%", height: "calc(((80vw/16)*9) - 8rem)" }}
-        onChange={setData}
-        fontSize={14}
-        showPrintMargin={true}
-        showGutter={true}
-        highlightActiveLine={false}
-        value={data}
-        setOptions={{
-          enableBasicAutocompletion: true,
-          enableLiveAutocompletion: false,
-          enableSnippets: false,
-          showLineNumbers: true,
-          tabSize: 2,
-          useWorker: false,
-        }}
+      <Controller
+        name="data"
+        control={form.control}
+        render={({ field }) => (
+          <AceEditor
+            placeholder="File Contents"
+            theme="dracula"
+            mode={languageToMode(language)}
+            name="custom-file"
+            style={{ width: "100%", height: "calc(((80vw/16)*9) - 8rem)" }}
+            onChange={setData}
+            fontSize={14}
+            showPrintMargin={true}
+            showGutter={true}
+            highlightActiveLine={false}
+            value={data}
+            setOptions={{
+              enableBasicAutocompletion: true,
+              enableLiveAutocompletion: false,
+              enableSnippets: false,
+              showLineNumbers: true,
+              tabSize: 2,
+              useWorker: false,
+            }}
+          />
+        )}
       />
       <DialogFooter className="h-16 w-full space-y-0 rounded-b-xl bg-[#002147]">
         <Form {...form}>
@@ -166,8 +172,11 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
                     <FormLabel>Language</FormLabel>
                   </VisuallyHidden>
                   <Select
-                    {...field}
-                    onValueChange={(v) => setLanguage(v as Language)}
+                    onValueChange={(v) => {
+                      field.onChange(v);
+                      setLanguage(v as Language);
+                    }}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger className="bg-white text-black">
@@ -203,7 +212,7 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
                 </FormItem>
               )}
             />
-            <Button variant="outline" className="text-black">
+            <Button variant="outline" className="text-black" type="submit">
               <Save className="mr-1 size-4" />
               SAVE
             </Button>
