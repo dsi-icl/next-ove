@@ -178,6 +178,10 @@ const Sections = () => {
                           "w-full cursor-pointer",
                           j === 0 ? "mt-4" : "mt-0",
                         )}
+                        onSelect={() => {
+                          sections.addToState(section.id, selectedState);
+                          setImporterOpen(false);
+                        }}
                       >
                         {section.ordering}. {section.asset}
                       </DropdownMenuItem>
