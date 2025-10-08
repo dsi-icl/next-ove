@@ -2,11 +2,15 @@ import { env } from "../../../env";
 import { create } from "zustand/index";
 import type { Section } from ".prisma/client";
 
+type PreviewPos = { id: string; xPct: number; yPct: number } | null;
+
 type SectionStore = {
   sections: Section[]
   setSections: (arg: ((sections: Section[]) => Section[]) | Section[]) => void
   selectedSection: string | null
   setSelectedSection: (selectedSection: string | null) => void
+  previewPos: PreviewPos
+  setPreviewPos: (previewPos: PreviewPos) => void
 }
 
 const order = (sections: Section[]) =>
@@ -17,6 +21,8 @@ export const useSectionStore = create<SectionStore>(set => ({
   setSections: arg => set(state => Array.isArray(arg) ? { sections: order(arg) } : { sections: order(arg(state.sections)) }),
   selectedSection: null,
   setSelectedSection: selectedSection => set({ selectedSection }),
+  previewPos: null,
+  setPreviewPos: previewPos => set({ previewPos })
 }));
 
 type StateStore = {

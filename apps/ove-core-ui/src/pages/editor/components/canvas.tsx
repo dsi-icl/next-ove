@@ -197,6 +197,20 @@ function drawObservatory(
     const snappedY = y(clampY(inverseY(ny), inverseY(h)));
 
     g.attr("transform", `translate(${snappedX}, ${snappedY})`);
+
+    const xNorm = inverseX(snappedX) / assert(bounds).width;
+    const yNorm = inverseY(snappedY) / assert(bounds).height;
+    const xPct  = parseFloat(`${xNorm * 100}`.slice(0, 5));
+    const yPct  = parseFloat(`${yNorm * 100}`.slice(0, 5));
+
+    let raf = null;
+    if (raf == null) {
+      raf = requestAnimationFrame(() => {
+        useSectionStore.getState().setPreviewPos({ id: d.id, xPct, yPct });
+        raf = null;
+      });
+    }
+
   }
 
   function dragEnd(this: SVGGElement, _event: any, d: Section) {

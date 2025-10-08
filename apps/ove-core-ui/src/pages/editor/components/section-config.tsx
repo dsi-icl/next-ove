@@ -137,6 +137,7 @@ const SectionConfig = () => {
   const { getSections } = useSections();
   const sections = useMemo(() => getSections(state), [state, getSections]);
   const selected = useSectionStore((state) => state.selectedSection);
+  const preview = useSectionStore((state) => state.previewPos);
   const cells = useCells();
   const updateSection = useUpdateSection();
   const { bounds } = useObservatory();
@@ -203,6 +204,14 @@ const SectionConfig = () => {
     form,
     ordinary,
   ]);
+
+  useEffect(() => {
+    if (!preview) return;
+    if (preview.id !== selected) return;
+
+    setValue("x", preview.xPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("y", preview.yPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+  }, [preview, selected, setValue]);
 
   const onSubmit = (section: SectionConfigForm) => {
     if (mode === "grid" && (bounds === null || cells === null)) {
