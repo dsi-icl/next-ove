@@ -25,7 +25,7 @@ import { assert } from "@ove/ove-utils";
 import { api } from "../../../utils/api";
 import { useForm } from "react-hook-form";
 import { useProjectId } from "../hooks/projects";
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { dataTypes, File as FileT } from "@ove/ove-types";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -120,10 +120,8 @@ const FileManager = ({ edit }: FileManagerProps) => {
   const form = useForm<FileUploadForm>({
     resolver: zodResolver(FileUploadFormSchema),
   });
-  const file = form.watch("file");
-  const uploadFile = useUpload(assert(projectId), {
-    name: (Array.isArray(file) ? file?.[0]?.name : file?.name) ?? "ERROR",
-  });
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const uploadFile = useUpload(assert(projectId));
   useFormErrorHandling(form.formState.errors);
   const groupedFiles = useMemo(
     () =>
@@ -139,9 +137,16 @@ const FileManager = ({ edit }: FileManagerProps) => {
     [ordinary],
   );
 
-  const onSubmit = ({ file }: FileUploadForm) => {
-    uploadFile(Array.isArray(file) ? file[0] : file).catch(console.error);
+  const onSubmit = async ({ file }: FileUploadForm) => {
+    const selected = Array.isArray(file) ? file[0] : file;
+    if (!selected) {
+      toast.error("No file selected");
+      return;
+    }
+    await uploadFile({ objectName: selected.name, file: selected });
+    
     form.reset();
+    setFileInputKey(k => k + 1); 
   };
   const { files } = useFiles(assert(projectId));
 
@@ -190,7 +195,12 @@ const FileManager = ({ edit }: FileManagerProps) => {
                         className="cursor-pointer"
                         required={true}
                         type="file"
+                        key={fileInputKey}
                         {...rest}
+                        onChange={(e) => {
+                          const files = e.target.files;
+                          rest.onChange(files && files.length ? files[0] : undefined);
+                        }}
                       />
                     </FormControl>
                   </FormItem>

@@ -23,7 +23,7 @@ import {
 } from "@ove/ui-base-components";
 import AceEditor from "react-ace";
 import { Save, X } from "lucide-react";
-import React, { useState } from "react";
+import React from "react";
 import { assert } from "@ove/ove-utils";
 import { useForm, Controller } from "react-hook-form";
 import { useUpload } from "../hooks/files";
@@ -65,8 +65,8 @@ export type Language = z.infer<typeof LanguageSchema>;
 
 const FormSchema = z.strictObject({
   language: LanguageSchema,
-  name: z.string(),
-  data: z.string(),
+  name: z.string().trim().min(1, "Please enter a file name"),
+  data: z.string().trim().min(1, "File cannot be empty"),
 });
 
 type TForm = z.infer<typeof FormSchema>;
@@ -91,18 +91,16 @@ type FileEditorProps = {
 };
 
 const FileEditor = ({ file, close }: FileEditorProps) => {
-  const [data, setData] = useState(file?.data ?? "");
-  const [language, setLanguage] = useState<Language>(
-    file?.language ?? "markdown",
-  );
   const form = useForm<TForm>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { language, data: file?.data ?? "", name: "" },
+    defaultValues: { language: file?.language ?? "markdown", data: file?.data ?? "", name: "" },
   });
   useFormErrorHandling(form.formState.errors);
   const name = form.watch("name");
+  const language = form.watch("language");
+  const fullName = name ? addFileExtension(name, language) : "ERROR";
   const projectId = useProjectId();
-  const uploadFile = useUpload(assert(projectId), { name: name ?? "ERROR" });
+  const uploadFile = useUpload(assert(projectId));
 
   const onSubmit = async ({
     name,
@@ -110,11 +108,10 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
     language,
   }: z.infer<typeof FormSchema>) => {
     if (name === "") return;
-    await uploadFile(
-      new File(data.split("\n"), addFileExtension(name, language), {
-        type: "text/plain",
-      }),
-    );
+    await uploadFile({
+      objectName: fullName,
+      file: new File([data], fullName, { type: "text/plain" }),
+    });
     close();
   };
 
@@ -140,12 +137,12 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
             mode={languageToMode(language)}
             name="custom-file"
             style={{ width: "100%", height: "calc(((80vw/16)*9) - 8rem)" }}
-            onChange={setData}
+            value={field.value}
+            onChange={field.onChange}
             fontSize={14}
             showPrintMargin={true}
             showGutter={true}
             highlightActiveLine={false}
-            value={data}
             setOptions={{
               enableBasicAutocompletion: true,
               enableLiveAutocompletion: false,
@@ -172,10 +169,7 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
                     <FormLabel>Language</FormLabel>
                   </VisuallyHidden>
                   <Select
-                    onValueChange={(v) => {
-                      field.onChange(v);
-                      setLanguage(v as Language);
-                    }}
+                    onValueChange={(v) => field.onChange(v) }
                     value={field.value}
                   >
                     <FormControl>
