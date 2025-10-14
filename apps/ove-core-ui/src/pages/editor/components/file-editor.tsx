@@ -108,11 +108,11 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
     language,
   }: z.infer<typeof FormSchema>) => {
     if (name === "") return;
-    await uploadFile({
+    const ok = await uploadFile({
       objectName: fullName,
       file: new File([data], fullName, { type: "text/plain" }),
     });
-    close();
+    if (ok) close();
   };
 
   return (

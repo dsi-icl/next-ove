@@ -27,17 +27,13 @@ import { useForm } from "react-hook-form";
 import { useProjectId } from "../hooks/projects";
 import React, { useMemo, useCallback, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { dataTypes, File as FileT } from "@ove/ove-types";
+import { File as FileT } from "@ove/ove-types";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
 import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";
 
 const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
   const isImage = file.name.match(env.CONSTANTS.IMAGE_EXTENSION_REGEX) !== null;
-  const dataType =
-    dataTypes.find((dt) =>
-      dt.extensions.includes(file.name.split(".").at(-1) ?? "markdown"),
-    ) ?? dataTypes[0];
   const processImage = api.projects.formatDZI.useMutation({ retry: false });
   const process = useCallback(
     () =>
@@ -59,7 +55,6 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
           <p className="overflow-hidden text-ellipsis text-nowrap font-medium text-black">
             {file.name}
           </p>
-          <p className="text-sm text-gray-500">{dataType.displayName}</p>
         </div>
       </div>
       <div className="flex items-center space-x-2">

@@ -50,8 +50,19 @@ export const useUpload = (projectId: string) => {
   const apiUtils = api.useUtils();
   const client = apiUtils.client;
 
+  const checkDuplicateName = async (objectName: string) => {
+    const files = await client.projects.getFiles.query({ projectId });
+    return !isError(files) && files.some(f => f.name.toLowerCase() === objectName.toLowerCase());
+  };
+
   return async ({ objectName, file }: { objectName: string; file: File }): Promise<boolean> => {
     try {
+      if (!objectName) { toast.error("Missing filename"); return false; }
+
+      if (await checkDuplicateName(objectName)) {
+        toast.error(`A file named "${objectName}" already exists`);
+        return false;
+      }
       const data = await file.text();
       const dt = getDataType(objectName);
       const formatted = await formatFile.mutateAsync({
