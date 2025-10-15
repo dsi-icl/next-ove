@@ -41,21 +41,6 @@ const initWindow = (url: string, displayId?: number) => {
       preload: join(__dirname, "main.preload.cjs"),
     },
   });
-  // session.defaultSession.webRequest.onHeadersReceived((d, cb) => {
-  //   const h = d.responseHeaders!;
-  //   const cspKey = Object.keys(h)
-  //     .find(k => k.toLowerCase() === 'content-security-policy');
-  //   if (cspKey) {
-  //     h[cspKey] = h[cspKey]!.map(v =>
-  //       insert our CDN into the script-src
-  // v.replace(
-  //   /script-src([^;]*)/,
-  //   `script-src$1 https://cdn.jsdelivr.net`
-  // )
-  // );
-  // }
-  // cb({ responseHeaders: h });
-  // });
   const idx = generateNewBrowserId();
   windows.set(idx, mw);
   state.browsers.set(idx, { displayId, url });
@@ -70,7 +55,7 @@ const initWindow = (url: string, displayId?: number) => {
     if (env.AUTH.HOSTNAME_WHITELIST?.includes(req.hostname) ?? false) {
       callback(0);
     } else {
-      callback(3);
+      callback(-3);
     }
   });
 
@@ -194,15 +179,15 @@ const init = (
     exit(0);
   });
   application.on("ready", async () => {
-    const extensionPath =
-      "/Users/bc2918/WebstormProjects/next-ove/dist/apps/ove-mirror";
-    try {
-      const ext = await session.defaultSession.loadExtension(extensionPath, {
-        allowFileAccess: true, // if your extension needs to read file:// URLs
-      });
-      logger.info(`Loaded extension: ${ext.name} (${ext.id})`);
-    } catch (e) {
-      logger.error("⚠️ failed to load extension", e);
+    if (env.EXTENSIONS?.SYNC !== undefined) {
+      try {
+        const ext = await session.defaultSession.loadExtension(env.EXTENSIONS.SYNC, {
+          allowFileAccess: true,
+        });
+        logger.info(`Loaded extension: ${ext.name} (${ext.id})`);
+      } catch (e) {
+        logger.error("⚠️ failed to load extension", e);
+      }
     }
     await loadDefaultWindows();
   });
