@@ -128,7 +128,7 @@ export const ServiceAPISchema = {
     },
     args: z.strictObject({
       method: ScreenshotMethodSchema,
-      screens: z.array(IDSchema)
+      screens: z.array(z.string()).optional(),
     }),
     returns: z.array(ImageSchema),
     exposed: "client" as const
