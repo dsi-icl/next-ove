@@ -62,7 +62,11 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
     (Object.keys(service) as Array<keyof TBridgeHardwareService>).includes(k)
   ) {
     const res = await assert(service[k])(device, args);
-    await ReconciliationService.updateState(device, k, args);
+    try {
+      await ReconciliationService.updateState(device, k, args);
+    } catch (_e) {
+      logger.error("Unable to update reconciliation state");
+    }
     return res;
   } else return undefined;
 };

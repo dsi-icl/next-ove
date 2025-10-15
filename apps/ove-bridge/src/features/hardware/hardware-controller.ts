@@ -9,6 +9,7 @@ import { env, logger } from "../../env";
 import { io, type Socket } from "socket.io-client";
 import { startReconciliation, stopReconciliation } from "./reconciliation";
 import { updateCookie } from "../../utils/auth";
+import { service as ReconciliationService } from "./reconciliation-service";
 
 let socket: Socket<
   THardwareServerToClientEvents,
@@ -23,6 +24,7 @@ export const closeHardwareSocket = () => {
 
 export const initHardware = async () => {
   if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
+  ReconciliationService.init();
   if (env.RECONCILIATION.STATUS) {
     try {
       startReconciliation();

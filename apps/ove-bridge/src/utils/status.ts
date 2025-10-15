@@ -4,19 +4,19 @@ import { isError, type OVEException, type StatusOptions } from "@ove/ove-types";
 
 export const statusOptions = async (
   handler: () => Promise<StatusOptions | OVEException>,
-  ip: string,
+  host: string,
 ): Promise<StatusOptions> => {
   try {
     const res = await handler();
 
     if (isError(res)) {
-      return getSyn(ip);
+      return getSyn(host.split("/")[0]);
     }
 
     return res;
   } catch (e) {
     logger.error(e);
-    return getSyn(ip);
+    return getSyn(host.split("/")[0]);
   }
 };
 
