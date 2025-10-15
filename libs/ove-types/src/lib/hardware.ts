@@ -88,7 +88,7 @@ export type PJLinkInfo = {
 export const DeviceSchema = z.object({
   id: z.string(),
   description: z.string(),
-  ip: z.string(),
+  host: z.string(),
   port: z.number().optional(),
   protocol: z.string().optional(),
   type: ServiceTypeSchema,

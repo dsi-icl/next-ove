@@ -10,9 +10,9 @@ import {
 import { z } from "zod";
 import { env } from "../../env";
 import { execSync } from "child_process";
-import { Json, raise } from "@ove/ove-utils";
 import { statusOptions } from "../../utils/status";
 import { createTRPCClient, httpLink } from "@trpc/client";
+import { Json, raise, buildDeviceURL } from "@ove/ove-utils";
 // IGNORE PATH - as importing only type, will not trigger full import on build
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import type { AppRouter } from "../../../../ove-client/src/server/router";
@@ -29,7 +29,7 @@ export const createClient = (
   createTRPCClient<AppRouter>({
     links: [
       httpLink({
-        url: `${device.protocol}://${device.ip}:${device.port}/api/v${env.CLIENT_API_VERSION}/trpc`,
+        url: `${buildDeviceURL(device)}/api/v${env.CLIENT_API_VERSION}/trpc`,
         headers: () => {
           return {
             Authorization: fixedEncodeURIComponent(
@@ -153,7 +153,7 @@ const getStatus = async (
           parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>,
           { signal: controller.signal },
         ),
-      device.ip,
+      device.host,
     );
   } catch (e) {
     return raise(Json.stringify(e));

@@ -12,7 +12,7 @@ import * as mdc from "@ove/mdc-control";
 import { statusOptions } from "../../utils/status";
 
 const reboot = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"reboot">,
   ac?: () => AbortController,
 ) => {
@@ -25,7 +25,7 @@ const reboot = async (
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
@@ -34,7 +34,7 @@ const reboot = async (
 };
 
 const shutdown = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"shutdown">,
   ac?: () => AbortController,
 ) => {
@@ -47,7 +47,7 @@ const shutdown = async (
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
@@ -56,7 +56,7 @@ const shutdown = async (
 };
 
 const start = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"start">,
   ac?: () => AbortController,
 ) => {
@@ -69,7 +69,7 @@ const start = async (
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
@@ -78,7 +78,7 @@ const start = async (
 };
 
 const getInfo = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"getInfo">,
   ac?: () => AbortController,
 ) => {
@@ -92,14 +92,14 @@ const getInfo = async (
   return mdc.getInfo({
     timeout: env.HARDWARE.TIMEOUTS.MDC,
     id: 0x01,
-    ip,
+    host,
     ac: ac?.(),
     port,
   });
 };
 
 const getStatus = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"getStatus">,
   ac?: () => AbortController,
 ) => {
@@ -113,16 +113,16 @@ const getStatus = async (
       mdc.getStatus({
         timeout: env.HARDWARE.TIMEOUTS.MDC,
         id: 0x01,
-        ip,
+        host,
         ac: ac?.(),
         port,
       }),
-    ip,
+    host,
   );
 };
 
 const mute = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"mute">,
   ac?: () => AbortController,
 ) => {
@@ -135,7 +135,7 @@ const mute = async (
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
@@ -144,7 +144,7 @@ const mute = async (
 };
 
 const unmute = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"unmute">,
   ac?: () => AbortController,
 ) => {
@@ -157,7 +157,7 @@ const unmute = async (
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
@@ -166,7 +166,7 @@ const unmute = async (
 };
 
 const setVolume = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"setVolume">,
   ac?: () => AbortController,
 ) => {
@@ -179,7 +179,7 @@ const setVolume = async (
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
@@ -188,7 +188,7 @@ const setVolume = async (
 };
 
 const setSource = async (
-  { ip, port }: Device,
+  { host, port }: Device,
   args: TBridgeServiceArgs<"setSource">,
   ac?: () => AbortController,
 ) => {
@@ -203,7 +203,7 @@ const setSource = async (
     {
       timeout: env.HARDWARE.TIMEOUTS.MDC,
       id: 0x01,
-      ip,
+      host,
       ac: ac?.(),
       port,
     },
