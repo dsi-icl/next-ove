@@ -34,9 +34,14 @@ const uploadFile = (
   s3: Minio.Client,
   bucketName: string,
   objectName: string,
-  data: string
+  data: string | Buffer | Uint8Array
 ) => {
-  const rs = Readable.from(data, { encoding: "utf-8" });
+  const rs =
+    typeof data === "string"
+      ? Readable.from([Buffer.from(data, "utf8")])
+      : Buffer.isBuffer(data) || data instanceof Uint8Array
+      ? Readable.from([data])
+      : Readable.from(data); 
   return s3.putObject(bucketName, objectName, rs);
 };
 

@@ -44,60 +44,72 @@ export const fromURL = (files: TFile[], url: string | null) => {
   );
 };
 
-export const useUpload = (projectId: string, metadata: { name: string }) => {
-  const presignedPutRaw = api.projects.getPresignedPutURL.useQuery(
-    {
-      projectId,
-      objectName: metadata.name,
-    },
-    { enabled: metadata.name !== "ERROR" },
-  );
-  const presignedPutFormatted = api.projects.getPresignedPutURL.useQuery(
-    {
-      projectId,
-      objectName: getFormattedExtension(metadata.name),
-    },
-    { enabled: metadata.name !== "ERROR" },
-  );
+export const useUpload = (projectId: string) => {
   const uploadFile = s3.uploadFile.useMutation();
   const formatFile = api.projects.formatData.useMutation();
   const apiUtils = api.useUtils();
+  const client = apiUtils.client;
 
-  return async (payload: File) => {
-    if (
-      presignedPutRaw.status !== "success" ||
-      isError(presignedPutRaw.data) ||
-      presignedPutFormatted.status !== "success" ||
-      isError(presignedPutFormatted.data)
-    ) {
-      toast.error(`Missing presigned URL for file ${metadata.name}`);
-      return;
-    }
-    await uploadFile.mutateAsync({ url: presignedPutRaw.data, payload });
+  const checkDuplicateName = async (objectName: string) => {
+    const files = await client.projects.getFiles.query({ projectId });
+    return !isError(files) && files.some(f => f.name.toLowerCase() === objectName.toLowerCase());
+  };
 
-    const data = await payload.text();
-    const dataType = getDataType(metadata.name);
-    const formatted = await formatFile.mutateAsync({
-      data,
-      dataType: dataType.name,
-      title: metadata.name,
-      opts:
-        dataType.name === "data-table"
-          ? {
-              containsHeader: false,
-              tableSource: getFormattedExtension(metadata.name) as
-                | "html"
-                | "csv"
-                | "tsv",
-            }
-          : undefined,
-    });
-    if (isError(formatted)) {
-      toast.error("Error formatting file");
-      return;
+  return async ({ objectName, file }: { objectName: string; file: File }): Promise<boolean> => {
+    try {
+      if (!objectName) { toast.error("Missing filename"); return false; }
+
+      if (await checkDuplicateName(objectName)) {
+        toast.error(`A file named "${objectName}" already exists`);
+        return false;
+      }
+      const data = await file.text();
+      const dt = getDataType(objectName);
+      const formatted = await formatFile.mutateAsync({
+        data,
+        dataType: dt.name,
+        title: objectName,
+        opts:
+          dt.name === "data-table"
+            ? {
+                containsHeader: false,
+                tableSource: getFormattedExtension(objectName) as "html" | "csv" | "tsv",
+              }
+            : undefined,
+      });
+      if (isError(formatted)) {
+        toast.error(formatted.oveError ?? "Error formatting file");
+        return false;
+      }
+
+      const rawUrl = await client.projects.getPresignedPutURL.query({ projectId, objectName });
+      if (isError(rawUrl)) {
+        toast.error(`Missing presigned URL for raw file: ${objectName}`);
+        return false;
+      }
+
+      await uploadFile.mutateAsync({ url: rawUrl, payload: file });
+
+      const { data: formattedText, fileName } = formatted;
+      const formattedUrl = await client.projects.getPresignedPutURL.query({
+        projectId,
+        objectName: fileName,
+      });
+      if (isError(formattedUrl)) {
+        toast.error("Missing presigned URL for formatted file");
+        return false;
+      }
+
+      const formattedFile = new File([formattedText], fileName, { type: "text/plain" });
+      await uploadFile.mutateAsync({ url: formattedUrl, payload: formattedFile });
+
+      apiUtils.projects.getFiles.invalidate({ projectId }).catch(() => {});
+      toast.success("Upload complete");
+      return true;
+    } catch (e) {
+      toast.error((e as Error).message || "Upload failed");
+      return false;
     }
-    await uploadFile.mutateAsync({ url: presignedPutFormatted.data, payload });
-    apiUtils.projects.getFiles.invalidate({ projectId }).catch();
   };
 };
 
@@ -130,42 +142,11 @@ export const useLatest = (
 export const useFiles = (projectId: string) => {
   const getFiles = api.projects.getFiles.useQuery(
     { projectId },
-    { enabled: projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH },
+    { enabled: projectId.length !== env.CONSTANTS.NEW_PROJECT_ID_LENGTH },
   );
 
   const files = useMemo(() => {
-    if (env.MODE === "development") {
-      return [
-        {
-          bucketName: "test",
-          name: "control.html",
-          isLatest: true,
-          version: "0",
-          isGlobal: false,
-        },
-        {
-          bucketName: "test",
-          name: "env.json",
-          isLatest: true,
-          version: "0",
-          isGlobal: false,
-        },
-        {
-          bucketName: "test",
-          name: "example.png",
-          isLatest: true,
-          version: "0",
-          isGlobal: false,
-        },
-        {
-          bucketName: "imperial",
-          name: "example.jpg",
-          isLatest: true,
-          version: "0",
-          isGlobal: true,
-        },
-      ];
-    } else if (getFiles.status !== "success" || isError(getFiles.data)) {
+    if (getFiles.status !== "success" || isError(getFiles.data)) {
       return [];
     } else {
       return getFiles.data;

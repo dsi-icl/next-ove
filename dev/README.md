@@ -19,9 +19,11 @@ configuration.
 Please execute the following command on instantiation of the MongoDB ReplicaSet:
 
 ```shell
-openssl rand -base64 756 > services/config/mongo.keyfile
-chmod 400 services/config/mongo.keyfile
+openssl rand -base64 756 > dev/services/config/mongo.keyfile
+chmod 400 dev/services/config/mongo.keyfile
 ```
+
+Make sure the keyfile is created before creating a docker container via the Docker Compose file.
 
 ```shell
 docker exec mongo <SHELL_SCRIPT>
@@ -30,7 +32,7 @@ docker exec mongo <SHELL_SCRIPT>
 Shell Script:
 
 ```shell
-mongosh --eval 'rs.initiate({"_id": "rs0", "version": 1, "members": [{"_id": 0, "host": "127.0.0.1:27017", "priority": 1}]})' --username <ROOT_USERNAME> --password
+mongosh --eval 'rs.initiate({"_id": "rs0", "version": 1, "members": [{"_id": 0, "host": "127.0.0.1:27017", "priority": 1}]})' --username <ROOT_USERNAME> --password <ROOT_PASSWORD>
 ```
 
 To reset the ReplicaSet, delete the local files being mounted for the database,

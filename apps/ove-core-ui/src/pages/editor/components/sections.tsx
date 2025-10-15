@@ -72,7 +72,7 @@ const Sections = () => {
   );
 
   return (
-    <section className="relative h-full">
+    <section className="h-full grid grid-rows-[auto,1fr,auto]">
       <h2 className="min-h-8 w-full border-b border-[#dadedf] text-center align-middle font-bold">
         Sections
       </h2>
@@ -115,7 +115,7 @@ const Sections = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="overflow-hidden text-ellipsis text-nowrap font-medium">
+                      <p className="overflow-hidden text-ellipsis font-medium" style={{ overflowWrap: "anywhere" }}>
                         {section.asset}
                       </p>
                       <p className="text-sm text-gray-500">
@@ -141,12 +141,12 @@ const Sections = () => {
           })}
         </ReorderableList>
       </ul>
-      <div className="absolute bottom-0 right-0 m-2 flex">
+      <div className="m-2 flex gap-2 pt-2">
         {states.length > 1 ? (
           <DropdownMenu open={importerOpen} onOpenChange={setImporterOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" title="Import" className="m-0 px-2 py-0">
-                <Import className="m-0 size-4 p-0" />
+              <Button title="Import" className="flex-1">
+                Import Section
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
@@ -178,6 +178,10 @@ const Sections = () => {
                           "w-full cursor-pointer",
                           j === 0 ? "mt-4" : "mt-0",
                         )}
+                        onSelect={() => {
+                          sections.addToState(section.id, selectedState);
+                          setImporterOpen(false);
+                        }}
                       >
                         {section.ordering}. {section.asset}
                       </DropdownMenuItem>
@@ -188,14 +192,13 @@ const Sections = () => {
           </DropdownMenu>
         ) : null}
         <Button
-          variant="ghost"
-          className="m-0 px-2 py-0"
-          title="Add"
+          className="flex-1 "
+          title="Add Section"
           onClick={() =>
             sections.generateSection(selectedState, assert(projectId))
           }
         >
-          <PlusCircle className="m-0 size-4 p-0" />
+          Add Section
         </Button>
       </div>
     </section>

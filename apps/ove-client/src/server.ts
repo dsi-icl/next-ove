@@ -4,8 +4,9 @@ import cors from "cors";
 import * as path from "path";
 import express from "express";
 import { appRouter } from "./server/router";
-import { createContext } from "./server/context";
+import promBundle from "express-prom-bundle";
 import * as swaggerUi from "swagger-ui-express";
+import { createContext } from "./server/context";
 import { init } from "./server/hardware/controller";
 import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
@@ -24,6 +25,11 @@ import * as http from "node:http";
 import * as https from "node:https";
 import { readFileSync } from "fs";
 
+const metricsMiddleware = promBundle({
+  includeMethod: true,
+  metricsPath: "/metrics",
+});
+
 export const start = () => {
   const app = express();
   init(
@@ -35,6 +41,7 @@ export const start = () => {
     triggerIPC
   );
 
+  app.use(metricsMiddleware);
   app.use(cors({ origin: "*" }));
 
   app.use(

@@ -4,6 +4,7 @@ import type { TActions } from "../hooks/dialog";
 import { DialogTrigger } from "@ove/ui-base-components";
 import { useProjectId, useSave } from "../hooks/projects";
 import React, { type ReactNode, useCallback } from "react";
+import { toast } from "sonner";
 
 type Icon = {
   icon: ReactNode;
@@ -51,6 +52,28 @@ const icons: Icon[] = [
   },
 ];
 
+type ActionButtonProps = {
+  icon: Icon;
+  onClick: () => void;
+};
+
+const ActionButton = ({ icon, onClick }: ActionButtonProps) => {
+  const baseProps = {
+    onClick,
+    style: { backgroundColor: icon.color },
+    className: "rounded-[50%] p-3 text-white",
+    title: icon.title,
+  };
+
+  return icon.action === null ? (
+    <button type="button" {...baseProps}>
+      {icon.icon}
+    </button>
+  ) : (
+    <DialogTrigger {...baseProps}>{icon.icon}</DialogTrigger>
+  );
+};
+
 type ActionsProps = {
   setAction: (action: TActions | null) => void;
 };
@@ -61,6 +84,14 @@ const Actions = ({ setAction }: ActionsProps) => {
 
   const handler = useCallback(
     (action: TActions | null) => {
+      if ((action === "controller" || 
+          action === "env" || 
+          action === "upload") &&
+          projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH) {
+        toast.error("Please save the project before performing this action.");
+        return;
+      }
+
       if (action === null) {
         save().catch(logger.error);
         return;
@@ -76,20 +107,10 @@ const Actions = ({ setAction }: ActionsProps) => {
       <div className="flex h-[calc(100%-2rem)] flex-col justify-around">
         {icons.map((icon) => (
           <div className="flex place-items-center" key={icon.title}>
-            <DialogTrigger
+            <ActionButton
+              icon={icon}
               onClick={() => handler(icon.action)}
-              disabled={
-                (icon.action === "controller" ||
-                  icon.action === "env" ||
-                  icon.action === "upload") &&
-                projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH
-              }
-              style={{ backgroundColor: icon.color }}
-              className="rounded-[50%] p-3 text-white"
-              title={icon.title}
-            >
-              {icon.icon}
-            </DialogTrigger>
+            />
           </div>
         ))}
       </div>

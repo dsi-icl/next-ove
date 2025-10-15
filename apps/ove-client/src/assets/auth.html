@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'sha256-8oiyULtdMSfJny32CbJsmITPdG2hOnOIUJBQZyX2dx8='; style-src 'self' 'sha256-IW71INAexS8V1Su3vgcWHyvB5wtj+63RO+YdIK4bqmw=';"
+    content="default-src 'self'; script-src 'self' 'sha256-750kHzxjAw1klxcQyFsRoDU+ouhgUN2fNH1yx4C5Mhg='; style-src 'self' 'sha256-i/lrp0GqP7e8s256a2eJuQ1/PhLDnNNhp67yJonWCjk=';"
   />
   <title>Login</title>
   <style>
@@ -38,8 +38,13 @@
 
       /* Set core body defaults */
       body {
+          width: 100vw;
           min-height: 100vh;
           line-height: 1.5;
+          display: flex;
+          margin: 0;
+          padding: 0;
+          align-items: center;
       }
 
       /* Set shorter line heights on headings and interactive elements */
@@ -86,8 +91,7 @@
 
       #pin {
           width: 100vw;
-          height: 100vh;
-          text-align: justify;
+          text-align: center;
           margin: 0;
           padding: 0;
           font-size: min(calc(100vw / 4), 100vh);

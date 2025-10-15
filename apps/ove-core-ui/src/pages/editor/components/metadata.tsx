@@ -137,6 +137,7 @@ const Metadata = () => {
   const tagRef = useRef<HTMLDivElement | null>(null);
   const publicationRef = useRef<HTMLDivElement | null>(null);
   const collaboratorRef = useRef<HTMLDivElement | null>(null);
+  const closeRef = useRef<HTMLButtonElement | null>(null);
 
   const onSubmit = (data: MetadataForm) => {
     setProject((cur) => ({
@@ -156,6 +157,8 @@ const Metadata = () => {
           ? null
           : toURL(assert(project.bucket), data.fileName, data.fileVersion),
     }));
+
+    closeRef.current?.click();
   };
 
   return (
@@ -182,7 +185,7 @@ const Metadata = () => {
             )}
           />
           <FormField
-            name="title"
+            name="description"
             control={form.control}
             render={({ field }) => (
               <FormItem className="mt-4">
@@ -612,11 +615,10 @@ const Metadata = () => {
             )}
           />
           <div className="ml-auto mt-4 flex justify-items-center">
-            <DialogClose asChild>
               <Button variant="default" type="submit">
                 UPDATE
               </Button>
-            </DialogClose>
+            <DialogClose ref={closeRef} />
           </div>
         </form>
       </Form>

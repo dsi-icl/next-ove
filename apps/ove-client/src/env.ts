@@ -29,6 +29,9 @@ const schema = z.strictObject({
       }),
     ]),
   }),
+  EXTENSIONS: z.strictObject({
+    SYNC: z.string().optional(),
+  }).optional(),
   AUTH: z.strictObject({
     STORED_CREDENTIALS: z.string().optional(),
     ERROR_LIMIT: z.number(),

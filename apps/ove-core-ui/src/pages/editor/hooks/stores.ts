@@ -2,11 +2,15 @@ import { env } from "../../../env";
 import { create } from "zustand/index";
 import type { Section } from ".prisma/client";
 
+type PreviewPos = { id: string; xPct: number; yPct: number } | null;
+
 type SectionStore = {
   sections: Section[]
   setSections: (arg: ((sections: Section[]) => Section[]) | Section[]) => void
   selectedSection: string | null
   setSelectedSection: (selectedSection: string | null) => void
+  previewPos: PreviewPos
+  setPreviewPos: (previewPos: PreviewPos) => void
 }
 
 const order = (sections: Section[]) =>
@@ -17,6 +21,8 @@ export const useSectionStore = create<SectionStore>(set => ({
   setSections: arg => set(state => Array.isArray(arg) ? { sections: order(arg) } : { sections: order(arg(state.sections)) }),
   selectedSection: null,
   setSelectedSection: selectedSection => set({ selectedSection }),
+  previewPos: null,
+  setPreviewPos: previewPos => set({ previewPos })
 }));
 
 type StateStore = {
@@ -24,6 +30,7 @@ type StateStore = {
   setSelectedState: (selectedState: string) => void
   states: string[]
   setStates: (arg: ((customStates: string[]) => string[]) | string[]) => void
+  nextIndex: number
   addState: () => void
   updateState: (oldState: string, newState: string) => void
   removeState: (state: string) => void
@@ -34,16 +41,18 @@ export const useStateStore = create<StateStore>(set => ({
   setSelectedState: selectedState => set({ selectedState }),
   states: [env.CONSTANTS.DEFAULT_STATE],
   setStates: arg => set(state => Array.isArray(arg) ? { states: arg } : { states: arg(state.states) }),
+  nextIndex: 1,
   addState: () => set(state => ({
-    selectedState: `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`,
-    customStates: [...state.states, `${env.CONSTANTS.NEW_STATE_PREFIX}${state.states.length}`],
+    selectedState: `${env.CONSTANTS.NEW_STATE_PREFIX}${state.nextIndex}`,
+    states: [...state.states, `${env.CONSTANTS.NEW_STATE_PREFIX}${state.nextIndex}`],
+    nextIndex: state.nextIndex + 1,
   })),
   updateState: (oldState: string, newState: string) => set(state => ({
     selectedState: newState,
-    customStates: state.states.map(c => c === oldState ? newState : c)
+    states: state.states.map(c => c === oldState ? newState : c)
   })),
   removeState: (state: string) => set(store => ({
-    customStates: store.states.filter(c => c !== state),
+    states: store.states.filter(c => c !== state),
     selectedState: env.CONSTANTS.DEFAULT_STATE,
   }))
 }));

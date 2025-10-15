@@ -6,7 +6,7 @@ import {
   useFiles,
 } from "../hooks/files";
 import { z } from "zod";
-import { type Control, useForm, type UseFormSetValue } from "react-hook-form";
+import { type Control, useForm, type UseFormSetValue, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Button,
@@ -109,6 +109,24 @@ const SectionConfigFormSchema = z.strictObject({
   columnTo: z.number(),
   dataType: z.string(),
   asset: z.string(),
+}).superRefine((v, ctx) => {
+  if (v.width < 1) ctx.addIssue({ path: ["width"], code: z.ZodIssueCode.custom, message: "Width must be > 0" });
+  if (v.height < 1) ctx.addIssue({ path: ["height"], code: z.ZodIssueCode.custom, message: "Height must be > 0" });
+  if (v.x < 0 || v.y < 0 || v.x > 100 || v.y > 100) {
+    ctx.addIssue({ path: ["x"], code: z.ZodIssueCode.custom, message: "x/y must be in [0, 100]" });
+  }
+  if (v.x + v.width > 100) {
+    ctx.addIssue({ path: ["width"], code: z.ZodIssueCode.custom, message: "x + width must be ≤ 100" });
+  }
+  if (v.y + v.height > 100) {
+    ctx.addIssue({ path: ["height"], code: z.ZodIssueCode.custom, message: "y + height must be ≤ 100" });
+  }
+  if (v.rowFrom >= v.rowTo) {
+    ctx.addIssue({ path: ["rowTo"], code: z.ZodIssueCode.custom, message: "rowTo must be > rowFrom" });
+  }
+  if (v.columnFrom >= v.columnTo) {
+    ctx.addIssue({ path: ["columnTo"], code: z.ZodIssueCode.custom, message: "columnTo must be > columnFrom" });
+  }
 });
 
 type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>;
@@ -119,6 +137,7 @@ const SectionConfig = () => {
   const { getSections } = useSections();
   const sections = useMemo(() => getSections(state), [state, getSections]);
   const selected = useSectionStore((state) => state.selectedSection);
+  const preview = useSectionStore((state) => state.previewPos);
   const cells = useCells();
   const updateSection = useUpdateSection();
   const { bounds } = useObservatory();
@@ -185,6 +204,14 @@ const SectionConfig = () => {
     form,
     ordinary,
   ]);
+
+  useEffect(() => {
+    if (!preview) return;
+    if (preview.id !== selected) return;
+
+    setValue("x", preview.xPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("y", preview.yPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+  }, [preview, selected, setValue]);
 
   const onSubmit = (section: SectionConfigForm) => {
     if (mode === "grid" && (bounds === null || cells === null)) {
@@ -263,6 +290,8 @@ const SectionConfig = () => {
     setValue("asset", toURL(bn, fn, fv));
   }, [fileName, setValue, fileVersion, ordinary]);
 
+  const isDisabled = section === null;
+
   return (
     <section className="h-full px-4">
       <h2 className="mt-2 w-full text-center text-base font-bold">
@@ -280,9 +309,10 @@ const SectionConfig = () => {
               space={bounds}
               setValue={setValue}
               control={form.control}
+              isDisabled={isDisabled}
             />
           </div>
-          <fieldset className="flex w-[66%] flex-col">
+          <fieldset className="flex w-[66%] flex-col" disabled={isDisabled}>
             <FormField
               control={form.control}
               name="asset"
@@ -299,6 +329,7 @@ const SectionConfig = () => {
               control={form.control}
               fileName={fileName}
               files={ordinary}
+              disabled={isDisabled}
             />
             <FormField
               control={form.control}
@@ -308,7 +339,8 @@ const SectionConfig = () => {
                   <FormLabel className="font-semibold">Data Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
+                    disabled={isDisabled}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -346,13 +378,24 @@ const Geometry = ({
   setMode,
   setValue,
   space,
+  isDisabled
 }: {
   mode: "custom" | "grid";
   setMode: (mode: "custom" | "grid") => void;
   setValue: UseFormSetValue<SectionConfigForm>;
   space: Observatory | null;
   control: Control<SectionConfigForm>;
+  isDisabled: boolean;
 }) => {
+  const [x, y, width, height, rowFrom, rowTo, columnFrom, columnTo] = useWatch({ 
+    control, name: ["x", "y", "width", "height", "rowFrom", "rowTo", "columnFrom", "columnTo"] 
+  });
+
+  const maxRowFrom = rowTo <= 0 ? 0 : rowTo - 1
+  const minRowTo = (space?.rows && rowFrom >= space.rows) ? rowFrom : (rowFrom ?? -1) + 1
+  const maxColFrom = columnTo <= 0 ? 0 : columnTo - 1
+  const minColTo = (space?.columns && columnFrom >= space.columns) ? columnFrom : (columnFrom ?? -1) + 1
+
   const fullscreen = () => {
     setValue("x", 0);
     setValue("y", 0);
@@ -373,6 +416,7 @@ const Geometry = ({
             type="button"
             variant={mode === "custom" ? "default" : "outline"}
             onClick={() => setMode("custom")}
+            disabled={isDisabled}
           >
             <Brush className="mr-1" /> Custom
           </Button>
@@ -381,17 +425,19 @@ const Geometry = ({
             variant={mode === "grid" ? "default" : "outline"}
             type="button"
             onClick={() => setMode("grid")}
+            disabled={isDisabled}
           >
             <Grid className="mr-1" /> Grid
           </Button>
         </div>
-        <Button className="mt-2" type="button" onClick={fullscreen}>
+        <Button className="mt-2" type="button" onClick={fullscreen} disabled={isDisabled}>
           <Fullscreen className="mr-1" /> Maximise
         </Button>
       </div>
       <fieldset
         className="grid w-full grid-cols-[1fr,1fr] gap-x-6 p-0"
         style={mode === "custom" ? undefined : { display: "none" }}
+        disabled={isDisabled}
       >
         <FormField
           control={control}
@@ -399,12 +445,12 @@ const Geometry = ({
           render={({ field }) => (
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">x</FormLabel>
-              <FormControl className="w-full">
-                <div className="relative flex w-full">
-                  <Input {...field} type="number" className="relative pr-5" />
-                  <span className="absolute right-1 top-2">%</span>
-                </div>
-              </FormControl>
+              <div className="relative flex w-full">
+                <FormControl className="w-full">
+                  <Input {...field} type="number" className="relative pr-5" step="any" min={0} max={100 - (width ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                </FormControl>
+                <span className="absolute right-1 top-2">%</span>
+              </div>
             </FormItem>
           )}
         />
@@ -414,12 +460,12 @@ const Geometry = ({
           render={({ field }) => (
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">y</FormLabel>
-              <FormControl className="w-full">
-                <div className="relative flex w-full items-center">
-                  <Input {...field} type="number" className="relative pr-5" />
-                  <span className="absolute right-1 top-2">%</span>
-                </div>
-              </FormControl>
+              <div className="relative flex w-full items-center">
+                <FormControl className="w-full">
+                  <Input {...field} type="number" className="relative pr-5" step="any" min={0} max={100 - (height ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                </FormControl>
+                <span className="absolute right-1 top-2">%</span>
+              </div>
             </FormItem>
           )}
         />
@@ -429,12 +475,12 @@ const Geometry = ({
           render={({ field }) => (
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">Width</FormLabel>
-              <FormControl className="w-full">
-                <div className="relative flex w-full items-center">
-                  <Input {...field} type="number" className="relative pr-5" />
-                  <span className="absolute right-1 top-2">%</span>
-                </div>
-              </FormControl>
+              <div className="relative flex w-full items-center">
+                <FormControl className="w-full">
+                  <Input {...field} type="number" className="relative pr-5" step="any" min={1}  max={100 - (x ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                </FormControl>
+                <span className="absolute right-1 top-2">%</span>
+              </div>
             </FormItem>
           )}
         />
@@ -444,12 +490,12 @@ const Geometry = ({
           render={({ field }) => (
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">Height</FormLabel>
-              <FormControl className="w-full">
-                <div className="relative flex w-full items-center">
-                  <Input {...field} type="number" className="relative pr-5" />
-                  <span className="absolute right-1 top-2">%</span>
-                </div>
-              </FormControl>
+              <div className="relative flex w-full items-center">
+                <FormControl className="w-full">
+                  <Input {...field} type="number" className="relative pr-5" step="any" min={1}  max={100 - (y ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                </FormControl>
+                <span className="absolute right-1 top-2">%</span>
+              </div>
             </FormItem>
           )}
         />
@@ -465,7 +511,7 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">From Row</FormLabel>
               <FormControl>
-                <Input {...field} type="number" />
+                <Input {...field} type="number" min={0} max={maxRowFrom} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
               </FormControl>
             </FormItem>
           )}
@@ -477,7 +523,7 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">To Row</FormLabel>
               <FormControl>
-                <Input {...field} type="number" />
+                <Input {...field} type="number" min={minRowTo} max={space?.rows ?? 0} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
               </FormControl>
             </FormItem>
           )}
@@ -489,7 +535,7 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">From Column</FormLabel>
               <FormControl>
-                <Input {...field} type="number" />
+                <Input {...field} type="number" min={0} max={maxColFrom} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
               </FormControl>
             </FormItem>
           )}
@@ -501,7 +547,7 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">To Column</FormLabel>
               <FormControl>
-                <Input {...field} type="number" />
+                <Input {...field} type="number" min={minColTo} max={space?.columns ?? 0} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
               </FormControl>
             </FormItem>
           )}

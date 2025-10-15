@@ -31,14 +31,14 @@ const ObservatoryConfig = () => {
   const ref = useRef<HTMLFormElement | null>(null);
   const form = useForm<SpaceConfigForm>({
     defaultValues: {
-      observatory: observatory.id ?? undefined,
+      observatory: observatory.id ?? "",
     },
     resolver: zodResolver(SpaceConfigFormSchema),
   });
   useFormErrorHandling(form.formState.errors);
 
   useEffect(() => {
-    form.setValue("observatory", observatory.id ?? undefined);
+    form.setValue("observatory", observatory.id ?? "");
   }, [form, observatory]);
 
   const onSubmit = (data: SpaceConfigForm) => {
