@@ -44,7 +44,6 @@ export const startReconciliation = () => {
   logger.info("Starting reconciliation");
 
   if (interval !== null) throw new Error("Reconciliation already in progress");
-  service.init();
   interval = setInterval(reconcile, env.RECONCILIATION.TIMEOUT);
 };
 
