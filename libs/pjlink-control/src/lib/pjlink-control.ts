@@ -8,7 +8,7 @@ import { z } from "zod";
 
 type PJLinkState = {
   settings: {
-    ip: string
+    host: string
     port: number
     password: string | null,
     timeout: number
@@ -60,7 +60,7 @@ const init = (
 ): PJLinkState => {
   return {
     settings: {
-      ip: device?.ip ?? "192.168.1.1",
+      host: device?.host ?? "192.168.1.1",
       port: device?.port ?? 4352,
       password: password ?? null,
       timeout: timeout
@@ -160,7 +160,7 @@ const onData = (state: PJLinkState) => (buffer: Buffer) => {
 
 const connect = (state: PJLinkState, ac?: AbortController) => {
   state._connection = net.connect({
-    host: state.settings.ip,
+    host: state.settings.host,
     port: state.settings.port,
     signal: ac?.signal,
     timeout: state.settings.timeout,

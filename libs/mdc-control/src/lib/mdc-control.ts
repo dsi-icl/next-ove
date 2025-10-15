@@ -36,7 +36,7 @@ type MDCSourceVal = MDCSource[keyof MDCSource];
 type CommandArgs = {
   ac?: AbortController
   id: number
-  ip: string
+  host: string
   port?: number
   timeout: number
 }
@@ -74,7 +74,7 @@ const sendCommand = (
     socket.end(() => resolve(raise("TIMEOUT")));
   }, cmdArgs.timeout);
 
-  socket.connect(cmdArgs.port ?? MDC_PORT, cmdArgs.ip, () => {
+  socket.connect(cmdArgs.port ?? MDC_PORT, cmdArgs.host, () => {
     const command = [0xAA, commandId, cmdArgs.id, args.length].concat(args);
     const checksum = command.slice(1).reduce((acc, x) => acc + x, 0) % 256;
     command.push(checksum);

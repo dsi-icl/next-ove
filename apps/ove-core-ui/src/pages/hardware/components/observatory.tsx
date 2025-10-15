@@ -10,11 +10,11 @@ import { logger } from "../../../env";
 import Actions from "./actions/actions";
 import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
-import { assert } from "@ove/ove-utils";
 import { api } from "../../../utils/api";
 import { columns, type FilterValue } from "./columns";
 import { cn } from "@ove/ui-base-components";
 import Container from "./container";
+import { assert, buildDeviceURL } from "@ove/ove-utils";
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T;
@@ -98,27 +98,22 @@ const Status = ({
 };
 
 const getData = (bridgeId: string, devices: Device[]) =>
-  devices.map((device) => {
-    const deviceProtocol =
-      device.protocol === undefined ? "" : `${device.protocol}://`;
-    const devicePort = device.port === undefined ? "" : `:${device.port}`;
-    return {
-      protocol: device.type,
-      id: device.id,
-      hostname: `${deviceProtocol}${device.ip}${devicePort}`,
-      mac: device.mac,
-      tags: device.tags,
-      status: <Status deviceId={device.id} bridgeId={bridgeId} />,
-      actions: (
-        <Actions
-          devices={devices}
-          device={device}
-          tag={undefined}
-          bridgeId={bridgeId}
-        />
-      ),
-    };
-  });
+  devices.map((device) => ({
+    protocol: device.type,
+    id: device.id,
+    hostname: buildDeviceURL(device),
+    mac: device.mac,
+    tags: device.tags,
+    status: <Status deviceId={device.id} bridgeId={bridgeId} />,
+    actions: (
+      <Actions
+        devices={devices}
+        device={device}
+        tag={undefined}
+        bridgeId={bridgeId}
+      />
+    ),
+  }));
 
 const Observatory = ({
   name,

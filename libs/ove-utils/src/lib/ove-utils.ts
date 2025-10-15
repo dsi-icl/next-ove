@@ -3,7 +3,7 @@
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import type { TLogger } from "@ove/ove-logging";
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import type { OVEException } from "@ove/ove-types";
+import type { Device, OVEException } from "@ove/ove-types";
 
 export const replaceAll = (s: string, xs: string[]): string => {
   const replaceFn = (match: string) => xs[parseInt(match.substring(1)) - 1];
@@ -102,3 +102,10 @@ export const generateUUID = () => "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace
     return v.toString(16);
   }
 );
+
+export const buildDeviceURL = (device: Device) => {
+  const protocol = device.protocol !== undefined ? `${device.protocol}://` : "";
+  const hostname = device.host;
+  const port = device.port !== undefined ? `:${device.port}` : "";
+  return `${protocol}${hostname}${port}`;
+};
