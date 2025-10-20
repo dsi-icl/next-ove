@@ -211,37 +211,8 @@ export const useData = (file: TFile) => {
     }
   };
 
-  const isEffectivelyEmpty = (name: string, text: string) => {
-    const t = (text ?? "").trim();
-
-    if (t.length === 0) return true;
-
-    if (name === "env.json") {
-      try {
-        const v = JSON.parse(t);
-        if (v === null) return true;
-        if (Array.isArray(v) && v.length === 0) return true;
-        if (typeof v === "object" && v && Object.keys(v).length === 0) return true;
-        if (typeof v === "string" && v.trim() === "") return true;
-      } catch {
-        if (t === "{}" || t === "[]" || /^""$/.test(t)) return true;
-      }
-      return false;
-    }
-
-    if (name === "control.html") {
-      const noComments = t.replace(/<!--[\s\S]*?-->/g, "");
-      const textOnly = noComments.replace(/<[^>]*>/g, "").trim();
-      return textOnly.length === 0;
-    }
-
-    return false;
-  };
-
   if (getData.status === "success" && typeof getData.data === "string") {
-    const text = getData.data;
-    // return isEffectivelyEmpty(file.name, text) ? exampleFor(file.name) : text;
-    return text
+    return getData.data
   }
 
   if (getData.status === "error") {

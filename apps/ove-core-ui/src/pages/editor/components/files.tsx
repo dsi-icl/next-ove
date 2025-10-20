@@ -15,19 +15,14 @@ const FileEditorContainer = ({
     () => (file?.name?.split(".")?.at(-1) ?? "markdown") as Language,
     [file?.name],
   );
-  const data = useData(
-    file ?? {
-      bucketName: "ERROR",
-      name: "ERROR",
-      isGlobal: false,
-      isLatest: false,
-      version: "ERROR",
-    },
-  );
+  const data = file ? useData(file) : null;
 
-  return data !== null ? (
-    <FileEditor file={{ data, language }} close={close} />
-  ) : null;
+  return (
+    <FileEditor
+      file={file ? { data: data ?? "", language } : null}
+      close={close}
+    />
+  );
 };
 
 const Files = () => {
