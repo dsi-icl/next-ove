@@ -440,7 +440,7 @@ const getS3Version = async (
     .filter((file) => file.name === objectName)
     .sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime());
   const idx =
-    versionId === "latest" ? -1 : parseInt(versionId.substring(1)) - 1;
+    versionId === "latest" ? -1 : parseInt(versionId.substring(1));
   return assert(files.at(idx)).versionId;
 };
 

@@ -49,12 +49,10 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
   );
 
   return (
-    <li className="mt-2 flex max-h-[30vh] w-full items-center justify-between overflow-y-scroll rounded-lg border border-gray-100 bg-white p-4 shadow">
-      <div className="flex items-center space-x-4">
-        <div>
-          <p className="overflow-hidden text-ellipsis text-nowrap font-medium text-black">
-            {file.name}
-          </p>
+    <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
+      <div className="flex min-w-0 items-center space-x-4">
+        <div className="max-w-[40vw] overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <p className="font-medium text-black">{file.name}</p>
         </div>
       </div>
       <div className="flex items-center space-x-2">
@@ -68,6 +66,7 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
             <Gear className="size-4" />
           </Button>
         ) : null}
+        <Button>Edit</Button>
         <Select
           // @ts-expect-error - read only prop not recognized
           readOnly={true}
@@ -138,7 +137,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
       toast.error("No file selected");
       return;
     }
-    await uploadFile({ objectName: selected.name, file: selected });
+    await uploadFile({ objectName: selected.name, file: selected, intent: "auto" });
     
     form.reset();
     setFileInputKey(k => k + 1); 

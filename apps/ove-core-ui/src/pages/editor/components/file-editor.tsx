@@ -111,6 +111,7 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
     const ok = await uploadFile({
       objectName: fullName,
       file: new File([data], fullName, { type: "text/plain" }),
+      intent: "create"
     });
     if (ok) close();
   };
