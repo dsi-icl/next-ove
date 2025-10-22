@@ -59,7 +59,7 @@ const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (f
 
   return (
     <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
-      <div className="flex min-w-0 items-center space-x-4">
+      <div className="flex min-w-0 items-center space-x-4 mr-2">
         <div className="max-w-[40vw] overflow-x-auto whitespace-nowrap scrollbar-hide">
           <p className="font-medium text-black">{file.name}</p>
         </div>
