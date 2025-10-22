@@ -19,7 +19,7 @@ const FileEditorContainer = ({
 
   return (
     <FileEditor
-      file={file ? { data: data ?? "", language } : null}
+      file={file ? { data: data ?? "", language, name: file.name } : null}
       close={close}
     />
   );

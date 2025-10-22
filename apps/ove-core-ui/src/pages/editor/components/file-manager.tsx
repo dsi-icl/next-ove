@@ -32,7 +32,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
 import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";
 
-const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
+const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (file: FileT | null) => void }) => {
+  const latestFile = getLatest(files, file.bucketName, file.name);
   const isImage = file.name.match(env.CONSTANTS.IMAGE_EXTENSION_REGEX) !== null;
   const processImage = api.projects.formatDZI.useMutation({ retry: false });
   const process = useCallback(
@@ -41,12 +42,20 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
         .mutateAsync({
           bucketName: file.bucketName,
           objectName: file.name,
-          versionId: getLatest(files, file.bucketName, file.name).version,
+          versionId: latestFile.version,
         })
         .then(() => toast.success(`Converted ${file.name} to DZI`))
         .catch(() => toast.error(`Error converting ${file.name} to DZI`)),
     [processImage, files, file.name, file.bucketName],
   );
+
+  const canEdit = (name: string) => {
+    const editableExtensions = [
+      "css", "csv", "html", "json", "md", "markdown", "tex", "tsv"
+    ];
+    const ext = name.split(".").pop()?.toLowerCase() ?? "";
+    return editableExtensions.includes(ext);
+  }
 
   return (
     <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
@@ -66,11 +75,11 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
             <Gear className="size-4" />
           </Button>
         ) : null}
-        <Button>Edit</Button>
+        {canEdit(latestFile.name) && (<Button onClick={() => edit(latestFile)}>Edit</Button>)}
         <Select
           // @ts-expect-error - read only prop not recognized
           readOnly={true}
-          value={getLatest(files, file.bucketName, file.name).version}
+          value={latestFile.version}
         >
           <SelectTrigger className="text-black">
             <SelectValue />
@@ -161,6 +170,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
                 key={toURL(file.bucketName, file.name, file.version)}
                 file={file}
                 files={files}
+                edit={edit}
               />
             ))}
           </div>
