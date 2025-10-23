@@ -87,11 +87,9 @@ const Sections = () => {
           style={{}}
         >
           {sectionsInState.map((section) => {
-            const backgroundColor = assert(
-              dataTypes.find(
-                ({ name }) => name === section.dataType.toLowerCase(),
-              ),
-            ).color;
+            const backgroundColor =
+              dataTypes.find(({ name }) => name === (section.dataType ?? "").toLowerCase())
+                ?.color ?? "#888888";
             return (
               <ReorderableItem key={section.id}>
                 <li

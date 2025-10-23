@@ -101,9 +101,10 @@ function drawObservatory(
     );
 
   sectionG.select("rect")
-    .style("fill", d =>
-      assert(dataTypes.find(({ name }) => name === d.dataType.toLowerCase()))!.color
-    )
+    .style("fill", d => 
+      dataTypes.find(({ name }) => name === (d.dataType ?? "").toLowerCase())?.color 
+      ?? "#888888"
+    );
 
   sectionG.each(function (d) {
     const g = d3.select(this);
