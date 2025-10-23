@@ -49,6 +49,14 @@ const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (f
     [processImage, files, file.name, file.bucketName],
   );
 
+  const copyUrl = useCallback(async (version: string) => {
+      const url = toURL(file.bucketName, file.name, version);
+      await navigator.clipboard.writeText(url);
+      toast.success(`Copied internal URL for ${file.name} (${version})`);
+    },
+    [file.bucketName, file.name],
+  );
+
   const canEdit = (name: string) => {
     const editableExtensions = [
       "css", "csv", "html", "json", "md", "markdown", "tex", "tsv"
@@ -77,11 +85,10 @@ const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (f
         ) : null}
         {canEdit(latestFile.name) && (<Button onClick={() => edit(latestFile)}>Edit</Button>)}
         <Select
-          // @ts-expect-error - read only prop not recognized
-          readOnly={true}
           value={latestFile.version}
+          onValueChange={(version) => copyUrl(version)}
         >
-          <SelectTrigger className="text-black">
+          <SelectTrigger className="text-black" title="Click a version to copy its URL">
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -89,14 +96,8 @@ const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (f
               .filter(
                 (f) => f.name === file.name && f.bucketName === file.bucketName,
               )
-              .map(({ version }) => version)
-              .map((version) => (
-                <SelectItem
-                  className="w-fit"
-                  value={version}
-                  key={version}
-                  disabled={true}
-                >
+              .map(({ version }) => (
+                <SelectItem className="w-fit" key={version} value={version}>
                   {version}
                 </SelectItem>
               ))}
