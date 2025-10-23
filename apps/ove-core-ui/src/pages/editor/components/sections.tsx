@@ -22,6 +22,7 @@ import { useProjectId } from "../hooks/projects";
 import { Import, PlusCircle, X } from "lucide-react";
 import { formatState, useStates } from "../hooks/states";
 import { ReorderableItem, ReorderableList } from "@ove/ui-base-components";
+import { useObservatory } from "../../../hooks/observatories";
 
 const setSectionsHandler = (curList: Section[], newList: Section[]) => {
   const newListOldOrder = Json.copy(newList).sort(
@@ -70,6 +71,8 @@ const Sections = () => {
     () => states.filter((s) => s !== selectedState),
     [states, selectedState],
   );
+
+  const observatoryId = useObservatory().id;
 
   return (
     <section className="h-full grid grid-rows-[auto,1fr,auto]">
@@ -192,6 +195,7 @@ const Sections = () => {
         <Button
           className="flex-1 "
           title="Add Section"
+          disabled={!observatoryId}
           onClick={() =>
             sections.generateSection(selectedState, assert(projectId))
           }
