@@ -36,18 +36,26 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 import { Bounds, type DataType, dataTypes, type File } from "@ove/ove-types";
 
-const getDataTypeFromFile = (file: File) => {
-  for (const dt of dataTypes) {
-    if (
-      dt.extensions.some((extension) =>
-        file.name.toLowerCase().endsWith(extension.toLowerCase()),
-      )
-    ) {
-      return dt.name;
+const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
+  if (!asset) return null;
+
+  try {
+    const file = fromURL(ordinary, asset);
+    const url = new URL(asset, typeof window !== "undefined" ? window.location.origin : "https://dummy.base");
+    const path = (file ? file.name : url.pathname).toLowerCase();
+
+    for (const dt of dataTypes) {
+      if (dt.extensions.some(ext => path.endsWith(ext.toLowerCase()))) {
+        return dt.name;
+      }
     }
+  } catch {
+    // not a valid URL; fall through and return null
   }
+
   return null;
 };
+
 
 const sort = (k: keyof DataType, a: DataType, b: DataType) => {
   if (a[k] > b[k]) return 1;
@@ -269,9 +277,7 @@ const SectionConfig = () => {
         "fileName",
         file === null ? "" : `${file.bucketName}/${file.name}`,
       );
-      if (file !== null) {
-        setValue("dataType", getDataTypeFromFile(file) ?? "");
-      }
+      setValue("dataType", detectDataType(asset, ordinary) ?? "");
     },
     [setValue, ordinary],
   );
@@ -291,6 +297,11 @@ const SectionConfig = () => {
   }, [fileName, setValue, fileVersion, ordinary]);
 
   const isDisabled = section === null;
+  const detectedDataType = detectDataType(watch("asset"), ordinary);
+  const shouldSelectDataType = (
+    !detectedDataType && form.watch("asset") !== '') || 
+    (form.watch("dataType") && form.watch("dataType") !== detectedDataType
+  );
 
   return (
     <section className="h-full px-4">
@@ -331,6 +342,7 @@ const SectionConfig = () => {
               files={ordinary}
               disabled={isDisabled}
             />
+            {shouldSelectDataType && (
             <FormField
               control={form.control}
               name="dataType"
@@ -360,6 +372,7 @@ const SectionConfig = () => {
                 </FormItem>
               )}
             />
+            )}
             <div className="mt-2 flex w-full flex-col">
               <Button variant="default" className="w-full" type="submit">
                 UPDATE
