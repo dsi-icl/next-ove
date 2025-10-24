@@ -7,6 +7,7 @@ import LiveFeed from "./live-feed";
 import PowerMode from "./power-mode";
 import PowerControls from "./power-controls";
 import Reconciliation from "./reconciliation";
+import AutoSchedule from "./auto-schedule";
 
 type ToolbarProps = HardwareControlsProps;
 
@@ -23,6 +24,7 @@ const Toolbar = ({
     <Reconciliation bridgeId={bridgeId} />
     <LiveFeed bridgeId={bridgeId} />
     <Calendar bridgeId={bridgeId} />
+    <AutoSchedule bridgeId={bridgeId} />
     <PowerMode bridgeId={bridgeId} />
     <HardwareControls
       devices={devices}

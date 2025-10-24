@@ -32,7 +32,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
 import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";
 
-const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
+const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (file: FileT | null) => void }) => {
+  const latestFile = getLatest(files, file.bucketName, file.name);
   const isImage = file.name.match(env.CONSTANTS.IMAGE_EXTENSION_REGEX) !== null;
   const processImage = api.projects.formatDZI.useMutation({ retry: false });
   const process = useCallback(
@@ -41,20 +42,34 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
         .mutateAsync({
           bucketName: file.bucketName,
           objectName: file.name,
-          versionId: getLatest(files, file.bucketName, file.name).version,
+          versionId: latestFile.version,
         })
         .then(() => toast.success(`Converted ${file.name} to DZI`))
         .catch(() => toast.error(`Error converting ${file.name} to DZI`)),
     [processImage, files, file.name, file.bucketName],
   );
 
+  const copyUrl = useCallback(async (version: string) => {
+      const url = toURL(file.bucketName, file.name, version);
+      await navigator.clipboard.writeText(url);
+      toast.success(`Copied internal URL for ${file.name} (${version})`);
+    },
+    [file.bucketName, file.name],
+  );
+
+  const canEdit = (name: string) => {
+    const editableExtensions = [
+      "css", "csv", "html", "json", "md", "markdown", "tex", "tsv"
+    ];
+    const ext = name.split(".").pop()?.toLowerCase() ?? "";
+    return editableExtensions.includes(ext);
+  }
+
   return (
-    <li className="mt-2 flex max-h-[30vh] w-full items-center justify-between overflow-y-scroll rounded-lg border border-gray-100 bg-white p-4 shadow">
-      <div className="flex items-center space-x-4">
-        <div>
-          <p className="overflow-hidden text-ellipsis text-nowrap font-medium text-black">
-            {file.name}
-          </p>
+    <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
+      <div className="flex min-w-0 items-center space-x-4 mr-2">
+        <div className="max-w-[40vw] overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <p className="font-medium text-black">{file.name}</p>
         </div>
       </div>
       <div className="flex items-center space-x-2">
@@ -68,12 +83,12 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
             <Gear className="size-4" />
           </Button>
         ) : null}
+        {canEdit(latestFile.name) && (<Button onClick={() => edit(latestFile)}>Edit</Button>)}
         <Select
-          // @ts-expect-error - read only prop not recognized
-          readOnly={true}
-          value={getLatest(files, file.bucketName, file.name).version}
+          value={latestFile.version}
+          onValueChange={(version) => copyUrl(version)}
         >
-          <SelectTrigger className="text-black">
+          <SelectTrigger className="text-black" title="Click a version to copy its URL">
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -81,14 +96,8 @@ const FileView = ({ file, files }: { files: FileT[]; file: FileT }) => {
               .filter(
                 (f) => f.name === file.name && f.bucketName === file.bucketName,
               )
-              .map(({ version }) => version)
-              .map((version) => (
-                <SelectItem
-                  className="w-fit"
-                  value={version}
-                  key={version}
-                  disabled={true}
-                >
+              .map(({ version }) => (
+                <SelectItem className="w-fit" key={version} value={version}>
                   {version}
                 </SelectItem>
               ))}
@@ -138,7 +147,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
       toast.error("No file selected");
       return;
     }
-    await uploadFile({ objectName: selected.name, file: selected });
+    await uploadFile({ objectName: selected.name, file: selected, intent: "auto" });
     
     form.reset();
     setFileInputKey(k => k + 1); 
@@ -162,6 +171,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
                 key={toURL(file.bucketName, file.name, file.version)}
                 file={file}
                 files={files}
+                edit={edit}
               />
             ))}
           </div>

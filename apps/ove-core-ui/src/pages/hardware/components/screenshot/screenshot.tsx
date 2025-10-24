@@ -67,7 +67,7 @@ const useTakeScreenshots = (
   });
 
   if (deviceId === null) {
-    return (screens: number[], method: TransferMethod) =>
+    return (screens: string[], method: TransferMethod) =>
       takeScreenshotsAll
         .mutateAsync({
           bridgeId,
@@ -77,7 +77,7 @@ const useTakeScreenshots = (
         })
         .catch(logger.error);
   }
-  return (screens: number[], method: TransferMethod) =>
+  return (screens: string[], method: TransferMethod) =>
     takeScreenshots
       .mutateAsync({
         bridgeId,
@@ -120,17 +120,25 @@ const useDisplays = (
       const xs = getDisplayInfoAll.data.response.filter(
         ({ response }) => !isError(response),
       );
-      const lengths = xs.map(
+      const allIds = xs.map(
         ({ response }) =>
-          (
-            response as {
-              graphics: { displays: unknown[] };
-            }
-          ).graphics.displays.length,
+          new Set(
+            (
+              response as {
+                graphics: { displays: { displayId: string | null | undefined, deviceName: string | null | undefined }[] };
+              }
+            ).graphics.displays
+              ?.map(({ displayId, deviceName }) => displayId ?? deviceName)
+              ?.filter(
+                (id) => id !== null && id !== undefined,
+              ) as string[] ?? [],
+          ),
       );
-      return Array.from({ length: Math.max(...lengths) }).map((_x, i) => ({
-        value: i + 1,
-        label: `Screen ${i + 1}`,
+      return Array.from(allIds.reduce((acc, ids) => {
+        return acc.intersection(ids);
+      }, new Set<string>())).map((x) => ({
+        value: x,
+        label: `Screen ${x}`,
       }));
     } else {
       if (
@@ -140,9 +148,12 @@ const useDisplays = (
         return [];
       return (
         getDisplayInfo.data.response as {
-          graphics: { displays: unknown[] };
+          graphics: { displays: { displayId: string | null | undefined, deviceName: string | null | undefined }[] };
         }
-      ).graphics.displays.map((_x, i) => ({ value: i, label: `Screen ${i}` }));
+      ).graphics.displays?.map((x) => x.displayId ?? x.deviceName)?.filter((id) => id !== null && id !== undefined)?.map((x) => ({
+        value: x,
+        label: `Screen ${x}`,
+      })) ?? [];
     }
   }, [
     deviceId,

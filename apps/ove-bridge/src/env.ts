@@ -34,7 +34,7 @@ const schema = z.strictObject({
     .optional(),
   POWER: z.strictObject({
     MODE: PowerModeSchema,
-    SCHEDULE: AutoScheduleSchema.optional(),
+    SCHEDULE: AutoScheduleSchema,
   }),
   AUTH: z.strictObject({
     NAME: z.string(),
@@ -98,6 +98,11 @@ const defaultConfig: z.infer<typeof schema> = {
   },
   POWER: {
     MODE: "manual",
+    SCHEDULE: {
+      wake: null,
+      sleep: null,
+      schedule: [false, false, false, false, false, false, false],
+    },
   },
   HARDWARE: {
     DEVICES: [],

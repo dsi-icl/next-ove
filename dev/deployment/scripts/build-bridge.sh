@@ -99,6 +99,5 @@ else
 fi
 
 echo "Cleaning Up"
-rm -rf node_modules/bcrypt
 npm install
 ./dev/remove-optional-deps.sh

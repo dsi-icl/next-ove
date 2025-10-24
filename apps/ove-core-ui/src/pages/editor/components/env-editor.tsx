@@ -33,10 +33,14 @@ const EnvEditor = ({ projectId, bucket }: EnvEditorProps) => {
     initial,
     file: env
   } = useFileWithEdit("env.json", bucket, projectId);
-  const uploadFile = useUpload(projectId, env);
+  const uploadFile = useUpload(projectId);
 
   const save = useCallback(async () => {
-    await uploadFile(new File([data], env.name, { type: "text/plain" }));
+    await uploadFile({ 
+      objectName: env.name, 
+      file: new File([data], env.name, { type: "text/plain" }), 
+      intent: "update"
+    });
   }, [uploadFile, data, env.name]);
 
   return (
@@ -77,8 +81,8 @@ const EnvEditor = ({ projectId, bucket }: EnvEditorProps) => {
       <DialogFooter
         className="flex h-16 items-center rounded-b-xl bg-[#002147]">
         <DialogClose asChild>
-          <Button variant="outline" className="mr-4 text-black">
-            <Save className="mr-1 size-4" onClick={save} />
+          <Button variant="outline" className="mr-4 text-black" onClick={save}>
+            <Save className="mr-1 size-4"  />
             Save
           </Button>
         </DialogClose>

@@ -32,10 +32,14 @@ const ControllerEditor = ({ projectId, bucket }: ControllerEditorProps) => {
     file: controller,
     initial,
   } = useFileWithEdit("control.html", bucket, projectId);
-  const uploadFile = useUpload(projectId, controller);
+  const uploadFile = useUpload(projectId);
 
   const save = useCallback(async () => {
-    await uploadFile(new File([data], controller.name, { type: "text/plain" }));
+    await uploadFile({
+      objectName: controller.name,
+      file: new File([data], controller.name, { type: "text/plain" }),
+      intent: "update"
+    });
   }, [uploadFile, controller.name, data]);
 
   return (
@@ -72,8 +76,8 @@ const ControllerEditor = ({ projectId, bucket }: ControllerEditorProps) => {
       ) : null}
       <DialogFooter className="flex h-16 items-center rounded-b-xl bg-[#002147]">
         <DialogClose asChild>
-          <Button variant="outline" className="mr-4 text-black">
-            <Save className="mr-1 size-4" onClick={save} />
+          <Button variant="outline" className="mr-4 text-black" onClick={save}>
+            <Save className="mr-1 size-4"/>
             Save
           </Button>
         </DialogClose>

@@ -23,7 +23,7 @@ import {
 } from "@ove/ui-base-components";
 import AceEditor from "react-ace";
 import { Save, X } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { assert } from "@ove/ove-utils";
 import { useForm, Controller } from "react-hook-form";
 import { useUpload } from "../hooks/files";
@@ -41,6 +41,7 @@ import markdown from "ace-builds/src-noconflict/mode-markdown";
 
 import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
+import { toast } from "sonner";
 
 // TODO: review typecasts
 ace.config.setModuleUrl("ace/mode/json", json as unknown as string);
@@ -62,10 +63,11 @@ const LanguageSchema = z.union([
 ]);
 
 export type Language = z.infer<typeof LanguageSchema>;
+type Mode = "create" | "edit";
 
 const FormSchema = z.strictObject({
   language: LanguageSchema,
-  name: z.string().trim().min(1, "Please enter a file name"),
+  name: z.string().trim().min(1, "Missing file name"),
   data: z.string().trim().min(1, "File cannot be empty"),
 });
 
@@ -79,21 +81,35 @@ const getExtensionForLanguage = (language: Language) => {
 
 const addFileExtension = (name: string, language: Language) => {
   const extension = getExtensionForLanguage(language);
-  return `${name}${extension}`;
+  return name.endsWith(extension) ? name : `${name}${extension}`;
 };
 
 const languageToMode = (language: Language) =>
   language === "csv" || language === "tsv" ? "text" : language;
 
+
+const languageFromFilename = (name?: string): Language => {
+  const ext = (name?.split(".").pop() ?? "").trim();
+  if (ext === "md") return "markdown";
+  if (ext === "tex") return "latex";
+  return `${ext}` as Language;
+};
+
 type FileEditorProps = {
-  file: { data: string; language: Language } | null;
+  file: { data: string; language: Language; name: string } | null;
   close: () => void;
 };
 
 const FileEditor = ({ file, close }: FileEditorProps) => {
+  const mode: Mode = file ? "edit" : "create";
+
   const form = useForm<TForm>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { language: file?.language ?? "markdown", data: file?.data ?? "", name: "" },
+    defaultValues: { 
+      language: file ? languageFromFilename(file.name) : "markdown",
+      data: file?.data ?? "", 
+      name: mode === "edit" && file ? file.name.split(".").slice(0,-1).join(".") : "",
+    },
   });
   useFormErrorHandling(form.formState.errors);
   const name = form.watch("name");
@@ -102,15 +118,25 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
   const projectId = useProjectId();
   const uploadFile = useUpload(assert(projectId));
 
+  useEffect(() => {
+    if (mode === "edit" && file) {
+      form.setValue("data", file.data, { shouldDirty: false });
+      form.setValue("language", languageFromFilename(file.name), { shouldDirty: false });
+      form.setValue("name", file.name.split(".").slice(0,-1).join("."), { shouldDirty: false });
+    }
+  }, [mode, file?.data, file?.name]);
+
   const onSubmit = async ({
     name,
     data,
     language,
   }: z.infer<typeof FormSchema>) => {
-    if (name === "") return;
+    if (name === "") return toast.error("Missing file name");
+
     const ok = await uploadFile({
       objectName: fullName,
       file: new File([data], fullName, { type: "text/plain" }),
+      intent: mode === "edit" ? "update" : "create"
     });
     if (ok) close();
   };
@@ -170,7 +196,8 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
                   </VisuallyHidden>
                   <Select
                     onValueChange={(v) => field.onChange(v) }
-                    value={field.value}
+                    value={field.value as Language}
+                    disabled={mode === "edit"}
                   >
                     <FormControl>
                       <SelectTrigger className="bg-white text-black">
@@ -201,7 +228,9 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
                   <Input
                     {...field}
                     placeholder="Enter file name"
+                    value={field.value}
                     className="rounded border border-solid border-black text-black"
+                    disabled={mode === "edit"}
                   />
                 </FormItem>
               )}

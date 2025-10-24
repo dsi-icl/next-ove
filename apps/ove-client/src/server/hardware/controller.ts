@@ -57,8 +57,8 @@ const controller: TClientService = {
     screens
   }) => {
     logger.info(`POST /screenshot - taking screenshot of screens 
-    ${screens.join(", ")} via the ${method} method`);
-    return service.screenshot(method, screens);
+    ${(screens ?? []).join(", ")} via the ${method} method`);
+    return service.screenshot(method, screens ?? []);
   },
   openBrowsers: async () => {
     logger.info("POST /browser - opening browsers");

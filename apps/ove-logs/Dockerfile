@@ -17,8 +17,8 @@ COPY ../../dist/apps/ove-logs/package.json ./
 COPY ../../dist/apps/ove-logs/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.9.0  \
-    @prisma/client@6.9.0 esbuild@0.24.2 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618
+RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.17.1  \
+    @prisma/client@6.17.1 esbuild@0.24.2 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618
 
 COPY ../../tools/db ./tools/db
 COPY ../../cli ./cli
@@ -34,6 +34,7 @@ COPY ../../libs/ove-server-utils ./libs/ove-server-utils
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
+COPY ../../libs/ove-auth ./libs/ove-auth
 
 RUN pnpx nx run ove-logs:build:production
 
@@ -48,8 +49,9 @@ RUN apk add openssl
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
-ENV LOGGING_CLIENT_OUTPUT=/usr/src/app/node_modules/.prisma/logging-client
+#ENV LOGGING_CLIENT_OUTPUT=/usr/src/app/node_modules/.prisma/logging-client
 ENV LOGGING_DATABASE_URL=file:///usr/src/app/logs.db
+ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/libquery_engine-linux-musl-openssl-3.0.x.so.node
 
 COPY --from=build /usr/src/app/dist/apps/ove-logs/main.cjs ./main.cjs
 COPY --from=build /usr/src/app/node_modules/.prisma/logging-client/libquery* /usr/src

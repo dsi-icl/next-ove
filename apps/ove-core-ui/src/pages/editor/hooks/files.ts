@@ -50,19 +50,27 @@ export const useUpload = (projectId: string) => {
   const apiUtils = api.useUtils();
   const client = apiUtils.client;
 
+  type UploadIntent = "create" | "update" | "auto";
+
   const checkDuplicateName = async (objectName: string) => {
     const files = await client.projects.getFiles.query({ projectId });
     return !isError(files) && files.some(f => f.name.toLowerCase() === objectName.toLowerCase());
   };
 
-  return async ({ objectName, file }: { objectName: string; file: File }): Promise<boolean> => {
+  return async ({ objectName, file, intent="auto" }: { objectName: string; file: File; intent?: UploadIntent }): Promise<boolean> => {
     try {
       if (!objectName) { toast.error("Missing filename"); return false; }
 
-      if (await checkDuplicateName(objectName)) {
-        toast.error(`A file named "${objectName}" already exists`);
+      const isDuplicate = await checkDuplicateName(objectName);
+      if (isDuplicate && intent === "create") {
+        toast.error(`File with name "${objectName}" already exists`);
         return false;
       }
+      if (!isDuplicate && intent === "update") {
+        toast.error(`File with name "${objectName}" does not exist`);
+        return false;
+      }
+
       const data = await file.text();
       const dt = getDataType(objectName);
       const formatted = await formatFile.mutateAsync({
@@ -175,8 +183,9 @@ export const useData = (file: TFile) => {
       objectName: file.name,
       versionId: file.version,
     },
-    { enabled: env.MODE !== "development" },
+    { enabled: !!file?.name }
   );
+
   const getData = s3.getFileData.useQuery(
     {
       url:
@@ -184,13 +193,11 @@ export const useData = (file: TFile) => {
           ? ""
           : getPresigned.data,
     },
-    { enabled: getPresigned.status === "success" },
+    { enabled: getPresigned.status === "success" }
   );
 
-  if (env.MODE !== "development") {
-    return getData.data ?? null;
-  } else {
-    switch (file.name) {
+  const exampleFor = (name: string) => {
+    switch (name) {
       case "control.html":
         return `<!DOCTYPE html>
 <html lang="en">
@@ -202,8 +209,19 @@ export const useData = (file: TFile) => {
       default:
         return "";
     }
+  };
+
+  if (getData.status === "success" && typeof getData.data === "string") {
+    return getData.data
   }
+
+  if (getData.status === "error") {
+    return exampleFor(file.name);
+  }
+
+  return null;
 };
+
 
 export const useFileWithEdit = (
   name: string,

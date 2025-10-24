@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const prompt = require("prompt");
 const PrismaClient = require(".prisma/client").PrismaClient;
 

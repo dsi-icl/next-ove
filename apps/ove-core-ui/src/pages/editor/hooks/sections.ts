@@ -202,7 +202,7 @@ export const useSections = () => {
             ordering: cur.length,
             asset: "",
             assetId: null,
-            dataType: "html",
+            dataType: "",
             projectId,
             states: [state],
           },

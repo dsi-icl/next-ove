@@ -103,7 +103,7 @@ const cleanupOnError = (
 
 const screenshot = async (
   method: ScreenshotMethod,
-  screens: number[]
+  screens: string[]
 ): Promise<string[]> => {
   if (windowController.takeScreenshots === null) {
     throw new Error("Controller not initialised for managing browsers");
@@ -114,7 +114,7 @@ const screenshot = async (
 
   if (screens.length !== 0) {
     displays = displays
-      .filter(({ displayId }) => screens.includes(parseInt(displayId ?? "-1")));
+      .filter(({ displayId, deviceName }) => screens.includes(displayId ?? deviceName ?? "ERROR"));
   }
 
   if (displays.length === 0) {

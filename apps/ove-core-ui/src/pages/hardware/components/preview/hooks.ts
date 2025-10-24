@@ -68,7 +68,7 @@ export const useLiveFeed = (
           bridgeId,
           deviceId,
           method: "response",
-          screens: [parseInt(displayId)],
+          screens: [displayId],
         })
         .catch(logger.error);
     }, env.LIVE_FEED_REFRESH_INTERVAL);
