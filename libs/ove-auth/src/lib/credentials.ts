@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { AuthValidation, Request } from "./utils";
 import type { NextFunction, Response } from "express";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 
 const extractCredentials = (req: Request) => {
   const header = req.headers?.["authorization"];

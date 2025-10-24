@@ -36,6 +36,11 @@ const screenshots = Array.from({ length: 8 })
 const state = {
   reconciliation: true,
   mode: "manual",
+  schedule: {
+    wake: null,
+    sleep: null,
+    schedule: [false, false, false, false, false, false, false],
+  },
 };
 
 const env = z
@@ -208,17 +213,10 @@ bridgeSocket.on("setMode", (args, callback) => {
   state.mode = args.mode;
   callback(mockHardwareWithCrashing(true, () => true));
 });
+bridgeSocket.on("getAutoSchedule", (args, callback) => callback(mockHardwareWithCrashing(true, () => state.schedule)))
 bridgeSocket.on("setAutoSchedule", (args, callback) => {
-  state.mode = "auto";
-  callback(mockHardwareWithCrashing(true, () => true));
-});
-bridgeSocket.on("setManualSchedule", (args, callback) => {
-  state.mode = "manual";
-  callback(mockHardwareWithCrashing(true, () => true));
-});
-bridgeSocket.on("setEcoSchedule", (args, callback) => {
-  state.mode = "eco";
-  callback(mockHardwareWithCrashing(true, () => true));
+  state.schedule = args.autoSchedule;
+  callback(mockHardwareWithCrashing(true, () => undefined));
 });
 
 const hardwareSocket = io(`${env.CORE_URL}/socket/hardware`, {

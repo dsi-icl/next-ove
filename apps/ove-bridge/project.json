@@ -45,9 +45,6 @@
         "tsConfig": "apps/ove-bridge/tsconfig.app.json",
         "thirdParty": true,
         "format": ["cjs"],
-        "external": [
-          "bcrypt"
-        ],
         "platform": "node"
       },
       "configurations": {

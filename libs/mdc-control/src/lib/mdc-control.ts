@@ -15,8 +15,8 @@ export const sources: MDCSource = {
   UNKNOWN: 0x00,
   PC: 0x14,
   DVI: 0x18,
-  DVI_VIDEO: 0x1F,
-  AV: 0x0C,
+  DVI_VIDEO: 0x1f,
+  AV: 0x0c,
   SVIDEO: 0x04,
   COMPONENT: 0x08,
   MAGICNET: 0x20,
@@ -28,18 +28,18 @@ export const sources: MDCSource = {
   HDMI2_PC: 0x24,
   DP: 0x25,
   DP2: 0x26,
-  DP3: 0x27
+  DP3: 0x27,
 } as const;
 
 type MDCSourceVal = MDCSource[keyof MDCSource];
 
 type CommandArgs = {
-  ac?: AbortController
-  id: number
-  host: string
-  port?: number
-  timeout: number
-}
+  ac?: AbortController;
+  id: number;
+  host: string;
+  port?: number;
+  timeout: number;
+};
 
 const sendCommand = (
   resolve: (obj: Uint8Array | OVEException) => void,
@@ -54,11 +54,11 @@ const sendCommand = (
     socket.end(() => resolve(raise("Timeout")));
   });
 
-  socket.on("error", err => {
+  socket.on("error", (err) => {
     socket.end(() => resolve(raise(err.message)));
   });
 
-  socket.on("data", data => {
+  socket.on("data", (data) => {
     const args = new Uint8Array(data);
     const status = args.at(4);
     socket.end(() => {
@@ -75,10 +75,10 @@ const sendCommand = (
   }, cmdArgs.timeout);
 
   socket.connect(cmdArgs.port ?? MDC_PORT, cmdArgs.host, () => {
-    const command = [0xAA, commandId, cmdArgs.id, args.length].concat(args);
+    const command = [0xaa, commandId, cmdArgs.id, args.length].concat(args);
     const checksum = command.slice(1).reduce((acc, x) => acc + x, 0) % 256;
     command.push(checksum);
-    socket.write(new Uint8Array(command), err => {
+    socket.write(new Uint8Array(command), (err) => {
       if (err) {
         socket.end(() => resolve(raise(err.message)));
       }
@@ -86,61 +86,69 @@ const sendCommand = (
   });
 };
 
-export const getStatus = async (args: CommandArgs):
-  Promise<"on" | "off" | OVEException> => {
-  const status =
-    await new Promise<Uint8Array | OVEException>(resolve =>
-      sendCommand(resolve, 0x11, args));
+export const getStatus = async (
+  args: CommandArgs,
+): Promise<"on" | "off" | OVEException> => {
+  const status = await new Promise<Uint8Array | OVEException>((resolve) =>
+    sendCommand(resolve, 0x11, args),
+  );
   if (isError(status)) return status;
-  return "on";
+  if (status.at(6) === undefined || status[6] > 0x01)
+    return raise("Error getting status");
+  return status.at(6) === 0x00 ? "off" : "on";
 };
 
 export const setPower = async (
   args: CommandArgs,
-  state: "on" | "off" | "reboot"
+  state: "on" | "off" | "reboot",
 ): Promise<boolean | OVEException> => {
-  const powerState = state === "off" ? 0x00 : (state === "on" ? 0x01 : 0x02);
-  const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, 0x11, args, powerState));
+  const powerState = state === "off" ? 0x00 : state === "on" ? 0x01 : 0x02;
+  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
+    sendCommand(resolve, 0x11, args, powerState),
+  );
   if (isError(res)) return res;
   return res.at(6) === powerState;
 };
 
 export const setVolume = async (
   args: CommandArgs,
-  volume: number
+  volume: number,
 ): Promise<boolean | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, 0x12, args, volume));
+  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
+    sendCommand(resolve, 0x12, args, volume),
+  );
   if (isError(res)) return res;
   return res.at(6) === volume;
 };
 
 export const setIsMute = async (
   args: CommandArgs,
-  state: boolean
+  state: boolean,
 ): Promise<boolean | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, 0x13, args, state ? 0x01 : 0x00));
+  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
+    sendCommand(resolve, 0x13, args, state ? 0x01 : 0x00),
+  );
   if (isError(res)) return res;
   return res.at(6) === (state ? 0x01 : 0x00);
 };
 
 export const setSource = async (
   args: CommandArgs,
-  source: MDCSourceVal
+  source: MDCSourceVal,
 ): Promise<boolean | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, 0x14, args, source));
+  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
+    sendCommand(resolve, 0x14, args, source),
+  );
   if (isError(res)) return res;
   return res.at(6) === source;
 };
 
 export const getInfo = async (
-  args: CommandArgs
+  args: CommandArgs,
 ): Promise<MDCInfo | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>(resolve =>
-    sendCommand(resolve, 0x00, args));
+  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
+    sendCommand(resolve, 0x00, args),
+  );
   if (isError(res)) return res;
   if (res.length < 10) return raise("Incorrect result");
 
@@ -148,6 +156,10 @@ export const getInfo = async (
     power: res[6] === 0x00 ? "off" : "on",
     volume: res[7],
     isMuted: res[8] !== 0x00,
-    source: assert(Object.entries(sources).find(([_k, v]) => v === res[9])?.at(0)) as keyof MDCSource
+    source: assert(
+      Object.entries(sources)
+        .find(([_k, v]) => v === res[9])
+        ?.at(0),
+    ) as keyof MDCSource,
   };
 };

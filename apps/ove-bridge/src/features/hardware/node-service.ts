@@ -190,7 +190,7 @@ const screenshot = async (
 ) => {
   const screenshotOptsSchema = z.strictObject({
     method: ScreenshotMethodSchema,
-    screens: z.array(z.number()),
+    screens: z.array(z.string()).optional(),
   });
   const parsedOpts = screenshotOptsSchema.safeParse(args);
 

@@ -33,5 +33,7 @@ services:
     restart: "on-failure"
     volumes:
       - ./apps/ove-logs/.env.production:/usr/src/app/.env:ro
+      - ./apps/ove-logs/config.json:/usr/src/config/config.json:ro
+      - ./apps/ove-logs/data/logs.db:/usr/src/app/logs.db:rw
 
 
