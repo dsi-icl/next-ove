@@ -84,6 +84,7 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
+ENV CLIENT_OUTPUT=/usr/src/app/node_modules/.prisma/client
 
 RUN npm install -g pnpm
 
