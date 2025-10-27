@@ -33,7 +33,6 @@ import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 import { useSections, useUpdateSection } from "../hooks/sections";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
 import { Bounds, type DataType, dataTypes, type File } from "@ove/ove-types";
 
 const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
@@ -331,16 +330,20 @@ const SectionConfig = () => {
                 <FormItem className="space-y-1">
                   <FormLabel className="font-semibold">Asset</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <>
+                      <input {...field} list="file-list" className="w-full border p-2 rounded" />
+                      <datalist id="file-list">
+                        {ordinary.map(f => (
+                          <option
+                            key={`${f.bucketName}/${f.name}/${f.version}`}
+                            value={`/store/${f.bucketName}/${f.name}?versionId=${f.version}`}
+                          />
+                        ))}
+                      </datalist>
+                    </>
                   </FormControl>
                 </FormItem>
               )}
-            />
-            <S3FileSelect
-              control={form.control}
-              fileName={fileName}
-              files={ordinary}
-              disabled={isDisabled}
             />
             {shouldSelectDataType && (
             <FormField
