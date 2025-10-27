@@ -96,8 +96,8 @@ const cleanupOnError = (
     }
   });
   return results
-    .filter(({ status }) => status === "rejected")
-    .map((_x, i) => displays[i].displayId)
+    .map((x, i) => x.status === "rejected" ? `${displays[i].displayId}: ${x.reason}` : null)
+    .filter(Boolean)
     .join(", ");
 };
 
