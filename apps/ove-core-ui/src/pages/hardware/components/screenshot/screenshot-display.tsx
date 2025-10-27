@@ -52,7 +52,11 @@ const ScreenshotDisplay = ({
             <li className="mt-2 max-w-full" key={screenshot}>
               {transferMethod === "response" ? (
                 <img
-                  src={`data:image/png;base64,${screenshot}`}
+                  src={
+                    screenshot.startsWith("data:image")
+                      ? screenshot
+                      : `data:image/png;base64,${screenshot}`
+                  }
                   alt={`Screenshot - ${i}`}
                 />
               ) : (

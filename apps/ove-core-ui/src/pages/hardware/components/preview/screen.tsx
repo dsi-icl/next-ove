@@ -70,7 +70,11 @@ const Screen = memo(
               ) : (
                 <img
                   className="size-full"
-                  src={`data:image/png;base64,${screenshot}`}
+                  src={
+                    screenshot.startsWith("data:image")
+                      ? screenshot
+                      : `data:image/png;base64,${screenshot}`
+                  }
                   alt="screenshot"
                 />
               )}
