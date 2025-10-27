@@ -1,5 +1,5 @@
 import cors from "cors";
-import { app, server } from "./app";
+import { app, server, signingKey } from "./app";
 import v1 from "./v1/router";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
@@ -27,7 +27,7 @@ app.use((req, res, next) =>
       signingKey,
       audience: env.APP_NAME,
       algorithm: env.AUTH?.JWT_ALGORITHMS,
-      cookieId: env.AUTH?.COOKIE_ID,
+      cookieId: env.AUTH?.COOKIE_ID ?? "next-ove",
     },
     authorize,
   ),

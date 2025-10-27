@@ -2,8 +2,8 @@
 
 import { execSync } from "child_process";
 
-const isLinuxLike = () => ["linux", "darwin", "freebsd", "openbsd"]
-  .includes(process.platform);
+const isLinuxLike = () =>
+  ["linux", "darwin", "freebsd", "openbsd"].includes(process.platform);
 const isWindows = () => process.platform === "win32";
 
 const buildShutdownCommand = () => {
@@ -35,12 +35,13 @@ const reboot = () => {
 };
 
 const execute = (command: string) => {
-  const response = execSync(command).toString();
+  const shell = isWindows() ? "powershell.exe" : "/bin/sh";
+  const response = execSync(command, { shell, encoding: "utf-8" });
   return { response };
 };
 
 export default {
   shutdown,
   reboot,
-  execute
+  execute,
 };

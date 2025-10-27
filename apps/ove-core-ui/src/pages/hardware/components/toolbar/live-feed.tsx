@@ -6,12 +6,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
 } from "@ove/ui-base-components";
 import { Video } from "lucide-react";
 import { isError } from "@ove/ove-types";
 import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
-import { VideoStreams } from "@ove/ui-base-components";
 import React, { memo, useEffect, useState } from "react";
 
 const useStreams = (bridgeId: string, isOpen: boolean) => {
@@ -49,7 +53,21 @@ const LiveFeed = memo(({ bridgeId }: { bridgeId: string }) => {
         </DialogHeader>
         <div className="h-[80vh]">
           {streams.status === "success" && !isError(streams.data.response) ? (
-            <VideoStreams streams={streams.data.response} />
+            <Carousel className="h-full w-[calc(100%-4rem)] ml-8">
+              <CarouselContent>
+                {streams.data.response?.map((stream, i) => (
+                  <CarouselItem key={stream} className="flex items-center w-full justify-center">
+                    <iframe
+                      className="aspect-video max-h-[calc(90vh-8rem)]"
+                      src={stream}
+                      title={`CAMERA-${i}`}
+                    ></iframe>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           ) : null}
         </div>
       </DialogContent>

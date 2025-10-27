@@ -73,9 +73,6 @@
           "apps/ove-core/.env"
         ],
         "generatePackageJson": true,
-        "external": [
-          "bcrypt"
-        ],
         "platform": "node"
       },
       "configurations": {
@@ -107,9 +104,6 @@
         ],
         "generatePackageJson": true,
         "minify": true,
-        "external": [
-          "bcrypt"
-        ],
         "platform": "node"
       },
       "dependsOn": [
