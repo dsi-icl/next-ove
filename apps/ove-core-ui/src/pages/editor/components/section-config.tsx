@@ -326,24 +326,43 @@ const SectionConfig = () => {
             <FormField
               control={form.control}
               name="asset"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="font-semibold">Asset</FormLabel>
-                  <FormControl>
-                    <>
-                      <input {...field} list="file-list" className="w-full border p-2 rounded" />
-                      <datalist id="file-list">
-                        {ordinary.map(f => (
-                          <option
-                            key={`${f.bucketName}/${f.name}/${f.version}`}
-                            value={`/store/${f.bucketName}/${f.name}?versionId=${f.version}`}
-                          />
-                        ))}
-                      </datalist>
-                    </>
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const q = (field.value ?? "") as string;
+                return (
+                  <FormItem className="space-y-1">
+                    <FormLabel className="font-semibold">Asset</FormLabel>
+                    <FormControl>
+                      <div>
+                        <input
+                          list="file-list"
+                          value={q}
+                          onChange={(e) => {
+                            field.onChange(e.target.value)
+                          }}
+                          className="w-full border p-2 rounded"
+                          type="text"
+                        />
+                        {q.length > 0 && (
+                          <datalist id="file-list">
+                            {ordinary
+                              .filter((f) =>
+                                `/store/${f.bucketName}/${f.name}?versionId=${f.version}`
+                                  .toLowerCase()
+                                  .includes(q.toLowerCase())
+                              )
+                              .slice(0, 20)
+                              .map((f) => (
+                                <option
+                                  key={`${f.bucketName}/${f.name}/${f.version}`}
+                                  value={`/store/${f.bucketName}/${f.name}?versionId=${f.version}`}
+                                />
+                              ))}
+                          </datalist>
+                        )}
+                      </div>
+                    </FormControl>
+                  </FormItem>
+              )}}
             />
             {shouldSelectDataType && (
             <FormField
