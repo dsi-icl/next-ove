@@ -67,7 +67,7 @@ const useTakeScreenshots = (
   });
 
   if (deviceId === null) {
-    return (screens: string[], method: TransferMethod) =>
+    return (screens: number[], method: TransferMethod) =>
       takeScreenshotsAll
         .mutateAsync({
           bridgeId,
@@ -77,7 +77,7 @@ const useTakeScreenshots = (
         })
         .catch(logger.error);
   }
-  return (screens: string[], method: TransferMethod) =>
+  return (screens: number[], method: TransferMethod) =>
     takeScreenshots
       .mutateAsync({
         bridgeId,
@@ -93,19 +93,17 @@ const useDisplays = (
   bridgeId: string,
   tag?: string,
 ) => {
-  const getDisplayInfo = api.hardware.getInfo.useQuery(
+  const getDisplayConfig = api.hardware.getBrowserConfig.useQuery(
     {
       bridgeId,
       deviceId: deviceId ?? "",
-      type: "graphics",
     },
     { enabled: deviceId !== null },
   );
-  const getDisplayInfoAll = api.hardware.getInfoAll.useQuery(
+  const getDisplayConfigAll = api.hardware.getBrowserConfigAll.useQuery(
     {
       bridgeId,
       tag,
-      type: "graphics",
     },
     { enabled: deviceId === null },
   );
@@ -113,54 +111,32 @@ const useDisplays = (
   return useMemo(() => {
     if (deviceId === null) {
       if (
-        getDisplayInfoAll.status !== "success" ||
-        isError(getDisplayInfoAll.data.response)
+        getDisplayConfigAll.status !== "success" ||
+        isError(getDisplayConfigAll.data.response)
       )
         return [];
-      const xs = getDisplayInfoAll.data.response.filter(
+      const xs = getDisplayConfigAll.data.response.filter(
         ({ response }) => !isError(response),
       );
-      const allIds = xs.map(
+      const allIds = new Set(xs.flatMap(
         ({ response }) =>
-          new Set(
-            (
-              response as {
-                graphics: { displays: { displayId: string | null | undefined, deviceName: string | null | undefined }[] };
-              }
-            ).graphics.displays
-              ?.map(({ displayId, deviceName }) => displayId ?? deviceName)
-              ?.filter(
-                (id) => id !== null && id !== undefined,
-              ) as string[] ?? [],
-          ),
+          Object.keys(response).map(parseInt))
       );
-      return Array.from(allIds.reduce((acc, ids) => {
-        return acc.intersection(ids);
-      }, new Set<string>())).map((x) => ({
-        value: x,
-        label: `Screen ${x}`,
-      }));
+      return Array.from(allIds).map((x) => ({value: x, label: `Screen ${x}`}));
     } else {
       if (
-        getDisplayInfo.status !== "success" ||
-        isError(getDisplayInfo.data.response)
+        getDisplayConfig.status !== "success" ||
+        isError(getDisplayConfig.data.response)
       )
         return [];
-      return (
-        getDisplayInfo.data.response as {
-          graphics: { displays: { displayId: string | null | undefined, deviceName: string | null | undefined }[] };
-        }
-      ).graphics.displays?.map((x) => x.displayId ?? x.deviceName)?.filter((id) => id !== null && id !== undefined)?.map((x) => ({
-        value: x,
-        label: `Screen ${x}`,
-      })) ?? [];
+      return Object.keys(getDisplayConfig.data.response).map((x) => ({value: parseInt(x), label: `Screen ${x}`}));
     }
   }, [
     deviceId,
-    getDisplayInfoAll.status,
-    getDisplayInfo.status,
-    getDisplayInfoAll.data?.response,
-    getDisplayInfo.data?.response,
+    getDisplayConfigAll.status,
+    getDisplayConfig.status,
+    getDisplayConfigAll.data?.response,
+    getDisplayConfig.data?.response,
   ]);
 };
 

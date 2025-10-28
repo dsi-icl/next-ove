@@ -9,10 +9,10 @@ import {
 import { Volume2, VolumeX } from "lucide-react";
 import { SliderRange, SliderThumb, SliderTrack } from "@radix-ui/react-slider";
 import React, { useCallback, useState } from "react";
-import { api } from "../../../utils/api";
+import { api } from "../../../../utils/api";
 import { toast } from "sonner";
 import { isError } from "@ove/ove-types";
-import { logger } from "../../../env";
+import { logger } from "../../../../env";
 
 const useVolume = (
   closeDialog: () => void,

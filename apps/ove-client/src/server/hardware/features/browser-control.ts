@@ -3,12 +3,9 @@
 import * as fs from "fs";
 import * as path from "path";
 import { logger } from "../../../env";
-import SystemInfo from "./system-info";
-import * as electron from "electron";
 import { type DesktopCapturerSource } from "electron";
-import { Systeminformation } from "systeminformation";
 import { type ScreenshotMethod } from "@ove/ove-types";
-import GraphicsDisplayData = Systeminformation.GraphicsDisplayData;
+import { Display, displays, getDisplay } from "../displays";
 
 type WindowController = {
   createWindow: (() => Promise<number[]>) | null;
@@ -48,70 +45,43 @@ const openBrowser = () => {
 };
 
 const processScreenshots = (
-  displays: GraphicsDisplayData[],
+  displays: Display[],
   screenshots: DesktopCapturerSource[],
   method: ScreenshotMethod,
 ) => {
   return Promise.allSettled(
-    displays.map(
-      async ({
-        displayId,
-        serial,
-        resolutionX,
-        resolutionY,
-        currentResX,
-        currentResY,
-        positionX,
-        positionY,
-      }) => {
-        const screens = electron.screen.getAllDisplays();
-        const image = screenshots
-          // eslint-disable-next-line camelcase
-          .find(({ display_id }) => {
-            if (display_id === displayId) return true;
-            return (
-              (screens
-                .find(
-                  (screen) =>
-                    screen.bounds.x === positionX &&
-                    screen.bounds.y === positionY &&
-                    (screen.bounds.width === resolutionX ||
-                      screen.bounds.width === currentResX) &&
-                    (screen.bounds.height === resolutionY ||
-                      screen.bounds.height === currentResY),
-                )
-                ?.id?.toString() ?? "ERROR") === display_id
-            );
-          })
-          ?.thumbnail.toDataURL();
+    displays.map(async ({ id, screenId, serial }) => {
+      const image = screenshots
+        // eslint-disable-next-line camelcase
+        .find(({ display_id }) => display_id === screenId.toString())
+        ?.thumbnail.toDataURL();
 
-        if (image === undefined) {
-          throw Error(`No screen found matching displayId: ${displayId}`);
+      if (image === undefined) {
+        throw Error(`No screen found matching displayId: ${id}`);
+      }
+
+      if (method === "response") {
+        return image;
+      } else if (method === "local") {
+        const dir = path.join(__dirname, "screenshots");
+
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir);
         }
 
-        if (method === "response") {
-          return image;
-        } else if (method === "local") {
-          const dir = path.join(__dirname, "screenshots");
-
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir);
-          }
-
-          const filename = `${serial}-${new Date().toISOString()}.png`;
-          fs.createWriteStream(filename).write(Buffer.from(image, "base64url"));
-          return filename;
-        } else {
-          throw Error("Not Implemented");
-        }
-      },
-    ),
+        const filename = `${serial ?? id}-${new Date().toISOString()}.png`;
+        fs.createWriteStream(filename).write(Buffer.from(image, "base64url"));
+        return filename;
+      } else {
+        throw Error("Not Implemented");
+      }
+    }),
   );
 };
 
 const cleanupOnError = (
   results: PromiseSettledResult<string>[],
-  displays: GraphicsDisplayData[],
+  displays: Display[],
   method: ScreenshotMethod,
 ) => {
   (
@@ -128,7 +98,7 @@ const cleanupOnError = (
   });
   return results
     .map((x, i) =>
-      x.status === "rejected" ? `${displays[i].displayId}: ${x.reason}` : null,
+      x.status === "rejected" ? `${displays[i].id}: ${x.reason}` : null,
     )
     .filter(Boolean)
     .join(", ");
@@ -136,32 +106,19 @@ const cleanupOnError = (
 
 const screenshot = async (
   method: ScreenshotMethod,
-  screens: string[],
+  screens: number[],
 ): Promise<string[]> => {
   if (windowController.takeScreenshots === null) {
     throw new Error("Controller not initialised for managing browsers");
   }
 
-  let displays: GraphicsDisplayData[] = (await SystemInfo.graphics()).graphics
-    .displays;
-
-  if (screens.length !== 0) {
-    displays = displays.filter(
-      ({ displayId, deviceName }) =>
-        screens.includes(displayId ?? "ERROR") ||
-        screens.includes(deviceName ?? "ERROR"),
-    );
+  if (screens.filter((x) => x > displays.length - 1).length > 0) {
+    throw new Error("Invalid screen ID: " + screens.join(","));
   }
 
-  if (displays.length === 0) {
-    throw new Error(
-      "No displays with matching names found. " +
-        "To view available displays please use the /info?type=graphics endpoint",
-    );
-  }
-
+  const selectedDisplays = screens.map(getDisplay);
   const screenshots = await windowController.takeScreenshots();
-  const results = await processScreenshots(displays, screenshots, method);
+  const results = await processScreenshots(selectedDisplays, screenshots, method);
 
   const hasErrored = results.find((x) => x.status === "rejected");
   if (!hasErrored) {
@@ -169,7 +126,7 @@ const screenshot = async (
       ({ value }) => value,
     );
   }
-  const errored = cleanupOnError(results, displays, method);
+  const errored = cleanupOnError(results, selectedDisplays, method);
   throw new Error(`Failed to take screenshot on displays: ${errored}`);
 };
 

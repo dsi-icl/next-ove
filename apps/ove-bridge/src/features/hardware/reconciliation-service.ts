@@ -267,7 +267,7 @@ const reconcileBrowsers = async (device: Device) => {
     {},
     getAC.bind(null, device, state.browsers),
   );
-  const windowConfig = await service.getWindowConfig?.(
+  const browserConfig = await service.getBrowserConfig?.(
     device,
     {},
     getAC.bind(null, device, state.browsers),
@@ -275,12 +275,12 @@ const reconcileBrowsers = async (device: Device) => {
   if (
     browsers === undefined ||
     isError(browsers) ||
-    windowConfig === undefined ||
-    isError(windowConfig)
+    browserConfig === undefined ||
+    isError(browserConfig)
   ) {
     throw new Error(`Error on client ${device.id}`);
   }
-  if (currentState.state && !recordEquals(browsers, windowConfig)) {
+  if (currentState.state && !recordEquals(browsers, browserConfig)) {
     await service.openBrowsers?.(
       device,
       {},
@@ -299,22 +299,22 @@ const reconcileBrowsers = async (device: Device) => {
   }
 };
 
-const reconcileWindowConfig = async (device: Device) => {
+const reconcileBrowserConfig = async (device: Device) => {
   const currentState = assert(state.windows.get(device.id));
   const service = getServiceForProtocol(device.type);
-  const windows = await service.getWindowConfig?.(
+  const browserConfig = await service.getBrowserConfig?.(
     device,
     {},
     getAC.bind(null, device, state.windows),
   );
   if (
     currentState.state === null ||
-    (windows !== undefined &&
-      !isError(windows) &&
-      recordEquals(currentState.state, windows))
+    (browserConfig !== undefined &&
+      !isError(browserConfig) &&
+      recordEquals(currentState.state, browserConfig))
   )
     return;
-  await service.setWindowConfig?.(
+  await service.setBrowserConfig?.(
     device,
     { config: assert(currentState.state) },
     getAC.bind(null, device, state.windows),
@@ -457,7 +457,7 @@ const cancel = () => {
 export const service = {
   reconcileStatus,
   reconcileBrowsers,
-  reconcileWindowConfig,
+  reconcileBrowserConfig,
   reconcileIsMuted,
   reconcileVolume,
   reconcileSource,

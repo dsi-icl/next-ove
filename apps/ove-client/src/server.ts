@@ -13,10 +13,10 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
 import FileUtils from "@ove/ove-server-utils";
 import {
-  closeWindow,
-  createWindow,
-  reloadWindow,
-  reloadWindows,
+  closeBrowser,
+  createBrowser,
+  reloadBrowser,
+  reloadBrowsers,
   takeScreenshots,
   triggerIPC
 } from "./electron";
@@ -33,11 +33,11 @@ const metricsMiddleware = promBundle({
 export const start = () => {
   const app = express();
   init(
-    createWindow,
+    createBrowser,
     takeScreenshots,
-    closeWindow,
-    reloadWindow,
-    reloadWindows,
+    closeBrowser,
+    reloadBrowser,
+    reloadBrowsers,
     triggerIPC
   );
 

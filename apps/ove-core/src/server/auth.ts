@@ -1,4 +1,4 @@
-import { env } from "../env";
+import { env, logger } from "../env";
 
 const getCredentials = () => {
   if (env.ENVIRONMENT !== "testing") return undefined;
@@ -9,7 +9,7 @@ const getCredentials = () => {
 };
 
 const authorize = (role: string, url: string) => {
-  console.log(role, url);
+  logger.trace("Authorizing:", role, url);
   return true;
 };
 

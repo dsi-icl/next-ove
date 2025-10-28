@@ -114,17 +114,18 @@ export const BoundsSchema = z.strictObject({
   rows: z.number(),
   columns: z.number(),
   displays: z.strictObject({
-    displayId: z.string(), // ID of screen
-    renderer: z.strictObject({
-      deviceId: z.string(),
-      displayId: z.string() // ID of device's display
-    }),
+    rendererId: z.string(), // i.e. screen ID
+    deviceId: z.string(), // i.e. node ID
+    displayId: z.number(), // i.e. display ID
     row: z.number(),
     column: z.number()
   }).array()
 });
 
 export type Bounds = z.infer<typeof BoundsSchema>
+
+export const BrowserConfigSchema = z.string().array();
+export type BrowserConfig = z.infer<typeof BrowserConfigSchema>;
 
 export const StatusOptionsSchema = z.union([
   z.literal("off"),

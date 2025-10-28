@@ -25,10 +25,10 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import React, { useCallback, useRef, useState } from "react";
 
 type ScreenshotConfigProps = {
-  displays: { value: string; label: string }[];
+  displays: { value: number; label: string }[];
   method: TransferMethod;
   setMethod: (method: TransferMethod) => void;
-  takeScreenshots: (screens: string[], method: TransferMethod) => void;
+  takeScreenshots: (screens: number[], method: TransferMethod) => void;
   transition: () => void;
 };
 
@@ -41,7 +41,7 @@ const ScreenshotConfig = ({
   takeScreenshots,
   transition,
 }: ScreenshotConfigProps) => {
-  const [screens, setScreens] = useState<string[]>([]);
+  const [screens, setScreens] = useState<number[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const {

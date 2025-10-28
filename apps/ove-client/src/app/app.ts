@@ -5,9 +5,15 @@ import { join } from "path";
 import { exit } from "process";
 import { pathToFileURL } from "url";
 import { env, logger } from "../env";
-import { assert, fixedEncodeURI } from "@ove/ove-utils";
+import { assert } from "@ove/ove-utils";
 import { type App, BrowserWindow as BW, type Screen, session } from "electron";
 import { state } from "../server/state";
+import {
+  type Display,
+  getDisplay,
+  getDisplayByScreenId,
+  resolveDisplays
+} from "../server/hardware/displays";
 
 let application: App;
 let BrowserWindow: typeof BW;
@@ -18,17 +24,22 @@ let initialised = false;
 let pinIdx: number | null = null;
 const windows = new Map<number, BW>();
 
-const initWindow = (url: string, displayId?: number) => {
+const initBrowser = (url: string, display?: Display) => {
   let bounds;
 
-  if (displayId !== undefined) {
-    bounds = screen.getAllDisplays()[displayId - 1]?.bounds ?? { x: 0, y: 0 };
+  if (display !== undefined) {
+    bounds = screen
+      .getAllDisplays()
+      .find((screen) => screen.id === assert(display).screenId)?.bounds ?? {
+      x: 0,
+      y: 0,
+    };
   } else {
     const primary = screen.getPrimaryDisplay();
     bounds = primary.bounds;
-    displayId = primary.id;
+    display = getDisplayByScreenId(primary.id);
   }
-  const mw = new BrowserWindow({
+  const browser = new BrowserWindow({
     x: bounds.x + 50,
     y: bounds.y + 50,
     fullscreen: true,
@@ -41,17 +52,16 @@ const initWindow = (url: string, displayId?: number) => {
       preload: join(__dirname, "main.preload.cjs"),
     },
   });
-  const idx = generateNewBrowserId();
-  windows.set(idx, mw);
-  state.browsers.set(idx, { displayId, url });
-  mw.setMenu(null);
-  mw.center();
+  state.browsers.set(browser.id, { displayId: display.id, url });
+  windows.set(browser.id, browser);
+  browser.setMenu(null);
+  browser.center();
 
-  mw.once("ready-to-show", () => {
-    mw.show();
+  browser.once("ready-to-show", () => {
+    browser.show();
   });
 
-  mw.webContents.session.setCertificateVerifyProc((req, callback) => {
+  browser.webContents.session.setCertificateVerifyProc((req, callback) => {
     if (env.AUTH.HOSTNAME_WHITELIST?.includes(req.hostname) ?? false) {
       callback(0);
     } else {
@@ -59,7 +69,7 @@ const initWindow = (url: string, displayId?: number) => {
     }
   });
 
-  return idx;
+  return browser.id;
 };
 
 const loadURL = (idx: number, url: string, isFatal = false) => {
@@ -94,51 +104,25 @@ const formatURL = (url?: string) => {
     : url;
 };
 
-const generateNewBrowserId = () =>
-  Array.from(state.browsers.keys()).reduce(
-    (acc, x) => (x > acc ? x : acc),
-    -1,
-  ) + 1;
-
 const loadDefaultWindows = async () => {
   const idxs: number[] = [];
   if (env.AUTH.STORED_CREDENTIALS === undefined) {
-    const idx = initWindow("/auth");
+    const idx = initBrowser("/auth");
     pinIdx = idx;
     idxs.push(idx);
     loadURL(idx, formatURL());
   } else {
-    if (env.RENDERER.MODE === "legacy") {
-      for (const [k, v] of Object.entries(env.RENDERER.WINDOW_CONFIG)) {
-        const browser = Array.from(state.browsers.entries()).find(
-          (v_) => v_[1].displayId === parseInt(k),
-        );
-        const idx =
-          browser === undefined ? initWindow(v, parseInt(k)) : browser[0];
-        await new Promise((resolve) =>
-          setTimeout(resolve, env.RENDERER.BROWSER_DELAY),
-        );
-        idxs.push(idx);
-        loadURL(idx, v);
-      }
-    } else {
-      for (const idx of state.browsers.keys()) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, env.RENDERER.BROWSER_DELAY),
-        );
-        idxs.push(idx);
-        const otp = await (
-          await fetch(`${env.AUTH.SERVER_URL}/otp`, {
-            headers: {
-              Authorization: `Bearer ${env.AUTH.API_KEY}`,
-            },
-          })
-        ).text();
-        loadURL(
-          idx,
-          `${env.AUTH.SERVER_URL}/redirect?otp=${otp}&to=${fixedEncodeURI(env.RENDERER.ENDPOINT)}`,
-        );
-      }
+    for (const [k, v] of Object.entries(env.BROWSERS.CONFIG)) {
+      const browser = Array.from(state.browsers.entries()).find(
+        (v_) => v_[1].displayId === parseInt(k),
+      );
+      const idx =
+        browser === undefined
+          ? initBrowser(v, getDisplay(parseInt(k)))
+          : browser[0];
+      await new Promise((resolve) => setTimeout(resolve, env.BROWSERS.DELAY));
+      idxs.push(idx);
+      loadURL(idx, v);
     }
   }
 
@@ -181,13 +165,22 @@ const init = (
   application.on("ready", async () => {
     if (env.EXTENSIONS?.SYNC !== undefined) {
       try {
-        const ext = await session.defaultSession.loadExtension(env.EXTENSIONS.SYNC, {
-          allowFileAccess: true,
-        });
+        const ext = await session.defaultSession.loadExtension(
+          env.EXTENSIONS.SYNC,
+          {
+            allowFileAccess: true,
+          },
+        );
         logger.info(`Loaded extension: ${ext.name} (${ext.id})`);
       } catch (e) {
         logger.error("⚠️ failed to load extension", e);
       }
+    }
+    try {
+      await resolveDisplays();
+      logger.info("Resolved displays");
+    } catch (e) {
+      logger.error("Failed to resolve displays:", e);
     }
     await loadDefaultWindows();
   });
@@ -215,7 +208,7 @@ const app = {
     return new Promise<number[]>((resolve) =>
       setTimeout(
         async () => resolve(await loadDefaultWindows()),
-        env.RENDERER.BROWSER_DELAY,
+        env.BROWSERS.DELAY,
       ),
     );
   },
