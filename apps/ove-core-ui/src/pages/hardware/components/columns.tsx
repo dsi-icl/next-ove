@@ -17,7 +17,7 @@ export type HardwareRow = {
 
 export type FilterValue = {
   filterType: FilterType;
-  filter: string | null;
+  filter: string[] | null;
   selected: string[] | null;
 };
 
@@ -40,10 +40,10 @@ const filterById = (
   const v = row.getValue(columnId) as string;
   if (selected === null) {
     if (filterType === "tags" || filter === null) return true;
-    return filter === v;
+    return filter.find((f) => v.startsWith(f)) !== undefined;
   } else {
     if (filterType === "tags") return true;
-    return selected.includes(v) && (filter === null || v.startsWith(filter));
+    return selected.includes(v) && (filter === null || filter.find((f) => v.startsWith(f)) !== undefined);
   }
 };
 
@@ -55,7 +55,7 @@ const filterByTags = (
   const v = row.getValue(columnId) as string[];
   if (filterType === "id") return true;
   return (
-    (filter === null || v.some((tag) => tag.startsWith(filter))) &&
+    (filter === null || v.some((tag) => filter.find((f) => tag.startsWith(f)) !== undefined)) &&
     (selected === null || v.some((tag) => selected.includes(tag)))
   );
 };

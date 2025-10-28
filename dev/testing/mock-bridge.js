@@ -1,13 +1,13 @@
 /* global Buffer */
 
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
-import { z } from "zod";
-import { io } from "socket.io-client";
-import * as path from "path";
-import * as fs from "fs";
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import express from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
+import {io} from 'socket.io-client';
+import {z} from 'zod';
 
 const __dirname = /** @type{string} */ import.meta.dirname;
 
@@ -32,6 +32,8 @@ const screenshots = Array.from({ length: 8 })
       "binary",
     ).toString("base64"),
   );
+
+const browserConfigs = new Map(devices.map((device) => [device.id, ["https://www.google.com", "https://www.google.com"]]));
 
 const state = {
   reconciliation: true,
@@ -213,7 +215,9 @@ bridgeSocket.on("setMode", (args, callback) => {
   state.mode = args.mode;
   callback(mockHardwareWithCrashing(true, () => true));
 });
-bridgeSocket.on("getAutoSchedule", (args, callback) => callback(mockHardwareWithCrashing(true, () => state.schedule)))
+bridgeSocket.on("getAutoSchedule", (args, callback) =>
+  callback(mockHardwareWithCrashing(true, () => state.schedule)),
+);
 bridgeSocket.on("setAutoSchedule", (args, callback) => {
   state.schedule = args.autoSchedule;
   callback(mockHardwareWithCrashing(true, () => undefined));
@@ -242,26 +246,28 @@ hardwareSocket.onAny((event, args) =>
   console.log(`Hardware received ${event}`, args),
 );
 
-hardwareSocket.on("getWindowConfig", (args, callback) => {
+hardwareSocket.on("setBrowserConfig", (args, callback) => {
+  if (getDevice(args.deviceId).type !== "node") {
+    callback(error);
+    return;
+  }
+  browserConfigs.set(args.deviceId, args.config);
+  callback(mockHardwareWithCrashing(true, () => true))
+});
+hardwareSocket.on("getBrowserConfig", (args, callback) => {
   if (getDevice(args.deviceId).type !== "node") {
     callback(error);
     return;
   }
   callback(
-    mockHardwareWithCrashing(true, () => ({
-      0: "https://www.google.com",
-      1: "https://www.google.com",
-    })),
+    mockHardwareWithCrashing(true, () => browserConfigs.get(args.deviceId)),
   );
 });
-hardwareSocket.on("getWindowConfigAll", (args, callback) =>
+hardwareSocket.on("getBrowserConfigAll", (args, callback) =>
   callback(
     mockHardwareWithCrashing(
       false,
-      () => ({
-        0: "https://www.google.com",
-        1: "https://www.google.com",
-      }),
+      () => Array.from(browserConfigs.values()),
       (device) => device.type === "node",
     ),
   ),
@@ -308,11 +314,9 @@ hardwareSocket.on("screenshot", (args, callback) => {
     callback(error);
     return;
   }
-  const screenshotId = parseInt(
-    geometry.displays
-      .find(({ renderer: { deviceId } }) => deviceId === args.deviceId)
-      .displayId.slice(-1),
-  );
+  const screenshotId = geometry.displays.find(
+    ({ deviceId }) => deviceId === args.deviceId,
+  ).displayId;
   callback(
     mockHardwareWithCrashing(true, () => [screenshots[screenshotId % 2]]),
   );

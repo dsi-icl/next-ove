@@ -1,5 +1,6 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import {
+  cn,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
@@ -11,37 +12,34 @@ import {
 import { assert } from "@ove/ove-utils";
 import TableHeader from "../table-header";
 import type { Bounds } from "@ove/ove-types";
-import { useBrowser, useLiveFeed, useWindowConfig } from "./hooks";
+import { useBrowser, useBrowserConfig, useLiveFeed } from "./hooks";
 
 export type ScreenProps = {
   bridgeId: string;
   colId: number;
   rowId: number;
   bounds: Bounds;
-  setSelected: (display: Bounds["displays"][0]) => void;
+  setSelected: (display: Bounds["displays"][0]) => boolean;
 };
 
 const Screen = memo(
   ({ colId, bounds, rowId, bridgeId, setSelected }: ScreenProps) => {
+    const [highlighted, setHighlighted] = useState(false);
     const display = assert(
       bounds.displays.find(
         ({ row, column }) => column === colId + 1 && row === rowId + 1,
       ),
     );
-    const windowConfig = useWindowConfig(
+    const browserConfig = useBrowserConfig(
       bridgeId,
-      display.renderer.deviceId,
-      display.renderer.displayId,
+      display.deviceId,
+      display.displayId,
     );
-    const browser = useBrowser(
-      bridgeId,
-      display.renderer.deviceId,
-      display.renderer.displayId,
-    );
+    const browser = useBrowser(bridgeId, display.deviceId, display.displayId);
     const screenshot = useLiveFeed(
       bridgeId,
-      display.renderer.deviceId,
-      display.renderer.displayId,
+      display.deviceId,
+      display.displayId,
     );
     const aspectRatio = [
       bounds.width / bounds.columns,
@@ -51,9 +49,11 @@ const Screen = memo(
     return (
       <li
         key={colId}
-        className="flex items-center justify-center border border-solid border-white bg-[#002147] text-white"
+        className={cn(
+          "flex w-full items-center justify-center border border-solid bg-[#002147] text-white",
+          highlighted ? "border-destructive" : "border-white",
+        )}
         style={{
-          width: "100%",
           aspectRatio: `${aspectRatio[0]}/${aspectRatio[1]}`,
         }}
       >
@@ -62,7 +62,8 @@ const Screen = memo(
             <button
               className="size-full"
               onClick={() => {
-                setSelected(display);
+                const selected = setSelected(display);
+                setHighlighted(selected);
               }}
             >
               {screenshot === undefined || screenshot === "loading" ? (
@@ -94,19 +95,21 @@ const Screen = memo(
                   <TableCell>{display.column}</TableCell>
                 </TableRow>
                 <TableRow>
+                  <TableCell>renderer id</TableCell>
+                  <TableCell>{display.rendererId}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>device id</TableCell>
+                  <TableCell>{display.deviceId}</TableCell>
+                </TableRow>
+                <TableRow>
                   <TableCell>display id</TableCell>
                   <TableCell>{display.displayId}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>renderer</TableCell>
-                  <TableCell>
-                    {display.renderer.deviceId}, {display.renderer.displayId}
-                  </TableCell>
-                </TableRow>
-                <TableRow>
                   <TableCell>default url</TableCell>
                   <TableCell className="text-wrap break-all">
-                    {windowConfig}
+                    {browserConfig}
                   </TableCell>
                 </TableRow>
                 <TableRow>

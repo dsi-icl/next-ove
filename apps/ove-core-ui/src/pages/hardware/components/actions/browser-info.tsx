@@ -17,12 +17,12 @@ import {
 } from "@ove/ui-base-components";
 import React, { useMemo, useState } from "react";
 import { type Browser, isError } from "@ove/ove-types";
-import { format } from "../utils";
-import TableHeader from "./table-header";
-import { api } from "../../../utils/api";
+import { format } from "../../utils";
+import TableHeader from "../table-header";
+import { api } from "../../../../utils/api";
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
-import { getPages } from "../../../utils";
+import { getPages } from "../../../../utils";
 
 const useBrowser = (
   bridgeId: string,
@@ -56,7 +56,7 @@ const useBrowser = (
             return [];
           }
 
-          return [{ deviceId, windows: getBrowsers.data.response }];
+          return [{ deviceId, browsers: getBrowsers.data.response }];
         }
         case "error":
           toast.error("Unable to get browsers");
@@ -82,7 +82,7 @@ const useBrowser = (
 
           return data.map(({ deviceId, response }) => ({
             deviceId,
-            windows: response as Record<string, Browser>,
+            browsers: response as Record<string, Browser>,
           }));
         }
         case "error":
@@ -104,33 +104,33 @@ const useBrowser = (
 
 type BrowserDetails = {
   deviceId: string;
-  windows: Record<string, Browser>;
+  browsers: Record<string, Browser>;
 };
 
-type WindowInfoProps = {
+type BrowserInfoProps = {
   deviceId: string | null;
   bridgeId: string;
   tag?: string;
 };
 
-const WindowInfo = ({ deviceId, bridgeId, tag }: WindowInfoProps) => {
+const BrowserInfo = ({ deviceId, bridgeId, tag }: BrowserInfoProps) => {
   const [idx, setIdx] = useState(0);
-  const windows = useBrowser(bridgeId, deviceId, tag);
+  const browsers = useBrowser(bridgeId, deviceId, tag);
 
   return (
     <DialogContent className="flex w-[70%] flex-col">
       <DialogHeader className="">
         <DialogTitle className="text-2xl font-bold">
-          Window Info - {windows.at(idx)?.deviceId ?? ""}
+          Browser Info - {browsers.at(idx)?.deviceId ?? ""}
         </DialogTitle>
-        <DialogDescription>Information on current windows</DialogDescription>
+        <DialogDescription>Information on current browsers</DialogDescription>
       </DialogHeader>
       <div className="h-[40vh] overflow-y-scroll">
-        {windows.length > 0 && windows.at(idx) !== undefined
-          ? Object.entries(assert(windows.at(idx)).windows).map(
-              ([windowId, browser]) => (
-                <div key={`${assert(windows.at(idx)).deviceId} - ${windowId}`}>
-                  <h4 className="mt-6 font-bold">Window - {windowId}</h4>
+        {browsers.length > 0 && browsers.at(idx) !== undefined
+          ? Object.entries(assert(browsers.at(idx)).browsers).map(
+              ([browserId, browser]) => (
+                <div key={`${assert(browsers.at(idx)).deviceId} - ${browserId}`}>
+                  <h4 className="mt-6 font-bold">Browser - {browserId}</h4>
                   <Table>
                     <TableHeader />
                     <TableBody>
@@ -160,7 +160,7 @@ const WindowInfo = ({ deviceId, bridgeId, tag }: WindowInfoProps) => {
                   onClick={() => setIdx((cur) => Math.max(cur - 1, 0))}
                 />
               </PaginationItem>
-              {getPages(idx, windows.length).map((ix) => (
+              {getPages(idx, browsers.length).map((ix) => (
                 <PaginationItem key={ix}>
                   <PaginationLink
                     isActive={idx === ix}
@@ -173,7 +173,7 @@ const WindowInfo = ({ deviceId, bridgeId, tag }: WindowInfoProps) => {
               <PaginationItem>
                 <PaginationNext
                   onClick={() =>
-                    setIdx((cur) => Math.min(cur + 1, windows.length - 1))
+                    setIdx((cur) => Math.min(cur + 1, browsers.length - 1))
                   }
                 />
               </PaginationItem>
@@ -185,4 +185,4 @@ const WindowInfo = ({ deviceId, bridgeId, tag }: WindowInfoProps) => {
   );
 };
 
-export default WindowInfo;
+export default BrowserInfo;

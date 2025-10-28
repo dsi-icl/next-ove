@@ -1,3 +1,5 @@
+/* global module */
+
 module.exports = {
   displayName: 'ove-client',
   preset: '../../jest.preset.ts',

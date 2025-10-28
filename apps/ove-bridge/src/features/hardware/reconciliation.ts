@@ -16,7 +16,7 @@ const reconcile = async () => {
         case "node": {
           callbacks.push(service.reconcileStatus(device));
           callbacks.push(service.reconcileBrowsers(device));
-          callbacks.push(service.reconcileWindowConfig(device));
+          callbacks.push(service.reconcileBrowserConfig(device));
           break;
         }
         case "mdc": {

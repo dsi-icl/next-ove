@@ -55,19 +55,37 @@ const AutoSchedule = ({ bridgeId } : { bridgeId: string }) => {
     name: "days",
     control: form.control,
   });
-  const setAutoSchedule = api.bridge.setAutoSchedule.useMutation();
+  const setAutoSchedule = api.bridge.setAutoSchedule.useMutation({
+    onSuccess: (res) => {
+      if (isError(res.response)) {
+        toast.error("Unable to set auto schedule");
+      } else {
+        toast.success("Auto schedule updated successfully");
+      }
+      setOpen(false);
+    },
+    onError: () => {
+      toast.error("Unable to set auto schedule");
+      setOpen(false);
+    },
+  });
   useFormErrorHandling(form.formState.errors);
   const [open, setOpen] = useState(false);
 
   const onSubmit = useCallback(({ start, end, days }: AutoModeForm) => {
-    setAutoSchedule.mutateAsync({
-      bridgeId,
-      autoSchedule: {
-        wake: start ?? null,
-        sleep: end ?? null,
-        schedule: days.map((day) => day.value),
-      }
-    }).then(() => setOpen(false)).catch(() => toast.error("Unable to set auto schedule"));
+    setAutoSchedule
+      .mutateAsync({
+        bridgeId,
+        autoSchedule: {
+          wake: start ?? null,
+          sleep: end ?? null,
+          schedule: days.map((day) => day.value),
+        },
+      })
+      .catch(() => {
+        toast.error("Unable to set auto schedule");
+        setOpen(false);
+      });
   }, [setAutoSchedule, bridgeId]);
 
   return (

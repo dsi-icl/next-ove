@@ -1,6 +1,6 @@
 import { prisma } from "../db";
 import { state } from "../state";
-import { env, logger } from "../../env";
+import { logger } from "../../env";
 import { raise } from "@ove/ove-utils";
 import { io as SocketServer } from "../sockets";
 import type { Namespace } from "socket.io";
@@ -70,7 +70,6 @@ prisma.service.findMany({ where: { role: "bridge" } }).then((services) => {
     initSockets(service, io);
     const sectionIO = SocketServer.of(`/socket/render/section-id`);
     initSockets("section-id", sectionIO);
-    console.log("Initialising socket:", SocketServer.path(), env.SOCKETS.PATH, env.API_VERSION, `/socket/render/${service}`);
     state.rendering.set(service, {
       state: {
         sections: [],

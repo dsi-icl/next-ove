@@ -1,3 +1,5 @@
+/* global process, __dirname */
+
 import {
   AutoScheduleSchema,
   BoundsSchema,

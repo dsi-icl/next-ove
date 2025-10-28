@@ -138,18 +138,22 @@ const Observatory = ({
   const selectPreview = useCallback(
     (display: Bounds["displays"][0]) => {
       if (
-        filters.selected?.[0] === display.displayId &&
-        filters.selected?.[1] === display.renderer.deviceId
+        filters.selected?.[0] === display.rendererId &&
+        filters.selected?.[1] === display.deviceId
       ) {
         filtersReducer({
           command: "selected",
           selected: null,
         });
+
+        return false;
       } else {
         filtersReducer({
           command: "selected",
-          selected: [display.displayId, display.renderer.deviceId],
+          selected: [display.rendererId, display.deviceId],
         });
+
+        return true;
       }
     },
     [filtersReducer, filters.selected],

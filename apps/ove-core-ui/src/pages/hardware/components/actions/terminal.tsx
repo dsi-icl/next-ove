@@ -10,8 +10,8 @@ import {
   useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { X } from "lucide-react";
-import { logger } from "../../../env";
-import { api } from "../../../utils/api";
+import { logger } from "../../../../env";
+import { api } from "../../../../utils/api";
 import { isError } from "@ove/ove-types";
 import { useForm } from "react-hook-form";
 import { DialogTitle } from "@radix-ui/react-dialog";

@@ -3,28 +3,28 @@ import { useEffect, useMemo } from "react";
 import { api } from "../../../../utils/api";
 import { env, logger } from "../../../../env";
 
-export const useWindowConfig = (
+export const useBrowserConfig = (
   bridgeId: string,
   deviceId: string,
-  displayId: string,
+  displayId: number,
 ) => {
-  const getWindowConfig = api.hardware.getWindowConfig.useQuery({
+  const getBrowserConfig = api.hardware.getBrowserConfig.useQuery({
     bridgeId,
     deviceId,
   });
 
   return useMemo((): string => {
-    if (getWindowConfig.status !== "success") return "";
-    const res = getWindowConfig.data.response;
+    if (getBrowserConfig.status !== "success") return "";
+    const res = getBrowserConfig.data.response;
     if (isError(res)) return "";
     return res[displayId];
-  }, [getWindowConfig.status, getWindowConfig.data?.response, displayId]);
+  }, [getBrowserConfig.status, getBrowserConfig.data?.response, displayId]);
 };
 
 export const useBrowser = (
   bridgeId: string,
   deviceId: string,
-  displayId: string,
+  displayId: number,
 ) => {
   const getBrowsers = api.hardware.getBrowsers.useQuery({
     bridgeId,
@@ -37,7 +37,7 @@ export const useBrowser = (
     if (isError(res)) return "";
     return (
       Array.from(Object.values(res)).find(
-        ({ displayId: id }) => id === parseInt(displayId),
+        ({ displayId: id }) => id === displayId,
       )?.url ?? ""
     );
   }, [getBrowsers.status, getBrowsers.data?.response, displayId]);
@@ -46,7 +46,7 @@ export const useBrowser = (
 export const useLiveFeed = (
   bridgeId: string,
   deviceId: string,
-  displayId: string,
+  displayId: number,
 ) => {
   const takeScreenshot = api.hardware.screenshot.useMutation({ retry: false });
 
