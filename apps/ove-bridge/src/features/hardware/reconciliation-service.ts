@@ -8,7 +8,7 @@ import {
   type StatusOptions,
   type TBridgeHardwareService,
 } from "@ove/ove-types";
-import { assert, recordEquals } from "@ove/ove-utils";
+import { assert, Json } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
 import { env } from "../../env";
 
@@ -18,7 +18,7 @@ type ReconciliationStateMember<T> = Map<string, ReconciliationStateValue<T>>;
 export type ReconciliationState = {
   status: ReconciliationStateMember<StatusOptions>;
   browsers: ReconciliationStateMember<boolean | null>;
-  windows: ReconciliationStateMember<Record<string, string> | null>;
+  browserConfigs: ReconciliationStateMember<string[] | null>;
   muted: ReconciliationStateMember<boolean>;
   audio: ReconciliationStateMember<boolean>;
   video: ReconciliationStateMember<boolean>;
@@ -29,7 +29,7 @@ export type ReconciliationState = {
 const state: ReconciliationState = {
   status: new Map(),
   browsers: new Map(),
-  windows: new Map(),
+  browserConfigs: new Map(),
   muted: new Map(),
   audio: new Map(),
   video: new Map(),
@@ -280,7 +280,7 @@ const reconcileBrowsers = async (device: Device) => {
   ) {
     throw new Error(`Error on client ${device.id}`);
   }
-  if (currentState.state && !recordEquals(browsers, browserConfig)) {
+  if (currentState.state && !Json.equals(Object.values(browsers ?? {})?.map(({url}) => url).filter(Boolean) ?? [], browserConfig)) {
     await service.openBrowsers?.(
       device,
       {},
@@ -300,24 +300,24 @@ const reconcileBrowsers = async (device: Device) => {
 };
 
 const reconcileBrowserConfig = async (device: Device) => {
-  const currentState = assert(state.windows.get(device.id));
+  const currentState = assert(state.browserConfigs.get(device.id));
   const service = getServiceForProtocol(device.type);
   const browserConfig = await service.getBrowserConfig?.(
     device,
     {},
-    getAC.bind(null, device, state.windows),
+    getAC.bind(null, device, state.browserConfigs),
   );
   if (
     currentState.state === null ||
     (browserConfig !== undefined &&
       !isError(browserConfig) &&
-      recordEquals(currentState.state, browserConfig))
+      Json.equals(currentState.state, browserConfig))
   )
     return;
   await service.setBrowserConfig?.(
     device,
     { config: assert(currentState.state) },
-    getAC.bind(null, device, state.windows),
+    getAC.bind(null, device, state.browserConfigs),
   );
 };
 
