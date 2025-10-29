@@ -27,6 +27,7 @@ const schema = z.strictObject({
   CORE: z.strictObject({
     SOCKET_PATH: z.string().optional(),
     URL: z.string(),
+    RECONNECTION_TIMEOUT: z.number(),
   }),
   CALENDAR: z
     .strictObject({
@@ -58,6 +59,7 @@ const schema = z.strictObject({
     }),
     SCRIPTS: z
       .strictObject({
+        PING: z.string().optional(), // include %IP% for IP replacement
         SYN_SCAN: z.string().optional(), // include %IP% for IP replacement
         ARP_SCAN: z.string().optional(), // include %IP% for IP replacement
         START_NODE: z.string().optional(),
@@ -71,6 +73,7 @@ const schema = z.strictObject({
         .strictObject({
           START: z.string().optional(),
           STOP: z.string().optional(),
+          STATUS: z.string().optional(),
         })
         .optional(),
     })
@@ -93,6 +96,7 @@ const defaultConfig: z.infer<typeof schema> = {
   },
   CORE: {
     URL: "http://localhost:3333",
+    RECONNECTION_TIMEOUT: 500,
   },
   AUTH: {
     NAME: "ove-bridge",

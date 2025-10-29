@@ -3,17 +3,9 @@
   "appId": "org.next-ove.client",
   "productName": "next-ove-client",
   "copyright": "Copyright © 2023 Data Science Institute",
-  "files": [
-    "!**/.env*",
-    "!**/.vscode",
-    "!**/config"
-  ],
+  "files": ["!**/.env*", "!**/.vscode", "!**/config"],
   "mac": {
-    "target": [
-      "dmg",
-      "pkg",
-      "zip"
-    ],
+    "target": ["dmg", "pkg", "zip"],
     "category": "public.app-category.developer-tools",
     "icon": "apps/ove-client/build/icon.png",
     "type": "distribution"
@@ -41,11 +33,7 @@
     ]
   },
   "win": {
-    "target": [
-      "nsis",
-      "portable",
-      "zip"
-    ],
+    "target": ["nsis", "portable", "zip"],
     "icon": "apps/ove-client/build/icon.png"
   },
   "nsis": {
@@ -54,10 +42,7 @@
     "license": "./LICENSE"
   },
   "linux": {
-    "target": [
-      "AppImage",
-      "deb"
-    ],
+    "target": ["AppImage", "deb"],
     "category": "Development"
   },
   "publish": {

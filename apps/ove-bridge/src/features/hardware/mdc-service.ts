@@ -99,7 +99,7 @@ const getInfo = async (
 };
 
 const getStatus = async (
-  { host, port }: Device,
+  device: Device,
   args: TBridgeServiceArgs<"getStatus">,
   ac?: () => AbortController,
 ) => {
@@ -113,11 +113,11 @@ const getStatus = async (
       mdc.getStatus({
         timeout: env.HARDWARE.TIMEOUTS.MDC,
         id: 0x01,
-        host,
+        host: device.host,
         ac: ac?.(),
-        port,
+        port: device.port,
       }),
-    host,
+    device,
   );
 };
 

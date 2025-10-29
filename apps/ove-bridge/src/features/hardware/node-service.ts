@@ -154,7 +154,7 @@ const getStatus = async (
           parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>,
           { signal: controller.signal },
         ),
-      device.host,
+      device,
     );
   } catch (e) {
     return raise(Json.stringify(e));

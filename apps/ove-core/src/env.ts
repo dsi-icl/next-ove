@@ -25,7 +25,7 @@ const schema = z.strictObject({
   TESTING: z.strictObject({
     USERNAME: z.string(),
     ROLE: z.string(),
-  }),
+  }).optional(),
   SOCKETS: z.strictObject({
     PATH: z.string().optional(),
     ADMIN: z
@@ -147,10 +147,6 @@ const defaultConfig: z.infer<typeof schema> = {
     | "development"
     | "testing"
     | "api",
-  TESTING: {
-    USERNAME: "testing",
-    ROLE: "admin"
-  },
   SERVER: {
     PORT: 3333,
     HOSTNAME: "127.0.0.1",

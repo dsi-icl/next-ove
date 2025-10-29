@@ -2,6 +2,7 @@ import { env, logger } from "../env";
 
 const getCredentials = () => {
   if (env.ENVIRONMENT !== "testing") return undefined;
+  if (env.TESTING === undefined) throw new Error("Missing test credentials");
   return {
     username: env.TESTING.USERNAME,
     role: env.TESTING.ROLE,
