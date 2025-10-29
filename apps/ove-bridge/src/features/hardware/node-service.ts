@@ -145,7 +145,6 @@ const getStatus = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.HARDWARE.TIMEOUTS.NODE);
 
   try {
     return statusOptions(
@@ -155,6 +154,7 @@ const getStatus = async (
           { signal: controller.signal },
         ),
       device,
+      controller,
     );
   } catch (e) {
     return raise(Json.stringify(e));

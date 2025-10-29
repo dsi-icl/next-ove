@@ -30,6 +30,7 @@ const initSocket = async () => {
     },
     path: `${env.CORE.SOCKET_PATH ?? ""}/${env.CORE_API_VERSION}`,
     withCredentials: true,
+    ackTimeout: env.CORE.ACK_TIMEOUT,
     extraHeaders: {
       Cookie: (await updateCookie()) as unknown as string,
     },
@@ -39,8 +40,8 @@ const initSocket = async () => {
     logger.info(`${assert(socket).id} connected to /hardware`);
   });
 
-  socket.on("disconnect", async () => {
-    logger.info(`${assert(socket).id} disconnected from /hardware`);
+  socket.on("disconnect", async (reason, description) => {
+    logger.info(`Socket disconnected from /hardware`, reason, description ?? "");
   });
 
   BridgeServiceKeys.forEach((k) => {

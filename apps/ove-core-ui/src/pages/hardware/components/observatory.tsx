@@ -6,7 +6,7 @@ import {
   type StatusOptions,
 } from "@ove/ove-types";
 import { useStatus } from "./hooks";
-import { logger } from "../../../env";
+import { env, logger } from "../../../env";
 import Actions from "./actions/actions";
 import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
@@ -80,11 +80,13 @@ const getStatusClass = (status: StatusOptions | "pending" | "error") => {
 const Status = ({
   deviceId,
   bridgeId,
+  offset,
 }: {
   deviceId: string;
   bridgeId: string;
+  offset: number;
 }) => {
-  const status = useStatus(deviceId, bridgeId);
+  const status = useStatus(deviceId, bridgeId, offset, true);
   return (
     <span
       className={cn(
@@ -98,13 +100,13 @@ const Status = ({
 };
 
 const getData = (bridgeId: string, devices: Device[]) =>
-  devices.map((device) => ({
+  devices.map((device, i) => ({
     protocol: device.type,
     id: device.id,
     hostname: buildDeviceURL(device),
     mac: device.mac,
     tags: device.tags,
-    status: <Status deviceId={device.id} bridgeId={bridgeId} />,
+    status: <Status deviceId={device.id} bridgeId={bridgeId} offset={i * env.API_CALL_OFFSET} />,
     actions: (
       <Actions
         devices={devices}

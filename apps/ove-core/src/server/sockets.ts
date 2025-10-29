@@ -14,6 +14,7 @@ export const io: Server = new Server(server, {
     methods: ["GET", "POST", "DELETE"],
     credentials: true
   },
+  pingTimeout: env.SOCKETS.PING_TIMEOUT,
   path: `${env.SOCKETS.PATH ?? ""}/${env.API_VERSION}`,
   maxHttpBufferSize: env.SOCKETS.MAX_HTTP_BUFFER_SIZE
 } as Partial<ServerOptions>);
@@ -38,7 +39,7 @@ instrument(io, {
 io.on("connection", (socket) => {
   logger.info(`New client connected: ${socket.id}`);
 
-  socket.on("disconnect", (reason) =>
-    logger.info(`${socket.id} disconnecting with reason: ${reason}`)
+  socket.on("disconnect", (reason, description) =>
+    logger.info(`${socket.id} disconnected with reason: ${reason}`, description ?? "")
   );
 });

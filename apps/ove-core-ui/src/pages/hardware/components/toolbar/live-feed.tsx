@@ -25,11 +25,25 @@ const LiveFeed = memo(({ bridgeId }: { bridgeId: string }) => {
   const streams = api.bridge.getStreams.useQuery({ bridgeId });
   const startStreams = api.bridge.startStreams.useMutation({
     retry: false,
-    onSuccess: () => context.bridge.getStreamStatus.invalidate({ bridgeId }),
+    onSuccess: () => {
+      context.bridge.getStreamStatus.invalidate({ bridgeId }).catch(() =>
+        toast.error("Unable to get stream status"),
+      );
+      context.bridge.getStreams.invalidate({ bridgeId }).catch(() =>
+        toast.error("Unable to get streams"),
+      );
+    },
   });
   const stopStreams = api.bridge.stopStreams.useMutation({
     retry: false,
-    onSuccess: () => context.bridge.getStreamStatus.invalidate({ bridgeId }),
+    onSuccess: () => {
+      context.bridge.getStreamStatus.invalidate({ bridgeId }).catch(() =>
+        toast.error("Unable to get stream status"),
+      );
+      context.bridge.getStreams.invalidate({ bridgeId }).catch(() =>
+        toast.error("Unable to get streams"),
+      );
+    },
   });
 
   return (

@@ -11,7 +11,7 @@ import { init } from "./server/hardware/controller";
 import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { openApiDocument } from "./open-api";
-import FileUtils from "@ove/ove-server-utils";
+import * as FileUtils from "@ove/ove-server-utils";
 import {
   closeBrowser,
   createBrowser,

@@ -154,7 +154,7 @@ type ActionProps = {
 };
 
 const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
-  const status = useStatus(device?.id ?? null, bridgeId, true);
+  const status = useStatus(device?.id ?? null, bridgeId);
   const utils = api.useUtils();
   const [action, setAction] = useState<TActions>(null);
   const { start } = useStart(bridgeId, device?.id ?? null, tag);

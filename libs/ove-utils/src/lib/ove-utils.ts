@@ -56,11 +56,11 @@ export const DeepProxy = <T extends object>(
 export const safe = async <T>(
   logger: TLogger,
   handler: () => Promise<T>,
-): Promise<Awaited<T> | OVEException> => {
+): Promise<T | OVEException> => {
   try {
     return await handler();
   } catch (e) {
-    logger.error(e);
+    logger.trace(e);
     if (typeof e === "string") return { oveError: e };
     else if (typeof e === "object" && e !== null && "message" in e) {
       return { oveError: JSON.stringify(e.message) };

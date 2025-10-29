@@ -10,7 +10,7 @@ import {
   stopReconciliation,
 } from "../hardware/reconciliation";
 import { assert, raise } from "@ove/ove-utils";
-import { execSync } from "child_process";
+import { execPromise } from "@ove/ove-server-utils";
 import { getSocketStatus } from "./sockets";
 import { env, logger, version } from "../../env";
 import type { Calendar, TBridgeService } from "@ove/ove-types";
@@ -40,7 +40,7 @@ export const service: TBridgeService = {
     if (env === null || env.LIVE_VIEW?.SCRIPTS?.START === undefined)
       return true;
     try {
-      execSync(env.LIVE_VIEW.SCRIPTS.START);
+      await execPromise(env.LIVE_VIEW.SCRIPTS.START);
       return true;
     } catch (e) {
       logger.error(e);
@@ -50,7 +50,7 @@ export const service: TBridgeService = {
   stopStreams: async () => {
     if (env === null || env.LIVE_VIEW?.SCRIPTS?.STOP === undefined) return true;
     try {
-      execSync(env.LIVE_VIEW.SCRIPTS.STOP);
+      await execPromise(env.LIVE_VIEW.SCRIPTS.STOP);
       return true;
     } catch (e) {
       logger.error(e);
@@ -60,7 +60,7 @@ export const service: TBridgeService = {
   getStreamStatus: async () => {
     if (env === null || env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined || env.LIVE_VIEW?.SCRIPTS?.STOP === undefined) return false;
     try {
-      const res = execSync(env.LIVE_VIEW.SCRIPTS.STOP, {encoding: "utf-8"});
+      const res = await execPromise(env.LIVE_VIEW.SCRIPTS.STOP);
       return res.includes("active (running)");
     } catch (e) {
       return false;

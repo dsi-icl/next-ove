@@ -1,6 +1,7 @@
 import {
   CoreAPI,
   isError,
+  type OVEException,
   type TCoreAPI,
   type TCoreAPIOutput,
   type THardwareClientToServerEvents,
@@ -42,12 +43,12 @@ const handler = async <
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   const { bridgeId, ...args } = input;
   logger.info(`Handling: ${k}`);
-  const res = await safe(logger, () => {
+  const res: OVEException | TCoreAPIOutput<Key> = (await safe(logger, (): Promise<TCoreAPIOutput<Key>> => {
     const socket = getSocket(bridgeId);
     if (socket === null) throw new Error(`${bridgeId} is not connected`);
     // @ts-expect-error arg spread
-    return socket.timeout(5000).emitWithAck(k, args);
-  });
+    return socket.emitWithAck(k, args) as Promise<TCoreAPIOutput<Key>>;
+  }));
   if (isError(res)) {
     return {
       meta: {
