@@ -27,6 +27,7 @@ const schema = z.strictObject({
   CORE: z.strictObject({
     SOCKET_PATH: z.string().optional(),
     URL: z.string(),
+    ACK_TIMEOUT: z.number(),
     RECONNECTION_TIMEOUT: z.number(),
   }),
   CALENDAR: z
@@ -97,6 +98,7 @@ const defaultConfig: z.infer<typeof schema> = {
   CORE: {
     URL: "http://localhost:3333",
     RECONNECTION_TIMEOUT: 500,
+    ACK_TIMEOUT: 60000,
   },
   AUTH: {
     NAME: "ove-bridge",

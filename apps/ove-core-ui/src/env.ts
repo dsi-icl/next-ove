@@ -21,6 +21,7 @@ interface ImportMetaEnv {
   VITE_LOGGING_SERVER_SOCKET_ENDPOINT?: string;
   VITE_LOGGING_SERVER_SOCKET_PATH?: string;
   VITE_DISABLE_LIVE_PREVIEW: string;
+  VITE_API_CALL_OFFSET: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -55,6 +56,7 @@ const schema = z
     LIVE_FEED_REFRESH_INTERVAL: z.number(),
     STATUS_REFRESH_INTERVAL: z.number(),
     DISABLE_LIVE_PREVIEW: z.boolean(),
+    API_CALL_OFFSET: z.number(),
   })
   .refine((x) => x.MODE === "test" || !x.DISABLE_AUTH);
 
@@ -78,6 +80,7 @@ const parsedConfig = schema.parse({
   STATUS_REFRESH_INTERVAL: parseInt(env_.VITE_STATUS_REFRESH_INTERVAL),
   PAGE_SIZE: parseInt(env_.VITE_PAGE_SIZE),
   DISABLE_LIVE_PREVIEW: env_.VITE_DISABLE_LIVE_PREVIEW === "true",
+  API_CALL_OFFSET: parseInt(env_.VITE_API_CALL_OFFSET),
 });
 
 const staticConfig = {

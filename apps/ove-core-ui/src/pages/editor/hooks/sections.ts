@@ -68,6 +68,25 @@ export const useUpdateSection = () => {
   );
 };
 
+export const usePartialUpdateSection = () => {
+  const section = useSectionStore((state) => state.selectedSection);
+  const setSections = useSectionStore((state) => state.setSections);
+
+  return useCallback((part: Partial<Section>) => {
+    setSections((curr) => {
+      if (!section) return curr;
+      return curr.map((s) =>
+        s.id === section
+          ? {
+              ...s,
+              ...part,
+            }
+          : s,
+      );
+    })
+  }, [setSections, section]);
+}
+
 export const useDragSection = () => {
   const setSections = useSectionStore((state) => state.setSections);
 

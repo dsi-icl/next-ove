@@ -10,7 +10,7 @@ import { prisma } from "./server/db";
 import cookieParser from "cookie-parser";
 import { appRouter } from "./server/router";
 import promBundle from "express-prom-bundle";
-import FileUtils from "@ove/ove-server-utils";
+import * as FileUtils from "@ove/ove-server-utils";
 import { app } from "./server/app";
 import { state } from "./server/state";
 import { createContext } from "./server/context";

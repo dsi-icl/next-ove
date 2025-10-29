@@ -9,10 +9,11 @@ export const useBrowserConfig = (
   deviceId: string,
   displayId: number,
 ) => {
+  const status = useStatus(deviceId, bridgeId, 0);
   const getBrowserConfig = api.hardware.getBrowserConfig.useQuery({
     bridgeId,
     deviceId,
-  });
+  }, { enabled: status === "on" });
 
   return useMemo((): string => {
     if (getBrowserConfig.status !== "success") return "";
@@ -27,10 +28,11 @@ export const useBrowser = (
   deviceId: string,
   displayId: number,
 ) => {
+  const status = useStatus(deviceId, bridgeId, 0);
   const getBrowsers = api.hardware.getBrowsers.useQuery({
     bridgeId,
     deviceId,
-  });
+  }, { enabled: status === "on" });
 
   return useMemo((): string => {
     if (getBrowsers.status !== "success") return "";
@@ -48,8 +50,9 @@ export const useLiveFeed = (
   bridgeId: string,
   deviceId: string,
   displayId: number,
+  offset: number,
 ) => {
-  const status = useStatus(deviceId, bridgeId);
+  const status = useStatus(deviceId, bridgeId, offset);
   const takeScreenshot = api.hardware.screenshot.useMutation({ retry: false });
   const [cache, setCache] = useState<string | undefined>(undefined);
 
@@ -82,8 +85,10 @@ export const useLiveFeed = (
 
   useEffect(() => {
     if (env.DISABLE_LIVE_PREVIEW || status !== "on") return;
-    const interval = setInterval(fn, env.LIVE_FEED_REFRESH_INTERVAL);
-    fn();
+    const interval = setInterval(fn, env.LIVE_FEED_REFRESH_INTERVAL + offset);
+    new Promise((resolve) => {
+      setTimeout(resolve, offset);
+    }).then(fn);
 
     return () => {
       clearInterval(interval);

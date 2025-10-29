@@ -13,6 +13,7 @@ import { assert } from "@ove/ove-utils";
 import TableHeader from "../table-header";
 import type { Bounds } from "@ove/ove-types";
 import { useBrowser, useBrowserConfig, useLiveFeed } from "./hooks";
+import { env } from "../../../../env";
 
 export type ScreenProps = {
   bridgeId: string;
@@ -30,6 +31,9 @@ const Screen = memo(
         ({ row, column }) => column === colId + 1 && row === rowId + 1,
       ),
     );
+    const displayIdx = bounds.displays.findIndex(
+      ({ row, column }) => column === colId + 1 && row === rowId + 1,
+    );
     const browserConfig = useBrowserConfig(
       bridgeId,
       display.deviceId,
@@ -40,6 +44,7 @@ const Screen = memo(
       bridgeId,
       display.deviceId,
       display.displayId,
+      displayIdx * env.API_CALL_OFFSET,
     );
     const aspectRatio = [
       bounds.width / bounds.columns,
