@@ -25,7 +25,7 @@ export const statusOptions = async (
   if (env !== null && env.HARDWARE.SCRIPTS?.PING !== undefined) {
     try {
       const res = execSync(
-        env.HARDWARE.SCRIPTS.PING.replaceAll("%IP%", device.host),
+        env.HARDWARE.SCRIPTS.PING.replaceAll("%IP%", device.host.split("/")[0]),
         {
           timeout: getTimeout(device),
         },
@@ -42,7 +42,7 @@ export const statusOptions = async (
   if (env !== null && env.HARDWARE.SCRIPTS?.ARP_SCAN !== undefined) {
     try {
       const res = execSync(
-        env.HARDWARE.SCRIPTS.ARP_SCAN.replaceAll("%IP%", device.host),
+        env.HARDWARE.SCRIPTS.ARP_SCAN.replaceAll("%IP%", device.host.split("/")[0]),
         {
           timeout: getTimeout(device),
         },
@@ -59,7 +59,7 @@ export const statusOptions = async (
   if (env !== null && env.HARDWARE.SCRIPTS?.SYN_SCAN !== undefined) {
     try {
       const res = execSync(
-        env.HARDWARE.SCRIPTS.SYN_SCAN.replaceAll("%IP%", device.host),
+        env.HARDWARE.SCRIPTS.SYN_SCAN.replaceAll("%IP%", device.host.split("/")[0]),
         {
           timeout: getTimeout(device),
         },
