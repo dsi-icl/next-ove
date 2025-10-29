@@ -1,3 +1,5 @@
+/* global fetch*/
+
 import {
   setAutoSchedule,
   setEcoSchedule,
@@ -7,7 +9,7 @@ import {
   startReconciliation,
   stopReconciliation,
 } from "../hardware/reconciliation";
-import { raise } from "@ove/ove-utils";
+import { assert, raise } from "@ove/ove-utils";
 import { execSync } from "child_process";
 import { getSocketStatus } from "./sockets";
 import { env, logger, version } from "../../env";
@@ -55,6 +57,15 @@ export const service: TBridgeService = {
       return false;
     }
   },
+  getStreamStatus: async () => {
+    if (env === null || env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined || env.LIVE_VIEW?.SCRIPTS?.STOP === undefined) return false;
+    try {
+      const res = execSync(env.LIVE_VIEW.SCRIPTS.STOP, {encoding: "utf-8"});
+      return res.includes("active (running)");
+    } catch (e) {
+      return false;
+    }
+  },
   getStreams: async () => env.LIVE_VIEW?.SOURCES,
   getCalendar: async () => {
     // TODO: add full production integration with email service, Azure auth etc.
@@ -93,7 +104,7 @@ export const service: TBridgeService = {
     void setEcoSchedule(ecoSchedule).catch(logger.error),
   setAutoSchedule: async ({ autoSchedule }) =>
     void setAutoSchedule(autoSchedule).catch(logger.error),
-  getAppVersion: async () => version!,
+  getAppVersion: async () => assert(version),
   getAutoSchedule: async () => env.POWER.SCHEDULE,
   getGeometry: async () => env.HARDWARE.GEOMETRY,
   getReconciliation: async () => env.RECONCILIATION.STATUS,

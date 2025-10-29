@@ -29,6 +29,7 @@ import {
   Projector,
   RefreshCcw,
   RotateCw,
+  Settings,
   Terminal,
   Video,
   VideoOff,
@@ -46,6 +47,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuSub,
@@ -53,17 +55,18 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@ove/ui-base-components";
-import Volume from "../volume";
+import Volume from "./volume";
 import { useStatus } from "../hooks";
 import { flushSync } from "react-dom";
-import WindowInfo from "../window-info";
+import BrowserInfo from "./browser-info";
 import type { Device } from "@ove/ove-types";
-import TerminalDialog from "../terminal";
+import TerminalDialog from "./terminal";
 import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
 import Screenshot from "../screenshot/screenshot";
 import InfoContainer from "../info/info-container";
 import React, { useCallback, useState } from "react";
+import BrowserConfiguration from "./browser-configuration";
 
 const getType = (device: Device | null, type: Device["type"], negate = false) =>
   device === null || (negate ? device.type !== type : device.type === type);
@@ -72,7 +75,8 @@ type TActions =
   | "info"
   | "terminal"
   | "screenshot"
-  | "window-info"
+  | "browser-info"
+  | "browser-configure"
   | "volume"
   | null;
 
@@ -111,12 +115,21 @@ const getActionDialog = (
           closeDialog={closeDialog}
         />
       );
-    case "window-info":
+    case "browser-info":
       return (
-        <WindowInfo
+        <BrowserInfo
           deviceId={device?.id ?? null}
           bridgeId={bridgeId}
           tag={tag}
+        />
+      );
+    case "browser-configure":
+      return (
+        <BrowserConfiguration
+          deviceId={device?.id ?? null}
+          bridgeId={bridgeId}
+          tag={tag}
+          closeDialog={closeDialog}
         />
       );
     case "volume":
@@ -141,7 +154,7 @@ type ActionProps = {
 };
 
 const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
-  const status = useStatus(device?.id ?? null, bridgeId);
+  const status = useStatus(device?.id ?? null, bridgeId, true);
   const utils = api.useUtils();
   const [action, setAction] = useState<TActions>(null);
   const { start } = useStart(bridgeId, device?.id ?? null, tag);
@@ -203,6 +216,7 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
           className="max-h-[45vh] overflow-y-scroll"
         >
           <DropdownMenuGroup>
+            <DropdownMenuLabel>Information</DropdownMenuLabel>
             <DropdownMenuItem className="cursor-pointer" onClick={updateState}>
               <RefreshCcw className="mr-2 size-4" />
               <span>Status</span>
@@ -216,6 +230,7 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
+            <DropdownMenuLabel>Power</DropdownMenuLabel>
             {status !== null ? (
               <DropdownMenuItem
                 className="cursor-pointer"
@@ -250,6 +265,9 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
               Reboot
             </DropdownMenuItem>
           </DropdownMenuGroup>
+          {getType(device, "node", false) ? (
+            <DropdownMenuLabel>Advanced Controls</DropdownMenuLabel>
+          ) : null}
           {getType(device, "node") ? <DropdownMenuSeparator /> : null}
           <DropdownMenuGroup>
             {getType(device, "node") ? (
@@ -277,14 +295,17 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
           </DropdownMenuGroup>
           {getType(device, "node") ? <DropdownMenuSeparator /> : null}
           <DropdownMenuGroup>
+            {getType(device, "node", false) ? (
+              <DropdownMenuLabel>Browsers</DropdownMenuLabel>
+            ) : null}
             {getType(device, "node") ? (
               <DialogTrigger
                 className="w-full"
-                onClick={() => setAction("window-info")}
+                onClick={() => setAction("browser-info")}
               >
                 <DropdownMenuItem className="w-full cursor-pointer">
                   <Library className="mr-2 size-4" />
-                  Window Info
+                  Browser Info
                 </DropdownMenuItem>
               </DialogTrigger>
             ) : null}
@@ -294,7 +315,7 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
                 onClick={reloadBrowsers}
               >
                 <Globe className="mr-2 size-4" />
-                Reload Windows
+                Reload Browsers
               </DropdownMenuItem>
             ) : null}
             {getType(device, "node") ? (
@@ -303,7 +324,7 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
                 onClick={openBrowsers}
               >
                 <ExternalLink className="mr-2 size-4" />
-                Open Windows
+                Open Browsers
               </DropdownMenuItem>
             ) : null}
             {getType(device, "node") ? (
@@ -312,12 +333,26 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
                 onClick={closeBrowsers}
               >
                 <X className="mr-2 size-4" />
-                Close Windows
+                Close Browsers
               </DropdownMenuItem>
+            ) : null}
+            {getType(device, "node") ? (
+              <DialogTrigger
+                className="w-full"
+                onClick={() => setAction("browser-configure")}
+              >
+                <DropdownMenuItem className="w-full cursor-pointer">
+                  <Settings className="mr-2 size-4" />
+                  Configure Browsers
+                </DropdownMenuItem>
+              </DialogTrigger>
             ) : null}
           </DropdownMenuGroup>
           {getType(device, "node", true) ? <DropdownMenuSeparator /> : null}
           <DropdownMenuGroup>
+            {getType(device, "node", true) ? (
+              <DropdownMenuLabel>Source</DropdownMenuLabel>
+            ) : null}
             {getType(device, "node", true) ? (
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
@@ -527,6 +562,12 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
                 </DropdownMenuPortal>
               </DropdownMenuSub>
             ) : null}
+          </DropdownMenuGroup>
+          {getType(device, "node", true) ? <DropdownMenuSeparator /> : null}
+          <DropdownMenuGroup>
+            {getType(device, "node", true) ? (
+              <DropdownMenuLabel>Volume</DropdownMenuLabel>
+            ) : null}
             {getType(device, "node", true) ? (
               <DialogTrigger
                 className="w-full"
@@ -538,9 +579,6 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
                 </DropdownMenuItem>
               </DialogTrigger>
             ) : null}
-          </DropdownMenuGroup>
-          {getType(device, "node", true) ? <DropdownMenuSeparator /> : null}
-          <DropdownMenuGroup>
             {getType(device, "node", true) ? (
               <DropdownMenuItem className="cursor-pointer" onClick={mute}>
                 <VolumeOff className="mr-2 size-4" />

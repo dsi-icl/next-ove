@@ -33,7 +33,7 @@ export const initBridge = async () => {
     socketConnectListeners.forEach((x) => x());
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     logger.info(`${assert(socket).id} disconnected from /bridge`);
     socketDisconnectListeners.forEach((x) => x());
   });
@@ -53,10 +53,7 @@ export const initBridge = async () => {
 
   socket.on("connect_error", async (err) => {
     logger.error(`connection error due to ${err.message}`);
-    if (socket?.io?.opts?.extraHeaders === undefined)
-      throw new Error("Missing headers");
-    socket.io.opts.extraHeaders.Cookie =
-      (await updateCookie()) as unknown as string;
-    socket?.disconnect()?.connect();
+    socket?.disconnect();
+    setTimeout(() => initBridge().catch(logger.error), 500);
   });
 };

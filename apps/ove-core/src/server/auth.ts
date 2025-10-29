@@ -1,7 +1,8 @@
-import { env } from "../env";
+import { env, logger } from "../env";
 
 const getCredentials = () => {
   if (env.ENVIRONMENT !== "testing") return undefined;
+  if (env.TESTING === undefined) throw new Error("Missing test credentials");
   return {
     username: env.TESTING.USERNAME,
     role: env.TESTING.ROLE,
@@ -9,7 +10,7 @@ const getCredentials = () => {
 };
 
 const authorize = (role: string, url: string) => {
-  console.log(role, url);
+  logger.trace("Authorizing:", role, url);
   return true;
 };
 

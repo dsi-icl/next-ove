@@ -39,3 +39,4 @@ export * from "./lib/hooks/form-errors";
 export * from "./lib/reorderable-list/index";
 export * from "./lib/carousel";
 export * from "./lib/input-group";
+export * from "./lib/combobox";

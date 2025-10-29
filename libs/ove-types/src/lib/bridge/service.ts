@@ -145,6 +145,17 @@ export const APIRoutes = {
       getDeviceResponseSchema(z.array(z.string()).optional()),
     ),
   },
+  getStreamStatus: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/bridges/{bridgeId}/streams/status" as `/${string}`,
+        protect: true,
+      },
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
+  },
   getCalendar: {
     meta: {
       openapi: {

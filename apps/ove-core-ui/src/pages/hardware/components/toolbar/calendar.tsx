@@ -1,22 +1,23 @@
 import React from "react";
 import {
   Button,
+  CalendarView,
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
+  useCalendar,
 } from "@ove/ui-base-components";
 import { api } from "../../../../utils/api";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { CalendarView, useCalendar } from "@ove/ui-base-components";
 
 const Calendar = ({ bridgeId }: { bridgeId: string }) => {
   const getCalendar = api.bridge.getCalendar.useQuery({ bridgeId });
   const { calendar, lastUpdated } = useCalendar(getCalendar.data?.response);
 
-  return (
+  return calendar !== undefined ? (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">
@@ -41,7 +42,7 @@ const Calendar = ({ bridgeId }: { bridgeId: string }) => {
         </div>
       </DialogContent>
     </Dialog>
-  );
+  ) : null;
 };
 
 export default Calendar;

@@ -4,3 +4,8 @@
 /coverage
 
 /.nx/workspace-data
+
+node_modules
+
+*.bak
+*.old

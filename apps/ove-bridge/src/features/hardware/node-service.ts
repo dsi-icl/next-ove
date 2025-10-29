@@ -1,4 +1,4 @@
-/* global AbortController, global, setTimeout */
+/* global AbortController, setTimeout */
 
 import {
   type Device,
@@ -6,6 +6,7 @@ import {
   type TBridgeHardwareService,
   type TBridgeServiceArgs,
   type TClientAPI,
+  BrowserConfigSchema,
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../env";
@@ -153,7 +154,7 @@ const getStatus = async (
           parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>,
           { signal: controller.signal },
         ),
-      device.host,
+      device,
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -190,7 +191,7 @@ const screenshot = async (
 ) => {
   const screenshotOptsSchema = z.strictObject({
     method: ScreenshotMethodSchema,
-    screens: z.array(z.string()).optional(),
+    screens: z.array(z.number()).optional(),
   });
   const parsedOpts = screenshotOptsSchema.safeParse(args);
 
@@ -301,13 +302,13 @@ const reloadBrowsers = async (
   }
 };
 
-const setWindowConfig = async (
+const setBrowserConfig = async (
   device: Device,
-  args: TBridgeServiceArgs<"setWindowConfig">,
+  args: TBridgeServiceArgs<"setBrowserConfig">,
   ac?: () => AbortController,
 ) => {
   const setConfigOptsSchema = z.strictObject({
-    config: z.record(z.string(), z.string()),
+    config: BrowserConfigSchema,
   });
   const parsedOpts = setConfigOptsSchema.safeParse(args);
 
@@ -317,8 +318,8 @@ const setWindowConfig = async (
   setTimeout(() => controller.abort(), env.HARDWARE.TIMEOUTS.NODE);
 
   try {
-    return createClient(device).setWindowConfig.mutate(
-      parsedOpts.data as z.infer<TClientAPI["setWindowConfig"]["args"]>,
+    return createClient(device).setBrowserConfig.mutate(
+      parsedOpts.data as z.infer<TClientAPI["setBrowserConfig"]["args"]>,
       { signal: controller.signal },
     );
   } catch (e) {
@@ -326,9 +327,9 @@ const setWindowConfig = async (
   }
 };
 
-const getWindowConfig = async (
+const getBrowserConfig = async (
   device: Device,
-  args: TBridgeServiceArgs<"getWindowConfig">,
+  args: TBridgeServiceArgs<"getBrowserConfig">,
   ac?: () => AbortController,
 ) => {
   const configOptsSchema = z.object({});
@@ -340,8 +341,8 @@ const getWindowConfig = async (
   setTimeout(() => controller.abort(), env.HARDWARE.TIMEOUTS.NODE);
 
   try {
-    return createClient(device).getWindowConfig.query(
-      parsedOpts.data as z.infer<TClientAPI["getWindowConfig"]["args"]>,
+    return createClient(device).getBrowserConfig.query(
+      parsedOpts.data as z.infer<TClientAPI["getBrowserConfig"]["args"]>,
       { signal: controller.signal },
     );
   } catch (e) {
@@ -385,8 +386,8 @@ const NodeService: TBridgeHardwareService = {
   closeBrowsers,
   reloadBrowser,
   reloadBrowsers,
-  setWindowConfig,
-  getWindowConfig,
+  setBrowserConfig,
+  getBrowserConfig,
 };
 
 export default NodeService;

@@ -6,6 +6,7 @@ import { app } from "electron";
 import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
 import { setupConfig } from "@ove/ove-server-utils";
+import { BrowserConfigSchema } from "@ove/ove-types";
 
 const schema = z.strictObject({
   LOGGING: z
@@ -40,18 +41,10 @@ const schema = z.strictObject({
     API_KEY: z.string(),
     SERVER_URL: z.string(),
   }),
-  RENDERER: z.discriminatedUnion("MODE", [
-    z.strictObject({
-      MODE: z.literal("legacy"),
-      WINDOW_CONFIG: z.record(z.string(), z.string()),
-      BROWSER_DELAY: z.number(),
-    }),
-    z.strictObject({
-      MODE: z.literal("nuovo"),
-      BROWSER_DELAY: z.number(),
-      ENDPOINT: z.string(),
-    }),
-  ]),
+  BROWSERS: z.strictObject({
+    CONFIG: BrowserConfigSchema,
+    DELAY: z.number(),
+  })
 });
 
 const staticConfig = {
@@ -76,10 +69,9 @@ const defaultConfig: z.infer<typeof schema> = {
     API_KEY: apiKey,
     SERVER_URL: "http://localhost:3333",
   },
-  RENDERER: {
-    WINDOW_CONFIG: {},
-    BROWSER_DELAY: 2000,
-    MODE: "legacy",
+  BROWSERS: {
+    CONFIG: [],
+    DELAY: 2000,
   },
 };
 

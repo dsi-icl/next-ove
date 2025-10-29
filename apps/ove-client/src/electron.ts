@@ -7,7 +7,7 @@ import {
   BrowserWindow,
   desktopCapturer,
   screen,
-  systemPreferences
+  systemPreferences,
 } from "electron";
 import { type OutboundAPI } from "./ipc-routes";
 
@@ -15,50 +15,52 @@ export const start = (closeServer: () => void) => {
   App.initialise(app, BrowserWindow, screen, closeServer);
 };
 
-export const createWindow = async (): Promise<number[]> => {
+export const createBrowser = async (): Promise<number[]> => {
   if (!App.isInitialised()) {
-    throw new Error("Window controller is not initialised");
+    throw new Error("App is not initialised");
   }
   return App.open();
 };
 
-export const closeWindow = (idx: number): boolean => {
+export const closeBrowser = (browserId: number): boolean => {
   if (!App.isInitialised()) {
-    throw new Error("Window controller is not initialised");
+    throw new Error("App is not initialised");
   }
-  App.close(idx);
+  App.close(browserId);
   return true;
 };
 
-export const reloadWindow = (idx: number) => {
+export const reloadBrowser = (browserId: number) => {
   if (!App.isInitialised()) {
-    throw new Error("Window controller is not initialised");
+    throw new Error("App is not initialised");
   }
 
-  App.reload(idx);
+  App.reload(browserId);
   return true;
 };
 
-export const reloadWindows = () => {
+export const reloadBrowsers = () => {
   if (!App.isInitialised()) {
-    throw new Error("Window controller is not initialised");
+    throw new Error("App is not initialised");
   }
 
   App.reloadAll();
   return true;
 };
 
-export const triggerIPC: OutboundAPI = Object.entries(App.triggerIPC)
-  .reduce((acc, [k, v]) => {
+export const triggerIPC: OutboundAPI = Object.entries(App.triggerIPC).reduce(
+  (acc, [k, v]) => {
     acc[k] = (...args: Parameters<typeof v>) => {
       if (!App.isInitialised()) {
-        throw new Error("Window controller is not initialised");
+        throw new Error("App is not initialised");
       }
       v(...args);
       return true;
     };
     return acc;
-  }, <Record<string, unknown>>{}) as OutboundAPI;
+  },
+  <Record<string, unknown>>{},
+) as OutboundAPI;
 
 export const takeScreenshots = async () => {
   if (systemPreferences.getMediaAccessStatus("screen") === "denied") {

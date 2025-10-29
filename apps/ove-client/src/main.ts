@@ -1,8 +1,8 @@
 import { start as startServer } from "./server";
 import {
-  start as startElectron,
   initializeElectron,
-  initializeElectronEvents
+  initializeElectronEvents,
+  start as startElectron,
 } from "./electron";
 
 const serverCloseHandler = startServer();

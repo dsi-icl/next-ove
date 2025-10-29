@@ -1,3 +1,5 @@
+/* global Buffer */
+
 import Minio from "minio";
 import { Readable } from "stream";
 
@@ -39,7 +41,7 @@ const uploadFile = (
   const rs =
     typeof data === "string"
       ? Readable.from([Buffer.from(data, "utf8")])
-      : Buffer.isBuffer(data) || data instanceof Uint8Array
+      : Buffer.isBuffer(data)
       ? Readable.from([data])
       : Readable.from(data); 
   return s3.putObject(bucketName, objectName, rs);

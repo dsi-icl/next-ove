@@ -93,16 +93,14 @@ const controller: TClientService = {
     logger.info("POST /browsers/reload - reloading browsers");
     return service.reloadBrowsers();
   },
-  setWindowConfig: async ({ config }) => {
-    logger.info("POST /env/windowConfig - setting window config");
-    if (env.RENDERER.MODE !== "legacy") throw new Error("Running with new renderer");
-    env.RENDERER.WINDOW_CONFIG = config;
+  setBrowserConfig: async ({ config }) => {
+    logger.info("POST /browsers/config - setting window config");
+    env.BROWSERS.CONFIG = config;
     return true;
   },
-  getWindowConfig: async () => {
-    logger.info("GET /env/windowConfig - getting window config");
-    if (env.RENDERER.MODE !== "legacy") throw new Error("Running with new renderer");
-    return env.RENDERER.WINDOW_CONFIG;
+  getBrowserConfig: async () => {
+    logger.info("GET /browsers/config - getting window config");
+    return env.BROWSERS.CONFIG;
   }
 };
 

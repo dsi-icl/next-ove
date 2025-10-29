@@ -114,11 +114,9 @@ export const BoundsSchema = z.strictObject({
   rows: z.number(),
   columns: z.number(),
   displays: z.strictObject({
-    displayId: z.string(), // ID of screen
-    renderer: z.strictObject({
-      deviceId: z.string(),
-      displayId: z.string() // ID of device's display
-    }),
+    rendererId: z.string(), // i.e. screen ID
+    deviceId: z.string(), // i.e. node ID
+    displayId: z.number(), // i.e. display ID
     row: z.number(),
     column: z.number()
   }).array()
@@ -126,11 +124,15 @@ export const BoundsSchema = z.strictObject({
 
 export type Bounds = z.infer<typeof BoundsSchema>
 
+export const BrowserConfigSchema = z.string().array();
+export type BrowserConfig = z.infer<typeof BrowserConfigSchema>;
+
 export const StatusOptionsSchema = z.union([
   z.literal("off"),
   z.literal("on"),
   z.literal("ARP"),
-  z.literal("SYN")
+  z.literal("SYN"),
+  z.literal("PING"),
 ]);
 
 export type StatusOptions = z.infer<typeof StatusOptionsSchema>;

@@ -3,9 +3,6 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/ove-client/src",
   "projectType": "application",
-  "implicitDependencies": [
-    "ove-renderer"
-  ],
   "targets": {
     "db": {
       "executor": "nx:run-commands",

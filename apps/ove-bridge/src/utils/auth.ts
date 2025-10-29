@@ -1,4 +1,6 @@
-import { env } from "../env";
+/* global fetch */
+
+import { env, logger } from "../env";
 
 export const updateCookie = async () => {
   try {
@@ -10,5 +12,7 @@ export const updateCookie = async () => {
       },
     });
     return res.headers.getSetCookie();
-  } catch (e) {}
+  } catch (e) {
+    logger.error("Unable to fetch cookie:", e);
+  }
 };

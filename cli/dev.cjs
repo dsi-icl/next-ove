@@ -95,7 +95,10 @@ const schemas = {
   }),
   patch: z.strictObject({
     __cmd__: z.literal("patch"),
-    name: z.string().refine((x) => Object.keys(activePatches).includes(x)).optional(),
+    name: z
+      .string()
+      .refine((x) => Object.keys(activePatches).includes(x))
+      .optional(),
     timeout: z.coerce.number().optional(),
   }),
   tools: z.strictObject({
@@ -104,7 +107,11 @@ const schemas = {
   }),
   mock: z.strictObject({
     __cmd__: z.literal("mock"),
-    component: z.union([z.literal("bridge"), z.literal("renderer")]),
+    component: z.union([
+      z.literal("bridge"),
+      z.literal("renderer"),
+      z.literal("logging"),
+    ]),
   }),
 };
 

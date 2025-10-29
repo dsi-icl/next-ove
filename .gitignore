@@ -450,3 +450,6 @@ dev/tools/auto-populate/data/global_buckets/*
 
 # db configuration
 !/libs/**/lib
+
+*.bak
+*.old
