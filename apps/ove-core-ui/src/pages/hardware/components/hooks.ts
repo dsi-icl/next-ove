@@ -3,7 +3,7 @@ import { isError } from "@ove/ove-types";
 import { env, logger } from "../../../env";
 import { useEffect, useMemo } from "react";
 
-export const useStatus = (deviceId: string | null, bridgeId: string) => {
+export const useStatus = (deviceId: string | null, bridgeId: string, useRefresh: boolean = false) => {
   const apiUtils = api.useUtils();
   const getStatus = api.hardware.getStatus.useQuery(
     {
@@ -14,6 +14,7 @@ export const useStatus = (deviceId: string | null, bridgeId: string) => {
   );
 
   useEffect(() => {
+    if (!useRefresh) return;
     const interval = setInterval(() => {
       if (deviceId === null) return;
       apiUtils.hardware.getStatus
@@ -24,7 +25,7 @@ export const useStatus = (deviceId: string | null, bridgeId: string) => {
     return () => {
       clearInterval(interval);
     };
-  }, [bridgeId, deviceId, apiUtils.hardware.getStatus]);
+  }, [bridgeId, deviceId, useRefresh, apiUtils.hardware.getStatus]);
 
   return useMemo(() => {
     if (deviceId === null) return null;
