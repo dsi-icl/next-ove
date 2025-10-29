@@ -31,7 +31,7 @@ import type { Geometry as TGeometry, Observatory } from "../types";
 import { useObservatory } from "../../../hooks/observatories";
 import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
-import { useSections, useUpdateSection } from "../hooks/sections";
+import { usePartialUpdateSection, useSections, useUpdateSection } from "../hooks/sections";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Bounds, type DataType, dataTypes, type File } from "@ove/ove-types";
 
@@ -120,7 +120,7 @@ const SectionConfigFormSchema = z.strictObject({
   if (v.width < 1) ctx.addIssue({ path: ["width"], code: z.ZodIssueCode.custom, message: "Width must be > 0" });
   if (v.height < 1) ctx.addIssue({ path: ["height"], code: z.ZodIssueCode.custom, message: "Height must be > 0" });
   if (v.x < 0 || v.y < 0 || v.x > 100 || v.y > 100) {
-    ctx.addIssue({ path: ["x"], code: z.ZodIssueCode.custom, message: "x/y must be in [0, 100]" });
+    ctx.addIssue({ path: ["x", "y"], code: z.ZodIssueCode.custom, message: "x/y must be in [0, 100]" });
   }
   if (v.x + v.width > 100) {
     ctx.addIssue({ path: ["width"], code: z.ZodIssueCode.custom, message: "x + width must be ≤ 100" });
@@ -440,7 +440,20 @@ const Geometry = ({
     setValue("columnTo", space?.columns ?? 0);
     setValue("rowFrom", 0);
     setValue("rowTo", space?.rows ?? 0);
+    partialUpdateSection({ x: 0, y: 0, width: fromPercentage(100), height: fromPercentage(100) });
   };
+
+  const partialUpdateSection = usePartialUpdateSection();
+
+  const onCustomChange = (e: React.ChangeEvent<HTMLInputElement>, field: any, min: number, max: number) => {
+    if (e.target.value === "") {
+      field.onChange("");
+      return;
+    }
+    const clamped = Math.min(max, Math.max(min, e.target.valueAsNumber))
+    field.onChange(clamped);
+    partialUpdateSection({ [field.name]: fromPercentage(clamped) });
+  }
 
   return (
     <div className="w-[calc((100%-2rem)-0.5rem)]">
@@ -482,7 +495,20 @@ const Geometry = ({
               <FormLabel className="font-semibold">x</FormLabel>
               <div className="relative flex w-full">
                 <FormControl className="w-full">
-                  <Input {...field} type="number" className="relative pr-5" step="any" min={0} max={100 - (width ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                  <Input {...field} 
+                    type="number" 
+                    className="relative pr-5" 
+                    step="any" 
+                    min={0} 
+                    max={100 - (width ?? 0)} 
+                    onChange={(e) => onCustomChange(e, field, 0, 100 - (width ?? 0))}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        field.onChange(0);
+                        partialUpdateSection({ x: 0 });
+                      }
+                    }}
+                  />
                 </FormControl>
                 <span className="absolute right-1 top-2">%</span>
               </div>
@@ -497,7 +523,20 @@ const Geometry = ({
               <FormLabel className="font-semibold">y</FormLabel>
               <div className="relative flex w-full items-center">
                 <FormControl className="w-full">
-                  <Input {...field} type="number" className="relative pr-5" step="any" min={0} max={100 - (height ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                  <Input {...field} 
+                    type="number" 
+                    className="relative pr-5" 
+                    step="any" 
+                    min={0} 
+                    max={100 - (height ?? 0)} 
+                    onChange={(e) => onCustomChange(e, field, 0, 100 - (height ?? 0))}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        field.onChange(0);
+                        partialUpdateSection({ y: 0 });
+                      }
+                    }}
+                  />
                 </FormControl>
                 <span className="absolute right-1 top-2">%</span>
               </div>
@@ -512,7 +551,20 @@ const Geometry = ({
               <FormLabel className="font-semibold">Width</FormLabel>
               <div className="relative flex w-full items-center">
                 <FormControl className="w-full">
-                  <Input {...field} type="number" className="relative pr-5" step="any" min={1}  max={100 - (x ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                  <Input {...field} 
+                    type="number" 
+                    className="relative pr-5" 
+                    step="any" 
+                    min={1}  
+                    max={100 - (x ?? 0)} 
+                    onChange={(e) => onCustomChange(e, field, 1, 100 - (x ?? 0))}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        field.onChange(25);
+                        partialUpdateSection({ width: fromPercentage(25) });
+                      }
+                    }}
+                  />
                 </FormControl>
                 <span className="absolute right-1 top-2">%</span>
               </div>
@@ -527,7 +579,20 @@ const Geometry = ({
               <FormLabel className="font-semibold">Height</FormLabel>
               <div className="relative flex w-full items-center">
                 <FormControl className="w-full">
-                  <Input {...field} type="number" className="relative pr-5" step="any" min={1}  max={100 - (y ?? 0)} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)} />
+                  <Input {...field} 
+                    type="number" 
+                    className="relative pr-5" 
+                    step="any" 
+                    min={1}  
+                    max={100 - (y ?? 0)} 
+                    onChange={(e) => onCustomChange(e, field, 1, 100 - (y ?? 0))}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        field.onChange(25);
+                        partialUpdateSection({ height: fromPercentage(25) });
+                      }
+                    }}
+                  />
                 </FormControl>
                 <span className="absolute right-1 top-2">%</span>
               </div>
@@ -546,7 +611,28 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">From Row</FormLabel>
               <FormControl>
-                <Input {...field} type="number" min={0} max={maxRowFrom} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
+                <Input {...field} 
+                  type="number" 
+                  min={0} 
+                  max={maxRowFrom} 
+                  onChange={(e) => { 
+                    if (e.target.value === "") {
+                      field.onChange("");
+                      return;
+                    }
+                    const clamped = Math.min(maxRowFrom, Math.max(0, e.target.valueAsNumber))
+                    field.onChange(clamped);
+                    if (space && rowTo !== undefined && !isNaN(clamped)) {
+                      partialUpdateSection({ y: clamped / space.rows, height: (rowTo - clamped) / space.rows });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === "") {
+                      field.onChange(0);
+                      partialUpdateSection({ y: 0, height: (rowTo ?? 0) / (space?.rows ?? 1) });
+                    }
+                  }}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -558,7 +644,28 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">To Row</FormLabel>
               <FormControl>
-                <Input {...field} type="number" min={minRowTo} max={space?.rows ?? 0} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
+                <Input {...field} 
+                  type="number" 
+                  min={minRowTo} 
+                  max={space?.rows ?? 0}
+                  onChange={(e) => { 
+                    if (e.target.value === "") {
+                      field.onChange("");
+                      return;
+                    }
+                    if (space && rowFrom !== undefined) {
+                      const clamped = Math.min(space.rows, Math.max(minRowTo, e.target.valueAsNumber))
+                      field.onChange(clamped);
+                      partialUpdateSection({ height: (clamped - rowFrom) / space.rows });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === "") {
+                      field.onChange(minRowTo);
+                      partialUpdateSection({ height: (minRowTo - rowFrom) / (space?.rows ?? 1) });
+                    }
+                  }}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -570,7 +677,28 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">From Column</FormLabel>
               <FormControl>
-                <Input {...field} type="number" min={0} max={maxColFrom} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
+                <Input {...field} 
+                  type="number" 
+                  min={0} 
+                  max={maxColFrom}
+                  onChange={(e) => { 
+                    if (e.target.value === "") {
+                      field.onChange("");
+                      return;
+                    }
+                    if (space && columnTo !== undefined) {
+                      const clamped = Math.min(maxColFrom, Math.max(0, e.target.valueAsNumber))
+                      field.onChange(clamped);
+                      partialUpdateSection({ x: clamped / space.columns, width: (columnTo - clamped) / space.columns });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === "") {
+                      field.onChange(0);
+                      partialUpdateSection({ x: 0, width: (columnTo ?? 0) / (space?.columns ?? 1) });
+                    }
+                  }}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -582,7 +710,28 @@ const Geometry = ({
             <FormItem className="w-full space-y-1">
               <FormLabel className="font-semibold">To Column</FormLabel>
               <FormControl>
-                <Input {...field} type="number" min={minColTo} max={space?.columns ?? 0} onChange={(e) => field.onChange(e.target.value === "" ? "" : e.target.valueAsNumber)}/>
+                <Input {...field} 
+                  type="number" 
+                  min={minColTo} 
+                  max={space?.columns ?? 0}
+                  onChange={(e) => { 
+                    if (e.target.value === "") {
+                      field.onChange("");
+                      return;
+                    }
+                    if (space && columnFrom !== undefined) {
+                      const clamped = Math.min(space?.columns, Math.max(minColTo, e.target.valueAsNumber))
+                      field.onChange(clamped);
+                      partialUpdateSection({ width: (clamped - columnFrom) / space.columns });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === "") {
+                      field.onChange(minColTo);
+                      partialUpdateSection({ width: (minColTo - columnFrom) / (space?.columns ?? 1) });
+                    }
+                  }}
+                />
               </FormControl>
             </FormItem>
           )}
