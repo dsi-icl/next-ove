@@ -225,7 +225,7 @@ const getStatus = async (
       ac: ac?.(),
     });
     return isError(res) ? res : "on";
-  }, device.host);
+  }, device);
 };
 
 const setSource = async (

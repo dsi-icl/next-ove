@@ -707,3 +707,6 @@ Temporary Items
 !/dist/apps/ove-docs/pnpm-lock.yaml
 
 Dockerfile
+
+*.old
+*.bak

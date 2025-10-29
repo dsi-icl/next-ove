@@ -131,7 +131,8 @@ export const StatusOptionsSchema = z.union([
   z.literal("off"),
   z.literal("on"),
   z.literal("ARP"),
-  z.literal("SYN")
+  z.literal("SYN"),
+  z.literal("PING"),
 ]);
 
 export type StatusOptions = z.infer<typeof StatusOptionsSchema>;

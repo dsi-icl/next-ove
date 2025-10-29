@@ -22,22 +22,7 @@ export const closeHardwareSocket = () => {
   socket = null;
 };
 
-export const initHardware = async () => {
-  if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
-  ReconciliationService.init();
-  if (env.RECONCILIATION.STATUS) {
-    try {
-      startReconciliation();
-    } catch (e) {
-      logger.info(e);
-    }
-  } else {
-    try {
-      stopReconciliation();
-    } catch (e) {
-      logger.info(e);
-    }
-  }
+const initSocket = async () => {
   socket = io(`${env.CORE.URL}/socket/hardware`, {
     auth: {
       username: env.AUTH.NAME,
@@ -54,7 +39,7 @@ export const initHardware = async () => {
     logger.info(`${assert(socket).id} connected to /hardware`);
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     logger.info(`${assert(socket).id} disconnected from /hardware`);
   });
 
@@ -79,10 +64,27 @@ export const initHardware = async () => {
 
   socket.on("connect_error", async (err) => {
     logger.error(`connection error due to ${err.message}`);
-    if (socket?.io?.opts?.extraHeaders === undefined)
-      throw new Error("Missing headers");
-    socket.io.opts.extraHeaders.Cookie =
-      (await updateCookie()) as unknown as string;
-    socket?.disconnect()?.connect();
+    socket?.disconnect();
+    setTimeout(() => initSocket().catch(logger.error), 500);
   });
+};
+
+export const initHardware = async () => {
+  if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
+  ReconciliationService.init();
+  if (env.RECONCILIATION.STATUS) {
+    try {
+      startReconciliation();
+    } catch (e) {
+      logger.info(e);
+    }
+  } else {
+    try {
+      stopReconciliation();
+    } catch (e) {
+      logger.info(e);
+    }
+  }
+
+  await initSocket();
 };

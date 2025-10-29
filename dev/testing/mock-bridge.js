@@ -43,6 +43,7 @@ const state = {
     sleep: null,
     schedule: [false, false, false, false, false, false, false],
   },
+  streamStatus: false,
 };
 
 const env = z
@@ -180,9 +181,17 @@ bridgeSocket.on("startReconciliation", (args, callback) => {
   callback(mockHardwareWithCrashing(true, () => true));
 });
 
-bridgeSocket.on("stopStreams", (args, callback) =>
-  callback(mockHardwareWithCrashing(true, () => true)),
-);
+bridgeSocket.on("stopStreams", (args, callback) => {
+  state.streamStatus = false;
+  callback(mockHardwareWithCrashing(true, () => true));
+});
+
+bridgeSocket.on("startStreams", (args, callback) => {
+  state.streamStatus = true;
+  callback(mockHardwareWithCrashing(true, () => true));
+});
+
+bridgeSocket.on("getStreamStatus", (args, callback) => callback(mockHardwareWithCrashing(true, () => state.streamStatus)))
 
 bridgeSocket.on("getCalendar", (args, callback) =>
   callback(

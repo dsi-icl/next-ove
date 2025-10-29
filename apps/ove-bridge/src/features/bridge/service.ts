@@ -57,6 +57,15 @@ export const service: TBridgeService = {
       return false;
     }
   },
+  getStreamStatus: async () => {
+    if (env === null || env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined || env.LIVE_VIEW?.SCRIPTS?.STOP === undefined) return false;
+    try {
+      const res = execSync(env.LIVE_VIEW.SCRIPTS.STOP, {encoding: "utf-8"});
+      return res.includes("active (running)");
+    } catch (e) {
+      return false;
+    }
+  },
   getStreams: async () => env.LIVE_VIEW?.SOURCES,
   getCalendar: async () => {
     // TODO: add full production integration with email service, Azure auth etc.
