@@ -8,7 +8,7 @@ import { useCanvas, useCells } from "../hooks/canvas";
 import { type Bounds, dataTypes } from "@ove/ove-types";
 import { useObservatory } from "../../../hooks/observatories";
 import React, { type RefObject, useMemo, useRef } from "react";
-import { useDragSection, useSections } from "../hooks/sections";
+import { useDragSection, usePartialUpdateSection, useSections } from "../hooks/sections";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 
 function drawObservatory(
@@ -23,6 +23,7 @@ function drawObservatory(
   bounds: Bounds | null,
   cells: Geometry[],
   svg_: RefObject<SVGSVGElement | null>,
+  partialUpdate: (part: Partial<Section>) => void,
 ) {
   const x = d3
     .scaleLinear()
@@ -40,6 +41,14 @@ function drawObservatory(
     .scaleLinear()
     .range([0, assert(bounds).height])
     .domain([0, container.height]);
+
+  const HANDLE_SIZE = 8;
+  const MIN_SIZE_PX = 24;
+  function placeSEHandle(g: d3.Selection<SVGGElement, Section, any, any>, wPx: number, hPx: number) {
+    g.select<SVGRectElement>("rect.handle.se")
+      .attr("x", wPx - HANDLE_SIZE / 2)
+      .attr("y", hPx - HANDLE_SIZE / 2);
+  }
 
   const svg = d3
     .select(svg_.current)
@@ -86,6 +95,24 @@ function drawObservatory(
           .attr("alignment-baseline", "middle")
           .classed("fill-white section-label", true);
 
+        const handles = g.append("g")
+          .attr("class", "handles pointer-events-auto");
+
+        handles.append("rect")
+          .attr("class", "handle se fill-white stroke-[#002147] stroke-1 cursor-nwse-resize")
+          .attr("width", HANDLE_SIZE)
+          .attr("height", HANDLE_SIZE);
+
+        g.on("mousedown", (_ev, d) => select(d.id));
+
+        handles.select<SVGRectElement>("rect.handle.se").call(
+          d3.drag<SVGRectElement, Section>()
+            .container(() => svg_.current as any)
+            .on("start", resizeStart)
+            .on("drag", resizing)
+            .on("end", resizeEnd) as any
+        );
+
         g.call(
           d3
             .drag<SVGGElement, Section>()
@@ -107,7 +134,11 @@ function drawObservatory(
     );
 
   sectionG.each(function (d) {
-    const g = d3.select(this);
+    const g = d3.select<SVGGElement, Section>(this);
+    const rect = g.select<SVGRectElement>("rect");
+    const wPx = +rect.attr("width") - 4;
+    const hPx = +rect.attr("height") - 4;
+    placeSEHandle(g, wPx, hPx);
 
     g.attr("transform", `translate(${x(d.x)}, ${y(d.y)})`);
 
@@ -123,6 +154,10 @@ function drawObservatory(
       .attr("y", y(d.height) / 2)
       .style("font-size", `${d.id === selected ? baseSize * 2 : baseSize}px`)
       .style("font-weight", d.id === selected ? 700 : 400);
+
+    g.select<SVGGElement>("g.handles")
+      .style("display", d.id === selected ? "block" : "none")
+      .style("pointer-events", d.id === selected ? "auto" : "none");
   });
 
   const clampX = (x: number, w: number) => {
@@ -236,6 +271,92 @@ function drawObservatory(
 
     g.select("rect").style("stroke", "black");
   }
+
+  function resizeStart(this: SVGRectElement, _event: any, d: Section) {
+    select(d.id);
+    d3.select<SVGGElement, Section>(this.parentNode!.parentNode as SVGGElement).raise();
+
+    const g = d3.select<SVGGElement, Section>(this.parentNode!.parentNode as SVGGElement);
+    const rect = g.select<SVGRectElement>("rect");
+    const w = +rect.attr("width");
+    const h = +rect.attr("height");
+    const base = Math.min(w, h) / 8;
+
+    g.select("text")
+      .style("font-size", `${base * 2}px`)
+      .style("font-weight", "700");
+  }
+
+  function resizing(this: SVGRectElement, event: any, d: Section) {
+    const sectionG = d3.select<SVGGElement, Section>(this.parentNode!.parentNode as SVGGElement);
+    const rect = sectionG.select<SVGRectElement>("rect");
+
+    const m = sectionG.node()!.transform.baseVal.consolidate()?.matrix;
+    const left = m ? m.e : x(d.x);
+    const top  = m ? m.f : y(d.y);
+
+    const w0 = +rect.attr("width");
+    const h0 = +rect.attr("height");
+
+    let right  = left + w0 + event.dx;
+    let bottom = top  + h0 + event.dy;
+
+    const maxRight  = x(assert(bounds).width);
+    const maxBottom = y(assert(bounds).height);
+    right  = Math.min(maxRight,  Math.max(left + MIN_SIZE_PX, right));
+    bottom = Math.min(maxBottom, Math.max(top  + MIN_SIZE_PX, bottom));
+
+    const xDom = inverseX(left);
+    const yDom = inverseY(top);
+    const wDomDesired = inverseX(right - left);
+    const hDomDesired = inverseY(bottom - top);
+
+    const snappedWDom = clampX(xDom + wDomDesired, wDomDesired) - xDom;
+    const snappedHDom = clampY(yDom + hDomDesired, hDomDesired) - yDom;
+
+    const minWDom = inverseX(MIN_SIZE_PX);
+    const minHDom = inverseY(MIN_SIZE_PX);
+    const finalWDom = Math.max(minWDom, snappedWDom);
+    const finalHDom = Math.max(minHDom, snappedHDom);
+
+    const newWpx = x(xDom + finalWDom) - x(xDom);
+    const newHpx = y(yDom + finalHDom) - y(yDom);
+
+    sectionG.attr("transform", `translate(${left}, ${top})`);
+    rect.attr("width", newWpx).attr("height", newHpx);
+
+    const base = Math.min(newWpx, newHpx) / 8;
+    sectionG.select("text")
+      .attr("x", newWpx / 2)
+      .attr("y", newHpx / 2)
+      .style("font-size", `${base * 2}px`)
+      .style("font-weight", "700");
+
+    placeSEHandle(sectionG, newWpx, newHpx);
+  }
+
+  function resizeEnd(this: SVGRectElement, _event: any, d: Section) {
+    const sectionG = d3.select<SVGGElement, Section>(this.parentNode!.parentNode as SVGGElement);
+    const rect = sectionG.select<SVGRectElement>("rect");
+    const wPx = +rect.attr("width");
+    const hPx = +rect.attr("height");
+
+    const m = sectionG.node()!.transform.baseVal.consolidate()!.matrix;
+    const left = m.e;
+    const top  = m.f;
+
+    const newW = inverseX(wPx) / assert(bounds).width;
+    const newH = inverseY(hPx) / assert(bounds).height;
+
+    partialUpdate({ width: newW, height: newH });
+
+    const base = Math.min(wPx, hPx) / 8;
+    sectionG.select("text")
+      .style("font-size", `${base}px`)
+      .style("font-weight", "400");
+
+    sectionG.select("rect").style("stroke", "black");
+  }
 }
 
 const Canvas = () => {
@@ -246,6 +367,7 @@ const Canvas = () => {
   const setSelectedSection = useSectionStore(
     (state) => state.setSelectedSection,
   );
+  const partialUpdate = usePartialUpdateSection();
   const sections = useMemo(
     () =>
       getSections(selectedState).map((s) => ({
@@ -273,6 +395,7 @@ const Canvas = () => {
       bounds,
       cells,
       svg_,
+      partialUpdate,
     );
   } else {
     d3.select(svg_.current).selectAll("*").remove();
