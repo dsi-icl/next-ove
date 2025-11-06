@@ -32,7 +32,7 @@ export const hasVersion = (
     .includes(version);
 };
 
-export const fromURL = (files: TFile[], url: string | null) => {
+export const fromURL = (files: TFile[], url: string | null): TFile | null => {
   if (url === null) return null;
   const parsed = /^\/store\/(.+)\/(.+)\?versionId=(.+)$/.exec(url);
   if (parsed === null || parsed.length !== 4) return null;
