@@ -189,7 +189,8 @@ export const BridgeAPITransformSchema: TBridgeRoutesSchema = Object.entries(
       meta: route.meta,
       returns: route.returns,
       args: route.args.extend({
-        tag: z.string().optional(),
+        tags: z.string().array().optional(),
+        deviceIds: z.string().array().optional(),
       }),
       client: route.client,
       bridge: getBridgeResponseSchema(

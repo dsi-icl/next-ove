@@ -67,6 +67,7 @@ const schema = z.strictObject({
     UI: z.string(),
     ASSET_STORE: z
       .strictObject({
+        CA_FILE: z.string().optional(),
         ACCESS_KEY: z.string(),
         SECRET_KEY: z.string(),
         END_POINT: z.string(),

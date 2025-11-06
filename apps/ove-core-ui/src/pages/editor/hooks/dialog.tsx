@@ -9,6 +9,7 @@ import LaunchConfig, {
 import React, { useCallback, useMemo, useState } from "react";
 import ControllerEditor from "../components/controller-editor";
 import Controller from "../../../components/controller/controller";
+import Preview from "../components/preview";
 
 export type TActions =
   "metadata"
@@ -18,6 +19,7 @@ export type TActions =
   | "controller"
   | "env"
   | "live"
+  | "preview"
 
 export const useDialog = () => {
   const project = useProjectStore(state => state.project);
@@ -33,6 +35,7 @@ export const useDialog = () => {
         return <ControllerEditor bucket={project.bucket ?? "ERROR"}
                                  projectId={project.id} />;
       }
+      case "preview": return <Preview />
       case "upload":
         return <Files />;
       case "launch":
