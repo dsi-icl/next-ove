@@ -2,6 +2,7 @@ import { z } from "zod";
 import ace from "ace-builds";
 import {
   Button,
+  Dialog,
   DialogCloseX,
   DialogContent,
   DialogDescription,
@@ -30,6 +31,16 @@ import { useUpload } from "../hooks/files";
 import { useProjectId } from "../hooks/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { Editor as TinyMCEEditor } from '@tinymce/tinymce-react';
+
+import "tinymce/tinymce";
+import "tinymce/models/dom";
+import "tinymce/icons/default";
+import "tinymce/themes/silver";
+import "tinymce/plugins/link";
+import "tinymce/plugins/lists";
+import "tinymce/plugins/code";
+import "tinymce/skins/ui/oxide/skin.min.css";
 
 import tex from "ace-builds/src-noconflict/mode-tex";
 import css from "ace-builds/src-noconflict/mode-css";
@@ -60,6 +71,7 @@ const LanguageSchema = z.union([
   z.literal("latex"),
   z.literal("markdown"),
   z.literal("tsv"),
+  z.literal("richtext"),
 ]);
 
 export type Language = z.infer<typeof LanguageSchema>;
@@ -76,6 +88,7 @@ type TForm = z.infer<typeof FormSchema>;
 const getExtensionForLanguage = (language: Language) => {
   if (language === "latex") return ".tex";
   if (language === "markdown") return ".md";
+  if (language === "richtext") return ".html";
   return `.${language}`;
 };
 
@@ -85,8 +98,7 @@ const addFileExtension = (name: string, language: Language) => {
 };
 
 const languageToMode = (language: Language) =>
-  language === "csv" || language === "tsv" ? "text" : language;
-
+  language === "csv" || language === "tsv" || language === "richtext" ? "text" : language;
 
 const languageFromFilename = (name?: string): Language => {
   const ext = (name?.split(".").pop() ?? "").trim();
@@ -106,10 +118,10 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
   const form = useForm<TForm>({
     resolver: zodResolver(FormSchema),
     defaultValues: { 
-      language: file ? languageFromFilename(file.name) : "markdown",
+      language: file ? languageFromFilename(file.name) : "richtext",
       data: file?.data ?? "", 
       name: mode === "edit" && file ? file.name.split(".").slice(0,-1).join(".") : "",
-    },
+    }
   });
   useFormErrorHandling(form.formState.errors);
   const name = form.watch("name");
@@ -118,11 +130,18 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
   const projectId = useProjectId();
   const uploadFile = useUpload(assert(projectId));
 
+  const initialHtmlRef = React.useRef<string>(form.getValues("data") ?? "");
+
   useEffect(() => {
     if (mode === "edit" && file) {
       form.setValue("data", file.data, { shouldDirty: false });
-      form.setValue("language", languageFromFilename(file.name), { shouldDirty: false });
+      form.setValue(
+        "language", 
+        file.data.includes("editor: richtext") ? "richtext" : languageFromFilename(file.name), 
+        { shouldDirty: false }
+      );
       form.setValue("name", file.name.split(".").slice(0,-1).join("."), { shouldDirty: false });
+      initialHtmlRef.current = file.data;
     }
   }, [mode, file?.data, file?.name]);
 
@@ -132,6 +151,10 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
     language,
   }: z.infer<typeof FormSchema>) => {
     if (name === "") return toast.error("Missing file name");
+
+    if (language === "richtext" && !data.includes("editor: richtext")) {
+      data = `<!-- editor: richtext -->\n` + data;
+    }
 
     const ok = await uploadFile({
       objectName: fullName,
@@ -153,33 +176,55 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
           <X />
         </DialogCloseX>
       </DialogHeader>
-      <Controller
-        name="data"
-        control={form.control}
-        render={({ field }) => (
-          <AceEditor
-            placeholder="File Contents"
-            theme="dracula"
-            mode={languageToMode(language)}
-            name="custom-file"
-            style={{ width: "100%", height: "calc(((80vw/16)*9) - 8rem)" }}
-            value={field.value}
-            onChange={field.onChange}
-            fontSize={14}
-            showPrintMargin={true}
-            showGutter={true}
-            highlightActiveLine={false}
-            setOptions={{
-              enableBasicAutocompletion: true,
-              enableLiveAutocompletion: false,
-              enableSnippets: false,
-              showLineNumbers: true,
-              tabSize: 2,
-              useWorker: false,
-            }}
-          />
-        )}
-      />
+      {language === "richtext" ?
+        <TinyMCEEditor
+          licenseKey="gpl"
+          init={{
+            height: "calc(((80vw/16)*9) - 8rem)",
+            menubar: false,
+            statusbar: false,
+            promotion: false,
+            plugins: "lists",
+            custom_colors: false,
+            toolbar:
+              "undo redo | fontfamily fontsize blocks | bold italic forecolor backcolor | bullist numlist",
+            ui_mode: "split",
+            font_family_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; AkrutiKndPadmini=Akpdmi-n; Imperial=ImperialSansText'
+          }}
+          initialValue={initialHtmlRef.current}
+          onEditorChange={(content) =>
+            form.setValue("data", content, { shouldDirty: true })
+          }
+        />
+        :
+        <Controller
+          name="data"
+          control={form.control}
+          render={({ field }) => (
+              <AceEditor
+                placeholder="File Contents"
+                theme="dracula"
+                mode={languageToMode(language)}
+                name="custom-file"
+                style={{ width: "100%", height: "calc(((80vw/16)*9) - 8rem)" }}
+                value={field.value}
+                onChange={field.onChange}
+                fontSize={14}
+                showPrintMargin={true}
+                showGutter={true}
+                highlightActiveLine={false}
+                setOptions={{
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: false,
+                  enableSnippets: false,
+                  showLineNumbers: true,
+                  tabSize: 2,
+                  useWorker: false,
+                }}
+              />
+          )}
+        />
+      }
       <DialogFooter className="h-16 w-full space-y-0 rounded-b-xl bg-[#002147]">
         <Form {...form}>
           <form
@@ -212,6 +257,7 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
                       <SelectItem value="latex">Latex</SelectItem>
                       <SelectItem value="markdown">Markdown</SelectItem>
                       <SelectItem value="tsv">TSV</SelectItem>
+                      <SelectItem value="richtext">Rich Text</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>
