@@ -36,6 +36,7 @@ const schema = z.strictObject({
       .optional(),
     MAX_HTTP_BUFFER_SIZE: z.number(),
     DIST_DIR: z.string(),
+    PING_TIMEOUT: z.number(),
   }),
   LOGGING: z
     .strictObject({
@@ -165,6 +166,7 @@ const defaultConfig: z.infer<typeof schema> = {
       "ui",
       "dist",
     ),
+    PING_TIMEOUT: 60_000,
   },
   TOKENS: {
     SIGNING_KEYS: {

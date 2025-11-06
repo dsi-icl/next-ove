@@ -14,13 +14,13 @@ interface ImportMetaEnv {
   VITE_VIDEO_STREAM_URL?: string;
   VITE_MODE: string;
   VITE_DISABLE_AUTH: string;
-  VITE_LIVE_FEED_REFRESH_INTERVAL: string;
-  VITE_STATUS_REFRESH_INTERVAL: string;
+  VITE_LIVE_UPDATE_REFRESH_INTERVAL: string;
   VITE_PAGE_SIZE: string;
   VITE_LOGGING_SERVER_API?: string;
   VITE_LOGGING_SERVER_SOCKET_ENDPOINT?: string;
   VITE_LOGGING_SERVER_SOCKET_PATH?: string;
   VITE_DISABLE_LIVE_PREVIEW: string;
+  VITE_API_CALL_OFFSET: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -52,9 +52,9 @@ const schema = z
       z.literal("test"),
     ]),
     DISABLE_AUTH: z.boolean(), // only disable auth if under test
-    LIVE_FEED_REFRESH_INTERVAL: z.number(),
-    STATUS_REFRESH_INTERVAL: z.number(),
+    LIVE_UPDATE_REFRESH_INTERVAL: z.number(),
     DISABLE_LIVE_PREVIEW: z.boolean(),
+    API_CALL_OFFSET: z.number(),
   })
   .refine((x) => x.MODE === "test" || !x.DISABLE_AUTH);
 
@@ -74,10 +74,10 @@ const parsedConfig = schema.parse({
   },
   MODE: env_.VITE_MODE,
   DISABLE_AUTH: env_.VITE_DISABLE_AUTH === "true",
-  LIVE_FEED_REFRESH_INTERVAL: parseInt(env_.VITE_LIVE_FEED_REFRESH_INTERVAL),
-  STATUS_REFRESH_INTERVAL: parseInt(env_.VITE_STATUS_REFRESH_INTERVAL),
+  LIVE_UPDATE_REFRESH_INTERVAL: parseInt(env_.VITE_LIVE_UPDATE_REFRESH_INTERVAL),
   PAGE_SIZE: parseInt(env_.VITE_PAGE_SIZE),
   DISABLE_LIVE_PREVIEW: env_.VITE_DISABLE_LIVE_PREVIEW === "true",
+  API_CALL_OFFSET: parseInt(env_.VITE_API_CALL_OFFSET),
 });
 
 const staticConfig = {

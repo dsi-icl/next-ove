@@ -8,7 +8,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "{workspaceRoot}/",
-        "commands": ["pnpm db sync"]
+        "commands": ["pnpm --offline db sync"]
       }
     },
     "type-check": {
@@ -40,8 +40,11 @@
       "defaultConfiguration": "production",
       "options": {
         "main": "apps/ove-bridge/src/main.ts",
+        "additionalEntryPoints": [
+          "apps/ove-bridge/src/worker.ts"
+        ],
+        "bundle": true,
         "outputPath": "dist/apps/ove-bridge",
-        "outputFileName": "main.js",
         "tsConfig": "apps/ove-bridge/tsconfig.app.json",
         "thirdParty": true,
         "format": ["cjs"],

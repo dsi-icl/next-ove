@@ -19,6 +19,7 @@ export const initBridge = async () => {
         username: env.AUTH.NAME,
         password: env.AUTH.API_KEY,
       },
+      ackTimeout: env.CORE.ACK_TIMEOUT,
       path: `${env.CORE.SOCKET_PATH ?? ""}/${env.CORE_API_VERSION}`,
       withCredentials: true,
       extraHeaders: {
@@ -33,8 +34,8 @@ export const initBridge = async () => {
     socketConnectListeners.forEach((x) => x());
   });
 
-  socket.on("disconnect", async () => {
-    logger.info(`${assert(socket).id} disconnected from /bridge`);
+  socket.on("disconnect", async (reason, description) => {
+    logger.info(`Socket disconnected from /bridge`, reason, description ?? "");
     socketDisconnectListeners.forEach((x) => x());
   });
 

@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import {
   cn,
   HoverCard,
@@ -20,10 +20,11 @@ export type ScreenProps = {
   rowId: number;
   bounds: Bounds;
   setSelected: (display: Bounds["displays"][0]) => boolean;
+  selected: [string, string] | null;
 };
 
 const Screen = memo(
-  ({ colId, bounds, rowId, bridgeId, setSelected }: ScreenProps) => {
+  ({ colId, bounds, rowId, bridgeId, setSelected, selected }: ScreenProps) => {
     const [highlighted, setHighlighted] = useState(false);
     const display = assert(
       bounds.displays.find(
@@ -46,6 +47,10 @@ const Screen = memo(
       bounds.height / bounds.rows,
     ];
 
+    useEffect(() => {
+      setHighlighted(selected !== null && selected[0] === display.rendererId && selected[1] === display.deviceId);
+    }, [selected, display.rendererId, display.deviceId]);
+
     return (
       <li
         key={colId}
@@ -66,7 +71,7 @@ const Screen = memo(
                 setHighlighted(selected);
               }}
             >
-              {screenshot === undefined || screenshot === "loading" ? (
+              {screenshot === null || screenshot === "loading" ? (
                 <div className="size-full" />
               ) : (
                 <img

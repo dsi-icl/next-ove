@@ -7,7 +7,8 @@ import { isError, type Source } from "@ove/ove-types";
 export const useStart = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const start = api.hardware.start.useMutation({
     onSuccess: data => {
@@ -40,7 +41,7 @@ export const useStart = (
   if (deviceId === null) {
     return {
       start: () =>
-        void startAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void startAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -54,7 +55,8 @@ export const useStart = (
 export const useShutdown = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const shutdown = api.hardware.shutdown.useMutation({
     onSuccess: data => {
@@ -88,7 +90,7 @@ export const useShutdown = (
   if (deviceId === null) {
     return {
       shutdown: () =>
-        void shutdownAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void shutdownAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -102,7 +104,8 @@ export const useShutdown = (
 export const useReboot = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const reboot = api.hardware.reboot.useMutation({
     onSuccess: data => {
@@ -135,7 +138,7 @@ export const useReboot = (
   if (deviceId === null) {
     return {
       reboot: () =>
-        void rebootAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void rebootAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -149,7 +152,8 @@ export const useReboot = (
 export const useReloadBrowsers = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const reloadBrowsers = api.hardware.reloadBrowsers.useMutation({
     retry: false,
@@ -184,7 +188,7 @@ export const useReloadBrowsers = (
   if (deviceId === null) {
     return {
       reloadBrowsers: () =>
-        void reloadBrowsersAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void reloadBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -198,7 +202,8 @@ export const useReloadBrowsers = (
 export const useCloseBrowsers = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const closeBrowsers = api.hardware.closeBrowsers.useMutation({
     retry: false,
@@ -233,7 +238,7 @@ export const useCloseBrowsers = (
   if (deviceId === null) {
     return {
       closeBrowsers: () =>
-        void closeBrowsersAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void closeBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -247,7 +252,8 @@ export const useCloseBrowsers = (
 export const useOpenBrowsers = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const openBrowsers = api.hardware.openBrowsers.useMutation({
     onSuccess: data => {
@@ -281,7 +287,7 @@ export const useOpenBrowsers = (
   if (deviceId === null) {
     return {
       openBrowsers: () =>
-        void openBrowsersAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void openBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -295,7 +301,8 @@ export const useOpenBrowsers = (
 export const useSetSource = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const setSource = api.hardware.setSource.useMutation({
     retry: false,
@@ -330,7 +337,7 @@ export const useSetSource = (
   if (deviceId === null) {
     return {
       setSource: (source: Source) =>
-        void setSourceAll.mutateAsync({ bridgeId, tag, source }).catch(logger.error)
+        void setSourceAll.mutateAsync({ bridgeId, tags, source, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -345,7 +352,8 @@ export const useSetSource = (
 export const useMute = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[]
 ) => {
   const mute = api.hardware.mute.useMutation({
     onSuccess: data => {
@@ -378,7 +386,7 @@ export const useMute = (
   if (deviceId === null) {
     return {
       mute: () =>
-        void muteAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void muteAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -392,7 +400,8 @@ export const useMute = (
 export const useUnmute = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const unmute = api.hardware.unmute.useMutation({
     onSuccess: data => {
@@ -425,7 +434,7 @@ export const useUnmute = (
   if (deviceId === null) {
     return {
       unmute: () =>
-        void unmuteAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void unmuteAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -439,7 +448,8 @@ export const useUnmute = (
 export const useMuteAudio = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const muteAudio = api.hardware.muteAudio.useMutation({
     onSuccess: data => {
@@ -473,7 +483,7 @@ export const useMuteAudio = (
   if (deviceId === null) {
     return {
       muteAudio: () =>
-        void muteAudioAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void muteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -487,7 +497,8 @@ export const useMuteAudio = (
 export const useUnmuteAudio = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const unmuteAudio = api.hardware.unmuteAudio.useMutation({
     onSuccess: data => {
@@ -521,7 +532,7 @@ export const useUnmuteAudio = (
   if (deviceId === null) {
     return {
       unmuteAudio: () =>
-        void unmuteAudioAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void unmuteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -535,7 +546,8 @@ export const useUnmuteAudio = (
 export const useMuteVideo = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const muteVideo = api.hardware.muteVideo.useMutation({
     onSuccess: data => {
@@ -569,7 +581,7 @@ export const useMuteVideo = (
   if (deviceId === null) {
     return {
       muteVideo: () =>
-        void muteVideoAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void muteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {
@@ -583,7 +595,8 @@ export const useMuteVideo = (
 export const useUnmuteVideo = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const unmuteVideo = api.hardware.unmuteVideo.useMutation({
     onSuccess: data => {
@@ -617,7 +630,7 @@ export const useUnmuteVideo = (
   if (deviceId === null) {
     return {
       unmuteVideo: () =>
-        void unmuteVideoAll.mutateAsync({ bridgeId, tag }).catch(logger.error)
+        void unmuteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
     };
   }
   return {

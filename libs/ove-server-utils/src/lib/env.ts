@@ -1,6 +1,6 @@
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { DeepProxy, Json } from "@ove/ove-utils";
-import { readFile, safeWriteFile } from "./ove-file-utils";
+import { readFile, safeWriteFile } from "./files";
 import { z } from "zod";
 
 const updateConfig = (

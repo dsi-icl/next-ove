@@ -88,7 +88,7 @@ export function Combobox(props: ComboboxProps) {
             {sortedValues.selected.length > 0 ? (
               <CommandGroup>
                 {sortedValues.selected.map((v) => (
-                  <Item {...props} v={v} />
+                  <Item {...props} v={v} key={v.value} />
                 ))}
               </CommandGroup>
             ) : null}
@@ -99,7 +99,7 @@ export function Combobox(props: ComboboxProps) {
             {sortedValues.unselected.length > 0 ? (
               <CommandGroup>
                 {sortedValues.unselected.map((v) => (
-                  <Item {...props} v={v} />
+                  <Item {...props} v={v} key={v.value} />
                 ))}
               </CommandGroup>
             ) : null}

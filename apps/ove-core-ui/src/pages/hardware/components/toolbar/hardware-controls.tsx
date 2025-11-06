@@ -31,14 +31,15 @@ const HardwareControls = ({
         ),
     [devices, filterType, selected],
   );
-  const tag = useMemo(
+  const tags = useMemo(
     () => (filterType === "tags" ? (filter ?? undefined) : undefined),
     [filterType, filter],
   );
-  const device = useMemo(
+  const deviceIds = useMemo(
     () =>
       filterType === "id"
-        ? (devices.find(({ id }) => id === filter) ?? null)
+        ? (devices.filter(({ id }) => filter !== null && filter.includes(id))?.map((device) => device.id) ??
+          null)
         : null,
     [filterType, filter, devices],
   );
@@ -72,8 +73,9 @@ const HardwareControls = ({
       />
       <Actions
         bridgeId={bridgeId}
-        tag={tag}
-        device={device ?? null}
+        tags={tags}
+        device={null}
+        deviceIds={deviceIds ?? undefined}
         devices={devices}
       />
     </div>

@@ -52,7 +52,8 @@ import { type InfoTypes, getPages } from "../../../../utils";
 export const useInfo = (
   deviceId: string | null,
   bridgeId: string,
-  tag?: string,
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const [type, setType] = useState<InfoTypes>("general");
   const getInfo = api.hardware.getInfo.useQuery(
@@ -69,7 +70,8 @@ export const useInfo = (
     {
       bridgeId,
       type,
-      tag,
+      tags,
+      deviceIds,
     },
     {
       enabled: deviceId === null,
@@ -189,13 +191,14 @@ const getInfo = (device: Device, data: any, type: string | undefined) => {
 type InfoProps = {
   device: Device | null;
   bridgeId: string;
-  tag?: string;
+  tags?: string[];
   devices: Device[];
+  deviceIds?: string[];
 };
 
-const InfoContainer = ({ device, devices, bridgeId, tag }: InfoProps) => {
+const InfoContainer = ({ device, devices, bridgeId, tags, deviceIds }: InfoProps) => {
   const [idx, setIdx] = useState(0);
-  const { info, type, setType } = useInfo(device?.id ?? null, bridgeId, tag);
+  const { info, type, setType } = useInfo(device?.id ?? null, bridgeId, tags, deviceIds);
   const [selectParent, setSelectParent] = useState<HTMLDivElement | null>(null);
 
   return (

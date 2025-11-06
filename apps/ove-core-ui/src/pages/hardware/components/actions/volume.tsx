@@ -18,7 +18,8 @@ const useVolume = (
   closeDialog: () => void,
   deviceId: string | null,
   bridgeId: string,
-  tag?: string,
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const setVolume = api.hardware.setVolume.useMutation({
     retry: false,
@@ -69,7 +70,8 @@ const useVolume = (
       void setVolumeAll
         .mutateAsync({
           bridgeId,
-          tag,
+          tags,
+          deviceIds,
           volume,
         })
         .catch(logger.error);
@@ -88,13 +90,14 @@ type VolumeProps = {
   closeDialog: () => void;
   deviceId: string | null;
   bridgeId: string;
-  tag?: string;
+  tags?: string[];
+  deviceIds?: string[];
 };
 
-const Volume = ({ closeDialog, deviceId, bridgeId, tag }: VolumeProps) => {
+const Volume = ({ closeDialog, deviceId, bridgeId, tags, deviceIds }: VolumeProps) => {
   const [volume, setVolume] = useState(50);
   const [isMuted, setIsMuted] = useState(false);
-  const trigger = useVolume(closeDialog, deviceId, bridgeId, tag);
+  const trigger = useVolume(closeDialog, deviceId, bridgeId, tags, deviceIds);
 
   const handleVolumeChange = useCallback(
     (newVolume: number[]) => {

@@ -1,22 +1,25 @@
 /* global AbortController, setTimeout */
 
 import {
-  type Device,
-  ScreenshotMethodSchema,
-  type TBridgeHardwareService,
-  type TBridgeServiceArgs,
-  type TClientAPI,
   BrowserConfigSchema,
+  type Device,
+  isError,
+  ScreenshotMethodSchema,
+  TBridgeHardwareService,
+  type TBridgeServiceArgs,
+  type TClientAPI
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../env";
 import { execSync } from "child_process";
-import { statusOptions } from "../../utils/status";
+import { syncStatus } from "../../utils/status";
 import { createTRPCClient, httpLink } from "@trpc/client";
-import { Json, raise, buildDeviceURL } from "@ove/ove-utils";
+import { buildDeviceURL, Json, raise } from "@ove/ove-utils";
 // IGNORE PATH - as importing only type, will not trigger full import on build
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import type { AppRouter } from "../../../../ove-client/src/server/router";
+import { controller } from "../reconciliation/controller";
+import { NodeState } from "../reconciliation/state";
 
 const fixedEncodeURIComponent = (str: string) =>
   encodeURIComponent(str).replace(
@@ -145,16 +148,16 @@ const getStatus = async (
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.HARDWARE.TIMEOUTS.NODE);
 
   try {
-    return statusOptions(
-      () =>
-        createClient(device).getStatus.query(
+    return syncStatus(
+      async () =>
+        await createClient(device).getStatus.query(
           parsedOpts.data as z.infer<TClientAPI["getStatus"]["args"]>,
           { signal: controller.signal },
         ),
       device,
+      controller,
     );
   } catch (e) {
     return raise(Json.stringify(e));
@@ -337,14 +340,17 @@ const getBrowserConfig = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.HARDWARE.TIMEOUTS.NODE);
+  const abortController = ac?.() ?? new AbortController();
+  setTimeout(() => abortController.abort(), env.HARDWARE.TIMEOUTS.NODE);
 
   try {
-    return createClient(device).getBrowserConfig.query(
+    const res = await createClient(device).getBrowserConfig.query(
       parsedOpts.data as z.infer<TClientAPI["getBrowserConfig"]["args"]>,
-      { signal: controller.signal },
+      { signal: abortController.signal },
     );
+    (controller.getState()[device.id] as NodeState).browserConfigs.observed =
+      res;
+    return res;
   } catch (e) {
     return raise(Json.stringify(e));
   }
@@ -360,20 +366,58 @@ const getBrowsers = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const controller = ac?.() ?? new AbortController();
-  setTimeout(() => controller.abort(), env.HARDWARE.TIMEOUTS.NODE);
+  const abortController = ac?.() ?? new AbortController();
+  setTimeout(() => abortController.abort(), env.HARDWARE.TIMEOUTS.NODE);
 
   try {
-    return createClient(device).getBrowsers.query(
+    const res = await createClient(device).getBrowsers.query(
       parsedOpts.data as z.infer<TClientAPI["getBrowsers"]["args"]>,
-      { signal: controller.signal },
+      { signal: abortController.signal },
     );
+    (controller.getState()[device.id] as NodeState).browsers.observed = res;
+    return res;
   } catch (e) {
     return raise(Json.stringify(e));
   }
 };
 
-const NodeService: TBridgeHardwareService = {
+const getLiveUpdate = async (device: Device) => {
+  const current = controller.getState()[device.id];
+  if (current.type !== "node") throw new Error("Invalid device type");
+  return {
+    type: "node" as const,
+    status: current.status.observed ?? null,
+    screenshots: current.screenshots ?? null,
+    browsers: current.browsers?.observed ?? null,
+    browserConfigs: current.browserConfigs?.observed ?? null,
+  };
+};
+
+const getReconciliationState = async (device: Device) => {
+  const current = controller.getState()[device.id];
+  if (current.type !== "node") throw new Error("Invalid device type");
+  return {
+    observed: {
+      type: "node" as const,
+      status: current.status.observed ?? null,
+      browsers:
+        current.browsers.observed !== null &&
+        !isError(current.browsers.observed)
+          ? Object.keys(current.browsers.observed).length > 0
+          : (current.browsers.observed ?? null),
+      browserConfigs: current.browserConfigs.observed ?? null,
+    },
+    target: {
+      type: "node" as const,
+      status: current.status.target ?? null,
+      browsers: current.browsers.target ?? null,
+      browserConfigs: current.browserConfigs.target ?? null,
+    },
+  };
+};
+
+const NodeService = {
+  type: "node" as const,
   reboot,
   shutdown,
   start,
@@ -388,6 +432,9 @@ const NodeService: TBridgeHardwareService = {
   reloadBrowsers,
   setBrowserConfig,
   getBrowserConfig,
-};
+  getLiveUpdate,
+  getReconciliationState,
+} satisfies TBridgeHardwareService & { type: "node" };
 
+export type NodeService = typeof NodeService;
 export default NodeService;

@@ -1,15 +1,13 @@
 import { isError } from "@ove/ove-types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { api } from "../../../../utils/api";
-import { env, logger } from "../../../../env";
-import { useStatus } from "../hooks";
 
 export const useBrowserConfig = (
   bridgeId: string,
   deviceId: string,
   displayId: number,
 ) => {
-  const getBrowserConfig = api.hardware.getBrowserConfig.useQuery({
+  const getBrowserConfig = api.hardware.getLiveUpdate.useQuery({
     bridgeId,
     deviceId,
   });
@@ -17,8 +15,8 @@ export const useBrowserConfig = (
   return useMemo((): string => {
     if (getBrowserConfig.status !== "success") return "";
     const res = getBrowserConfig.data.response;
-    if (isError(res)) return "";
-    return res[displayId];
+    if (isError(res) || res.type !== "node" || isError(res.browserConfigs) || res.browserConfigs === null) return "";
+    return res.browserConfigs[displayId];
   }, [getBrowserConfig.status, getBrowserConfig.data?.response, displayId]);
 };
 
@@ -27,7 +25,7 @@ export const useBrowser = (
   deviceId: string,
   displayId: number,
 ) => {
-  const getBrowsers = api.hardware.getBrowsers.useQuery({
+  const getBrowsers = api.hardware.getLiveUpdate.useQuery({
     bridgeId,
     deviceId,
   });
@@ -35,9 +33,9 @@ export const useBrowser = (
   return useMemo((): string => {
     if (getBrowsers.status !== "success") return "";
     const res = getBrowsers.data.response;
-    if (isError(res)) return "";
+    if (isError(res) || res.type !== "node" || isError(res.browsers) || res.browsers === null) return "";
     return (
-      Array.from(Object.values(res)).find(
+      Array.from(Object.values(res.browsers)).find(
         ({ displayId: id }) => id === displayId,
       )?.url ?? ""
     );
@@ -49,46 +47,25 @@ export const useLiveFeed = (
   deviceId: string,
   displayId: number,
 ) => {
-  const status = useStatus(deviceId, bridgeId);
-  const takeScreenshot = api.hardware.screenshot.useMutation({ retry: false });
-  const [cache, setCache] = useState<string | undefined>(undefined);
+  const getLiveUpdate = api.hardware.getLiveUpdate.useQuery({
+    bridgeId,
+    deviceId,
+  });
+  const [cache, setCache] = useState<string | null>(null);
 
-  const screenshot = useMemo(() => {
-    if (takeScreenshot.status !== "success" && takeScreenshot.status !== "error")
+  return useMemo(() => {
+    if (getLiveUpdate.status !== "success" && getLiveUpdate.status !== "error")
       return cache;
-    if (takeScreenshot.status === "error") {
-      setCache(undefined);
-      return undefined;
+    if (getLiveUpdate.status === "error") {
+      setCache(null);
+      return null;
     }
-    const res = takeScreenshot.data.response;
-    if (isError(res)) {
-      setCache(undefined);
-      return undefined;
+    const res = getLiveUpdate.data.response;
+    if (isError(res) || res.type !== "node" || isError(res.screenshots)) {
+      setCache(null);
+      return null;
     }
-    setCache(res[0]);
-    return res[0];
-  }, [takeScreenshot.status, takeScreenshot.data?.response]);
-
-  const fn = useCallback(() => {
-    takeScreenshot
-      .mutateAsync({
-        bridgeId,
-        deviceId,
-        method: "response",
-        screens: [displayId],
-      })
-      .catch(logger.error);
-  }, [bridgeId, deviceId, displayId]);
-
-  useEffect(() => {
-    if (env.DISABLE_LIVE_PREVIEW || status !== "on") return;
-    const interval = setInterval(fn, env.LIVE_FEED_REFRESH_INTERVAL);
-    fn();
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [fn, status]);
-
-  return screenshot;
+    setCache(res.screenshots?.[displayId] ?? null);
+    return res.screenshots?.[displayId] ?? null;
+  }, [getLiveUpdate.status, getLiveUpdate.data?.response]);
 };

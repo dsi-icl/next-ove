@@ -7,9 +7,8 @@ import {
 import { assert } from "@ove/ove-utils";
 import { env, logger } from "../../env";
 import { io, type Socket } from "socket.io-client";
-import { startReconciliation, stopReconciliation } from "./reconciliation";
+import { controller } from "../reconciliation/controller";
 import { updateCookie } from "../../utils/auth";
-import { service as ReconciliationService } from "./reconciliation-service";
 
 let socket: Socket<
   THardwareServerToClientEvents,
@@ -30,6 +29,7 @@ const initSocket = async () => {
     },
     path: `${env.CORE.SOCKET_PATH ?? ""}/${env.CORE_API_VERSION}`,
     withCredentials: true,
+    ackTimeout: env.CORE.ACK_TIMEOUT,
     extraHeaders: {
       Cookie: (await updateCookie()) as unknown as string,
     },
@@ -39,19 +39,23 @@ const initSocket = async () => {
     logger.info(`${assert(socket).id} connected to /hardware`);
   });
 
-  socket.on("disconnect", async () => {
-    logger.info(`${assert(socket).id} disconnected from /hardware`);
+  socket.on("disconnect", async (reason, description) => {
+    logger.info(
+      `Socket disconnected from /hardware`,
+      reason,
+      description ?? "",
+    );
   });
 
   BridgeServiceKeys.forEach((k) => {
     const deviceHandlerInterface = (
       args: Parameters<typeof deviceHandler>[1],
       callback: Parameters<typeof deviceHandler>[2],
-    ) => deviceHandler(k, args, callback).then();
+    ) => deviceHandler(k, args, callback).catch(logger.error);
     const multiDeviceHandlerInterface = (
       args: Parameters<typeof multiDeviceHandler>[1],
       callback: Parameters<typeof multiDeviceHandler>[2],
-    ) => multiDeviceHandler(k, args, callback).then();
+    ) => multiDeviceHandler(k, args, callback).catch(logger.error);
     assert(socket).on(
       k,
       deviceHandlerInterface as THardwareServerToClientEvents[typeof k],
@@ -65,26 +69,14 @@ const initSocket = async () => {
   socket.on("connect_error", async (err) => {
     logger.error(`connection error due to ${err.message}`);
     socket?.disconnect();
-    setTimeout(() => initSocket().catch(logger.error), 500);
+    setTimeout(() => initSocket().catch(logger.error), env.CORE.RECONNECTION_TIMEOUT);
   });
 };
 
 export const initHardware = async () => {
   if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
-  ReconciliationService.init();
-  if (env.RECONCILIATION.STATUS) {
-    try {
-      startReconciliation();
-    } catch (e) {
-      logger.info(e);
-    }
-  } else {
-    try {
-      stopReconciliation();
-    } catch (e) {
-      logger.info(e);
-    }
-  }
+
+  controller.start();
 
   await initSocket();
 };

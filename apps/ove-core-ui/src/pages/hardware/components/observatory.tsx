@@ -6,7 +6,7 @@ import {
   type StatusOptions,
 } from "@ove/ove-types";
 import { useStatus } from "./hooks";
-import { logger } from "../../../env";
+import { env, logger } from "../../../env";
 import Actions from "./actions/actions";
 import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
@@ -89,10 +89,10 @@ const Status = ({
     <span
       className={cn(
         "rounded-full px-2 py-1 text-xs",
-        getStatusClass(assert(status)),
+        status === null ? "" : getStatusClass(assert(status)),
       )}
     >
-      {status}
+      {status === null ? "" : status}
     </span>
   );
 };
@@ -109,7 +109,8 @@ const getData = (bridgeId: string, devices: Device[]) =>
       <Actions
         devices={devices}
         device={device}
-        tag={undefined}
+        tags={undefined}
+        deviceIds={undefined}
         bridgeId={bridgeId}
       />
     ),
@@ -134,6 +135,11 @@ const Observatory = ({
   useEffect(() => {
     utils.core.getObservatoryBounds.invalidate().catch(logger.error);
   }, [isOnline, utils.core.getObservatoryBounds]);
+
+  useEffect(() => {
+    const interval = setInterval(() => utils.hardware.getLiveUpdate.invalidate({ bridgeId: name }).catch(logger.error), env.LIVE_UPDATE_REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [name, utils.hardware.getLiveUpdate]);
 
   const selectPreview = useCallback(
     (display: Bounds["displays"][0]) => {
@@ -172,6 +178,7 @@ const Observatory = ({
           name in bounds.data ? (
             <Preview
               bridgeId={name}
+              selected={filters.selected}
               bounds={bounds.data[name]}
               setSelected={selectPreview}
             />

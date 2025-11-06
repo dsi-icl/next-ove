@@ -56,11 +56,11 @@ export const DeepProxy = <T extends object>(
 export const safe = async <T>(
   logger: TLogger,
   handler: () => Promise<T>,
-): Promise<Awaited<T> | OVEException> => {
+): Promise<T | OVEException> => {
   try {
     return await handler();
   } catch (e) {
-    logger.error(e);
+    logger.trace(e);
     if (typeof e === "string") return { oveError: e };
     else if (typeof e === "object" && e !== null && "message" in e) {
       return { oveError: JSON.stringify(e.message) };
@@ -94,18 +94,36 @@ export const titleToBucketName = (title: string) =>
 export const fixedEncodeURI = (str: string) =>
   encodeURI(str).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16));
 
-export const generateUUID = () => "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-  /[xy]/g,
-  (c) => {
+export const generateUUID = () =>
+  "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
-  }
-);
+  });
 
 export const buildDeviceURL = (device: Device) => {
   const protocol = device.protocol !== undefined ? `${device.protocol}://` : "";
   const hostname = device.host;
   const port = device.port !== undefined ? `:${device.port}` : "";
   return `${protocol}${hostname}${port}`;
+};
+
+export const filterRejected = (x: PromiseSettledResult<unknown>): x is PromiseRejectedResult => {
+  return (
+    x !== undefined &&
+    typeof x === "object" &&
+    x !== null &&
+    "status" in x &&
+    x.status === "rejected"
+  );
+};
+
+export const filterFulfilled = <T>(x: PromiseSettledResult<T>): x is PromiseFulfilledResult<T> => {
+  return (
+    x !== undefined &&
+    typeof x === "object" &&
+    x !== null &&
+    "status" in x &&
+    x.status === "fulfilled"
+  );
 };

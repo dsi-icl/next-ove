@@ -3,44 +3,40 @@
 import {
   setAutoSchedule,
   setEcoSchedule,
-  setManualSchedule,
+  setManualSchedule
 } from "./power-scheduler";
-import {
-  startReconciliation,
-  stopReconciliation,
-} from "../hardware/reconciliation";
+import { controller } from "../reconciliation/controller";
 import { assert, raise } from "@ove/ove-utils";
-import { execSync } from "child_process";
+import { execPromise } from "@ove/ove-server-utils";
 import { getSocketStatus } from "./sockets";
 import { env, logger, version } from "../../env";
-import type { Calendar, TBridgeService } from "@ove/ove-types";
-import { service as ReconciliationService } from "../hardware/reconciliation-service";
+import { type Calendar, type TBridgeService } from "@ove/ove-types";
 
 export const service: TBridgeService = {
   getDevice: async ({ deviceId }) =>
     env.HARDWARE.DEVICES.find(({ id }) => id === deviceId) ??
     raise(`No device with id: ${deviceId}`),
-  getDevices: async ({ tag }) =>
-    tag === undefined
+  getDevices: async ({ tags }) =>
+    tags === undefined
       ? env.HARDWARE.DEVICES
-      : env.HARDWARE.DEVICES.filter(({ tags }) => tags.includes(tag)),
+      : env.HARDWARE.DEVICES.filter(({ tags: ts }) => ts.some((t) => tags.includes(t))),
   addDevice: async ({ device }) => {
     env.HARDWARE.DEVICES.push(device);
-    ReconciliationService.update();
+    controller.reinitialise();
     return true;
   },
   removeDevice: async ({ deviceId }) => {
     env.HARDWARE.DEVICES = env.HARDWARE.DEVICES.filter(
       ({ id }) => id !== deviceId,
     );
-    ReconciliationService.update();
+    controller.reinitialise();
     return true;
   },
   startStreams: async () => {
     if (env === null || env.LIVE_VIEW?.SCRIPTS?.START === undefined)
       return true;
     try {
-      execSync(env.LIVE_VIEW.SCRIPTS.START);
+      await execPromise(env.LIVE_VIEW.SCRIPTS.START);
       return true;
     } catch (e) {
       logger.error(e);
@@ -50,7 +46,7 @@ export const service: TBridgeService = {
   stopStreams: async () => {
     if (env === null || env.LIVE_VIEW?.SCRIPTS?.STOP === undefined) return true;
     try {
-      execSync(env.LIVE_VIEW.SCRIPTS.STOP);
+      await execPromise(env.LIVE_VIEW.SCRIPTS.STOP);
       return true;
     } catch (e) {
       logger.error(e);
@@ -58,9 +54,13 @@ export const service: TBridgeService = {
     }
   },
   getStreamStatus: async () => {
-    if (env === null || env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined || env.LIVE_VIEW?.SCRIPTS?.STOP === undefined) return false;
+    if (
+      env === null ||
+      env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined
+    )
+      return false;
     try {
-      const res = execSync(env.LIVE_VIEW.SCRIPTS.STOP, {encoding: "utf-8"});
+      const res = await execPromise(env.LIVE_VIEW.SCRIPTS.STATUS);
       return res.includes("active (running)");
     } catch (e) {
       return false;
@@ -110,17 +110,14 @@ export const service: TBridgeService = {
   getReconciliation: async () => env.RECONCILIATION.STATUS,
   refreshReconciliation: async () => {
     if (!env.RECONCILIATION.STATUS) return false;
-    stopReconciliation();
-    startReconciliation();
+    controller.reinitialise();
     return true;
   },
   startReconciliation: async () => {
-    startReconciliation();
     env.RECONCILIATION.STATUS = true;
     return true;
   },
   stopReconciliation: async () => {
-    stopReconciliation();
     env.RECONCILIATION.STATUS = false;
     return true;
   },

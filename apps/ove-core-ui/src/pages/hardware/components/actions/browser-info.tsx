@@ -27,7 +27,8 @@ import { getPages } from "../../../../utils";
 const useBrowser = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined,
+  tags?: string[],
+  deviceIds?: string[]
 ) => {
   const getBrowsers = api.hardware.getBrowsers.useQuery(
     {
@@ -41,7 +42,8 @@ const useBrowser = (
   const getBrowsersAll = api.hardware.getBrowsersAll.useQuery(
     {
       bridgeId,
-      tag,
+      tags,
+      deviceIds,
     },
     {
       enabled: deviceId === null,
@@ -110,12 +112,13 @@ type BrowserDetails = {
 type BrowserInfoProps = {
   deviceId: string | null;
   bridgeId: string;
-  tag?: string;
+  tags?: string[];
+  deviceIds?: string[];
 };
 
-const BrowserInfo = ({ deviceId, bridgeId, tag }: BrowserInfoProps) => {
+const BrowserInfo = ({ deviceId, bridgeId, tags, deviceIds }: BrowserInfoProps) => {
   const [idx, setIdx] = useState(0);
-  const browsers = useBrowser(bridgeId, deviceId, tag);
+  const browsers = useBrowser(bridgeId, deviceId, tags, deviceIds);
 
   return (
     <DialogContent className="flex w-[70%] flex-col">
