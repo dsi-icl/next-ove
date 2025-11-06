@@ -1,10 +1,11 @@
 import {
   type Device,
   type OVEException,
-  type StatusOptions,
+  type StatusOptions
 } from "@ove/ove-types";
 import { env, logger } from "../env";
 import { execPromise } from "@ove/ove-server-utils";
+import { controller } from "../features/reconciliation/controller";
 
 const getTimeout = (device: Device): number => {
   switch (device.type) {
@@ -17,12 +18,32 @@ const getTimeout = (device: Device): number => {
   }
 };
 
-export const statusOptions = async (
+export const syncStatus = async (
+  handler: () => Promise<StatusOptions | OVEException>,
+  device: Device,
+  ac?: AbortController,
+): Promise<StatusOptions | OVEException> => {
+  const res = await statusOptions(handler, device, ac);
+  controller.getState()[device.id].status.observed = res;
+  return res;
+};
+
+const statusOptions = async (
   handler: () => Promise<StatusOptions | OVEException>,
   device: Device,
   controller?: AbortController,
 ): Promise<StatusOptions | OVEException> => {
   let status: StatusOptions = "off";
+  try {
+    if (controller !== undefined) {
+      setTimeout(() => controller.abort(), getTimeout(device));
+    }
+
+    return await handler();
+  } catch (e) {
+    logger.trace(e);
+  }
+
   if (env !== null && env.HARDWARE.SCRIPTS?.PING !== undefined) {
     try {
       const res = await execPromise(
@@ -56,19 +77,12 @@ export const statusOptions = async (
       if (!res.includes("seems down")) {
         status = "SYN";
       }
+      return status;
     } catch (e) {
       logger.trace(e);
       return status;
     }
   }
 
-  try {
-    if (controller !== undefined) {
-      setTimeout(() => controller.abort(), getTimeout(device));
-    }
-    return await handler();
-  } catch (e) {
-    logger.trace(e);
-    return status;
-  }
+  return status;
 };

@@ -11,7 +11,8 @@ type ScreenshotProps = {
   closeDialog: () => void;
   deviceId: string | null;
   bridgeId: string;
-  tag?: string;
+  tags?: string[];
+  deviceIds?: string[];
 };
 
 const useTakeScreenshots = (
@@ -24,7 +25,8 @@ const useTakeScreenshots = (
   closeDialog: () => void,
   deviceId: string | null,
   bridgeId: string,
-  tag?: string,
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const takeScreenshots = api.hardware.screenshot.useMutation({
     retry: false,
@@ -71,7 +73,8 @@ const useTakeScreenshots = (
       takeScreenshotsAll
         .mutateAsync({
           bridgeId,
-          tag,
+          tags,
+          deviceIds,
           screens,
           method,
         })
@@ -91,7 +94,8 @@ const useTakeScreenshots = (
 const useDisplays = (
   deviceId: string | null,
   bridgeId: string,
-  tag?: string,
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   const getDisplayConfig = api.hardware.getBrowserConfig.useQuery(
     {
@@ -103,7 +107,8 @@ const useDisplays = (
   const getDisplayConfigAll = api.hardware.getBrowserConfigAll.useQuery(
     {
       bridgeId,
-      tag,
+      tags,
+      deviceIds,
     },
     { enabled: deviceId === null },
   );
@@ -144,7 +149,8 @@ const Screenshot = ({
   closeDialog,
   deviceId,
   bridgeId,
-  tag,
+  tags,
+  deviceIds,
 }: ScreenshotProps) => {
   const [state, setState] = useState<"config" | "display">("config");
   const [screenshots, setScreenshots] = useState<
@@ -159,9 +165,10 @@ const Screenshot = ({
     closeDialog,
     deviceId,
     bridgeId,
-    tag,
+    tags,
+    deviceIds,
   );
-  const displays = useDisplays(deviceId, bridgeId, tag);
+  const displays = useDisplays(deviceId, bridgeId, tags, deviceIds);
   return state === "config" ? (
     <ScreenshotConfig
       displays={displays}

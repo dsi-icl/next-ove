@@ -19,7 +19,8 @@ export const BridgeServiceKeys: readonly (keyof TClientRoutesSchema)[] =
 /* API Types */
 
 export {
-  type TBridgeRoutesSchema, type TBridgeResponseSchema
+  type TBridgeRoutesSchema,
+  type TBridgeResponseSchema,
 } from "./bridge-transform";
 
 /**
@@ -29,8 +30,8 @@ export type TBridgeHardwareService = {
   [Key in keyof TClientRoutesSchema]?: (
     device: Device,
     args: z.infer<TClientRoutesSchema[Key]["args"]>,
-    ac?: () => AbortController
-  ) => Promise<Optional<z.infer<TClientRoutesSchema[Key]["client"]>>>
+    ac?: () => AbortController,
+  ) => Promise<Optional<z.infer<TClientRoutesSchema[Key]["client"]>>>;
 };
 
 /**
@@ -39,8 +40,8 @@ export type TBridgeHardwareService = {
 export type THardwareServerToClientEvents = {
   [Key in keyof TBridgeRoutesSchema]: (
     args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
-    callback: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void
-  ) => void
+    callback: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void,
+  ) => void;
 };
 
 /**

@@ -8,8 +8,34 @@ import {
   StatusOptionsSchema,
   StatusSchema,
   BrowserConfigSchema,
+  MDCSourceSchema,
+  PJLinkSourceSchema,
 } from "../hardware";
-import { ResponseSchema } from "../ove-types"; /* Utility Types */
+import { OVEExceptionSchema, ResponseSchema } from "../ove-types"; /* Utility Types */
+
+const ReconciliationStateSchema = z.discriminatedUnion("type", [
+  z.strictObject({
+    type: z.literal("node"),
+    status: z.union([OVEExceptionSchema, z.null(), StatusOptionsSchema]),
+    browsers: z.union([OVEExceptionSchema, z.null(), z.boolean()]),
+    browserConfigs: z.union([OVEExceptionSchema, z.null(), BrowserConfigSchema]),
+  }),
+  z.strictObject({
+    type: z.literal("mdc"),
+    status: z.union([OVEExceptionSchema, z.null(), StatusOptionsSchema]),
+    source: z.union([OVEExceptionSchema, z.null(), MDCSourceSchema.keyof()]),
+    volume: z.union([OVEExceptionSchema, z.null(), z.number()]),
+    isMuted: z.union([OVEExceptionSchema, z.null(), z.boolean()]),
+  }),
+  z.strictObject({
+    type: z.literal("pjlink"),
+    status: z.union([OVEExceptionSchema, z.null(), StatusOptionsSchema]),
+    source: z.union([OVEExceptionSchema, z.null(), PJLinkSourceSchema.keyof()]),
+    isMuted: z.union([OVEExceptionSchema, z.null(), z.boolean()]),
+    isAudioMuted: z.union([OVEExceptionSchema, z.null(), z.boolean()]),
+    isVideoMuted: z.union([OVEExceptionSchema, z.null(), z.boolean()]),
+  }),
+]);
 
 /* Utility Types */
 
@@ -316,6 +342,43 @@ export const ServiceAPISchema = {
     args: z.strictObject({}),
     returns: StatusSchema,
     exposed: "client" as const,
+  },
+  getReconciliationState: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: `/reconciliation/state` as const,
+        protect: true,
+      },
+    },
+    args: z.strictObject({}),
+    returns: z.strictObject({
+      target: ReconciliationStateSchema,
+      observed: ReconciliationStateSchema,
+    }),
+    exposed: "bridge" as const,
+  },
+  getLiveUpdate: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/live" as const,
+        protect: true,
+      },
+    },
+    args: z.strictObject({}),
+    returns: z.discriminatedUnion("type", [
+      z.strictObject({
+        type: z.literal("node"),
+        status: z.union([OVEExceptionSchema, z.null(), StatusOptionsSchema]),
+        browsers: z.union([OVEExceptionSchema, z.null(), z.record(z.string(), BrowserSchema)]),
+        browserConfigs: z.union([OVEExceptionSchema, z.null(), BrowserConfigSchema]),
+        screenshots: z.union([OVEExceptionSchema, z.null(), ImageSchema.array()]),
+      }),
+      z.strictObject({ type: z.literal("mdc"), status: z.union([OVEExceptionSchema, z.null(), StatusOptionsSchema]) }),
+      z.strictObject({ type: z.literal("pjlink"), status: z.union([OVEExceptionSchema, z.null(), StatusOptionsSchema]) }),
+    ]),
+    exposed: "bridge" as const,
   },
 };
 

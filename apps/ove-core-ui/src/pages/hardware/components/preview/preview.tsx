@@ -3,7 +3,7 @@ import Screen, { type ScreenProps } from "./screen";
 
 type PreviewProps = Omit<ScreenProps, "colId" | "rowId">;
 
-const Preview = memo(({ bounds, bridgeId, setSelected }: PreviewProps) => (
+const Preview = memo(({ bounds, bridgeId, setSelected, selected }: PreviewProps) => (
   <section className="mb-2">
     <ul>
       {Array.from({ length: bounds.rows }).map((_, rowId) => (
@@ -11,6 +11,7 @@ const Preview = memo(({ bounds, bridgeId, setSelected }: PreviewProps) => (
           {Array.from({ length: bounds.columns }).map((_, colId) => (
             <Screen
               bridgeId={bridgeId}
+              selected={selected}
               key={colId}
               setSelected={setSelected}
               colId={colId}

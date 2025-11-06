@@ -10,9 +10,9 @@ import {
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env, logger } from "../../env";
-import { service as ReconciliationService } from "./reconciliation-service";
 import { assert, Json, raise } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
+import { controller } from "../reconciliation/controller";
 
 export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
   cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void,
@@ -24,13 +24,13 @@ export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
     });
 };
 
-export const getDevices = async (tag?: string) => {
+export const getDevices = async (filterTags?: string[], ids?: string[]) => {
   const devices = env.HARDWARE.DEVICES.filter(
-    ({ tags }) => tag === undefined || tags.includes(tag),
+    ({ tags, id }) => (filterTags === undefined && ids === undefined) || (ids !== undefined && ids.includes(id)) || (filterTags !== undefined && tags.some((t) => filterTags.includes(t))),
   );
 
   if (devices.length === 0) {
-    const tagStatus = tag !== undefined ? ` with tag: ${tag}` : "";
+    const tagStatus = filterTags !== undefined ? ` with tags: ${filterTags.join(", ")}` : "";
     return raise(`No devices found${tagStatus}`);
   }
 
@@ -63,7 +63,7 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
   ) {
     const res = await assert(service[k])(device, args);
     try {
-      await ReconciliationService.updateState(device, k, args);
+      controller.update(device.id, k, args);
     } catch (_e) {
       logger.error("Unable to update reconciliation state");
     }
@@ -131,14 +131,15 @@ export const multiDeviceHandler = async <
 ) => {
   logger.info(`Handling: ${k}All`);
   const callback = wrapCallback(cb);
-  const devices = await getDevices(args.tag);
+  const devices = await getDevices(args.tags, args.deviceIds);
 
   if (is(OVEExceptionSchema, devices)) {
     callback(devices);
     return;
   }
 
-  delete args["tag"];
+  delete args["tags"];
+  delete args["deviceIds"];
   let result: Awaited<
     TBridgeRoutesSchema[Key]["client"]["_output"] | undefined
   >[];

@@ -5,15 +5,18 @@ import {
   isError,
   type OVEException,
   type PJLinkInfo,
+  PJLinkSource,
   PJLinkSourceSchema,
-  type TBridgeHardwareService,
-  type TBridgeServiceArgs,
+  TBridgeHardwareService,
+  type TBridgeServiceArgs
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../env";
 import { raise } from "@ove/ove-utils";
 import * as PJLink from "@ove/pjlink-control";
-import { statusOptions } from "../../utils/status";
+import { syncStatus } from "../../utils/status";
+import { controller } from "../reconciliation/controller";
+import { PJLinkState } from "../reconciliation/state";
 
 const reboot = async (
   device: Device,
@@ -173,6 +176,14 @@ const getInfo = async (
     ac: ac?.(),
   });
 
+  (controller.getState()[device.id] as PJLinkState).muted.observed = isMuted;
+  (controller.getState()[device.id] as PJLinkState).source.observed =
+    source as keyof PJLinkSource;
+  (controller.getState()[device.id] as PJLinkState).audio.observed =
+    isAudioMuted;
+  (controller.getState()[device.id] as PJLinkState).video.observed =
+    isVideoMuted;
+
   if (
     isError(info) ||
     isError(source) ||
@@ -218,7 +229,7 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return statusOptions(async () => {
+  return syncStatus(async () => {
     const res = await PJLink.getPower({
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -384,7 +395,40 @@ const unmuteVideo = async (
   return true;
 };
 
-const PJLinkService: TBridgeHardwareService = {
+const getLiveUpdate = async (device: Device) => {
+  const current = controller.getState()[device.id];
+  if (current.type !== "pjlink") throw new Error("Invalid device type");
+  return {
+    type: "pjlink" as const,
+    status: current.status?.observed ?? null,
+  };
+};
+
+const getReconciliationState = async (device: Device) => {
+  const current = controller.getState()[device.id];
+  if (current.type !== "pjlink") throw new Error("Invalid device type");
+  return {
+    observed: {
+      type: "pjlink" as const,
+      status: current.status.observed ?? null,
+      source: current.source.observed ?? null,
+      isMuted: current.muted.observed ?? null,
+      isAudioMuted: current.audio.observed ?? null,
+      isVideoMuted: current.video.observed ?? null,
+    },
+    target: {
+      type: "pjlink" as const,
+      status: current.status.target ?? null,
+      source: current.source.target ?? null,
+      isMuted: current.muted.target ?? null,
+      isAudioMuted: current.audio.target ?? null,
+      isVideoMuted: current.video.target ?? null,
+    },
+  };
+};
+
+const PJLinkService = {
+  type: "pjlink" as const,
   reboot,
   shutdown,
   start,
@@ -397,6 +441,9 @@ const PJLinkService: TBridgeHardwareService = {
   unmuteAudio,
   muteVideo,
   unmuteVideo,
-};
+  getLiveUpdate,
+  getReconciliationState,
+} satisfies TBridgeHardwareService & { type: string };
 
+export type PJLinkService = typeof PJLinkService;
 export default PJLinkService;
