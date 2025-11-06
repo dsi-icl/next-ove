@@ -22,7 +22,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 const useConsole = (
   bridgeId: string,
   deviceId: string | null,
-  tag: string | undefined,
+  tags?: string[],
+  deviceIds?: string[]
 ) => {
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const addCommand = useCallback(
@@ -68,7 +69,8 @@ const useConsole = (
           .mutateAsync({
             bridgeId,
             command,
-            tag,
+            tags,
+            deviceIds,
           })
           .catch(logger.error);
         reset();
@@ -98,7 +100,8 @@ const useConsole = (
 type TerminalProps = {
   deviceId: string | null;
   bridgeId: string;
-  tag: string | undefined;
+  tags?: string[];
+  deviceIds?: string[];
 };
 
 const formatCommand = (cmd: string) => {
@@ -114,7 +117,7 @@ const formatCommand = (cmd: string) => {
 
 const TerminalSchema = z.strictObject({ command: z.string() });
 
-const Terminal = ({ deviceId, bridgeId, tag }: TerminalProps) => {
+const Terminal = ({ deviceId, bridgeId, tags, deviceIds }: TerminalProps) => {
   const {
     register,
     reset,
@@ -127,7 +130,8 @@ const Terminal = ({ deviceId, bridgeId, tag }: TerminalProps) => {
   const { execute, fetching, commandHistory } = useConsole(
     bridgeId,
     deviceId,
-    tag,
+    tags,
+    deviceIds,
   );
   const historyRef = useRef<HTMLDivElement>(null);
 

@@ -1,13 +1,13 @@
 /* global Buffer */
 
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import express from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
-import {io} from 'socket.io-client';
-import {z} from 'zod';
+import bodyParser from "body-parser";
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import * as fs from "fs";
+import * as path from "path";
+import { io } from "socket.io-client";
+import { z } from "zod";
 
 const __dirname = /** @type{string} */ import.meta.dirname;
 
@@ -33,7 +33,12 @@ const screenshots = Array.from({ length: 8 })
     ).toString("base64"),
   );
 
-const browserConfigs = new Map(devices.map((device) => [device.id, ["https://www.google.com", "https://www.google.com"]]));
+const browserConfigs = new Map(
+  devices.map((device) => [
+    device.id,
+    ["https://www.google.com", "https://www.google.com"],
+  ]),
+);
 
 const state = {
   reconciliation: true,
@@ -191,7 +196,9 @@ bridgeSocket.on("startStreams", (args, callback) => {
   callback(mockHardwareWithCrashing(true, () => true));
 });
 
-bridgeSocket.on("getStreamStatus", (args, callback) => callback(mockHardwareWithCrashing(true, () => state.streamStatus)))
+bridgeSocket.on("getStreamStatus", (args, callback) =>
+  callback(mockHardwareWithCrashing(true, () => state.streamStatus)),
+);
 
 bridgeSocket.on("getCalendar", (args, callback) =>
   callback(
@@ -261,7 +268,7 @@ hardwareSocket.on("setBrowserConfig", (args, callback) => {
     return;
   }
   browserConfigs.set(args.deviceId, args.config);
-  callback(mockHardwareWithCrashing(true, () => true))
+  callback(mockHardwareWithCrashing(true, () => true));
 });
 hardwareSocket.on("getBrowserConfig", (args, callback) => {
   if (getDevice(args.deviceId).type !== "node") {
@@ -576,6 +583,45 @@ hardwareSocket.on("reloadBrowsersAll", (args, callback) =>
     ),
   ),
 );
+
+hardwareSocket.on("getLiveUpdate", (args, callback) => {
+  const device = getDevice(args.deviceId);
+  switch (device.type) {
+    case "node": {
+      callback(
+        mockHardwareWithCrashing(true, () => ({
+          type: "node",
+          status: "on",
+          browsers: {
+            "1": { url: "https://www.google.com", displayId: 0 },
+            "2": { url: "https://www.bbc.co.uk", displayId: 1 },
+          },
+          browserConfigs: browserConfigs.get(args.deviceId),
+          screenshots
+        })),
+      );
+      break;
+    }
+    case "mdc": {
+      callback(
+        mockHardwareWithCrashing(true, () => ({
+          type: "mdc",
+          status: "on",
+        })),
+      );
+      break;
+    }
+    case "pjlink": {
+      callback(
+        mockHardwareWithCrashing(true, () => ({
+          type: "pjlink",
+          status: "on",
+        })),
+      );
+      break;
+    }
+  }
+});
 
 const app = express();
 

@@ -25,9 +25,9 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-const useBrowserConfiguration = (bridgeId: string, deviceId: string | null, tag?: string) => {
+const useBrowserConfiguration = (bridgeId: string, deviceId: string | null, tags?: string[], deviceIds?: string[]) => {
   const getBrowserConfig = api.hardware.getBrowserConfig.useQuery({bridgeId, deviceId: deviceId ?? "UNKNOWN"}, {enabled: deviceId !== null});
-  const getBrowserConfigAll = api.hardware.getBrowserConfigAll.useQuery({bridgeId, tag}, {enabled: deviceId === null});
+  const getBrowserConfigAll = api.hardware.getBrowserConfigAll.useQuery({bridgeId, tags, deviceIds}, {enabled: deviceId === null});
 
   const config = useMemo(() => {
     if (deviceId === null) {
@@ -47,7 +47,8 @@ const useBrowserConfiguration = (bridgeId: string, deviceId: string | null, tag?
 type BrowserConfigurationProps = {
   deviceId: string | null;
   bridgeId: string;
-  tag?: string;
+  tags?: string[];
+  deviceIds?: string[];
   closeDialog: () => void;
 };
 
@@ -57,11 +58,12 @@ type BrowserConfigurationForm = z.infer<typeof BrowserConfigurationForm>
 const BrowserConfiguration = ({
   deviceId,
   bridgeId,
-  tag,
+  tags,
+  deviceIds,
   closeDialog,
 }: BrowserConfigurationProps) => {
   const [idx, setIdx] = useState(0);
-  const { config } = useBrowserConfiguration(bridgeId, deviceId, tag);
+  const { config } = useBrowserConfiguration(bridgeId, deviceId, tags, deviceIds);
   const context = api.useUtils();
   const setBrowserConfig = api.hardware.setBrowserConfig.useMutation({
     onSuccess: () => {
@@ -94,14 +96,14 @@ const BrowserConfiguration = ({
     }
     setBrowserConfig.mutateAsync({ config: urls.map(({value}) => value), bridgeId, deviceId: deviceId_ }).then(() => {
       context.hardware.getBrowserConfig.invalidate({bridgeId, deviceId: deviceId_});
-      context.hardware.getBrowserConfigAll.invalidate({bridgeId, tag});
+      context.hardware.getBrowserConfigAll.invalidate({bridgeId, tags, deviceIds});
     }).catch(() => {
       toast.error("Unable to set browser configuration");
       if (deviceId !== null) {
         closeDialog();
       }
     });
-  }, [setBrowserConfig, bridgeId, config, idx, closeDialog, deviceId]);
+  }, [setBrowserConfig, bridgeId, config, idx, closeDialog, deviceId, tags, deviceIds]);
 
   return (
     <DialogContent className="flex w-[70%] flex-col">

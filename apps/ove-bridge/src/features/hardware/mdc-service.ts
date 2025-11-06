@@ -2,14 +2,17 @@
 
 import {
   type Device,
+  isError,
   MDCSourceSchema,
   type TBridgeHardwareService,
-  type TBridgeServiceArgs,
+  type TBridgeServiceArgs
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../env";
 import * as mdc from "@ove/mdc-control";
-import { statusOptions } from "../../utils/status";
+import { syncStatus } from "../../utils/status";
+import { controller } from "../reconciliation/controller";
+import { MDCState } from "../reconciliation/state";
 
 const reboot = async (
   { host, port }: Device,
@@ -78,7 +81,7 @@ const start = async (
 };
 
 const getInfo = async (
-  { host, port }: Device,
+  device: Device,
   args: TBridgeServiceArgs<"getInfo">,
   ac?: () => AbortController,
 ) => {
@@ -89,13 +92,25 @@ const getInfo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return mdc.getInfo({
+  const info = await mdc.getInfo({
     timeout: env.HARDWARE.TIMEOUTS.MDC,
     id: 0x01,
-    host,
+    host: device.host,
     ac: ac?.(),
-    port,
+    port: device.port,
   });
+
+  (controller.getState()[device.id] as MDCState).muted.observed = isError(info)
+    ? info
+    : info.isMuted;
+  (controller.getState()[device.id] as MDCState).source.observed = isError(info)
+    ? info
+    : info.source;
+  (controller.getState()[device.id] as MDCState).volume.observed = isError(info)
+    ? info
+    : info.volume;
+
+  return info;
 };
 
 const getStatus = async (
@@ -108,7 +123,7 @@ const getStatus = async (
 
   if (!parsedOpts.success) return undefined;
 
-  return statusOptions(
+  return syncStatus(
     async () =>
       mdc.getStatus({
         timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -211,7 +226,38 @@ const setSource = async (
   );
 };
 
-const MDCService: TBridgeHardwareService = {
+const getLiveUpdate = async (device: Device) => {
+  const current = controller.getState()[device.id];
+  if (current.type !== "mdc") throw new Error("Invalid device type");
+  return {
+    type: "mdc" as const,
+    status: current.status?.observed ?? null,
+  };
+};
+
+const getReconciliationState = async (device: Device) => {
+  const current = controller.getState()[device.id];
+  if (current.type !== "mdc") throw new Error("Invalid device type");
+  return {
+    observed: {
+      type: "mdc" as const,
+      status: current.status.observed ?? null,
+      source: current.source.observed ?? null,
+      volume: current.volume.observed ?? null,
+      isMuted: current.muted.observed ?? null,
+    },
+    target: {
+      type: "mdc" as const,
+      status: current.status.target ?? null,
+      source: current.source.target,
+      volume: current.volume.target ?? null,
+      isMuted: current.muted.target ?? null,
+    },
+  };
+};
+
+const MDCService = {
+  type: "mdc" as const,
   reboot,
   shutdown,
   start,
@@ -221,5 +267,9 @@ const MDCService: TBridgeHardwareService = {
   unmute,
   setVolume,
   setSource,
-};
+  getLiveUpdate,
+  getReconciliationState,
+} satisfies TBridgeHardwareService & { type: string };
+
+export type MDCService = typeof MDCService;
 export default MDCService;

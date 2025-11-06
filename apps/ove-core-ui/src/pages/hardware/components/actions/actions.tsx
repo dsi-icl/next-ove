@@ -56,17 +56,16 @@ import {
   DropdownMenuTrigger,
 } from "@ove/ui-base-components";
 import Volume from "./volume";
-import { useStatus } from "../hooks";
 import { flushSync } from "react-dom";
 import BrowserInfo from "./browser-info";
 import type { Device } from "@ove/ove-types";
 import TerminalDialog from "./terminal";
-import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
 import Screenshot from "../screenshot/screenshot";
 import InfoContainer from "../info/info-container";
 import React, { useCallback, useState } from "react";
 import BrowserConfiguration from "./browser-configuration";
+import { toast } from "sonner";
 
 const getType = (device: Device | null, type: Device["type"], negate = false) =>
   device === null || (negate ? device.type !== type : device.type === type);
@@ -86,7 +85,8 @@ const getActionDialog = (
   devices: Device[],
   device: Device | null,
   bridgeId: string,
-  tag?: string,
+  tags?: string[],
+  deviceIds?: string[],
 ) => {
   switch (action) {
     case "info":
@@ -95,7 +95,8 @@ const getActionDialog = (
           devices={devices}
           device={device}
           bridgeId={bridgeId}
-          tag={tag}
+          tags={tags}
+          deviceIds={deviceIds}
         />
       );
     case "terminal":
@@ -103,7 +104,8 @@ const getActionDialog = (
         <TerminalDialog
           deviceId={device?.id ?? null}
           bridgeId={bridgeId}
-          tag={tag}
+          tags={tags}
+          deviceIds={deviceIds}
         />
       );
     case "screenshot":
@@ -111,7 +113,8 @@ const getActionDialog = (
         <Screenshot
           deviceId={device?.id ?? null}
           bridgeId={bridgeId}
-          tag={tag}
+          tags={tags}
+          deviceIds={deviceIds}
           closeDialog={closeDialog}
         />
       );
@@ -120,7 +123,8 @@ const getActionDialog = (
         <BrowserInfo
           deviceId={device?.id ?? null}
           bridgeId={bridgeId}
-          tag={tag}
+          tags={tags}
+          deviceIds={deviceIds}
         />
       );
     case "browser-configure":
@@ -128,7 +132,8 @@ const getActionDialog = (
         <BrowserConfiguration
           deviceId={device?.id ?? null}
           bridgeId={bridgeId}
-          tag={tag}
+          tags={tags}
+          deviceIds={deviceIds}
           closeDialog={closeDialog}
         />
       );
@@ -137,7 +142,8 @@ const getActionDialog = (
         <Volume
           deviceId={device?.id ?? null}
           bridgeId={bridgeId}
-          tag={tag}
+          tags={tags}
+          deviceIds={deviceIds}
           closeDialog={closeDialog}
         />
       );
@@ -148,32 +154,79 @@ const getActionDialog = (
 
 type ActionProps = {
   device: Device | null;
-  tag?: string;
+  tags?: string[];
+  deviceIds?: string[];
   bridgeId: string;
   devices: Device[];
 };
 
-const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
-  const status = useStatus(device?.id ?? null, bridgeId);
+const Actions = ({
+  device,
+  devices,
+  tags,
+  bridgeId,
+  deviceIds,
+}: ActionProps) => {
   const utils = api.useUtils();
   const [action, setAction] = useState<TActions>(null);
-  const { start } = useStart(bridgeId, device?.id ?? null, tag);
-  const { shutdown } = useShutdown(bridgeId, device?.id ?? null, tag);
-  const { reboot } = useReboot(bridgeId, device?.id ?? null, tag);
+  const { start } = useStart(bridgeId, device?.id ?? null, tags, deviceIds);
+  const { shutdown } = useShutdown(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { reboot } = useReboot(bridgeId, device?.id ?? null, tags, deviceIds);
   const { reloadBrowsers } = useReloadBrowsers(
     bridgeId,
     device?.id ?? null,
-    tag,
+    tags,
+    deviceIds,
   );
-  const { closeBrowsers } = useCloseBrowsers(bridgeId, device?.id ?? null, tag);
-  const { openBrowsers } = useOpenBrowsers(bridgeId, device?.id ?? null, tag);
-  const { setSource } = useSetSource(bridgeId, device?.id ?? null, tag);
-  const { mute } = useMute(bridgeId, device?.id ?? null, tag);
-  const { unmute } = useUnmute(bridgeId, device?.id ?? null, tag);
-  const { muteAudio } = useMuteAudio(bridgeId, device?.id ?? null, tag);
-  const { unmuteAudio } = useUnmuteAudio(bridgeId, device?.id ?? null, tag);
-  const { muteVideo } = useMuteVideo(bridgeId, device?.id ?? null, tag);
-  const { unmuteVideo } = useUnmuteVideo(bridgeId, device?.id ?? null, tag);
+  const { closeBrowsers } = useCloseBrowsers(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { openBrowsers } = useOpenBrowsers(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { setSource } = useSetSource(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { mute } = useMute(bridgeId, device?.id ?? null, tags, deviceIds);
+  const { unmute } = useUnmute(bridgeId, device?.id ?? null, tags, deviceIds);
+  const { muteAudio } = useMuteAudio(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { unmuteAudio } = useUnmuteAudio(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { muteVideo } = useMuteVideo(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
+  const { unmuteVideo } = useUnmuteVideo(
+    bridgeId,
+    device?.id ?? null,
+    tags,
+    deviceIds,
+  );
   const [open, setOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const updateState = useCallback(() => {
@@ -183,7 +236,29 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
           bridgeId,
           deviceId: device.id,
         })
-        .catch(logger.error);
+        .then(() =>
+          utils.hardware.getLiveUpdate
+            .invalidate({
+              bridgeId,
+              deviceId: device.id,
+            })
+            .catch(() => toast.error(`Unable to update status for: ${device.id}`)),
+        )
+        .catch(() => toast.error(`Unable to update status for: ${device.id}`));
+    } else if (deviceIds !== undefined) {
+      deviceIds.forEach((deviceId) => {
+        utils.hardware.getStatus
+          .invalidate({
+            bridgeId,
+            deviceId,
+          })
+          .then(() =>
+            utils.hardware.getLiveUpdate
+              .invalidate({ bridgeId, deviceId })
+              .catch(() => toast.error(`Unable to update status for: ${deviceId}`)),
+          )
+          .catch(() => toast.error(`Unable to update status for: ${deviceId}`));
+      });
     } else {
       devices.forEach(({ id }) => {
         utils.hardware.getStatus
@@ -191,10 +266,21 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
             bridgeId,
             deviceId: id,
           })
-          .catch(logger.error);
+          .then(() =>
+            utils.hardware.getLiveUpdate
+              .invalidate({ bridgeId, deviceId: id })
+              .catch(() => toast.error(`Unable to update status for: ${id}`)),
+          )
+          .catch(() => toast.error(`Unable to update status for: ${id}`));
       });
     }
-  }, [utils.hardware.getStatus, device, bridgeId, devices]);
+  }, [
+    utils.hardware.getStatus,
+    utils.hardware.getLiveUpdate,
+    device,
+    bridgeId,
+    deviceIds,
+  ]);
   return (
     <Dialog
       open={open}
@@ -231,35 +317,14 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuLabel>Power</DropdownMenuLabel>
-            {status !== null ? (
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={status === "on" ? shutdown : start}
-              >
-                {status === "on" ? (
-                  <>
-                    <PowerOff className="mr-2 size-4" />
-                    Power Off
-                  </>
-                ) : (
-                  <>
-                    <Power className="mr-2 size-4" />
-                    Power On
-                  </>
-                )}
-              </DropdownMenuItem>
-            ) : (
-              <>
-                <DropdownMenuItem className="cursor-pointer" onClick={start}>
-                  <Power className="mr-2 size-4" />
-                  Power On
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer" onClick={shutdown}>
-                  <PowerOff className="mr-2 size-4" />
-                  Power Off
-                </DropdownMenuItem>
-              </>
-            )}
+            <DropdownMenuItem className="cursor-pointer" onClick={start}>
+              <Power className="mr-2 size-4" />
+              Power On
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={shutdown}>
+              <PowerOff className="mr-2 size-4" />
+              Power Off
+            </DropdownMenuItem>
             <DropdownMenuItem className="cursor-pointer" onClick={reboot}>
               <RotateCw className="mr-2 size-4" />
               Reboot
@@ -637,7 +702,7 @@ const Actions = ({ device, devices, tag, bridgeId }: ActionProps) => {
             devices,
             device,
             bridgeId,
-            tag,
+            tags,
           )
         : null}
     </Dialog>

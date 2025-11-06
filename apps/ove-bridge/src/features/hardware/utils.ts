@@ -1,10 +1,10 @@
-import type { ServiceType, TBridgeHardwareService } from "@ove/ove-types";
-import NodeService from "./node-service";
-import PJLinkService from "./pjlink-service";
-import MDCService from "./mdc-service";
+import type { ServiceType } from "@ove/ove-types";
+import NodeService, { type NodeService as TNodeService } from "./node-service";
+import PJLinkService, { type PJLinkService as TPJLinkService } from "./pjlink-service";
+import MDCService, { type MDCService as TMDCService } from "./mdc-service";
 
 export const getServiceForProtocol =
-  (protocol: ServiceType): TBridgeHardwareService => {
+  (protocol: ServiceType): TNodeService | TPJLinkService | TMDCService => {
     switch (protocol) {
       case "node":
         return NodeService;

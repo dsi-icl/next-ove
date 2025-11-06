@@ -37,8 +37,6 @@ export const resolveDisplays = async () => {
       serial: display.serial,
     });
   });
-
-  console.log(displays);
 };
 
 export const getDisplay = (uid: number) => assert(displays.find((display) => display.id === uid));

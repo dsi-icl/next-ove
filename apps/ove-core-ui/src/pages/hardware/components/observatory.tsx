@@ -80,38 +80,37 @@ const getStatusClass = (status: StatusOptions | "pending" | "error") => {
 const Status = ({
   deviceId,
   bridgeId,
-  offset,
 }: {
   deviceId: string;
   bridgeId: string;
-  offset: number;
 }) => {
-  const status = useStatus(deviceId, bridgeId, offset, true);
+  const status = useStatus(deviceId, bridgeId);
   return (
     <span
       className={cn(
         "rounded-full px-2 py-1 text-xs",
-        getStatusClass(assert(status)),
+        status === null ? "" : getStatusClass(assert(status)),
       )}
     >
-      {status}
+      {status === null ? "" : status}
     </span>
   );
 };
 
 const getData = (bridgeId: string, devices: Device[]) =>
-  devices.map((device, i) => ({
+  devices.map((device) => ({
     protocol: device.type,
     id: device.id,
     hostname: buildDeviceURL(device),
     mac: device.mac,
     tags: device.tags,
-    status: <Status deviceId={device.id} bridgeId={bridgeId} offset={i * env.API_CALL_OFFSET} />,
+    status: <Status deviceId={device.id} bridgeId={bridgeId} />,
     actions: (
       <Actions
         devices={devices}
         device={device}
-        tag={undefined}
+        tags={undefined}
+        deviceIds={undefined}
         bridgeId={bridgeId}
       />
     ),
@@ -136,6 +135,11 @@ const Observatory = ({
   useEffect(() => {
     utils.core.getObservatoryBounds.invalidate().catch(logger.error);
   }, [isOnline, utils.core.getObservatoryBounds]);
+
+  useEffect(() => {
+    const interval = setInterval(() => utils.hardware.getLiveUpdate.invalidate({ bridgeId: name }).catch(logger.error), env.LIVE_UPDATE_REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [name, utils.hardware.getLiveUpdate]);
 
   const selectPreview = useCallback(
     (display: Bounds["displays"][0]) => {
@@ -174,6 +178,7 @@ const Observatory = ({
           name in bounds.data ? (
             <Preview
               bridgeId={name}
+              selected={filters.selected}
               bounds={bounds.data[name]}
               setSelected={selectPreview}
             />

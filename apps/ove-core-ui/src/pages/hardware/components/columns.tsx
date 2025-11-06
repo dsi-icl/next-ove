@@ -18,7 +18,7 @@ export type HardwareRow = {
 export type FilterValue = {
   filterType: FilterType;
   filter: string[] | null;
-  selected: string[] | null;
+  selected: [string, string] | null;
 };
 
 const ProtocolIcon = ({ protocol }: { protocol: ServiceType }) => {

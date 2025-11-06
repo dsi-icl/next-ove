@@ -1,5 +1,9 @@
 import { isError, type OVEException } from "@ove/ove-types";
 
+export type HardwareID = {
+  bridgeId: string;
+} & ({ type: "single", deviceId: string } | { type: "multi", tags?: string[], deviceIds?: string[] });
+
 export const formatIds = (responses: { deviceId: string }[]) =>
   responses.map(({ deviceId }) => deviceId).join(", ");
 

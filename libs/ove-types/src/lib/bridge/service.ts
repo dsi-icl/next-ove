@@ -83,7 +83,7 @@ export const APIRoutes = {
         protect: true,
       },
     },
-    input: z.strictObject({ tag: z.string().optional(), bridgeId: z.string() }),
+    input: z.strictObject({ tags: z.string().array().optional(), bridgeId: z.string() }),
     output: getBridgeResponseSchema(
       getDeviceResponseSchema(z.array(DeviceSchema)),
     ),
