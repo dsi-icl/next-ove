@@ -592,7 +592,6 @@ const getController = async (
   username: string,
   projectId: string,
   observatory: string,
-  layout?: Section[],
 ) => {
   if (s3 === null) return raise("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
@@ -924,6 +923,26 @@ const getCollaborationInvites = async (
   });
 };
 
+const getSentInvites = async (
+  prisma: PrismaClient,
+  username: string,
+) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      username,
+    },
+  });
+
+  return prisma.invite.findMany({
+    where: {
+      senderId: user.id,
+    },
+    include: {
+      project: true,
+    },
+  });
+};
+
 const acceptInvite = async (prisma: PrismaClient, inviteId: string) => {
   await prisma.invite.update({
     where: {
@@ -986,6 +1005,7 @@ const controller = {
   formatData,
   formatDZI,
   getCollaborationInvites,
+  getSentInvites,
   acceptInvite,
   declineInvite,
   getPendingInviteCount,

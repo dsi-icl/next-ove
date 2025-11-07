@@ -15,10 +15,10 @@ type Icon = {
 
 const icons: Icon[] = [
   {
-    icon: <Joystick className="size-5" />,
+    icon: <Settings className="size-5" />,
     color: "#ef476f",
-    title: "Controller",
-    action: "controller",
+    title: "Project Details",
+    action: "metadata",
   },
   {
     icon: <Upload className="size-5" />,
@@ -27,16 +27,16 @@ const icons: Icon[] = [
     action: "upload",
   },
   {
-    icon: <HatGlasses className="size-5" />,
+    icon: <Joystick className="size-5" />,
     color: "#ffd166",
-    title: "Environment",
-    action: "env",
+    title: "Controller",
+    action: "controller",
   },
   {
-    icon: <Settings className="size-5" />,
+    icon: <HatGlasses className="size-5" />,
     color: "#06d6a0",
-    title: "Project Details",
-    action: "metadata",
+    title: "Environment",
+    action: "env",
   },
   {
     icon: <Eye className="size-5" />,

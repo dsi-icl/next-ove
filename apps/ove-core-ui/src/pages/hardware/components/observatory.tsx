@@ -12,9 +12,9 @@ import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
 import { api } from "../../../utils/api";
 import { columns, type FilterValue } from "./columns";
-import { cn } from "@ove/ui-base-components";
+import { Badge } from "@ove/ui-base-components";
 import Container from "./container";
-import { assert, buildDeviceURL } from "@ove/ove-utils";
+import { buildDeviceURL } from "@ove/ove-utils";
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T;
@@ -65,15 +65,17 @@ const useDevices = (isOnline: boolean, bridgeId: string) => {
   }, [isOnline, getDevices.status, getDevices.data?.response]);
 };
 
-const getStatusClass = (status: StatusOptions | "pending" | "error") => {
+const getStatusClass = (status: StatusOptions | "pending" | "error" | null) => {
   switch (status) {
     case "on":
-      return "bg-green-200 text-green-800";
+      return "green";
     case "off":
     case "error":
-      return "bg-red-200 text-red-800";
+      return "red";
+    case null:
+      return "default";
     default:
-      return "bg-yellow-200 text-yellow-800";
+      return "yellow";
   }
 };
 
@@ -86,14 +88,12 @@ const Status = ({
 }) => {
   const status = useStatus(deviceId, bridgeId);
   return (
-    <span
-      className={cn(
-        "rounded-full px-2 py-1 text-xs",
-        status === null ? "" : getStatusClass(assert(status)),
-      )}
+    <Badge
+      className="rounded-full px-2 py-1 text-xs"
+      variant={getStatusClass(status)}
     >
       {status === null ? "" : status}
-    </span>
+    </Badge>
   );
 };
 

@@ -1,105 +1,218 @@
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
   Badge,
   Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
 } from "@ove/ui-base-components";
-import React from "react";
+import React, { useMemo } from "react";
+import type { User } from ".prisma/client";
 import { logger } from "../../env";
 import { Check, X } from "lucide-react";
 import { useInvites } from "./hooks/invites";
+import { api } from "../../utils/api";
+import { isError } from "@ove/ove-types";
+import { assert } from "@ove/ove-utils";
+
+const getStatusClass = (status: string) => {
+  switch (status) {
+    case "accepted":
+      return "green";
+    case "declined":
+      return "red";
+    default:
+      return "yellow";
+  }
+};
+
+type Invite = {
+  status: string;
+  id: string;
+  project: {
+    id: string;
+    title: string;
+    description: string;
+  };
+  senderId: string;
+  recipientId: string;
+};
+
+const Pending = ({ invite }: { invite: Invite }) => {
+  const { acceptInvite, declineInvite } = useInvites();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="default">Respond</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem
+          className="flex cursor-pointer items-center"
+          onClick={() =>
+            acceptInvite
+              .mutateAsync({ inviteId: invite.id })
+              .catch(logger.error)
+          }
+        >
+          <Check className="size-4" />
+          Accept
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="flex cursor-pointer items-center"
+          onClick={() =>
+            declineInvite
+              .mutateAsync({ inviteId: invite.id })
+              .catch(logger.error)
+          }
+        >
+          <X className="size-4" />
+          Decline
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const Accepted = () => {
+  return (
+    <Badge variant="green" className="justify-centerp-2 ml-auto flex w-20">
+      Accepted
+    </Badge>
+  );
+};
+
+const Declined = () => {
+  return (
+    <Badge variant="red" className="ml-auto flex w-20 justify-center p-2">
+      Declined
+    </Badge>
+  );
+};
+
+const Sent = ({ invite }: { invite: Invite }) => {
+  return (
+    <Badge variant={getStatusClass(invite.status)} className="ml-auto">
+      {invite.status}
+    </Badge>
+  );
+};
+
+type InviteType = "pending" | "accepted" | "declined" | "sent";
+
+const getContent = (invite: Invite, type: InviteType) => {
+  switch (type) {
+    case "pending":
+      return <Pending invite={invite} />;
+    case "accepted":
+      return <Accepted />;
+    case "declined":
+      return <Declined />;
+    case "sent":
+      return <Sent invite={invite} />;
+  }
+};
+
+const InviteCard = ({
+  invite,
+  user,
+  type,
+}: {
+  invite: Invite;
+  user: Omit<User, "password">;
+  type: InviteType;
+}) => {
+  return (
+    <li key={invite.id} className="h-full">
+      <Card className="flex h-full w-full flex-row items-center justify-center">
+        <CardHeader className="flex h-full flex-row items-center gap-4">
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <Avatar>
+                <AvatarImage alt={user.username} src={user.icon ?? undefined} />
+                <AvatarFallback>{user.username.slice(0, 1)}</AvatarFallback>
+              </Avatar>
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <h4 className="text-center font-bold">{user.name ?? ""}</h4>
+              <p className="text-center text-black/80">{user.email ?? ""}</p>
+            </HoverCardContent>
+          </HoverCard>
+          <div className="flex h-full flex-col">
+            <CardTitle className="text-lg font-semibold">
+              {invite.project.title}
+            </CardTitle>
+            <CardDescription>{invite.project.description}</CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="ml-auto flex h-full items-center pt-6">
+          {getContent(invite, type)}
+        </CardContent>
+      </Card>
+    </li>
+  );
+};
 
 const Collaboration = () => {
-  const { accepted, pending, declined, isLoaded, acceptInvite, declineInvite } =
-    useInvites();
+  const { accepted, pending, declined, isLoaded, sent } = useInvites();
+  const getUsers = api.projects.getUsers.useQuery();
+  const users = useMemo(() => {
+    if (getUsers.status !== "success" || isError(getUsers.data)) return [];
+    return getUsers.data;
+  }, [getUsers.status, getUsers.data]);
 
   return isLoaded ? (
     <main>
-      <h1 className="mt-4 w-full text-center text-2xl font-bold">
-        Invites for Collaboration
-      </h1>
+      {pending.length > 0 || accepted.length > 0 || declined.length > 0 ? <h2 className="px-64 mt-4 font-bold text-xl">Inbox</h2> : null}
       <ul className="mt-4 flex flex-col gap-4 px-64 py-0">
         {pending.map((invite) => (
-          <li
+          <InviteCard
             key={invite.id}
-            className="flex w-full flex-row items-center rounded border border-solid border-gray-200 p-4 shadow hover:bg-gray-50"
-          >
-            <div>
-              <h4 className="text-xl font-semibold">{invite.project.title}</h4>
-              <p>{invite.project.description}</p>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="default" className="ml-auto">
-                  Respond
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem
-                  className="flex cursor-pointer items-center"
-                  onClick={() =>
-                    acceptInvite
-                      .mutateAsync({ inviteId: invite.id })
-                      .catch(logger.error)
-                  }
-                >
-                  <Check className="size-4" />
-                  Accept
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="flex cursor-pointer items-center"
-                  onClick={() =>
-                    declineInvite
-                      .mutateAsync({ inviteId: invite.id })
-                      .catch(logger.error)
-                  }
-                >
-                  <X className="size-4" />
-                  Decline
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </li>
+            invite={invite}
+            type="pending"
+            user={assert(users.find((user) => user.id === invite.senderId))}
+          />
         ))}
       </ul>
       <ul className="mt-4 flex flex-col gap-4 p-64 py-0">
         {accepted.map((invite) => (
-          <li
+          <InviteCard
             key={invite.id}
-            className="flex w-full flex-row items-center rounded border border-solid border-green-200 p-4 shadow hover:bg-green-50"
-          >
-            <div>
-              <h4 className="text-xl font-semibold">{invite.project.title}</h4>
-              <p>{invite.project.description}</p>
-            </div>
-            <Badge
-              variant="default"
-              className="ml-auto flex w-20 justify-center bg-green-400 p-2 hover:bg-green-200"
-            >
-              Accepted
-            </Badge>
-          </li>
+            invite={invite}
+            type="accepted"
+            user={assert(users.find((user) => user.id === invite.senderId))}
+          />
         ))}
       </ul>
       <ul className="mt-4 flex flex-col gap-4 p-64 py-0">
         {declined.map((invite) => (
-          <li
+          <InviteCard
             key={invite.id}
-            className="flex w-full flex-row items-center rounded border border-solid border-red-200 p-4 shadow hover:bg-red-50"
-          >
-            <div>
-              <h4 className="text-xl font-semibold">{invite.project.title}</h4>
-              <p>{invite.project.description}</p>
-            </div>
-            <Badge
-              variant="destructive"
-              className="ml-auto flex w-20 justify-center p-2"
-            >
-              Declined
-            </Badge>
-          </li>
+            invite={invite}
+            type="declined"
+            user={assert(users.find((user) => user.id === invite.senderId))}
+          />
+        ))}
+      </ul>
+      {sent.length > 0 ? <h2 className="px-64 mt-4 font-bold text-xl">Outbox</h2> : null}
+      <ul className="mt-4 flex flex-col gap-4 px-64 py-0">
+        {sent.map((invite) => (
+          <InviteCard
+            key={invite.id}
+            invite={invite}
+            type="sent"
+            user={assert(users.find((user) => user.id === invite.recipientId))}
+          />
         ))}
       </ul>
     </main>

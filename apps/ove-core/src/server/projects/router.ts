@@ -6,7 +6,7 @@ import {
 import { z } from "zod";
 import { logger } from "../../env";
 import controller from "./controller";
-import { Json, safe } from "@ove/ove-utils";
+import { safe } from "@ove/ove-utils";
 import { procedure, router } from "../trpc";
 
 const SectionSchema = z.strictObject({
@@ -478,11 +478,10 @@ export const projectsRouter = router({
       z.strictObject({
         projectId: z.string(),
         observatory: z.string(),
-        layout: z.string().optional(),
       }),
     )
     .output(z.union([z.string(), OVEExceptionSchema]))
-    .query(({ ctx, input: { projectId, observatory, layout } }) => {
+    .query(({ ctx, input: { projectId, observatory } }) => {
       logger.info(`Getting controller for ${projectId}`);
       return safe(logger, () =>
         controller.getController(
@@ -491,9 +490,6 @@ export const projectsRouter = router({
           ctx.username,
           projectId,
           observatory,
-          SectionSchema.array()
-            .optional()
-            .parse(layout === undefined ? undefined : Json.parse(layout)),
         ),
       );
     }),
@@ -565,6 +561,20 @@ export const projectsRouter = router({
       return safe(logger, () =>
         controller.getCollaborationInvites(ctx.prisma, ctx.username),
       );
+    }),
+  getSentInvites: procedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/invites/sent",
+        protect: true,
+      },
+    })
+    .input(z.void())
+    .output(z.union([InviteSchema.array(), OVEExceptionSchema]))
+    .query(({ ctx }) => {
+      logger.info(`Getting invites sent by user ${ctx.username}`);
+      return safe(logger, () => controller.getSentInvites(ctx.prisma, ctx.username));
     }),
   acceptInvite: procedure
     .meta({

@@ -77,15 +77,15 @@ const Nav = () => {
     <NavigationMenu
       className={`items-center${isLogin ? "" : "justify-start"} h-full list-none`}
     >
-      <Link to="/" className="ml-2 mr-auto">
-        <NavigationMenuItem>
+      <NavigationMenuItem asChild>
+        <Link to="/" className="ml-2 mr-auto">
           <img
             src={`${env.BASE_URL}/logo.svg`}
             alt="OVE Core Logo"
             className="max-h-[10vh]"
           />
-        </NavigationMenuItem>
-      </Link>
+        </Link>
+      </NavigationMenuItem>
       {isLogin ? null : (
         <NavigationMenuList className="mr-2 h-full">
           {loggedIn ? (
@@ -94,8 +94,11 @@ const Nav = () => {
               <NavigationMenuContent>
                 <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                   <li className="row-span-3">
-                    <Link to="/hardware">
-                      <NavigationMenuLink className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md">
+                    <NavigationMenuLink
+                      asChild
+                      className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md"
+                    >
+                      <Link to="/hardware">
                         <Server />
                         <h4 className="mb-2 mt-4 text-lg font-medium">
                           Hardware Manager
@@ -103,32 +106,38 @@ const Nav = () => {
                         <p className="text-muted-foreground text-sm leading-tight">
                           Manage all connected hardware.
                         </p>
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </li>
                   <li>
-                    <Link to="/sockets">
-                      <NavigationMenuLink className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors">
+                    <NavigationMenuLink
+                      asChild
+                      className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                    >
+                      <Link to="/sockets">
                         <div className="text-sm font-medium leading-none">
                           Sockets
                         </div>
                         <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
                           Socket.IO Admin UI
                         </p>
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </li>
                   <li>
-                    <Link to="/logs">
-                      <NavigationMenuLink className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors">
+                    <NavigationMenuLink
+                      asChild
+                      className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                    >
+                      <Link to="/logs">
                         <div className="text-sm font-medium leading-none">
                           Logs
                         </div>
                         <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
                           View live and historical logs across next-ove
                         </p>
-                      </NavigationMenuLink>
-                    </Link>
+                      </Link>
+                    </NavigationMenuLink>
                   </li>
                 </ul>
               </NavigationMenuContent>
@@ -138,11 +147,9 @@ const Nav = () => {
             {loggedIn ? (
               <Persona />
             ) : (
-              <Link to="/login">
-                <NavigationMenuLink className="p-4 font-bold text-white">
-                  Login
-                </NavigationMenuLink>
-              </Link>
+              <NavigationMenuLink className="p-4 font-bold text-white" asChild>
+                <Link to="/login">Login</Link>
+              </NavigationMenuLink>
             )}
           </NavigationMenuItem>
         </NavigationMenuList>
