@@ -231,7 +231,10 @@ const observeNode = async (
   const screenshots = await safe(logger, () =>
     service.screenshot(device, {
       method: "response",
-      screens: [0],
+      screens:
+        configs !== undefined && !isError(configs)
+          ? Array.from({ length: configs.length }).map((_x, i) => i)
+          : [],
     }),
   );
 
