@@ -136,6 +136,7 @@ COPY --from=build-server /usr/src/app/dist/apps/ove-core/ ./
 
 COPY --from=build-ui /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin-ui
 COPY --from=build-ui /usr/src/app/dist/apps/ove-core-ui/ ./ui
+COPY --from=build-ui /usr/src/app/node_modules/tinymce/skins ./ui/skins
 
 COPY --from=build-renderer /usr/src/app/dist/apps/ove-renderer/index.html /usr/src/app/dist/apps/ove-core/public/renderer.html
 

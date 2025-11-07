@@ -41,7 +41,7 @@ const Collaboration = () => {
                   className="flex cursor-pointer items-center"
                   onClick={() =>
                     acceptInvite
-                      .mutateAsync({ inviteId: "" })
+                      .mutateAsync({ inviteId: invite.id })
                       .catch(logger.error)
                   }
                 >
@@ -52,7 +52,7 @@ const Collaboration = () => {
                   className="flex cursor-pointer items-center"
                   onClick={() =>
                     declineInvite
-                      .mutateAsync({ inviteId: "" })
+                      .mutateAsync({ inviteId: invite.id })
                       .catch(logger.error)
                   }
                 >
