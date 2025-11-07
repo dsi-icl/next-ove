@@ -115,6 +115,7 @@ const schema = z.strictObject({
       CONTROLLER: z.strictObject({
         SERVER: z.string(),
         RENDERER: z.string(),
+        SPACE: z.string(),
         RENDERERS: z.record(z.string(), z.string()),
       }),
     })

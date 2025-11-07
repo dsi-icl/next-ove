@@ -4,6 +4,7 @@ import { isError } from "@ove/ove-types";
 import { useNavigate } from "react-router-dom";
 import type { Project, User } from ".prisma/client";
 import { Button, DialogTrigger } from "@ove/ui-base-components";
+import { fromURL, useFiles } from "../editor/hooks/files";
 
 type ProjectCardProps = {
   user: User;
@@ -19,6 +20,13 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
   const getCollaborators = api.projects.getCollaboratorsForProject.useQuery({
     projectId: project.id,
   });
+  const { local } = useFiles(project.id);
+  const thumbnail = fromURL(local, project.thumbnail);
+  const thumbnailURL = api.projects.getPresignedGetURL.useQuery({
+    bucketName: thumbnail?.bucketName ?? "ERROR",
+    objectName: thumbnail?.name ?? "ERROR",
+    versionId: thumbnail?.version ?? "ERROR",
+  });
   const canEdit =
     user.role === "admin" ||
     ((user.id === project.creatorId ||
@@ -32,16 +40,22 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
   return (
     <li
       key={project.title}
-      className="max-w-[calc(1.5rem+256px)] rounded-xl border border-gray-200 p-3"
+      className="flex h-full max-w-[calc(1.5rem+256px)] flex-col rounded-xl border border-gray-200 p-3"
     >
       <img
         className="aspect-square w-full rounded-xl"
-        src={project.thumbnail ?? "/missing-thumbnail.jpg"}
+        src={
+          thumbnailURL.data !== undefined && !isError(thumbnailURL.data)
+            ? thumbnailURL.data
+            : "/missing-thumbnail.jpg"
+        }
         alt={`Thumbnail for ${project.title}`}
       />
       <h4 className="mt-2 font-bold text-black">{project.title}</h4>
-      <p className="mt-1 text-black">{limitText(project.description, 140)}</p>
-      <div className="mt-2 flex justify-between">
+      <p className="mb-2 mt-1 text-black">
+        {limitText(project.description, 140)}
+      </p>
+      <div className="mt-auto flex w-full justify-between">
         {canEdit ? (
           <Button
             className="w-full rounded-r-none"
