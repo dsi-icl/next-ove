@@ -8,8 +8,7 @@ const prisma = new PrismaClient();
 
 const load = async () => {
   const { username, email, password, role } = await getDetails();
-  const hash =
-    role === "bridge" ? password : bcrypt.hashSync(password, SALT_ROUNDS);
+  const hash = bcrypt.hashSync(password, SALT_ROUNDS);
   await prisma.user.create({
     data: {
       username: username,

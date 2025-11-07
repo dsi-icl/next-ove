@@ -116,7 +116,7 @@ const LaunchConfig = ({ project, launch }: LaunchConfigProps) => {
               </FormItem>
             )}
           />
-          <Button variant="default" className="ml-auto mt-4">
+          <Button variant="default" type="submit" className="ml-auto mt-4">
             LAUNCH
           </Button>
         </form>

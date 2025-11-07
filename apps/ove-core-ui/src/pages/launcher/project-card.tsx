@@ -26,7 +26,7 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
     bucketName: thumbnail?.bucketName ?? "ERROR",
     objectName: thumbnail?.name ?? "ERROR",
     versionId: thumbnail?.version ?? "ERROR",
-  });
+  }, { enabled: thumbnail !== null });
   const canEdit =
     user.role === "admin" ||
     ((user.id === project.creatorId ||

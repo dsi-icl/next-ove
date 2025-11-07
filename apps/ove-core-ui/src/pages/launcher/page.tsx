@@ -2,15 +2,16 @@ import { api } from "../../utils/api";
 import { assert } from "@ove/ove-utils";
 import { isError } from "@ove/ove-types";
 import ProjectCard from "./project-card";
-import { PlusCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Dialog } from "@ove/ui-base-components";
 import type { Project, User } from ".prisma/client";
 import LaunchConfig, {
-  type TLaunchConfig,
+  type TLaunchConfig
 } from "../../components/launch-config/launch-config";
 import React, { useCallback, useMemo, useState } from "react";
 import Controller from "../../components/controller/controller";
 import { useStore } from "../../store";
+import { Link } from "react-router-dom";
 
 type Action = "config" | "launch";
 
@@ -80,13 +81,12 @@ const Projects = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <main>
-        <h1 className="mt-2 w-full text-center text-2xl font-bold">Projects</h1>
         {projectsLoaded ? (
           <div className="relative h-[calc(90vh-1px)] w-screen border-t border-solid border-t-white">
             <section className="relative z-0 h-full pb-16">
-              <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
-                Private
-              </h4>
+              {privateProjects.length > 0 ? <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
+                Your Projects
+              </h4> : null}
               <ul className="grid grid-cols-4 justify-items-center p-8">
                 {privateProjects.map((project) => (
                   <ProjectCard
@@ -97,9 +97,9 @@ const Projects = () => {
                   />
                 ))}
               </ul>
-              <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
-                Public
-              </h4>
+              {publicProjects.length > 0 ? <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
+                Public Projects
+              </h4> : null}
               <ul className="grid grid-cols-4 justify-items-center p-8">
                 {publicProjects.map((project) => (
                   <ProjectCard
@@ -112,12 +112,12 @@ const Projects = () => {
               </ul>
             </section>
             {!open ? (
-              <a
-                href="/editor"
-                className="fixed bottom-8 right-8 z-[100] ml-auto rounded-[50%] bg-[#002147] p-2 text-white"
+              <Link
+                to="/editor"
+                className="fixed bottom-8 right-8 z-[100] ml-auto rounded-[50%] bg-[#002147] p-4 text-white"
               >
-                <PlusCircle />
-              </a>
+                <Plus />
+              </Link>
             ) : null}
           </div>
         ) : null}
