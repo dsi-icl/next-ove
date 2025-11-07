@@ -60,7 +60,7 @@ const getContent = (section: Section) => {
         height: `${section.height * 100}%`,
     }}></div>
   }
-}
+};
 
 const Preview = () => {
   const selected = useStateStore((store) => store.selectedState);

@@ -16,11 +16,6 @@ import {
   FormItem,
   FormLabel,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { assert } from "@ove/ove-utils";
@@ -33,7 +28,7 @@ import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 import { usePartialUpdateSection, useSections, useUpdateSection } from "../hooks/sections";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Bounds, type DataType, dataTypes, type File } from "@ove/ove-types";
+import { type Bounds, dataTypes, type File } from "@ove/ove-types";
 
 const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
   if (!asset) return null;
@@ -52,14 +47,7 @@ const detectDataType = (asset: string | undefined, ordinary: File[]): string | n
     // not a valid URL; fall through and return null
   }
 
-  return null;
-};
-
-
-const sort = (k: keyof DataType, a: DataType, b: DataType) => {
-  if (a[k] > b[k]) return 1;
-  if (a[k] === b[k]) return 0;
-  return -1;
+  return "html";
 };
 
 const toPercentage = (x: number) => parseFloat(`${x * 100}`.slice(0, 5));
@@ -296,11 +284,6 @@ const SectionConfig = () => {
   }, [fileName, setValue, fileVersion, ordinary]);
 
   const isDisabled = section === null;
-  const detectedDataType = detectDataType(watch("asset"), ordinary);
-  const shouldSelectDataType = (
-    !detectedDataType && form.watch("asset") !== '') || 
-    (form.watch("dataType") && form.watch("dataType") !== detectedDataType
-  );
 
   return (
     <section className="h-full px-4">
@@ -364,37 +347,6 @@ const SectionConfig = () => {
                   </FormItem>
               )}}
             />
-            {shouldSelectDataType && (
-            <FormField
-              control={form.control}
-              name="dataType"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="font-semibold">Data Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isDisabled}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select data type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent position="popper">
-                      {dataTypes
-                        .sort((a, b) => sort("displayName", a, b))
-                        .map(({ displayName, name }) => (
-                          <SelectItem value={name} key={name}>
-                            {displayName}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            )}
             <div className="mt-2 flex w-full flex-col">
               <Button variant="default" className="w-full" type="submit">
                 UPDATE

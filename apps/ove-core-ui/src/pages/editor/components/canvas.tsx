@@ -372,12 +372,12 @@ const Canvas = () => {
     () =>
       getSections(selectedState).map((s) => ({
         ...s,
-        width: s.width * assert(bounds).width,
-        height: s.height * assert(bounds).height,
-        x: s.x * assert(bounds).width,
-        y: s.y * assert(bounds).height,
+        width: s.width * (bounds?.width ?? 0),
+        height: s.height * (bounds?.height ?? 0),
+        x: s.x * (bounds?.width ?? 0),
+        y: s.y * (bounds?.height ?? 0),
       })),
-    [getSections, selectedState, bounds],
+    [getSections, selectedState, bounds?.width, bounds?.height],
   );
   const cells = useCells();
   const canvas = useCanvas();

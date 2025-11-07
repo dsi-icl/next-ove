@@ -39,7 +39,6 @@ import {
   useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { actionColors } from "../utils";
-import { assert } from "@ove/ove-utils";
 import { useTags } from "../hooks/tags";
 import { useForm } from "react-hook-form";
 import type { File } from "@ove/ove-types";
@@ -117,13 +116,13 @@ const Metadata = () => {
   const thumbnail = fromURL(local, project.thumbnail);
   const generateThumbnail = useThumbnail(project.id, selectedTags);
   const form = useForm<MetadataForm>({
-    defaultValues: {
+    values: {
       title: project.title,
       description: project.description,
       presenterNotes: project.presenterNotes,
       isPublic: project.isPublic,
       notes: project.notes,
-      fileName: thumbnail?.name ?? undefined,
+      fileName: thumbnail === null ? undefined : `${project.bucket}/${thumbnail.name}`,
       fileVersion: thumbnail?.version ?? undefined,
     },
     resolver: zodResolver(MetadataFormSchema),
@@ -155,7 +154,7 @@ const Metadata = () => {
         data.fileVersion === null ||
         data.fileVersion === undefined
           ? null
-          : toURL(assert(project.bucket), data.fileName, data.fileVersion),
+          : toURL(data.fileName.split("/")[0], data.fileName.split("/").slice(1).join("/"), data.fileVersion),
     }));
 
     closeRef.current?.click();

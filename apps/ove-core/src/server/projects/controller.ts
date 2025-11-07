@@ -13,6 +13,7 @@ import { type DataTypes, isError } from "@ove/ove-types";
 import type { PrismaClient, Project, Section } from ".prisma/client";
 import type { DataFormatConfigOptions, InviteStatus } from "./router";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
+import { fetch, Agent } from "undici";
 
 import "@total-typescript/ts-reset";
 import { generateToken } from "@ove/ove-auth";
@@ -398,14 +399,14 @@ const getFiles = async (
   if (s3 === null || project === null) return [];
   const globals = await getGlobalFiles(s3);
   const projectFiles = addLatest(
-    await getProjectFiles(s3, titleToBucketName(project.title)),
+    await getProjectFiles(s3, project.bucket ?? titleToBucketName(project.title)),
   )
     .map((object) => ({
       name: assert(object.name),
       version: object.versionId,
       isGlobal: false,
       isLatest: object.isLatest,
-      bucketName: titleToBucketName(project.title),
+      bucketName: project.bucket ?? titleToBucketName(project.title),
     }))
     .filter(({ name }) => !name.includes("OVE_FORMAT"));
   return globals.concat(projectFiles);
@@ -471,7 +472,7 @@ const getPresignedPutURL = async (
   if (s3 === null) return raise("No S3 store configured");
   return S3Controller.getPresignedPutURL(
     s3,
-    titleToBucketName(project.title),
+    project.bucket ?? titleToBucketName(project.title),
     objectName,
   );
 };
@@ -568,12 +569,16 @@ const getEnv = async (
   if (project === null) return raise(`No project with id ${projectId}`);
   const url = await getPresignedGetURL(
     s3,
-    titleToBucketName(project.title),
+    project.bucket ?? titleToBucketName(project.title),
     "env.json",
     "latest",
   );
   if (isError(url)) return url;
-  const data = (await (await fetch(url)).json()) as Record<string, string>;
+  let agent: Agent | undefined = undefined;
+  if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
+    agent = new Agent({ connect: { rejectUnauthorized: false } });
+  }
+  const data = (await (await fetch(url, { dispatcher: agent })).json()) as Record<string, string>;
   return Object.fromEntries(
     Object.entries(data)
       .filter(([k, _v]) => k.startsWith("OVE_PUBLIC_"))
@@ -599,12 +604,16 @@ const getController = async (
   } else {
     const url = await getPresignedGetURL(
       s3,
-      titleToBucketName(project.title),
+      project.bucket ?? titleToBucketName(project.title),
       "control.html",
       "latest",
     );
     if (isError(url)) return url;
-    data = await (await fetch(url)).text();
+    let agent: Agent | undefined = undefined;
+    if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
+      agent = new Agent({ connect: { rejectUnauthorized: false } });
+    }
+    data = await (await fetch(url, { dispatcher: agent })).text();
   }
 
   if (env.TEMPLATES?.CONTROLLER === undefined) {
@@ -622,21 +631,19 @@ const getController = async (
   data = data
     .replaceAll("{{OBSERVATORY}}", observatory)
     .replaceAll("{{PROJECT_ID}}", projectId)
-    .replaceAll("{{SPACE}}", observatory);
+    .replaceAll("{{SPACE}}", env.TEMPLATES.CONTROLLER.SPACE);
 
-  // TODO: add OTP
-
-  if (layout !== undefined) {
-    data = data.replaceAll(
-      /project = await [^;]+/g,
-      'project = {title: "Temp - Dev"}',
-    );
-    data = data.replaceAll(/projectEnv = [^;]+/g, "projectEnv = {}");
-    data = data.replaceAll(
-      /project\.layouts = [^;]+/g,
-      `project.layouts = ${Json.stringify(layout, undefined, 2)}`,
-    );
-  }
+  // if (layout !== undefined) {
+  //   data = data.replaceAll(
+  //     /project = await [^;]+/g,
+  //     `project = ${JSON}`,
+  //   );
+  //   data = data.replaceAll(/projectEnv = [^;]+/g, "projectEnv = {}");
+  //   data = data.replaceAll(
+  //     /project\.layouts = [^;]+/g,
+  //     `project.layouts = ${Json.stringify(layout, undefined, 2)}`,
+  //   );
+  // }
 
   return data;
 };
@@ -873,7 +880,13 @@ const formatDZI = async (
                 });
             },
           );
+
+          let agent: Agent | undefined = undefined;
+          if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
+            agent = new Agent({ connect: { rejectUnauthorized: false } });
+          }
           await fetch(entryURL, {
+            dispatcher: agent,
             method: "PUT",
             body: await new File(
               [Buffer.from(chunks)],
