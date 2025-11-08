@@ -93,3 +93,8 @@ export const setupConfig =
     staticConfig,
     Object.keys(schema.shape)
   );
+
+export const getConfigPath = (devPath: string, prodPath: string) => {
+  if (process.env.CONFIG_PATH !== undefined) return process.env.CONFIG_PATH;
+  return process.env.NODE_ENV === "production" ? prodPath : devPath;
+};

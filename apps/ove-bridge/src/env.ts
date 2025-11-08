@@ -5,13 +5,13 @@ import {
   BoundsSchema,
   CalendarSchema,
   DeviceSchema,
-  PowerModeSchema,
+  PowerModeSchema
 } from "@ove/ove-types";
 import { z } from "zod";
 import * as path from "path";
 import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
-import { setupConfig } from "@ove/ove-server-utils";
+import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
   METRICS: z.strictObject({
@@ -129,19 +129,19 @@ const defaultConfig: z.infer<typeof schema> = {
 
 export type Environment = z.infer<typeof schema> & typeof staticConfig;
 
-const configPath =
-  process.env.NODE_ENV === "production"
-    ? path.join(__dirname, "config", "config.json")
-    : path.join(
-        __dirname,
-        "..",
-        "..",
-        "..",
-        "apps",
-        "ove-bridge",
-        "config",
-        "config.json",
-      );
+const configPath = getConfigPath(
+  path.join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "apps",
+    "ove-bridge",
+    "config",
+    "config.json",
+  ),
+  path.join(__dirname, "config", "config.json"),
+);
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(

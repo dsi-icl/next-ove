@@ -5,7 +5,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import * as auth from "./auth";
 import { env } from "./env";
-import { loadSigningKey, thirdPartySocketCookieMiddleware } from "@ove/ove-auth";
+import {
+  loadSigningKey,
+  thirdPartySocketCookieMiddleware,
+} from "@ove/ove-auth";
 import * as fs from "node:fs";
 
 export const app = express();
@@ -48,7 +51,13 @@ if (env.AUTH?.CA_FILE) {
   ca = fs.readFileSync(env.AUTH.CA_FILE).toString();
 }
 
-loadSigningKey(env.AUTH?.SERVER_URL, ca).then(key => {
-  signingKey = key;
-  console.log("Loaded signing key");
-}).catch(console.error);
+loadSigningKey(env.AUTH?.SERVER_URL, ca)
+  .then((key) => {
+    signingKey = key;
+    if (signingKey !== null) {
+      console.log("Loaded signing key");
+    } else {
+      console.log("Failed to load signing key");
+    }
+  })
+  .catch(console.error);

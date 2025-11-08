@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
 import { generateKeyPairSync } from "crypto";
 import type { Algorithm } from "jsonwebtoken";
-import { setupConfig } from "@ove/ove-server-utils";
+import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 dotenv.config();
 
@@ -22,10 +22,12 @@ const schema = z.strictObject({
     z.literal("testing"),
     z.literal("api"),
   ]),
-  TESTING: z.strictObject({
-    USERNAME: z.string(),
-    ROLE: z.string(),
-  }).optional(),
+  TESTING: z
+    .strictObject({
+      USERNAME: z.string(),
+      ROLE: z.string(),
+    })
+    .optional(),
   SOCKETS: z.strictObject({
     PATH: z.string().optional(),
     ADMIN: z
@@ -76,16 +78,20 @@ const schema = z.strictObject({
         GLOBAL_BUCKETS: z.string().array(),
       })
       .optional(),
-    THUMBNAIL_GENERATOR: z.strictObject({
-      URL: z.string(),
-      CA_FILE: z.string().optional(),
-      API_KEY: z.string(),
-    }).optional(),
-    DATA_FORMATTER: z.strictObject({
-      URL: z.string(),
-      CA_FILE: z.string().optional(),
-      API_KEY: z.string(),
-    }).optional(),
+    THUMBNAIL_GENERATOR: z
+      .strictObject({
+        URL: z.string(),
+        CA_FILE: z.string().optional(),
+        API_KEY: z.string(),
+      })
+      .optional(),
+    DATA_FORMATTER: z
+      .strictObject({
+        URL: z.string(),
+        CA_FILE: z.string().optional(),
+        API_KEY: z.string(),
+      })
+      .optional(),
   }),
   TOKENS: z.strictObject({
     SIGNING_KEYS: z.strictObject({
@@ -212,17 +218,19 @@ const defaultConfig: z.infer<typeof schema> = {
   SERVICES: { UI: path.join(__dirname, "ui") },
 };
 
-const configFile = process.argv
-  .slice(2)
-  .find((arg) => arg.startsWith("--configFile="))
-  ?.split("=")
-  ?.at(-1);
-
-const configDir =
-  process.env.NODE_ENV === "development"
-    ? path.join(__dirname, "..", "..", "..", "apps", "ove-core", "config")
-    : path.join(__dirname, "config");
-const configPath = path.join(configDir, configFile ?? "config.json");
+const configPath = getConfigPath(
+  path.join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "apps",
+    "ove-core",
+    "config",
+    "config.json",
+  ),
+  path.join(__dirname, "config", "config.json"),
+);
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import * as path from "path";
-import { setupConfig } from "@ove/ove-server-utils";
+import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 import type { Algorithm } from "jsonwebtoken";
 
 const isAlgorithm = (x: unknown): x is Algorithm =>
@@ -81,8 +81,8 @@ const defaultConfig: z.infer<typeof schema> = {
             "..",
             "apps",
             "ove-logs",
-            "config",
-            "config.json",
+            "data",
+            "logs.db",
           ),
   },
   SOCKETS: {
@@ -90,6 +90,19 @@ const defaultConfig: z.infer<typeof schema> = {
   },
 };
 
-const configPath = path.join(__dirname, "..", "config", "config.json");
+const configPath = getConfigPath(
+  path.join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "apps",
+    "ove-logs",
+    "config",
+    "config.json",
+  ),
+  path.join(__dirname, "config", "config.json"),
+);
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
+console.log(env);
