@@ -9,7 +9,6 @@ import {
   loadSigningKey,
   thirdPartySocketCookieMiddleware,
 } from "@ove/ove-auth";
-import * as fs from "node:fs";
 
 export const app = express();
 export const server = http.createServer(app);
@@ -46,12 +45,7 @@ io.engine.use(
 
 export let signingKey: string | null = null;
 
-let ca: string | undefined = undefined;
-if (env.AUTH?.CA_FILE) {
-  ca = fs.readFileSync(env.AUTH.CA_FILE).toString();
-}
-
-loadSigningKey(env.AUTH?.SERVER_URL, ca)
+loadSigningKey(env.AUTH?.SERVER_URL)
   .then((key) => {
     signingKey = key;
     if (signingKey !== null) {

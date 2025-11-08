@@ -55,21 +55,11 @@ const schema = z.strictObject({
   SERVER: z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
-    PROTOCOL: z.discriminatedUnion("TYPE", [
-      z.strictObject({ TYPE: z.literal("http") }),
-      z.strictObject({
-        TYPE: z.literal("https"),
-        KEY: z.string(),
-        CERTIFICATE: z.string(),
-        CA: z.string(),
-      }),
-    ]),
   }),
   SERVICES: z.strictObject({
     UI: z.string(),
     ASSET_STORE: z
       .strictObject({
-        CA_FILE: z.string().optional(),
         ACCESS_KEY: z.string(),
         SECRET_KEY: z.string(),
         END_POINT: z.string(),
@@ -81,14 +71,12 @@ const schema = z.strictObject({
     THUMBNAIL_GENERATOR: z
       .strictObject({
         URL: z.string(),
-        CA_FILE: z.string().optional(),
         API_KEY: z.string(),
       })
       .optional(),
     DATA_FORMATTER: z
       .strictObject({
         URL: z.string(),
-        CA_FILE: z.string().optional(),
         API_KEY: z.string(),
       })
       .optional(),
@@ -167,7 +155,6 @@ const defaultConfig: z.infer<typeof schema> = {
   SERVER: {
     PORT: 3333,
     HOSTNAME: "127.0.0.1",
-    PROTOCOL: { TYPE: "http" },
   },
   SOCKETS: {
     MAX_HTTP_BUFFER_SIZE: 1e8,
@@ -233,7 +220,6 @@ const configPath = getConfigPath(
 );
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
-
 export const logger = Logger(
   env.APP_NAME,
   env.LOGGING?.LEVEL,

@@ -1,21 +1,13 @@
-import { fetch, Agent } from "undici";
-
-export const loadSigningKey = async (serverUrl: string | undefined, ca?: string) => {
+export const loadSigningKey = async (serverUrl: string | undefined) => {
   if (serverUrl === undefined) return null;
-  let agent: Agent | undefined = undefined;
-  if (ca !== undefined) {
-    agent = new Agent({ connect: { ca } });
-  }
   try {
-    const res = await (await fetch(serverUrl, {
-      credentials: "include",
-      dispatcher: agent,
-    })).text();
-    agent?.destroy();
-    return res;
+    return await (
+      await fetch(serverUrl, {
+        credentials: "include",
+      })
+    ).text();
   } catch (e) {
     console.error(e);
-    agent?.destroy();
     return null;
   }
 };

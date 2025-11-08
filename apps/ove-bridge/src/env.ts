@@ -20,7 +20,7 @@ const schema = z.strictObject({
   }),
   LOGGING: z
     .strictObject({
-      SERVER: z.string().optional(),
+      SERVER: z.string(),
       LEVEL: z.number().optional(),
     })
     .optional(),

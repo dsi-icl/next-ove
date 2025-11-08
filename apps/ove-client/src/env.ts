@@ -18,17 +18,6 @@ const schema = z.strictObject({
   SERVER: z.strictObject({
     HOSTNAME: z.string(),
     PORT: z.number(),
-    PROTOCOL: z.discriminatedUnion("TYPE", [
-      z.strictObject({
-        TYPE: z.literal("http"),
-      }),
-      z.strictObject({
-        TYPE: z.literal("https"),
-        KEY: z.string(),
-        CERTIFICATE: z.string(),
-        CA: z.string(),
-      }),
-    ]),
   }),
   EXTENSIONS: z.strictObject({
     SYNC: z.string().optional(),
@@ -61,7 +50,6 @@ const defaultConfig: z.infer<typeof schema> = {
   SERVER: {
     PORT: 3334,
     HOSTNAME: "localhost",
-    PROTOCOL: { TYPE: "http" },
   },
   AUTH: {
     ERROR_LIMIT: 3,
@@ -81,8 +69,8 @@ const configPath =
     .find((arg) => arg.startsWith("--configFile="))
     ?.split("=")
     ?.at(-1) ?? path.join(app.getPath("userData"), "ove-client-config.json");
-export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 
+export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
   env.LOGGING?.LEVEL,
