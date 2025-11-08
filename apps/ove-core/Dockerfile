@@ -124,7 +124,7 @@ EXPOSE 8080
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
-ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib/libquery_engine-linux-musl-openssl-3.0.x.so.node
+ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib
 ENV CONFIG_PATH=/usr/src/app/config/config.json
 
 RUN npm install -g pnpm

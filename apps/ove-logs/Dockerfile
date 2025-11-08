@@ -51,7 +51,7 @@ WORKDIR /usr/src/app
 ENV NODE_ENV=production
 ENV CONFIG_PATH=/usr/src/app/config/config.json
 ENV LOGGING_DATABASE_URL=file:///usr/src/app/logs.db
-ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib/libquery_engine-linux-musl-openssl-3.0.x.so.node
+ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib
 
 COPY --from=build /usr/src/app/dist/apps/ove-logs/main.cjs ./main.cjs
 COPY --from=build /usr/src/app/node_modules/.prisma/logging-client/libquery* ./lib/
