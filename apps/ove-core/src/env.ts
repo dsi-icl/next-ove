@@ -76,8 +76,16 @@ const schema = z.strictObject({
         GLOBAL_BUCKETS: z.string().array(),
       })
       .optional(),
-    THUMBNAIL_GENERATOR: z.string().optional(),
-    DATA_FORMATTER: z.string().optional(),
+    THUMBNAIL_GENERATOR: z.strictObject({
+      URL: z.string(),
+      CA_FILE: z.string().optional(),
+      API_KEY: z.string(),
+    }).optional(),
+    DATA_FORMATTER: z.strictObject({
+      URL: z.string(),
+      CA_FILE: z.string().optional(),
+      API_KEY: z.string(),
+    }).optional(),
   }),
   TOKENS: z.strictObject({
     SIGNING_KEYS: z.strictObject({

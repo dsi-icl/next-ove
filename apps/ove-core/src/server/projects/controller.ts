@@ -1,7 +1,9 @@
-/* global __dirname, fetch, URL, Buffer */
+/* global __dirname, URL, Buffer */
 
-import http from "http";
-import path from "path";
+import http from "node:http";
+import * as fs from "node:fs";
+import * as https from "node:https";
+import path from "node:path";
 import { File } from "buffer";
 import { env } from "../../env";
 import { nanoid } from "nanoid";
@@ -13,10 +15,9 @@ import { type DataTypes, isError } from "@ove/ove-types";
 import type { PrismaClient, Project, Section } from ".prisma/client";
 import type { DataFormatConfigOptions, InviteStatus } from "./router";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
-import { fetch, Agent } from "undici";
+import { Agent, fetch } from "undici";
 
 import "@total-typescript/ts-reset";
-import { generateToken } from "@ove/ove-auth";
 
 const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUnique({
@@ -160,7 +161,9 @@ const createProject = async (
   prisma: PrismaClient,
   s3: Client | null,
   username: string,
-  project: Omit<Project, "id" | "creatorId" | "created" | "updated" | "bucket"> | undefined,
+  project:
+    | Omit<Project, "id" | "creatorId" | "created" | "updated" | "bucket">
+    | undefined,
   layout: Omit<Section, "id" | "projectId">[] | undefined,
   files: string[] | undefined,
 ) => {
@@ -180,7 +183,7 @@ const createProject = async (
 
   const project_ = await prisma.project.create({
     data: {
-      ...input, 
+      ...input,
       title,
       creatorId: user.id,
       bucket: bucketName,
@@ -191,23 +194,13 @@ const createProject = async (
     await S3Controller.createBucket(s3, bucketName);
 
     if (files === undefined || !files.includes("env.json")) {
-      await S3Controller.uploadFile(
-        s3,
-        bucketName,
-        "env.json",
-        Json.EMPTY,
-      );
+      await S3Controller.uploadFile(s3, bucketName, "env.json", Json.EMPTY);
     }
     if (files === undefined || !files.includes("control.html")) {
       const template = readFileSync(
         path.join(__dirname, "assets", "control-template.html"),
       ).toString();
-      await S3Controller.uploadFile(
-        s3,
-        bucketName,
-        "control.html",
-        template,
-      );
+      await S3Controller.uploadFile(s3, bucketName, "control.html", template);
     }
 
     if (files !== undefined) {
@@ -399,7 +392,10 @@ const getFiles = async (
   if (s3 === null || project === null) return [];
   const globals = await getGlobalFiles(s3);
   const projectFiles = addLatest(
-    await getProjectFiles(s3, project.bucket ?? titleToBucketName(project.title)),
+    await getProjectFiles(
+      s3,
+      project.bucket ?? titleToBucketName(project.title),
+    ),
   )
     .map((object) => ({
       name: assert(object.name),
@@ -440,8 +436,7 @@ const getS3Version = async (
     .flat()
     .filter((file) => file.name === objectName)
     .sort((a, b) => a.lastModified.getTime() - b.lastModified.getTime());
-  const idx =
-    versionId === "latest" ? -1 : parseInt(versionId.substring(1));
+  const idx = versionId === "latest" ? -1 : parseInt(versionId.substring(1));
   return assert(files.at(idx)).versionId;
 };
 
@@ -489,27 +484,28 @@ const generateThumbnail = async (
   if (project === null) return raise("Project not found");
   if (project.thumbnail !== null) return raise("Thumbnail already exists");
   const prompt = encodeURI(tags.join(" "));
-  const token = generateToken(
-    { username: env.APP_NAME, role: "proxy" },
-    {
-      key: env.TOKENS.SIGNING_KEYS.PRIVATE,
-      passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
-    },
-    env.TOKENS.ACCESS.ISSUER,
-    env.TOKENS.ACCESS.ALGORITHM,
-    env.TOKENS.ACCESS.EXPIRY,
-    env.TOKENS.ACCESS.AUDIENCE,
-  );
+  let agent: Agent | undefined = undefined;
+  if (env.SERVICES.THUMBNAIL_GENERATOR.CA_FILE !== undefined) {
+    agent = new Agent({
+      connect: {
+        ca: fs
+          .readFileSync(env.SERVICES.THUMBNAIL_GENERATOR.CA_FILE)
+          .toString(),
+      },
+    });
+  }
   const thumbnail = await (
     await fetch(
       `${env.SERVICES.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`,
       {
+        dispatcher: agent,
         headers: {
-          Authorization: `Bearer ${encodeURIComponent(token)}`,
+          Authorization: `Bearer ${encodeURIComponent(env.SERVICES.THUMBNAIL_GENERATOR.API_KEY)}`,
         },
       },
     )
   ).text();
+  agent?.destroy();
   await prisma.project.update({
     data: {
       thumbnail,
@@ -576,9 +572,16 @@ const getEnv = async (
   if (isError(url)) return url;
   let agent: Agent | undefined = undefined;
   if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
-    agent = new Agent({ connect: { rejectUnauthorized: false } });
+    agent = new Agent({
+      connect: {
+        ca: fs.readFileSync(env.SERVICES.ASSET_STORE.CA_FILE).toString(),
+      },
+    });
   }
-  const data = (await (await fetch(url, { dispatcher: agent })).json()) as Record<string, string>;
+  const data = (await (
+    await fetch(url, { dispatcher: agent })
+  ).json()) as Record<string, string>;
+  agent?.destroy();
   return Object.fromEntries(
     Object.entries(data)
       .filter(([k, _v]) => k.startsWith("OVE_PUBLIC_"))
@@ -610,9 +613,14 @@ const getController = async (
     if (isError(url)) return url;
     let agent: Agent | undefined = undefined;
     if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
-      agent = new Agent({ connect: { rejectUnauthorized: false } });
+      agent = new Agent({
+        connect: {
+          ca: fs.readFileSync(env.SERVICES.ASSET_STORE.CA_FILE).toString(),
+        },
+      });
     }
     data = await (await fetch(url, { dispatcher: agent })).text();
+    agent?.destroy();
   }
 
   if (env.TEMPLATES?.CONTROLLER === undefined) {
@@ -631,18 +639,6 @@ const getController = async (
     .replaceAll("{{OBSERVATORY}}", observatory)
     .replaceAll("{{PROJECT_ID}}", projectId)
     .replaceAll("{{SPACE}}", env.TEMPLATES.CONTROLLER.SPACE);
-
-  // if (layout !== undefined) {
-  //   data = data.replaceAll(
-  //     /project = await [^;]+/g,
-  //     `project = ${JSON}`,
-  //   );
-  //   data = data.replaceAll(/projectEnv = [^;]+/g, "projectEnv = {}");
-  //   data = data.replaceAll(
-  //     /project\.layouts = [^;]+/g,
-  //     `project.layouts = ${Json.stringify(layout, undefined, 2)}`,
-  //   );
-  // }
 
   return data;
 };
@@ -713,27 +709,26 @@ const formatLatex = async (title: string, data: string) => {
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.SERVICES.DATA_FORMATTER !== undefined) {
-    const token = generateToken(
-      { username: env.APP_NAME, role: "proxy" },
-      {
-        key: env.TOKENS.SIGNING_KEYS.PRIVATE,
-        passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
-      },
-      env.TOKENS.ACCESS.ISSUER,
-      env.TOKENS.ACCESS.ALGORITHM,
-      env.TOKENS.ACCESS.EXPIRY,
-      env.TOKENS.ACCESS.AUDIENCE,
-    );
+    let agent: Agent | undefined = undefined;
+    if (env.SERVICES.DATA_FORMATTER.CA_FILE !== undefined) {
+      agent = new Agent({
+        connect: {
+          ca: fs.readFileSync(env.SERVICES.DATA_FORMATTER.CA_FILE).toString(),
+        },
+      });
+    }
     data = await (
       await fetch(`${env.SERVICES.DATA_FORMATTER}/latex`, {
+        dispatcher: agent,
         headers: {
           "Content-Type": "text/plain",
-          Authorization: `Bearer ${encodeURIComponent(token)}`,
+          Authorization: `Bearer ${encodeURIComponent(env.SERVICES.DATA_FORMATTER.API_KEY)}`,
         },
         method: "POST",
         body: data,
       })
     ).text();
+    agent?.destroy();
   }
   return template.replaceAll("%%DATA%%", data);
 };
@@ -744,27 +739,27 @@ const formatMarkdown = async (title: string, data: string) => {
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.SERVICES.DATA_FORMATTER !== undefined) {
-    const token = generateToken(
-      { username: env.APP_NAME, role: "proxy" },
-      {
-        key: env.TOKENS.SIGNING_KEYS.PRIVATE,
-        passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
-      },
-      env.TOKENS.ACCESS.ISSUER,
-      env.TOKENS.ACCESS.ALGORITHM,
-      env.TOKENS.ACCESS.EXPIRY,
-      env.TOKENS.ACCESS.AUDIENCE,
-    );
+    let agent: Agent | undefined = undefined;
+    if (env.SERVICES.DATA_FORMATTER.CA_FILE !== undefined) {
+      agent = new Agent({
+        connect: {
+          ca: fs.readFileSync(env.SERVICES.DATA_FORMATTER.CA_FILE).toString(),
+        },
+      });
+    }
+
     data = await (
       await fetch(`${env.SERVICES.DATA_FORMATTER}/markdown`, {
+        dispatcher: agent,
         headers: {
           "Content-Type": "text/plain",
-          Authorization: `Bearer ${encodeURIComponent(token)}`,
+          Authorization: `Bearer ${encodeURIComponent(env.SERVICES.DATA_FORMATTER.API_KEY)}`,
         },
         method: "POST",
         body: data,
       })
     ).text();
+    agent?.destroy();
   }
   return template.replaceAll("%%DATA%%", data);
 };
@@ -818,37 +813,36 @@ const formatDZI = async (
   if (env.SERVICES.DATA_FORMATTER === undefined) {
     return raise("No data formatter configured");
   }
-  const formatter = new URL(env.SERVICES.DATA_FORMATTER);
-  await new Promise((resolve) => {
+  const formatter = new URL(env.SERVICES.DATA_FORMATTER.URL);
+  await new Promise((resolve, reject) => {
+    if (env.SERVICES.DATA_FORMATTER === undefined) {
+      reject(raise("No data formatter configured"));
+      return;
+    }
     const data = Json.stringify({
       get_url: url,
     });
 
-    const token = generateToken(
-      { username: env.APP_NAME, role: "proxy" },
-      {
-        key: env.TOKENS.SIGNING_KEYS.PRIVATE,
-        passphrase: env.TOKENS.SIGNING_KEYS.PASSPHRASE,
-      },
-      env.TOKENS.ACCESS.ISSUER,
-      env.TOKENS.ACCESS.ALGORITHM,
-      env.TOKENS.ACCESS.EXPIRY,
-      env.TOKENS.ACCESS.AUDIENCE,
-    );
-
-    const options = {
+    const options: http.RequestOptions | https.RequestOptions = {
       host: formatter.hostname,
       port: formatter.port,
       path: `${formatter.pathname}/dzi`,
+      agent: false,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Content-Length": Buffer.byteLength(data),
-        Authorization: `Bearer ${encodeURIComponent(token)}`,
+        Authorization: `Bearer ${encodeURIComponent(env.SERVICES.DATA_FORMATTER.API_KEY)}`,
       },
     };
 
-    const req = http.request(options, (res) => {
+    if (env.SERVICES.DATA_FORMATTER?.CA_FILE !== undefined) {
+      options.agent = new https.Agent({
+        ca: fs.readFileSync(env.SERVICES.DATA_FORMATTER.CA_FILE).toString(),
+      });
+    }
+
+    const handleRes = (res: any) => {
       res
         .pipe(unzip.Parse())
         .on("entry", async (entry: Entry) => {
@@ -882,7 +876,13 @@ const formatDZI = async (
 
           let agent: Agent | undefined = undefined;
           if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
-            agent = new Agent({ connect: { rejectUnauthorized: false } });
+            agent = new Agent({
+              connect: {
+                ca: fs
+                  .readFileSync(env.SERVICES.ASSET_STORE.CA_FILE)
+                  .toString(),
+              },
+            });
           }
           await fetch(entryURL, {
             dispatcher: agent,
@@ -893,12 +893,25 @@ const formatDZI = async (
             ).arrayBuffer(),
             headers: { "Content-Length": `${size}` },
           });
+          agent?.destroy();
         })
         .on("finish", resolve);
-    });
+    };
 
-    req.write(data);
-    req.end();
+    if (formatter.protocol === "https:") {
+      const req = https.request(options, handleRes);
+
+      req.write(data);
+      req.end();
+    } else {
+      const req = http.request(options, handleRes);
+
+      req.write(data);
+      req.end();
+    }
+    if (options.agent !== undefined && typeof options.agent !== "boolean") {
+      options.agent.destroy();
+    }
   });
   return undefined;
 };
@@ -923,10 +936,7 @@ const getCollaborationInvites = async (
   });
 };
 
-const getSentInvites = async (
-  prisma: PrismaClient,
-  username: string,
-) => {
+const getSentInvites = async (prisma: PrismaClient, username: string) => {
   const user = await prisma.user.findUniqueOrThrow({
     where: {
       username,

@@ -10,6 +10,7 @@ const schema = z.strictObject({
   AUTH: z
     .strictObject({
       SERVER_URL: z.string(),
+      CA_FILE: z.string().optional(),
       COOKIE_ID: z.string(),
       JWT_ALGORITHMS: z.custom<Algorithm>(isAlgorithm),
     })
