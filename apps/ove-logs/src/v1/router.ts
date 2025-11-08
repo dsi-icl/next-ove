@@ -1,11 +1,13 @@
 import express, { type Request } from "express";
 import bodyParser from "body-parser";
 import { parse } from "date-fns";
-import { io as IOServer } from "../app";
+import { io as IOServer, signingKey } from "../app";
 import { db } from "../db";
 import stripAnsi from "strip-ansi";
 import { Json } from "@ove/ove-utils";
 import { env } from "../env";
+import { thirdPartyCookieMiddleware } from "@ove/ove-auth";
+import { authorize } from "../auth";
 
 let appIds = new Set<string>();
 
@@ -109,6 +111,21 @@ router.post("/ingest", bodyParser.text(), async (req, res) => {
     res.sendStatus(500);
   });
 });
+
+router.use((req, res, next) =>
+  thirdPartyCookieMiddleware(
+    req,
+    res,
+    next,
+    {
+      signingKey,
+      audience: env.APP_NAME,
+      algorithm: env.AUTH?.JWT_ALGORITHMS,
+      cookieId: env.AUTH?.COOKIE_ID ?? "next-ove",
+    },
+    authorize,
+  ),
+);
 
 router.get("/logs/app-ids", async (_req, res) => {
   safe(

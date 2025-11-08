@@ -124,14 +124,15 @@ EXPOSE 8080
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
-ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/libquery_engine-linux-musl-openssl-3.0.x.so.node
+ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib/libquery_engine-linux-musl-openssl-3.0.x.so.node
+ENV CONFIG_PATH=/usr/src/app/config/config.json
 
 RUN npm install -g pnpm
 
 COPY ../../apps/ove-core-ui/env.sh ./
 RUN chmod +x ./env.sh
 
-COPY --from=build-server /usr/src/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node ../
+COPY --from=build-server /usr/src/app/node_modules/.prisma/client/libquery* ./lib
 COPY --from=build-server /usr/src/app/dist/apps/ove-core/ ./
 
 COPY --from=build-ui /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin-ui

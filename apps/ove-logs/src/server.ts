@@ -1,11 +1,9 @@
 import cors from "cors";
-import { app, server, signingKey } from "./app";
+import { app, server } from "./app";
 import v1 from "./v1/router";
 import { rateLimit } from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import { authorize } from "./auth";
 import { env } from "./env";
-import { thirdPartyCookieMiddleware } from "@ove/ove-auth";
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
@@ -16,21 +14,6 @@ app.use(
     standardHeaders: env.API.RATE_LIMIT.STANDARD_HEADERS,
     legacyHeaders: env.API.RATE_LIMIT.LEGACY_HEADERS,
   }),
-);
-
-app.use((req, res, next) =>
-  thirdPartyCookieMiddleware(
-    req,
-    res,
-    next,
-    {
-      signingKey,
-      audience: env.APP_NAME,
-      algorithm: env.AUTH?.JWT_ALGORITHMS,
-      cookieId: env.AUTH?.COOKIE_ID ?? "next-ove",
-    },
-    authorize,
-  ),
 );
 
 app.use("/api/v1", v1);
