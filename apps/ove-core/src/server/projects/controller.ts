@@ -1,8 +1,6 @@
 /* global __dirname, URL, Buffer */
 
 import http from "node:http";
-import * as fs from "node:fs";
-import * as https from "node:https";
 import path from "node:path";
 import { File } from "buffer";
 import { env } from "../../env";
@@ -15,7 +13,6 @@ import { type DataTypes, isError } from "@ove/ove-types";
 import type { PrismaClient, Project, Section } from ".prisma/client";
 import type { DataFormatConfigOptions, InviteStatus } from "./router";
 import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
-import { Agent, fetch } from "undici";
 
 import "@total-typescript/ts-reset";
 
@@ -484,28 +481,16 @@ const generateThumbnail = async (
   if (project === null) return raise("Project not found");
   if (project.thumbnail !== null) return raise("Thumbnail already exists");
   const prompt = encodeURI(tags.join(" "));
-  let agent: Agent | undefined = undefined;
-  if (env.SERVICES.THUMBNAIL_GENERATOR.CA_FILE !== undefined) {
-    agent = new Agent({
-      connect: {
-        ca: fs
-          .readFileSync(env.SERVICES.THUMBNAIL_GENERATOR.CA_FILE)
-          .toString(),
-      },
-    });
-  }
   const thumbnail = await (
     await fetch(
       `${env.SERVICES.THUMBNAIL_GENERATOR}/generate?prompt=${prompt}`,
       {
-        dispatcher: agent,
         headers: {
           Authorization: `Bearer ${encodeURIComponent(env.SERVICES.THUMBNAIL_GENERATOR.API_KEY)}`,
         },
       },
     )
   ).text();
-  agent?.destroy();
   await prisma.project.update({
     data: {
       thumbnail,
@@ -570,18 +555,7 @@ const getEnv = async (
     "latest",
   );
   if (isError(url)) return url;
-  let agent: Agent | undefined = undefined;
-  if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
-    agent = new Agent({
-      connect: {
-        ca: fs.readFileSync(env.SERVICES.ASSET_STORE.CA_FILE).toString(),
-      },
-    });
-  }
-  const data = (await (
-    await fetch(url, { dispatcher: agent })
-  ).json()) as Record<string, string>;
-  agent?.destroy();
+  const data = (await (await fetch(url)).json()) as Record<string, string>;
   return Object.fromEntries(
     Object.entries(data)
       .filter(([k, _v]) => k.startsWith("OVE_PUBLIC_"))
@@ -611,16 +585,7 @@ const getController = async (
       "latest",
     );
     if (isError(url)) return url;
-    let agent: Agent | undefined = undefined;
-    if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
-      agent = new Agent({
-        connect: {
-          ca: fs.readFileSync(env.SERVICES.ASSET_STORE.CA_FILE).toString(),
-        },
-      });
-    }
-    data = await (await fetch(url, { dispatcher: agent })).text();
-    agent?.destroy();
+    data = await (await fetch(url)).text();
   }
 
   if (env.TEMPLATES?.CONTROLLER === undefined) {
@@ -709,17 +674,8 @@ const formatLatex = async (title: string, data: string) => {
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.SERVICES.DATA_FORMATTER !== undefined) {
-    let agent: Agent | undefined = undefined;
-    if (env.SERVICES.DATA_FORMATTER.CA_FILE !== undefined) {
-      agent = new Agent({
-        connect: {
-          ca: fs.readFileSync(env.SERVICES.DATA_FORMATTER.CA_FILE).toString(),
-        },
-      });
-    }
     data = await (
       await fetch(`${env.SERVICES.DATA_FORMATTER}/latex`, {
-        dispatcher: agent,
         headers: {
           "Content-Type": "text/plain",
           Authorization: `Bearer ${encodeURIComponent(env.SERVICES.DATA_FORMATTER.API_KEY)}`,
@@ -728,7 +684,6 @@ const formatLatex = async (title: string, data: string) => {
         body: data,
       })
     ).text();
-    agent?.destroy();
   }
   return template.replaceAll("%%DATA%%", data);
 };
@@ -739,18 +694,8 @@ const formatMarkdown = async (title: string, data: string) => {
   ).toString();
   template = template.replaceAll("%%TITLE%%", title);
   if (env.SERVICES.DATA_FORMATTER !== undefined) {
-    let agent: Agent | undefined = undefined;
-    if (env.SERVICES.DATA_FORMATTER.CA_FILE !== undefined) {
-      agent = new Agent({
-        connect: {
-          ca: fs.readFileSync(env.SERVICES.DATA_FORMATTER.CA_FILE).toString(),
-        },
-      });
-    }
-
     data = await (
       await fetch(`${env.SERVICES.DATA_FORMATTER}/markdown`, {
-        dispatcher: agent,
         headers: {
           "Content-Type": "text/plain",
           Authorization: `Bearer ${encodeURIComponent(env.SERVICES.DATA_FORMATTER.API_KEY)}`,
@@ -759,7 +704,6 @@ const formatMarkdown = async (title: string, data: string) => {
         body: data,
       })
     ).text();
-    agent?.destroy();
   }
   return template.replaceAll("%%DATA%%", data);
 };
@@ -823,11 +767,10 @@ const formatDZI = async (
       get_url: url,
     });
 
-    const options: http.RequestOptions | https.RequestOptions = {
+    const options: http.RequestOptions = {
       host: formatter.hostname,
       port: formatter.port,
       path: `${formatter.pathname}/dzi`,
-      agent: false,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -836,14 +779,7 @@ const formatDZI = async (
       },
     };
 
-    if (env.SERVICES.DATA_FORMATTER?.CA_FILE !== undefined) {
-      options.agent = new https.Agent({
-        ca: fs.readFileSync(env.SERVICES.DATA_FORMATTER.CA_FILE).toString(),
-      });
-    }
-
-    const handleRes = (res: any) => {
-      res
+      const req = http.request(options, (res) => res
         .pipe(unzip.Parse())
         .on("entry", async (entry: Entry) => {
           const dziRootName = objectName.replaceAll(
@@ -874,18 +810,7 @@ const formatDZI = async (
             },
           );
 
-          let agent: Agent | undefined = undefined;
-          if (env.SERVICES.ASSET_STORE?.CA_FILE !== undefined) {
-            agent = new Agent({
-              connect: {
-                ca: fs
-                  .readFileSync(env.SERVICES.ASSET_STORE.CA_FILE)
-                  .toString(),
-              },
-            });
-          }
           await fetch(entryURL, {
-            dispatcher: agent,
             method: "PUT",
             body: await new File(
               [Buffer.from(chunks)],
@@ -893,25 +818,11 @@ const formatDZI = async (
             ).arrayBuffer(),
             headers: { "Content-Length": `${size}` },
           });
-          agent?.destroy();
         })
-        .on("finish", resolve);
-    };
-
-    if (formatter.protocol === "https:") {
-      const req = https.request(options, handleRes);
+        .on("finish", resolve));
 
       req.write(data);
       req.end();
-    } else {
-      const req = http.request(options, handleRes);
-
-      req.write(data);
-      req.end();
-    }
-    if (options.agent !== undefined && typeof options.agent !== "boolean") {
-      options.agent.destroy();
-    }
   });
   return undefined;
 };
