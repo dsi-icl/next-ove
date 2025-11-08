@@ -1,6 +1,7 @@
 /* global console, fetch */
 
 import chalk from "chalk";
+import { Json } from "@ove/ove-utils";
 import { format } from "date-fns/format";
 import { default as Constants } from "./constants";
 
@@ -47,7 +48,10 @@ export const Logger = (
       try {
         fetch(loggingServerURL, {
           method: "POST",
-          body: message.join(" "),
+          body: message
+            .slice(0, 5)
+            .concat(message.slice(5).map((x) => Json.stringify(x)))
+            .join(" "),
         }).catch();
       } catch (e) {
         // DO NOTHING
