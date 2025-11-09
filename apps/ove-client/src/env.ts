@@ -18,6 +18,7 @@ const schema = z.strictObject({
   SERVER: z.strictObject({
     HOSTNAME: z.string(),
     PORT: z.number(),
+    EXTERNAL_URL: z.string().optional(),
   }),
   EXTENSIONS: z.strictObject({
     SYNC: z.string().optional(),

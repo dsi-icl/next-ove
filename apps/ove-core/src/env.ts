@@ -55,6 +55,7 @@ const schema = z.strictObject({
   SERVER: z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
+    EXTERNAL_URL: z.string().optional(),
   }),
   SERVICES: z.strictObject({
     UI: z.string(),
