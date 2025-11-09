@@ -5,6 +5,7 @@ import {
   setEcoSchedule,
   setManualSchedule
 } from "./power-scheduler";
+import ical from "node-ical";
 import { controller } from "../reconciliation/controller";
 import { assert, raise } from "@ove/ove-utils";
 import { execPromise } from "@ove/ove-server-utils";
@@ -71,19 +72,21 @@ export const service: TBridgeService = {
     // TODO: add full production integration with email service, Azure auth etc.
     if (env === null || env.CALENDAR?.URL === undefined) return undefined;
     try {
-      const raw = await (await fetch(env.CALENDAR.URL)).json();
+      const res = await fetch(env.CALENDAR.URL);
+      if (!res.ok) {
+        logger.error(`Fetch error ${res.status}`);
+        return undefined;
+      }
+      const icsText = await res.text();
+      const data = ical.parseICS(icsText);
       const calendar: Calendar = {
-        value: raw["value"].map(
-          (x: {
-            subject: string;
-            start: { dateTime: string };
-            end: { dateTime: string };
-          }) => ({
-            title: x.subject,
-            start: x.start.dateTime,
-            end: x.end.dateTime,
-          }),
-        ),
+        value: Object.values(data)
+          .filter(item => item.type === "VEVENT")
+          .map(evt => ({
+            title:   evt.summary,
+            start:     evt.start.toISOString(),
+            end:       evt.end.toISOString(),
+          })),
         lastUpdated: new Date().toISOString(),
       };
       env.CALENDAR.DATA = calendar;

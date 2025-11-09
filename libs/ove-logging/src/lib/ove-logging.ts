@@ -45,6 +45,8 @@ export const Logger = (
 
     if (loggingServerURL !== undefined) {
       // fails silently
+      // DO NOTHING
+      const doNothing = (_e: unknown) => {};
       try {
         fetch(loggingServerURL, {
           method: "POST",
@@ -52,10 +54,8 @@ export const Logger = (
             .slice(0, 5)
             .concat(message.slice(5).map((x) => Json.stringify(x)))
             .join(" "),
-        }).catch();
+        }).catch(doNothing);
       } catch (e) {
-        // DO NOTHING
-        const doNothing = (_e: unknown) => {};
         doNothing(e);
       }
     }
