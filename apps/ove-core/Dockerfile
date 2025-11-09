@@ -98,7 +98,7 @@ COPY ../../babel.config.json ./
 
 RUN pnpm install --frozen-lockfile
 RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.17.1 @prisma/client@6.17.1 vite@7.2.2 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.3
-RUN pnpm add react-big-calendar@1.16.3
+RUN pnpm add react-big-calendar@1.19.4
 
 COPY ../../apps/ove-core-ui ./apps/ove-core-ui
 COPY ../../package.json ./
