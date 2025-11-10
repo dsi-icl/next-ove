@@ -36,10 +36,8 @@ const schema = z.strictObject({
         INTERVAL: z.coerce.number(),
         MAX_SIZE: z.coerce.number(),
         MAX_RECORDS: z.coerce.number(),
-        GET_SIZE_COMMAND: z.string(),
       })
       .optional(),
-    LOCATION: z.string(),
   }),
   SOCKETS: z.strictObject({
     PATH: z.string(),
@@ -68,21 +66,7 @@ const defaultConfig: z.infer<typeof schema> = {
       INTERVAL: 900_000,
       MAX_SIZE: 150_000_000,
       MAX_RECORDS: 50_000,
-      GET_SIZE_COMMAND: "du -h %DB_LOCATION% | numfmt --from=iec",
     },
-    LOCATION:
-      process.env.NODE_ENV === "production"
-        ? path.join(__dirname, "..", "data", "logs.db")
-        : path.join(
-            __dirname,
-            "..",
-            "..",
-            "..",
-            "apps",
-            "ove-logs",
-            "data",
-            "logs.db",
-          ),
   },
   SOCKETS: {
     PATH: "/sockets",
