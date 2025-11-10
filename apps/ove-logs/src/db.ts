@@ -1,54 +1,51 @@
-import { PrismaClient } from ".prisma/logging-client";
-import { execSync } from "child_process";
 import { env } from "./env";
+import { PrismaClient } from ".prisma/logging-client";
 
 export const db = new PrismaClient();
 
 const limitByCount = async () => {
-  if (env.DB.CLEANUP === undefined) return;
-  const count = await db.log.count();
-  if (count <= env.DB.CLEANUP.MAX_RECORDS) return;
-  const ids = (
-    await db.log.findMany({
-      select: {
-        id: true
-      },
-      skip: env.DB.CLEANUP.MAX_RECORDS
-    })
-  ).map(({ id }) => id);
-  await db.log.deleteMany({
-    where: {
-      id: { in: ids }
-    }
+  if (env.DB.CLEANUP?.MAX_RECORDS === undefined) return;
+  const total = await db.log.count();
+  if (total <= env.DB.CLEANUP.MAX_RECORDS) return;
+
+  const toDelete = await db.log.findMany({
+    select: { id: true },
+    orderBy: { date: "desc" },
+    skip: env.DB.CLEANUP.MAX_RECORDS,
   });
+  const ids = toDelete.map((r) => r.id);
+  if (ids.length > 0) {
+    await db.log.deleteMany({ where: { id: { in: ids } } });
+  }
 };
 
-const limitBySize = async () => {
-  if (env.DB.CLEANUP === undefined) return;
-  const raw = execSync(
-    env.DB.CLEANUP.GET_SIZE_COMMAND.replaceAll("%DB_LOCATION%", env.DB.LOCATION)
-  ).toString();
-  const size = parseInt(raw.slice(0, /\D/.exec(raw)!.index));
-  if (size <= env.DB.CLEANUP.MAX_SIZE) return;
-  const sizeRatio = env.DB.CLEANUP.MAX_SIZE / size;
-  const dbCount = await db.log.count();
-  const ids = (
-    await db.log.findMany({
-      select: {
-        id: true
-      },
-      skip: Math.ceil(dbCount * sizeRatio)
-    })
-  ).map(({ id }) => id);
-  await db.log.deleteMany({
-    where: {
-      id: { in: ids }
-    }
+async function limitBySize() {
+  if (env.DB.CLEANUP?.MAX_SIZE === undefined) return;
+
+  const [{ size }] = await db.$queryRaw<
+    { size: bigint }[]
+  >`SELECT pg_database_size(current_database()) AS size`;
+  const currentSize = Number(size);
+  if (currentSize <= env.DB.CLEANUP.MAX_SIZE) return;
+
+  const total = await db.log.count();
+  const keep = Math.ceil((env.DB.CLEANUP.MAX_SIZE / currentSize) * total);
+
+  const toDelete = await db.log.findMany({
+    select: { id: true },
+    orderBy: { date: "desc" },
+    skip: keep,
   });
-  await db.$queryRaw`VACUUM`;
-};
+  const ids = toDelete.map((r) => r.id);
+  if (ids.length > 0) {
+    await db.log.deleteMany({ where: { id: { in: ids } } });
+    await db.$executeRaw`VACUUM`;
+  }
+}
 
 if (env.DB.CLEANUP !== undefined) {
+  limitByCount().catch(console.error);
+  limitBySize().catch(console.error);
   setInterval(async () => {
     await limitByCount();
     await limitBySize();

@@ -8,7 +8,6 @@ WORKDIR /usr/src/app
 ENV NODE_ENV=production
 ENV NX_DAEMON=false
 ENV LOGGING_CLIENT_OUTPUT=/usr/src/app/node_modules/.prisma/logging-client
-ENV LOGGING_DATABASE_URL=file:///usr/src/app/logs.db
 
 RUN npm install -g pnpm
 
@@ -26,7 +25,6 @@ COPY ../../package.json ./
 COPY ../../tsconfig.base.json ./
 
 RUN pnpm db sync --component=logging
-RUN pnpm db push --component=logging
 
 COPY ../../apps/ove-logs ./apps/ove-logs
 
@@ -50,11 +48,9 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
 ENV CONFIG_PATH=/usr/src/app/config/config.json
-ENV LOGGING_DATABASE_URL=file:///usr/src/app/logs.db
 ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib
 
 COPY --from=build /usr/src/app/dist/apps/ove-logs/main.cjs ./main.cjs
 COPY --from=build /usr/src/app/node_modules/.prisma/logging-client/libquery* ../
-COPY --from=build /usr/src/app/logs.db ./logs.db
 
 CMD ["node", "main.cjs"]

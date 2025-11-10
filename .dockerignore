@@ -710,3 +710,6 @@ Dockerfile
 
 *.old
 *.bak
+
+/apps/ove-logs/data/postgres
+.env.postgres

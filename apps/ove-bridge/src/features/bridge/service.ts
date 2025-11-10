@@ -69,7 +69,6 @@ export const service: TBridgeService = {
   },
   getStreams: async () => env.LIVE_VIEW?.SOURCES,
   getCalendar: async () => {
-    // TODO: add full production integration with email service, Azure auth etc.
     if (env === null || env.CALENDAR?.URL === undefined) return undefined;
     try {
       const res = await fetch(env.CALENDAR.URL);

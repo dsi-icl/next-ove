@@ -35,5 +35,20 @@ services:
       - ./apps/ove-logs/.env.production:/usr/src/app/.env:ro
       - ./apps/ove-logs/config.json:/usr/src/config/config.json:ro
       - ./apps/ove-logs/data/logs.db:/usr/src/app/logs.db:rw
+  ove-logs-db:
+    image: postgres:18-alpine
+    platform: linux/amd64
+    env_file: ./apps/ove-logs/.env.postgres
+    container_name: ove-logs-db
+    restart: "unless-stopped"
+    volumes:
+      - ./apps/ove-logs/data/postgres:/var/lib/postgresql/18/docker
+      - ./apps/ove-logs/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command:
+      - postgres
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
+    ports:
+      - "5432:5432"
 
 
