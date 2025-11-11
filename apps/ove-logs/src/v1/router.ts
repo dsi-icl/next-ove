@@ -103,7 +103,7 @@ router.post("/ingest", bodyParser.text(), async (req, res) => {
     async () => {
       // eslint-disable-next-line max-len
       const regex =
-        /^ ?(.{6,7}) (\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}) - ([^ ]*) * - ([^ ]*) *: ((?:.|\n)*)$/;
+        /^ ?(.{6,7}) (\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}) - ([^ ]*) *- ([^ ]*) *: ((?:.|\n)*)$/;
       const raw = regex.exec(stripAnsi(req.body))!;
       const data = {
         level: raw[1].trim().slice(1, -1).toLowerCase(),
