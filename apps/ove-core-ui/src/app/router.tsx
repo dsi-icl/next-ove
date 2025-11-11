@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { useLoggedIn } from "../hooks/auth";
+import { auth } from "../utils/api";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/protected-route";
 
@@ -14,15 +15,16 @@ const ProjectEditorLoader = React.lazy(() => import("../pages/editor/loader"));
 
 const Router = () => {
   const loggedIn = useLoggedIn();
+  const refresh = auth.refresh.useQuery();
 
-  return (
+  return refresh.isFetched ? (
     <Suspense fallback={<div></div>}>
       <Routes>
         <Route path="/" element={loggedIn ? <Projects /> : <Landing />} />
         <Route
           path="/hardware"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo={"/login"}>
+            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/hardware">
               <HardwareManager />
             </ProtectedRoute>
           }
@@ -31,7 +33,7 @@ const Router = () => {
         <Route
           path="/sockets"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login">
+            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/sockets">
               <Sockets />
             </ProtectedRoute>
           }
@@ -39,7 +41,7 @@ const Router = () => {
         <Route
           path="/editor"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login">
+            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/editor">
               <ProjectEditorLoader />
             </ProtectedRoute>
           }
@@ -47,7 +49,7 @@ const Router = () => {
         <Route
           path="/collaboration"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login">
+            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/collaboration">
               <Collaboration />
             </ProtectedRoute>
           }
@@ -55,14 +57,14 @@ const Router = () => {
         <Route
           path="/logs"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login">
+            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/logs">
               <Logs />
             </ProtectedRoute>
           }
         />
       </Routes>
     </Suspense>
-  );
+  ) : <div></div>;
 };
 
 export default Router;

@@ -13,6 +13,7 @@ import type { AppRouter } from "../../../ove-core/src/server/router";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { Log } from "../pages/logs/hooks/log-store";
 import { env } from "../env";
+import { useStore } from "../store";
 import type { User } from ".prisma/client";
 
 /**
@@ -174,9 +175,19 @@ export const logs = {
 };
 
 export const auth = {
+  refresh: {
+    useQuery: () => useQuery({
+      queryKey: ["refresh"],
+      retry: false,
+      queryFn: async ({ signal }) => {
+        const user = (await (await fetch(`${env.CORE_URL}/api/refresh`, {credentials: "include", signal})).json()) as Omit<User, "password">;
+        useStore.getState().setUser(user);
+      },
+    }),
+  },
   login: {
     useMutation: (options?: {
-      onSuccess?: (data: Omit<User, "password">) => void;
+      onSuccess?: () => void;
       onError?: () => void;
     }) =>
       useMutation({
@@ -186,18 +197,21 @@ export const auth = {
           username,
           password
         }: {
-          username: string;
-          password: string;
-        }) =>
-          (await (
+          username: string | null;
+          password: string | null;
+        }) =>{
+          const headers = username === null || password === null ? undefined : {
+            Authorization: `Basic ${encodeURIComponent(btoa(`${username}:${password}`))}`
+          };
+          const user = (await (
             await fetch(`${env.CORE_URL}/api/login`, {
               method: "POST",
-              headers: {
-                Authorization: `Basic ${encodeURIComponent(btoa(`${username}:${password}`))}`
-              },
+              headers,
               credentials: "include"
             })
-          ).json()) as Omit<User, "password">
+          ).json()) as Omit<User, "password">;
+          useStore.getState().setUser(user);
+        }
       })
   },
   logout: {
