@@ -10,6 +10,7 @@ import { env, logger } from "../../env";
 import { controller } from "./controller";
 import type { TCallback, TParameters, TSocketOutEvents } from "@ove/ove-types";
 import { updateCookie } from "../../utils/auth";
+import { setMode } from "./power-scheduler";
 
 export const initBridge = async () => {
   if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
@@ -55,6 +56,8 @@ export const initBridge = async () => {
   socket.on("connect_error", async (err) => {
     logger.error(`connection error due to ${err.message}`);
     socket?.disconnect();
-    setTimeout(() => initBridge().catch(logger.error), 500);
+    setTimeout(() => initBridge().catch(logger.error), env.CORE.RECONNECTION_TIMEOUT);
   });
+
+  setMode();
 };

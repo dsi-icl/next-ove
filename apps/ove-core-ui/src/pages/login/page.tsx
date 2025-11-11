@@ -1,5 +1,5 @@
 import { z } from "zod";
-import React, { useState } from "react";
+import React from "react";
 import {
   Button,
   Card,
@@ -14,6 +14,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLogin } from "../../hooks/auth";
+import { logger } from "../../env";
 
 const LoginFormSchema = z.strictObject({
   username: z.string(),
@@ -30,13 +31,10 @@ const Login = () => {
   } = useForm<LoginForm>({
     resolver: zodResolver(LoginFormSchema),
   });
-  const [username, setUsername] = useState<string | null>(null);
-  const [password, setPassword] = useState<string | null>(null);
-  useLogin(username, password);
+  const login = useLogin();
   useFormErrorHandling(errors);
   const onSubmit = handleSubmit(({ username, password }) => {
-    setUsername(username);
-    setPassword(password);
+    login(username, password).catch(logger.error);
   });
 
   return (

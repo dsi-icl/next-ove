@@ -1,17 +1,12 @@
 /* global fetch*/
 
-import {
-  setAutoSchedule,
-  setEcoSchedule,
-  setManualSchedule
-} from "./power-scheduler";
-import ical from "node-ical";
+import { setMode } from "./power-scheduler";
 import { controller } from "../reconciliation/controller";
 import { assert, raise } from "@ove/ove-utils";
 import { execPromise } from "@ove/ove-server-utils";
 import { getSocketStatus } from "./sockets";
 import { env, logger, version } from "../../env";
-import { type Calendar, type TBridgeService } from "@ove/ove-types";
+import { type TBridgeService } from "@ove/ove-types";
 
 export const service: TBridgeService = {
   getDevice: async ({ deviceId }) =>
@@ -20,7 +15,9 @@ export const service: TBridgeService = {
   getDevices: async ({ tags }) =>
     tags === undefined
       ? env.HARDWARE.DEVICES
-      : env.HARDWARE.DEVICES.filter(({ tags: ts }) => ts.some((t) => tags.includes(t))),
+      : env.HARDWARE.DEVICES.filter(({ tags: ts }) =>
+          ts.some((t) => tags.includes(t)),
+        ),
   addDevice: async ({ device }) => {
     env.HARDWARE.DEVICES.push(device);
     controller.reinitialise();
@@ -55,10 +52,7 @@ export const service: TBridgeService = {
     }
   },
   getStreamStatus: async () => {
-    if (
-      env === null ||
-      env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined
-    )
+    if (env === null || env.LIVE_VIEW?.SCRIPTS?.STATUS === undefined)
       return false;
     try {
       const res = await execPromise(env.LIVE_VIEW.SCRIPTS.STATUS);
@@ -68,44 +62,17 @@ export const service: TBridgeService = {
     }
   },
   getStreams: async () => env.LIVE_VIEW?.SOURCES,
-  getCalendar: async () => {
-    if (env === null || env.CALENDAR?.URL === undefined) return undefined;
-    try {
-      const res = await fetch(env.CALENDAR.URL);
-      if (!res.ok) {
-        logger.error(`Fetch error ${res.status}`);
-        return undefined;
-      }
-      const icsText = await res.text();
-      const data = ical.parseICS(icsText);
-      const calendar: Calendar = {
-        value: Object.values(data)
-          .filter(item => item.type === "VEVENT")
-          .map(evt => ({
-            title:   evt.summary,
-            start:     evt.start.toISOString(),
-            end:       evt.end.toISOString(),
-          })),
-        lastUpdated: new Date().toISOString(),
-      };
-      env.CALENDAR.DATA = calendar;
-      return calendar;
-    } catch (e) {
-      logger.error(e);
-      return undefined;
-    }
-  },
+  getCalendar: async () => env.CALENDAR?.DATA,
   getSocketStatus: async () => getSocketStatus(),
   getMode: async () => env.POWER.MODE,
   setMode: async ({ mode }) => {
-    env.POWER.MODE = mode;
+    setMode(mode);
     return true;
   },
-  setManualSchedule: async () => void setManualSchedule(),
-  setEcoSchedule: async ({ ecoSchedule }) =>
-    void setEcoSchedule(ecoSchedule).catch(logger.error),
-  setAutoSchedule: async ({ autoSchedule }) =>
-    void setAutoSchedule(autoSchedule).catch(logger.error),
+  setAutoSchedule: async ({ autoSchedule }) => {
+    env.POWER.SCHEDULE = autoSchedule;
+    return undefined;
+  },
   getAppVersion: async () => assert(version),
   getAutoSchedule: async () => env.POWER.SCHEDULE,
   getGeometry: async () => env.HARDWARE.GEOMETRY,

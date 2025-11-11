@@ -71,6 +71,11 @@ export const columns: ColumnDef<Log>[] = [
 
       return filter?.some((f) => value.includes(f)) ?? true;
     },
+    cell: ({ row }) => (
+      <p className="w-full overflow-hidden break-all text-center">
+        {row.getValue("message")}
+      </p>
+    ),
   },
 ];
 

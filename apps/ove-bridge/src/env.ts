@@ -32,8 +32,12 @@ const schema = z.strictObject({
   }),
   CALENDAR: z
     .strictObject({
-      URL: z.string().optional(),
+      URL: z.string(),
+      REFRESH_INTERVAL: z.number().optional(),
       DATA: CalendarSchema.optional(),
+      START_DELTA: z.number().optional(),
+      END_DELTA: z.number().optional(),
+      GAP_THRESHOLD: z.number().optional(),
     })
     .optional(),
   POWER: z.strictObject({
