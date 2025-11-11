@@ -11,8 +11,9 @@ import { BrowserConfigSchema } from "@ove/ove-types";
 const schema = z.strictObject({
   LOGGING: z
     .strictObject({
-      SERVER: z.string().optional(),
+      SERVER: z.string(),
       LEVEL: z.number().optional(),
+      IDENTIFIER: z.string().optional(),
     })
     .optional(),
   SERVER: z.strictObject({
@@ -74,6 +75,7 @@ const configPath =
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
+  env.LOGGING?.IDENTIFIER,
   env.LOGGING?.LEVEL,
   env.LOGGING?.SERVER,
 );

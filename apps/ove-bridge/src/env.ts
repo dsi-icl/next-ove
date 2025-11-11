@@ -22,6 +22,7 @@ const schema = z.strictObject({
     .strictObject({
       SERVER: z.string(),
       LEVEL: z.number().optional(),
+      IDENTIFIER: z.string().optional(),
     })
     .optional(),
   CORE: z.strictObject({
@@ -150,6 +151,7 @@ const configPath = getConfigPath(
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
+  env.LOGGING?.IDENTIFIER,
   env.LOGGING?.LEVEL,
   env.LOGGING?.SERVER,
 );

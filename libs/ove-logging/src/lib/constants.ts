@@ -2,7 +2,9 @@
 import { type LogLevel } from "@ove/ove-utils";
 
 export type ConstantsType = {
+  UNKNOWN_APP_NAME: string;
   UNKNOWN_APP_ID: string;
+  APP_LOG_NAME_WIDTH: number;
   APP_LOG_ID_WIDTH: number;
   LogLevels: {
     [index: string]: LogLevel;
@@ -18,7 +20,9 @@ export type ConstantsType = {
 export const LogLevels = ["fatal", "error", "warn", "info", "debug", "trace"];
 
 const Constants: ConstantsType = {
-  UNKNOWN_APP_ID: "__UNKNOWN__",
+  UNKNOWN_APP_NAME: "__UNKNOWN_ID__",
+  UNKNOWN_APP_ID: "__UNKNOWN_APP__",
+  APP_LOG_NAME_WIDTH: 16,
   APP_LOG_ID_WIDTH: 16,
   RegExp: {
     Annotation: {

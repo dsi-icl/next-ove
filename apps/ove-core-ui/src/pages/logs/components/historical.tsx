@@ -14,6 +14,7 @@ type HistoricalProps = {
   startDate: Date | undefined;
   endDate: Date | undefined;
   appIds: string[] | undefined;
+  identifiers: string[] | undefined;
   levels: string[] | undefined;
   keywords: string[] | undefined;
 };
@@ -22,6 +23,7 @@ const Historical = ({
   startDate,
   endDate,
   appIds,
+  identifiers,
   levels,
   keywords,
 }: HistoricalProps) => {
@@ -36,6 +38,7 @@ const Historical = ({
           },
         ],
     appIds,
+    identifiers,
     levels,
     keywords,
   );
@@ -51,6 +54,7 @@ const Historical = ({
           },
         ],
     appIds,
+    identifiers,
     levels,
     keywords,
   );

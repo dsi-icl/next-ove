@@ -10,9 +10,10 @@ datasource db {
 }
 
 model Log {
-  id      String   @id @unique @default(uuid())
-  level   String
-  date    DateTime
-  appId   String
-  message String
+  id         String   @id @unique @default(uuid())
+  level      String
+  date       DateTime
+  appId      String
+  identifier String
+  message    String
 }
