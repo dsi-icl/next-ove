@@ -2,7 +2,6 @@ import { z } from "zod";
 import { StatusSchema, DeviceSchema, BoundsSchema } from "../hardware";
 import {
   AutoScheduleSchema,
-  CalendarEventSchema,
   CalendarSchema,
   PowerModeSchema,
 } from "../ove-types";
@@ -202,31 +201,6 @@ export const APIRoutes = {
     input: z.strictObject({ bridgeId: z.string(), mode: PowerModeSchema }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(StatusSchema)),
   },
-  setManualSchedule: {
-    meta: {
-      openapi: {
-        method: "POST" as const,
-        path: "/bridges/{bridgeId}/mode/manual" as `/${string}`,
-        protect: true,
-      },
-    },
-    input: z.strictObject({ bridgeId: z.string() }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined())),
-  },
-  setEcoSchedule: {
-    meta: {
-      openapi: {
-        method: "POST" as const,
-        path: "/bridge/{bridgeId}/mode/eco" as `/${string}`,
-        protect: true,
-      },
-    },
-    input: z.strictObject({
-      bridgeId: z.string(),
-      ecoSchedule: z.array(CalendarEventSchema),
-    }),
-    output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined())),
-  },
   setAutoSchedule: {
     meta: {
       openapi: {
@@ -237,7 +211,7 @@ export const APIRoutes = {
     },
     input: z.strictObject({
       bridgeId: z.string(),
-      autoSchedule: AutoScheduleSchema.optional(),
+      autoSchedule: AutoScheduleSchema,
     }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.undefined())),
   },
