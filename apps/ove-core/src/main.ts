@@ -77,8 +77,6 @@ app.use("/api/login", async (req: Request, res, next) =>
   apiKeyMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
 );
 
-app.use("/api/login", async (req: Request, res, next) => cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()));
-
 app.post("/api/login", async (req: Request, res) => {
   if (req.username === undefined || req.role === undefined) {
     res.sendStatus(401);
