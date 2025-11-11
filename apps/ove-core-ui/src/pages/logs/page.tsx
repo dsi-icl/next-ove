@@ -59,7 +59,7 @@ const Logs = () => {
                   <CommandList>
                     <CommandEmpty>No app found.</CommandEmpty>
                     <CommandGroup>
-                      {allIds.map((appId) => (
+                      {allIds.toSorted().map((appId) => (
                         <CommandItem
                           key={appId}
                           className="cursor-pointer"
@@ -97,18 +97,18 @@ const Logs = () => {
                   className="w-full justify-between"
                 >
                   {identifiers.length > 0
-                    ? `${identifiers.length} id${identifiers.length > 1 ? "s" : ""} selected`
-                    : "Select ids..."}
+                    ? `${identifiers.length} UID${identifiers.length > 1 ? "s" : ""} selected`
+                    : "Select UIDs..."}
                   <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0" container={undefined}>
                 <Command>
-                  <CommandInput placeholder="Search ids..." />
+                  <CommandInput placeholder="Search UIDs..." />
                   <CommandList>
-                    <CommandEmpty>No id found.</CommandEmpty>
+                    <CommandEmpty>No UID found.</CommandEmpty>
                     <CommandGroup>
-                      {allIdentifiers.map((identifier) => (
+                      {allIdentifiers.toSorted().map((identifier) => (
                         <CommandItem
                           key={identifier}
                           className="cursor-pointer"
@@ -157,7 +157,7 @@ const Logs = () => {
                   <CommandList>
                     <CommandEmpty>No level found.</CommandEmpty>
                     <CommandGroup>
-                      {LogLevels.map((level) => (
+                      {LogLevels.toSorted().map((level) => (
                         <CommandItem
                           key={level}
                           className="cursor-pointer"
