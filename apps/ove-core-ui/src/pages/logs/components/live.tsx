@@ -14,12 +14,13 @@ import { useMemo, useState } from "react";
 
 type LiveProps = {
   appIds: string[] | undefined;
+  identifiers: string[] | undefined;
   levels: string[] | undefined;
   keywords: string[] | undefined;
   dates: { start: Date | null; end: Date | null }[] | undefined;
 };
 
-const Live = ({ appIds, levels, keywords, dates }: LiveProps) => {
+const Live = ({ appIds, identifiers, levels, keywords, dates }: LiveProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const columnFilters = useMemo(
     () =>
@@ -27,6 +28,10 @@ const Live = ({ appIds, levels, keywords, dates }: LiveProps) => {
         {
           id: "appId",
           value: appIds,
+        },
+        {
+          id: "identifier",
+          value: identifiers,
         },
         {
           id: "level",
@@ -41,7 +46,7 @@ const Live = ({ appIds, levels, keywords, dates }: LiveProps) => {
           value: keywords,
         },
       ] as ColumnFiltersState,
-    [appIds, levels, dates, keywords],
+    [appIds, identifiers, levels, dates, keywords],
   );
   const logs = useLogStore((store) => store.logs);
   const table = useReactTable({

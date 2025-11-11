@@ -22,10 +22,12 @@ import { useAppIds } from "./hooks/app-ids";
 import { LogLevels } from "@ove/ove-logging";
 import { useSocketInit } from "./hooks/socket-init";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useIdentifiers } from "./hooks/identifiers";
 
 const Logs = () => {
   const [mode, setMode] = useState<"live" | "historical">("live");
   const { allIds, appIds, setAppIds } = useAppIds();
+  const { allIdentifiers, identifiers, setIdentifiers } = useIdentifiers();
   const [levels, setLevels] = useState<string[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
@@ -94,6 +96,55 @@ const Logs = () => {
                   role="combobox"
                   className="w-full justify-between"
                 >
+                  {identifiers.length > 0
+                    ? `${identifiers.length} id${identifiers.length > 1 ? "s" : ""} selected`
+                    : "Select ids..."}
+                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0" container={undefined}>
+                <Command>
+                  <CommandInput placeholder="Search ids..." />
+                  <CommandList>
+                    <CommandEmpty>No id found.</CommandEmpty>
+                    <CommandGroup>
+                      {allIdentifiers.map((identifier) => (
+                        <CommandItem
+                          key={identifier}
+                          className="cursor-pointer"
+                          onSelect={() => {
+                            setIdentifiers((prev) =>
+                              prev.includes(identifier)
+                                ? prev.filter((item) => item !== identifier)
+                                : [...prev, identifier],
+                            );
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              identifiers.includes(identifier)
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          {identifier}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-full justify-between"
+                >
                   {levels.length > 0
                     ? `${levels.length} level${levels.length > 1 ? "s" : ""} selected`
                     : "Select levels..."}
@@ -135,6 +186,7 @@ const Logs = () => {
               </PopoverContent>
             </Popover>
           </div>
+          <div></div>
           <div className="flex w-full gap-2">
             <div className="w-full">
               <Label htmlFor="start-date">Start</Label>
@@ -175,6 +227,7 @@ const Logs = () => {
         {mode === "live" ? (
           <Live
             appIds={appIds.length === 0 ? undefined : appIds}
+            identifiers={identifiers.length === 0 ? undefined : identifiers}
             dates={
               startDate === undefined && endDate === undefined
                 ? undefined
@@ -193,6 +246,7 @@ const Logs = () => {
             startDate={startDate}
             endDate={endDate}
             appIds={appIds.length === 0 ? undefined : appIds}
+            identifiers={identifiers.length === 0 ? undefined : identifiers}
             levels={levels.length === 0 ? undefined : levels}
             keywords={keywords === "" ? undefined : [keywords]}
           />

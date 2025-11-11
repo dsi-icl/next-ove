@@ -8,6 +8,7 @@ export const useHistoricalLogs = (
   sorting: { [id: string]: "asc" | "desc" }[] | undefined,
   dates: { start: Date | null; end: Date | null }[] | undefined,
   appIds: string[] | undefined,
+  identifiers: string[] | undefined,
   levels: string[] | undefined,
   keywords: string[] | undefined,
 ) => {
@@ -18,6 +19,7 @@ export const useHistoricalLogs = (
       sorting,
       dates,
       appIds,
+      identifiers,
       levels,
       keywords,
     },

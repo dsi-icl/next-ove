@@ -17,11 +17,13 @@ export type LogLevel = {
 
 export const Logger = (
   name?: string,
+  id?: string,
   logLevel?: number,
   loggingServerURL?: string,
 ) => {
   const logLevel_ = logLevel ?? Constants.DEFAULT_LOG_LEVEL;
-  const name_: string = name ?? Constants.UNKNOWN_APP_ID;
+  const name_: string = name ?? Constants.UNKNOWN_APP_NAME;
+  const id_: string = id ?? Constants.UNKNOWN_APP_ID;
 
   const getLogLabel = (logLevel: LogLevel) =>
     chalk.bgHex(logLevel.label.bgColor).hex(logLevel.label.color).bold;
@@ -31,8 +33,9 @@ export const Logger = (
     const whitespace = logLevel.name.length === 4 ? " " : "";
     const logLabel = getLogLabel(logLevel)(`[${logLevel.name}]`);
     const date = format(new Date(), "dd/MM/yyyy, HH:mm:ss");
-    const paddedName = name_.padEnd(Constants.APP_LOG_ID_WIDTH);
-    return [whitespace + logLabel, date, "-", paddedName, ":"].concat(
+    const paddedName = name_.padEnd(Constants.APP_LOG_NAME_WIDTH);
+    const paddedId = id_.padEnd(Constants.APP_LOG_ID_WIDTH);
+    return [whitespace + logLabel, date, "-", paddedName, "-", paddedId, ":"].concat(
       Object.values(args),
     );
   };
@@ -51,8 +54,8 @@ export const Logger = (
         fetch(loggingServerURL, {
           method: "POST",
           body: message
-            .slice(0, 5)
-            .concat(message.slice(5).map((x) => Json.stringify(x)))
+            .slice(0, 6)
+            .concat(message.slice(6).map((x) => Json.stringify(x)))
             .join(" "),
         }).catch(doNothing);
       } catch (e) {

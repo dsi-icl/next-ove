@@ -44,7 +44,7 @@ export const setMode = (mode?: PowerMode) => {
   }
 };
 
-const updateCalendar = async () => {
+export const updateCalendar = async () => {
   if (env === null || env.CALENDAR?.URL === undefined) return undefined;
   try {
     const res = await fetch(env.CALENDAR.URL);
