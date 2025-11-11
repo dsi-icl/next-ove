@@ -54,8 +54,8 @@ export const Logger = (
         fetch(loggingServerURL, {
           method: "POST",
           body: message
-            .slice(0, 6)
-            .concat(message.slice(6).map((x) => Json.stringify(x)))
+            .slice(0, 7)
+            .concat(message.slice(7).map((x) => Json.stringify(x)))
             .join(" "),
         }).catch(doNothing);
       } catch (e) {
