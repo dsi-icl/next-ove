@@ -1,6 +1,6 @@
 /* global fetch*/
 
-import { setMode } from "./power-scheduler";
+import { setMode, updateCalendar } from "./power-scheduler";
 import { controller } from "../reconciliation/controller";
 import { assert, raise } from "@ove/ove-utils";
 import { execPromise } from "@ove/ove-server-utils";
@@ -62,7 +62,10 @@ export const service: TBridgeService = {
     }
   },
   getStreams: async () => env.LIVE_VIEW?.SOURCES,
-  getCalendar: async () => env.CALENDAR?.DATA,
+  getCalendar: async () =>{
+    await updateCalendar();
+    return env.CALENDAR?.DATA;
+  },
   getSocketStatus: async () => getSocketStatus(),
   getMode: async () => env.POWER.MODE,
   setMode: async ({ mode }) => {
