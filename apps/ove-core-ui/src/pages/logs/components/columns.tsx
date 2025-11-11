@@ -24,7 +24,17 @@ const ToggleSort = ({
 export const columns: ColumnDef<Log>[] = [
   {
     accessorKey: "appId",
-    header: ({ column }) => <ToggleSort column={column} name="App ID" />,
+    header: ({ column }) => <ToggleSort column={column} name="App" />,
+    filterFn: (row, columnId, filterValue) => {
+      const value = row.getValue(columnId) as string;
+      const filter = filterValue as string[] | undefined;
+
+      return filter?.includes(value) ?? true;
+    },
+  },
+  {
+    accessorKey: "identifier",
+    header: ({ column }) => <ToggleSort column={column} name="UID" />,
     filterFn: (row, columnId, filterValue) => {
       const value = row.getValue(columnId) as string;
       const filter = filterValue as string[] | undefined;
@@ -83,11 +93,13 @@ export const getSize = (id: string) => {
   switch (id) {
     case "appId":
       return "10%";
+    case "identifier":
+      return "10%";
     case "level":
       return "10%";
     case "date":
       return "10%";
     default:
-      return "70%";
+      return "60%";
   }
 };
