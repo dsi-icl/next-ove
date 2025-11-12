@@ -1,6 +1,6 @@
 /* global fetch*/
 
-import { setMode, updateCalendar } from "./power-scheduler";
+import { getSchedule, setMode, updateCalendar } from "./power-scheduler";
 import { controller } from "../reconciliation/controller";
 import { assert, raise } from "@ove/ove-utils";
 import { execPromise } from "@ove/ove-server-utils";
@@ -92,5 +92,9 @@ export const service: TBridgeService = {
   stopReconciliation: async () => {
     env.RECONCILIATION.STATUS = false;
     return true;
+  },
+  getNextScheduled: async () => {
+    const { nextStart, nextStop } = getSchedule();
+    return { nextStart: nextStart?.toISOString() ?? null, nextStop: nextStop?.toISOString() ?? null };
   },
 };

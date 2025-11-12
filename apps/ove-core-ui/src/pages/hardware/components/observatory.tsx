@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useReducer } from "react";
+import React, { type RefObject, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import {
   Bounds,
   type Device,
   isError,
   type StatusOptions,
 } from "@ove/ove-types";
+import { InfoIcon, Moon, Sun } from "lucide-react";
 import { useStatus } from "./hooks";
 import { env, logger } from "../../../env";
 import Actions from "./actions/actions";
@@ -12,9 +13,44 @@ import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
 import { api } from "../../../utils/api";
 import { columns, type FilterValue } from "./columns";
-import { Badge } from "@ove/ui-base-components";
+import { Badge, Popover, PopoverContent, PopoverTrigger } from "@ove/ui-base-components";
 import Container from "./container";
 import { buildDeviceURL } from "@ove/ove-utils";
+
+const ObservatoryInfo = ({ bridgeId, ref }: { bridgeId: string, ref: RefObject<HTMLElement | null> }) => {
+  const getNextSchedule = api.bridge.getNextScheduled.useQuery({ bridgeId });
+  const nextScheduledStart = useMemo(() => {
+    if (getNextSchedule.status === "success" && !isError(getNextSchedule.data.response) && getNextSchedule.data.response.nextStart !== null) {
+      return new Date(getNextSchedule.data.response.nextStart).toLocaleString();
+    } else {
+      return "-";
+    }
+  }, [getNextSchedule.data?.response, getNextSchedule.status]);
+
+  const nextScheduledStop = useMemo(() => {
+    if (getNextSchedule.status === "success" && !isError(getNextSchedule.data.response) && getNextSchedule.data.response.nextStop !== null) {
+      return new Date(getNextSchedule.data.response.nextStop).toLocaleString();
+    } else {
+      return "-";
+    }
+  }, [getNextSchedule.data?.response, getNextSchedule.status]);
+
+  return <Popover>
+    <PopoverTrigger>
+      <InfoIcon className="size-4" />
+    </PopoverTrigger>
+    <PopoverContent className="w-[250px] max-w-[unset] flex flex-col gap-1" container={ref.current}>
+      <div className="flex items-center">
+        <Sun className="size-4" strokeWidth={3} />
+        <span className="ml-auto font-mono font-normal">{nextScheduledStart}</span>
+      </div>
+      <div className="flex items-center">
+        <Moon className="size-4" strokeWidth={3} />
+        <span className="ml-auto font-mono font-normal">{nextScheduledStop}</span>
+      </div>
+    </PopoverContent>
+  </Popover>
+}
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T;
@@ -165,10 +201,12 @@ const Observatory = ({
     [filtersReducer, filters.selected],
   );
 
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+
   return (
     <section className="relative mx-8 mb-0 mt-8">
-      <h2 className="mb-2 font-bold">
-        Observatory {name} - {isOnline ? "online" : "offline"}
+      <h2 ref={headingRef} className="mb-2 font-bold">
+        Observatory {name} - {isOnline ? "online" : "offline"}<ObservatoryInfo ref={headingRef} bridgeId={name} />
       </h2>
       {isOnline ? (
         <>

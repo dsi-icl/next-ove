@@ -296,6 +296,20 @@ export const APIRoutes = {
     input: z.strictObject({ bridgeId: z.string() }),
     output: getBridgeResponseSchema(getDeviceResponseSchema(z.boolean())),
   },
+  getNextScheduled: {
+    meta: {
+      openapi: {
+        method: "GET" as const,
+        path: "/bridges/{bridgeId}/nextScheduled" as const,
+        protect: true,
+      },
+    },
+    input: z.strictObject({ bridgeId: z.string() }),
+    output: getBridgeResponseSchema(getDeviceResponseSchema(z.strictObject({
+      nextStart: z.string().nullable(),
+      nextStop: z.string().nullable(),
+    }))),
+  }
 };
 
 export type TAPIRoutes = typeof APIRoutes;
