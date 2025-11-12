@@ -6,11 +6,18 @@ import * as schedule from "node-schedule";
 import { multiDeviceHandler } from "../hardware/service";
 import type { PowerMode } from "@ove/ove-types";
 import ical from "node-ical";
+import { nanoid } from "nanoid";
 
 let calendarRefresh: NodeJS.Timeout | number | undefined = undefined;
 
 const setManualSchedule = () => {
   schedule.gracefulShutdown().catch(logger.error);
+};
+
+const logSchedule = () => {
+  const { nextStart, nextStop } = getSchedule();
+  logger.info("Next scheduled start time:", nextStart ?? "-");
+  logger.info("Next scheduled stop time:", nextStop ?? "-");
 };
 
 export const setMode = (mode?: PowerMode) => {
@@ -22,21 +29,22 @@ export const setMode = (mode?: PowerMode) => {
       logger.info("Setting manual mode");
       clearInterval(calendarRefresh);
       setManualSchedule();
+      logSchedule();
       break;
     }
     case "auto": {
       logger.info("Setting auto mode");
       clearInterval(calendarRefresh);
-      setAutoSchedule().catch(logger.error);
+      setAutoSchedule().then(logSchedule).catch(logger.error);
       break;
     }
     case "eco": {
       logger.info("Setting eco mode");
-      setEcoSchedule().catch(logger.error);
+      setEcoSchedule().then(logSchedule).catch(logger.error);
       if (env.CALENDAR?.REFRESH_INTERVAL !== undefined) {
         calendarRefresh = setInterval(() => {
           logger.info("Updating eco mode");
-          setEcoSchedule().catch(logger.error);
+          setEcoSchedule().then(logSchedule).catch(logger.error);
         }, env.CALENDAR.REFRESH_INTERVAL);
       }
       break;
@@ -113,7 +121,7 @@ const setEcoSchedule = async (): Promise<void> => {
   await schedule.gracefulShutdown();
 
   groups.forEach(({ start, end }) => {
-    schedule.scheduleJob(start, () => {
+    schedule.scheduleJob(`start-${nanoid(8)}`, start, () => {
       if (process.env.NODE_ENV === "development") {
         logger.info(`Triggered for ${start.toISOString()}`);
       } else {
@@ -123,7 +131,7 @@ const setEcoSchedule = async (): Promise<void> => {
         );
       }
     });
-    schedule.scheduleJob(end, () => {
+    schedule.scheduleJob(`end-${nanoid(8)}`, end, () => {
       if (process.env.NODE_ENV === "development") {
         logger.info(`Triggered for ${end.toISOString()}`);
       } else {
@@ -190,4 +198,21 @@ const setAutoSchedule = async (): Promise<void> => {
       );
     });
   }
+};
+
+export const getSchedule = () => {
+  let nextStart: Date | null = null;
+  let nextStop: Date | null = null;
+  for (const name in schedule.scheduledJobs) {
+    const job = schedule.scheduledJobs[name];
+    if (job.nextInvocation() === null) continue;
+    if (name.startsWith("start-") && (nextStart === null || job.nextInvocation()!.getTime() < nextStart.getTime())) {
+      nextStart = (job.nextInvocation() as unknown as { toDate: () => Date }).toDate();
+    }
+    if (name.startsWith("end-") && (nextStop === null || job.nextInvocation()!.getTime() < nextStop.getTime())) {
+      nextStop = (job.nextInvocation() as unknown as { toDate: () => Date }).toDate();
+    }
+  }
+
+  return { nextStart, nextStop };
 };

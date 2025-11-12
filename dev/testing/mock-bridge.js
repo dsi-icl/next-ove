@@ -172,6 +172,10 @@ bridgeSocket.on("getStreams", (args, callback) =>
   ),
 );
 
+bridgeSocket.on("getNextScheduled", (args, callback) =>
+  callback(mockHardwareWithCrashing(true, () => ({ nextStart: "2025-11-14T09:30:00.000Z", nextStop: "2025-11-14T14:00:00.000Z" })))
+)
+
 bridgeSocket.on("getReconciliation", (args, callback) =>
   callback(mockHardwareWithCrashing(true, () => state.reconciliation)),
 );
