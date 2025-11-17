@@ -1,6 +1,6 @@
 import { z } from "zod";
 import * as path from "path";
-import { setupConfig } from "@ove/ove-server-utils";
+import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 import type { Algorithm } from "jsonwebtoken";
 
 const isAlgorithm = (x: unknown): x is Algorithm =>
@@ -36,10 +36,8 @@ const schema = z.strictObject({
         INTERVAL: z.coerce.number(),
         MAX_SIZE: z.coerce.number(),
         MAX_RECORDS: z.coerce.number(),
-        GET_SIZE_COMMAND: z.string(),
       })
       .optional(),
-    LOCATION: z.string(),
   }),
   SOCKETS: z.strictObject({
     PATH: z.string(),
@@ -68,27 +66,25 @@ const defaultConfig: z.infer<typeof schema> = {
       INTERVAL: 900_000,
       MAX_SIZE: 150_000_000,
       MAX_RECORDS: 50_000,
-      GET_SIZE_COMMAND: "du -h %DB_LOCATION% | numfmt --from=iec",
     },
-    LOCATION:
-      process.env.NODE_ENV === "production"
-        ? path.join(__dirname, "..", "data", "logs.db")
-        : path.join(
-            __dirname,
-            "..",
-            "..",
-            "..",
-            "apps",
-            "ove-logs",
-            "config",
-            "config.json",
-          ),
   },
   SOCKETS: {
     PATH: "/sockets",
   },
 };
 
-const configPath = path.join(__dirname, "..", "config", "config.json");
+const configPath = getConfigPath(
+  path.join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "apps",
+    "ove-logs",
+    "config",
+    "config.json",
+  ),
+  path.join(__dirname, "config", "config.json"),
+);
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);

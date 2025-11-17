@@ -88,6 +88,17 @@ app.post("/api/login", async (req: Request, res) => {
   res.send(await getUser(req.username, prisma));
 });
 
+app.use("/api/refresh", async (req, res, next) => cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()));
+
+app.get("/api/refresh", async (req: Request, res) => {
+  if (req.username === undefined || req.role === undefined) {
+    res.sendStatus(401);
+    return;
+  }
+
+  res.send(await getUser(req.username, prisma));
+});
+
 app.use("/api/logout", async (req, res, next) =>
   cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
 );

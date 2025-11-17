@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useReducer } from "react";
+import React, { type RefObject, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import {
   Bounds,
   type Device,
   isError,
   type StatusOptions,
 } from "@ove/ove-types";
+import { InfoIcon, Moon, Sun } from "lucide-react";
 import { useStatus } from "./hooks";
 import { env, logger } from "../../../env";
 import Actions from "./actions/actions";
@@ -12,9 +13,44 @@ import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
 import { api } from "../../../utils/api";
 import { columns, type FilterValue } from "./columns";
-import { cn } from "@ove/ui-base-components";
+import { Badge, Popover, PopoverContent, PopoverTrigger } from "@ove/ui-base-components";
 import Container from "./container";
-import { assert, buildDeviceURL } from "@ove/ove-utils";
+import { buildDeviceURL } from "@ove/ove-utils";
+
+const ObservatoryInfo = ({ bridgeId, ref }: { bridgeId: string, ref: RefObject<HTMLElement | null> }) => {
+  const getNextSchedule = api.bridge.getNextScheduled.useQuery({ bridgeId });
+  const nextScheduledStart = useMemo(() => {
+    if (getNextSchedule.status === "success" && !isError(getNextSchedule.data.response) && getNextSchedule.data.response.nextStart !== null) {
+      return new Date(getNextSchedule.data.response.nextStart).toLocaleString();
+    } else {
+      return "-";
+    }
+  }, [getNextSchedule.data?.response, getNextSchedule.status]);
+
+  const nextScheduledStop = useMemo(() => {
+    if (getNextSchedule.status === "success" && !isError(getNextSchedule.data.response) && getNextSchedule.data.response.nextStop !== null) {
+      return new Date(getNextSchedule.data.response.nextStop).toLocaleString();
+    } else {
+      return "-";
+    }
+  }, [getNextSchedule.data?.response, getNextSchedule.status]);
+
+  return <Popover>
+    <PopoverTrigger>
+      <InfoIcon className="size-4" />
+    </PopoverTrigger>
+    <PopoverContent className="w-[250px] max-w-[unset] flex flex-col gap-1" container={ref.current}>
+      <div className="flex items-center">
+        <Sun className="size-4" strokeWidth={3} />
+        <span className="ml-auto font-mono font-normal">{nextScheduledStart}</span>
+      </div>
+      <div className="flex items-center">
+        <Moon className="size-4" strokeWidth={3} />
+        <span className="ml-auto font-mono font-normal">{nextScheduledStop}</span>
+      </div>
+    </PopoverContent>
+  </Popover>
+}
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T;
@@ -65,15 +101,17 @@ const useDevices = (isOnline: boolean, bridgeId: string) => {
   }, [isOnline, getDevices.status, getDevices.data?.response]);
 };
 
-const getStatusClass = (status: StatusOptions | "pending" | "error") => {
+const getStatusClass = (status: StatusOptions | "pending" | "error" | null) => {
   switch (status) {
     case "on":
-      return "bg-green-200 text-green-800";
+      return "green";
     case "off":
     case "error":
-      return "bg-red-200 text-red-800";
+      return "red";
+    case null:
+      return "default";
     default:
-      return "bg-yellow-200 text-yellow-800";
+      return "yellow";
   }
 };
 
@@ -86,14 +124,12 @@ const Status = ({
 }) => {
   const status = useStatus(deviceId, bridgeId);
   return (
-    <span
-      className={cn(
-        "rounded-full px-2 py-1 text-xs",
-        status === null ? "" : getStatusClass(assert(status)),
-      )}
+    <Badge
+      className="rounded-full px-2 py-1 text-xs"
+      variant={getStatusClass(status)}
     >
       {status === null ? "" : status}
-    </span>
+    </Badge>
   );
 };
 
@@ -165,10 +201,12 @@ const Observatory = ({
     [filtersReducer, filters.selected],
   );
 
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+
   return (
     <section className="relative mx-8 mb-0 mt-8">
-      <h2 className="mb-2 font-bold">
-        Observatory {name} - {isOnline ? "online" : "offline"}
+      <h2 ref={headingRef} className="mb-2 font-bold">
+        Observatory {name} - {isOnline ? "online" : "offline"}<ObservatoryInfo ref={headingRef} bridgeId={name} />
       </h2>
       {isOnline ? (
         <>

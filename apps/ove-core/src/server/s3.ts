@@ -1,6 +1,6 @@
 /* global globalThis */
 
-import { env } from "../env";
+import { env, logger } from "../env";
 import * as Minio from "minio";
 
 const globalForS3 = globalThis as unknown as { s3: Minio.Client | null };
@@ -17,5 +17,6 @@ const createMinio = () => {
   });
 };
 export const s3 = createMinio();
+s3?.listBuckets().then(() => logger.info("S3 store connected")).catch((e) => logger.error("Could not connect to S3 store:", e));
 
 if (env.ENVIRONMENT !== "production") globalForS3.s3 = s3;

@@ -21,9 +21,15 @@ import type { Geometry as TGeometry, Observatory } from "../types";
 import { useObservatory } from "../../../hooks/observatories";
 import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
+<<<<<<< HEAD
 import { usePartialUpdateSection, useSections } from "../hooks/sections";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bounds, dataTypes, type File } from "@ove/ove-types";
+=======
+import { usePartialUpdateSection, useSections, useUpdateSection } from "../hooks/sections";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { type Bounds, dataTypes, type File } from "@ove/ove-types";
+>>>>>>> ee24a04328fbdb13b0241a2e8ffa9c5d87a110b1
 
 const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
   if (!asset) return null;
@@ -42,7 +48,11 @@ const detectDataType = (asset: string | undefined, ordinary: File[]): string | n
     // not a valid URL; fall through and return null
   }
 
+<<<<<<< HEAD
   return null;
+=======
+  return "html";
+>>>>>>> ee24a04328fbdb13b0241a2e8ffa9c5d87a110b1
 };
 
 const toPercentage = (x: number) => parseFloat(`${x * 100}`.slice(0, 5));
@@ -287,6 +297,14 @@ const SectionConfig = () => {
                   </FormItem>
               )}}
             />
+<<<<<<< HEAD
+=======
+            <div className="mt-2 flex w-full flex-col">
+              <Button variant="default" className="w-full" type="submit">
+                UPDATE
+              </Button>
+            </div>
+>>>>>>> ee24a04328fbdb13b0241a2e8ffa9c5d87a110b1
           </fieldset>
           </div>
         </div>

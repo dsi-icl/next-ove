@@ -57,7 +57,7 @@ const Controller = ({ config }: { config: TLaunchConfig }) => {
   }, [reloadBrowsers, config, apiUtils.projects.getController]);
   return (
     <DialogContent
-      className="m-0 size-[90%] max-w-[unset] border-none p-0"
+      className="m-0 size-[90%] max-w-[unset] block border-none p-0"
       hasClose={false}
     >
       <DialogHeader className="h-12 flex-row items-center space-y-0 rounded-t-lg bg-[#002147] p-2 font-semibold text-white">
@@ -86,7 +86,7 @@ const Controller = ({ config }: { config: TLaunchConfig }) => {
         </VisuallyHidden>
       </DialogHeader>
       {controller.status === "success" && !isError(controller.data) ? (
-        <iframe ref={ref} title="controller" srcDoc={controller.data}></iframe>
+        <iframe className="size-full" ref={ref} title="controller" srcDoc={controller.data}></iframe>
       ) : null}
     </DialogContent>
   );

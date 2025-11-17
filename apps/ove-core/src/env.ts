@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
 import { generateKeyPairSync } from "crypto";
 import type { Algorithm } from "jsonwebtoken";
-import { setupConfig } from "@ove/ove-server-utils";
+import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 dotenv.config();
 
@@ -22,10 +22,12 @@ const schema = z.strictObject({
     z.literal("testing"),
     z.literal("api"),
   ]),
-  TESTING: z.strictObject({
-    USERNAME: z.string(),
-    ROLE: z.string(),
-  }).optional(),
+  TESTING: z
+    .strictObject({
+      USERNAME: z.string(),
+      ROLE: z.string(),
+    })
+    .optional(),
   SOCKETS: z.strictObject({
     PATH: z.string().optional(),
     ADMIN: z
@@ -46,22 +48,14 @@ const schema = z.strictObject({
           INGESTION: z.string(),
           AUTH: z.string(),
           API_KEY: z.string(),
-        })
-        .optional(),
+        }),
+      IDENTIFIER: z.string().optional(),
     })
     .optional(),
   SERVER: z.strictObject({
     PORT: z.number(),
     HOSTNAME: z.string(),
-    PROTOCOL: z.discriminatedUnion("TYPE", [
-      z.strictObject({ TYPE: z.literal("http") }),
-      z.strictObject({
-        TYPE: z.literal("https"),
-        KEY: z.string(),
-        CERTIFICATE: z.string(),
-        CA: z.string(),
-      }),
-    ]),
+    EXTERNAL_URL: z.string().optional(),
   }),
   SERVICES: z.strictObject({
     UI: z.string(),
@@ -75,8 +69,18 @@ const schema = z.strictObject({
         GLOBAL_BUCKETS: z.string().array(),
       })
       .optional(),
-    THUMBNAIL_GENERATOR: z.string().optional(),
-    DATA_FORMATTER: z.string().optional(),
+    THUMBNAIL_GENERATOR: z
+      .strictObject({
+        URL: z.string(),
+        API_KEY: z.string(),
+      })
+      .optional(),
+    DATA_FORMATTER: z
+      .strictObject({
+        URL: z.string(),
+        API_KEY: z.string(),
+      })
+      .optional(),
   }),
   TOKENS: z.strictObject({
     SIGNING_KEYS: z.strictObject({
@@ -114,6 +118,7 @@ const schema = z.strictObject({
       CONTROLLER: z.strictObject({
         SERVER: z.string(),
         RENDERER: z.string(),
+        SPACE: z.string(),
         RENDERERS: z.record(z.string(), z.string()),
       }),
     })
@@ -151,7 +156,6 @@ const defaultConfig: z.infer<typeof schema> = {
   SERVER: {
     PORT: 3333,
     HOSTNAME: "127.0.0.1",
-    PROTOCOL: { TYPE: "http" },
   },
   SOCKETS: {
     MAX_HTTP_BUFFER_SIZE: 1e8,
@@ -202,22 +206,24 @@ const defaultConfig: z.infer<typeof schema> = {
   SERVICES: { UI: path.join(__dirname, "ui") },
 };
 
-const configFile = process.argv
-  .slice(2)
-  .find((arg) => arg.startsWith("--configFile="))
-  ?.split("=")
-  ?.at(-1);
-
-const configDir =
-  process.env.NODE_ENV === "development"
-    ? path.join(__dirname, "..", "..", "..", "apps", "ove-core", "config")
-    : path.join(__dirname, "config");
-const configPath = path.join(configDir, configFile ?? "config.json");
+const configPath = getConfigPath(
+  path.join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "apps",
+    "ove-core",
+    "config",
+    "config.json",
+  ),
+  path.join(__dirname, "config", "config.json"),
+);
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
-
 export const logger = Logger(
   env.APP_NAME,
+  env.LOGGING?.IDENTIFIER,
   env.LOGGING?.LEVEL,
   env.LOGGING?.SERVER?.INGESTION,
 );

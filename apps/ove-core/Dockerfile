@@ -18,7 +18,7 @@ COPY ../../dist/apps/ove-renderer/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.9.0-dev.20250618 @nx/vite@20.3.2 vite@6.1.0 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.3 vite-plugin-singlefile@2.1.0
+RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.9.0-dev.20250618 @nx/vite@20.3.2 vite@7.2.2 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.3 vite-plugin-singlefile@2.1.0
 RUN pnpm add date-fns@4.1.0
 
 COPY ../../apps/ove-renderer ./apps/ove-renderer
@@ -97,8 +97,8 @@ COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.17.1 @prisma/client@6.17.1 vite@6.1.0 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.3
-RUN pnpm add react-big-calendar@1.16.3
+RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.17.1 @prisma/client@6.17.1 vite@7.2.2 @vitejs/plugin-react@4.3.4 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.82.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.3
+RUN pnpm add react-big-calendar@1.19.4
 
 COPY ../../apps/ove-core-ui ./apps/ove-core-ui
 COPY ../../package.json ./
@@ -124,18 +124,20 @@ EXPOSE 8080
 WORKDIR /usr/src/app
 
 ENV NODE_ENV=production
-ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/libquery_engine-linux-musl-openssl-3.0.x.so.node
+ENV PRISMA_QUERY_ENGINE_BINARY=/usr/src/app/lib
+ENV CONFIG_PATH=/usr/src/app/config/config.json
 
 RUN npm install -g pnpm
 
 COPY ../../apps/ove-core-ui/env.sh ./
 RUN chmod +x ./env.sh
 
-COPY --from=build-server /usr/src/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node ../
+COPY --from=build-server /usr/src/app/node_modules/.prisma/client/libquery* ../
 COPY --from=build-server /usr/src/app/dist/apps/ove-core/ ./
 
 COPY --from=build-ui /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./socket-admin-ui
 COPY --from=build-ui /usr/src/app/dist/apps/ove-core-ui/ ./ui
+COPY --from=build-ui /usr/src/app/node_modules/tinymce/skins ./ui/skins
 
 COPY --from=build-renderer /usr/src/app/dist/apps/ove-renderer/index.html /usr/src/app/dist/apps/ove-core/public/renderer.html
 

@@ -381,6 +381,7 @@ dev/tools/auto-populate/data/global_buckets/*
 
 # database config
 /apps/ove-logs/data/logs.db
+!/apps/ove-logs/data/postgres
 /tools/db/.env.production
 
 # Core environment config
@@ -453,3 +454,6 @@ dev/tools/auto-populate/data/global_buckets/*
 
 *.bak
 *.old
+
+/apps/ove-logs/data/postgres
+.env.postgres

@@ -12,6 +12,7 @@ export const usePages = (
       }[]
     | undefined,
   appIds: string[] | undefined,
+  identifiers: string[] | undefined,
   levels: string[] | undefined,
   keywords: string[] | undefined,
 ) => {
@@ -21,6 +22,7 @@ export const usePages = (
       url: assert(env.LOGGING?.SERVER?.API_ENDPOINT),
       dates,
       appIds,
+      identifiers,
       levels,
       keywords,
     },

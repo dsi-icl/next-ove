@@ -13,6 +13,7 @@ import type { AppRouter } from "../../../ove-core/src/server/router";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { Log } from "../pages/logs/hooks/log-store";
 import { env } from "../env";
+import { useStore } from "../store";
 import type { User } from ".prisma/client";
 
 /**
@@ -66,6 +67,7 @@ export const logs = {
         sorting: { [id: string]: "asc" | "desc" }[] | undefined;
         dates: { start: Date | null; end: Date | null }[] | undefined;
         appIds: string[] | undefined;
+        identifiers: string[] | undefined;
         levels: string[] | undefined;
         keywords: string[] | undefined;
       },
@@ -82,6 +84,7 @@ export const logs = {
           JSON.stringify(args.sorting),
           JSON.stringify(args.dates),
           JSON.stringify(args.appIds),
+          JSON.stringify(args.identifiers),
           JSON.stringify(args.levels),
           JSON.stringify(args.keywords)
         ],
@@ -92,11 +95,13 @@ export const logs = {
             queryKey[4] === undefined ? undefined : `dates=${queryKey[4]}`;
           const appIds =
             queryKey[5] === undefined ? undefined : `appIds=${queryKey[5]}`;
+          const identifiers =
+            queryKey[6] === undefined ? undefined : `identifiers=${queryKey[6]}`;
           const levels =
-            queryKey[6] === undefined ? undefined : `levels=${queryKey[6]}`;
+            queryKey[7] === undefined ? undefined : `levels=${queryKey[7]}`;
           const keywords =
-            queryKey[7] === undefined ? undefined : `keywords=${queryKey[7]}`;
-          const query = [sorting, dates, appIds, levels, keywords]
+            queryKey[8] === undefined ? undefined : `keywords=${queryKey[8]}`;
+          const query = [sorting, dates, appIds, identifiers, levels, keywords]
             .filter(Boolean)
             .join("&");
           const url = `${queryKey[1]}/logs/${queryKey[2]}?${query}`;
@@ -115,6 +120,7 @@ export const logs = {
         url: string;
         dates: { start: Date | null; end: Date | null }[] | undefined;
         appIds: string[] | undefined;
+        identifiers: string[] | undefined;
         levels: string[] | undefined;
         keywords: string[] | undefined;
       },
@@ -127,6 +133,7 @@ export const logs = {
           args.url,
           JSON.stringify(args.dates),
           JSON.stringify(args.appIds),
+          JSON.stringify(args.identifiers),
           JSON.stringify(args.levels),
           JSON.stringify(args.keywords)
         ],
@@ -135,11 +142,13 @@ export const logs = {
             queryKey[2] === undefined ? undefined : `dates=${queryKey[2]}`;
           const appIds =
             queryKey[3] === undefined ? undefined : `appIds=${queryKey[3]}`;
+          const identifiers =
+            queryKey[4] === undefined ? undefined : `identifiers=${queryKey[4]}`;
           const levels =
-            queryKey[4] === undefined ? undefined : `levels=${queryKey[4]}`;
+            queryKey[5] === undefined ? undefined : `levels=${queryKey[5]}`;
           const keywords =
-            queryKey[5] === undefined ? undefined : `keywords=${queryKey[5]}`;
-          const query = [dates, appIds, levels, keywords]
+            queryKey[6] === undefined ? undefined : `keywords=${queryKey[6]}`;
+          const query = [dates, appIds, identifiers, levels, keywords]
             .filter(Boolean)
             .join("&");
           const res = await fetch(`${queryKey[1]}/pages?${query}`, {
@@ -170,13 +179,43 @@ export const logs = {
           return (await res.json()) as string[];
         }
       })
-  }
+  },
+  getIdentifiers: {
+    useQuery: (
+      args: { url: string; },
+      options?: {
+        enabled: boolean;
+      }
+    ) =>
+      useQuery({
+        ...(options ?? {}),
+        queryKey: ["getIdentifiers", args.url],
+        queryFn: async ({ queryKey, signal }) => {
+          const res = await fetch(`${queryKey[1]}/logs/identifiers`, {
+            method: "GET",
+            credentials: "include",
+            signal
+          });
+          return (await res.json()) as string[];
+        }
+      })
+  },
 };
 
 export const auth = {
+  refresh: {
+    useQuery: () => useQuery({
+      queryKey: ["refresh"],
+      retry: false,
+      queryFn: async ({ signal }) => {
+        const user = (await (await fetch(`${env.CORE_URL}/api/refresh`, {credentials: "include", signal})).json()) as Omit<User, "password">;
+        useStore.getState().setUser(user);
+      },
+    }),
+  },
   login: {
     useMutation: (options?: {
-      onSuccess?: (data: Omit<User, "password">) => void;
+      onSuccess?: () => void;
       onError?: () => void;
     }) =>
       useMutation({
@@ -186,18 +225,21 @@ export const auth = {
           username,
           password
         }: {
-          username: string;
-          password: string;
-        }) =>
-          (await (
+          username: string | null;
+          password: string | null;
+        }) =>{
+          const headers = username === null || password === null ? undefined : {
+            Authorization: `Basic ${encodeURIComponent(btoa(`${username}:${password}`))}`
+          };
+          const user = (await (
             await fetch(`${env.CORE_URL}/api/login`, {
               method: "POST",
-              headers: {
-                Authorization: `Basic ${encodeURIComponent(btoa(`${username}:${password}`))}`
-              },
+              headers,
               credentials: "include"
             })
-          ).json()) as Omit<User, "password">
+          ).json()) as Omit<User, "password">;
+          useStore.getState().setUser(user);
+        }
       })
   },
   logout: {

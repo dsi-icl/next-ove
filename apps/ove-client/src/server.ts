@@ -21,9 +21,6 @@ import {
   triggerIPC
 } from "./electron";
 import { env, logger } from "./env";
-import * as http from "node:http";
-import * as https from "node:https";
-import { readFileSync } from "fs";
 
 const metricsMiddleware = promBundle({
   includeMethod: true,
@@ -79,21 +76,9 @@ export const start = () => {
 
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
-  const server =
-    env.SERVER.PROTOCOL.TYPE === "http"
-      ? http.createServer(app)
-      : https.createServer(
-        {
-          key: readFileSync(env.SERVER.PROTOCOL.KEY),
-          cert: readFileSync(env.SERVER.PROTOCOL.CERTIFICATE),
-          ca: readFileSync(env.SERVER.PROTOCOL.CA)
-        },
-        app
-      );
-
-  server.listen(env.SERVER.PORT, `${env.SERVER.HOSTNAME}`, () => {
+  const server = app.listen(env.SERVER.PORT, `${env.SERVER.HOSTNAME}`, () => {
     logger.info(
-      `Listening at ${env.SERVER.PROTOCOL.TYPE}://${env.SERVER.HOSTNAME}:${env.SERVER.PORT}`
+      `Listening at http://${env.SERVER.HOSTNAME}:${env.SERVER.PORT}`
     );
   });
 

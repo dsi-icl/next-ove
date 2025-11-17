@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useStore } from "../store";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { logger } from "../env";
 import { auth } from "../utils/api";
 import { toast } from "sonner";
@@ -28,8 +28,7 @@ export const useLoggedIn = () => {
   return useMemo(() => user !== null, [user]);
 };
 
-export const useLogin = (username: string | null, password: string | null) => {
-  const setUser = useStore((state) => state.setUser);
+export const useLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const to = useMemo(() => {
@@ -37,8 +36,7 @@ export const useLogin = (username: string | null, password: string | null) => {
     return params.get("to") ?? "/";
   }, [location.search]);
   const login = auth.login.useMutation({
-    onSuccess: (data) => {
-      setUser(data);
+    onSuccess: () => {
       navigate(to);
     },
     onError: () => {
@@ -46,8 +44,5 @@ export const useLogin = (username: string | null, password: string | null) => {
     },
   });
 
-  useEffect(() => {
-    if (username === null || password === null) return;
-    login.mutateAsync({ username, password }).catch(logger.error);
-  }, [username, password]);
+  return (username: string, password: string) => login.mutateAsync({username, password}).catch(logger.error);
 };

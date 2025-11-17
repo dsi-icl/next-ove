@@ -5,13 +5,13 @@ import {
   BoundsSchema,
   CalendarSchema,
   DeviceSchema,
-  PowerModeSchema,
+  PowerModeSchema
 } from "@ove/ove-types";
 import { z } from "zod";
 import * as path from "path";
 import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
-import { setupConfig } from "@ove/ove-server-utils";
+import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
   METRICS: z.strictObject({
@@ -20,8 +20,9 @@ const schema = z.strictObject({
   }),
   LOGGING: z
     .strictObject({
-      SERVER: z.string().optional(),
+      SERVER: z.string(),
       LEVEL: z.number().optional(),
+      IDENTIFIER: z.string().optional(),
     })
     .optional(),
   CORE: z.strictObject({
@@ -32,8 +33,12 @@ const schema = z.strictObject({
   }),
   CALENDAR: z
     .strictObject({
-      URL: z.string().optional(),
+      URL: z.string(),
+      REFRESH_INTERVAL: z.number().optional(),
       DATA: CalendarSchema.optional(),
+      START_DELTA: z.number().optional(),
+      END_DELTA: z.number().optional(),
+      GAP_THRESHOLD: z.number().optional(),
     })
     .optional(),
   POWER: z.strictObject({
@@ -129,23 +134,24 @@ const defaultConfig: z.infer<typeof schema> = {
 
 export type Environment = z.infer<typeof schema> & typeof staticConfig;
 
-const configPath =
-  process.env.NODE_ENV === "production"
-    ? path.join(__dirname, "config", "config.json")
-    : path.join(
-        __dirname,
-        "..",
-        "..",
-        "..",
-        "apps",
-        "ove-bridge",
-        "config",
-        "config.json",
-      );
+const configPath = getConfigPath(
+  path.join(
+    __dirname,
+    "..",
+    "..",
+    "..",
+    "apps",
+    "ove-bridge",
+    "config",
+    "config.json",
+  ),
+  path.join(__dirname, "config", "config.json"),
+);
 
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
+  env.LOGGING?.IDENTIFIER,
   env.LOGGING?.LEVEL,
   env.LOGGING?.SERVER,
 );

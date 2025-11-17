@@ -19,6 +19,7 @@ interface ImportMetaEnv {
   VITE_LOGGING_SERVER_API?: string;
   VITE_LOGGING_SERVER_SOCKET_ENDPOINT?: string;
   VITE_LOGGING_SERVER_SOCKET_PATH?: string;
+  VITE_LOGGING_IDENTIFIER?: string;
   VITE_DISABLE_LIVE_PREVIEW: string;
   VITE_API_CALL_OFFSET: string;
 }
@@ -27,6 +28,8 @@ const env_ = (import.meta as unknown as ImportMeta).env;
 
 const isConfigured = (key: string | undefined) =>
   key !== undefined && !key.startsWith("NEXT_OVE");
+
+const formatConfigured = (key: string | undefined) => isConfigured(key) ? key : undefined;
 
 const schema = z
   .strictObject({
@@ -41,8 +44,8 @@ const schema = z
             INGESTION: z.string(),
             SOCKET_ENDPOINT: z.string(),
             SOCKET_PATH: z.string().optional(),
-          })
-          .optional(),
+          }),
+        IDENTIFIER: z.string().optional(),
       })
       .optional(),
     PAGE_SIZE: z.number(),
@@ -65,12 +68,13 @@ const parsedConfig = schema.parse({
     LOG_LEVEL: isConfigured(env_.VITE_LOG_LEVEL)
       ? parseInt(assert(env_.VITE_LOG_LEVEL))
       : undefined,
-    SERVER: {
-      API_ENDPOINT: env_.VITE_LOGGING_SERVER_API,
-      INGESTION: env_.VITE_LOGGING_SERVER_INGESTION,
-      SOCKET_ENDPOINT: env_.VITE_LOGGING_SERVER_SOCKET_ENDPOINT,
-      SOCKET_PATH: env_.VITE_LOGGING_SERVER_SOCKET_PATH,
-    },
+    SERVER: isConfigured(env_.VITE_LOGGING_SERVER_API) ? {
+      API_ENDPOINT: formatConfigured(env_.VITE_LOGGING_SERVER_API),
+      INGESTION: formatConfigured(env_.VITE_LOGGING_SERVER_INGESTION),
+      SOCKET_ENDPOINT: formatConfigured(env_.VITE_LOGGING_SERVER_SOCKET_ENDPOINT),
+      SOCKET_PATH: formatConfigured(env_.VITE_LOGGING_SERVER_SOCKET_PATH),
+    } : undefined,
+    IDENTIFIER: formatConfigured(env_.VITE_LOGGING_IDENTIFIER),
   },
   MODE: env_.VITE_MODE,
   DISABLE_AUTH: env_.VITE_DISABLE_AUTH === "true",
@@ -107,6 +111,7 @@ export const env = {
 
 export const logger = Logger(
   env.APP_NAME,
+  env.LOGGING?.IDENTIFIER,
   env.LOGGING?.LOG_LEVEL,
   env.LOGGING?.SERVER?.INGESTION,
 );

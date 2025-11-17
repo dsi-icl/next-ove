@@ -69,7 +69,10 @@ const initSocket = async () => {
   socket.on("connect_error", async (err) => {
     logger.error(`connection error due to ${err.message}`);
     socket?.disconnect();
-    setTimeout(() => initSocket().catch(logger.error), env.CORE.RECONNECTION_TIMEOUT);
+    setTimeout(
+      () => initSocket().catch(logger.error),
+      env.CORE.RECONNECTION_TIMEOUT,
+    );
   });
 };
 

@@ -1,4 +1,4 @@
-import { EyeOff, Joystick, Rocket, Save, Settings, Upload } from "lucide-react";
+import { Eye, HatGlasses, Joystick, Rocket, Save, Settings, Upload } from "lucide-react";
 import { env, logger } from "../../../env";
 import type { TActions } from "../hooks/dialog";
 import { DialogTrigger } from "@ove/ui-base-components";
@@ -15,10 +15,10 @@ type Icon = {
 
 const icons: Icon[] = [
   {
-    icon: <Joystick className="size-5" />,
+    icon: <Settings className="size-5" />,
     color: "#ef476f",
-    title: "Controller",
-    action: "controller",
+    title: "Project Details",
+    action: "metadata",
   },
   {
     icon: <Upload className="size-5" />,
@@ -27,26 +27,32 @@ const icons: Icon[] = [
     action: "upload",
   },
   {
-    icon: <EyeOff className="size-5" />,
+    icon: <Joystick className="size-5" />,
     color: "#ffd166",
+    title: "Controller",
+    action: "controller",
+  },
+  {
+    icon: <HatGlasses className="size-5" />,
+    color: "#06d6a0",
     title: "Environment",
     action: "env",
   },
   {
-    icon: <Settings className="size-5" />,
-    color: "#06d6a0",
-    title: "Project Details",
-    action: "metadata",
+    icon: <Eye className="size-5" />,
+    color: "#118ab2",
+    title: "Preview",
+    action: "preview"
   },
   {
     icon: <Rocket className="size-5" />,
-    color: "#118ab2",
+    color: "#002147",
     title: "Launch",
     action: "launch",
   },
   {
     icon: <Save className="size-5" />,
-    color: "#002147",
+    color: "#9810fa",
     title: "Save",
     action: null,
   },
@@ -99,7 +105,7 @@ const Actions = ({ setAction }: ActionsProps) => {
 
       setAction(action);
     },
-    [setAction, save],
+    [setAction, save, projectId.length],
   );
 
   return (
