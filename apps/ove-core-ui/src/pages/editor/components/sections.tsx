@@ -19,7 +19,7 @@ import { useSections } from "../hooks/sections";
 import { useStateStore } from "../hooks/stores";
 import React, { useMemo, useState } from "react";
 import { useProjectId } from "../hooks/projects";
-import { Import, PlusCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { formatState, useStates } from "../hooks/states";
 import { ReorderableItem, ReorderableList } from "@ove/ui-base-components";
 import { useObservatory } from "../../../hooks/observatories";
@@ -146,7 +146,7 @@ const Sections = () => {
         {states.length > 1 ? (
           <DropdownMenu open={importerOpen} onOpenChange={setImporterOpen}>
             <DropdownMenuTrigger asChild>
-              <Button title="Import" className="flex-1">
+              <Button title="Import" className="flex-1" disabled={!observatoryId}>
                 Import Section
               </Button>
             </DropdownMenuTrigger>

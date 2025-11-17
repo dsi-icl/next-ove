@@ -24,7 +24,7 @@ import {
 } from "@ove/ui-base-components";
 import AceEditor from "react-ace";
 import { Save, X } from "lucide-react";
-import React, { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { assert } from "@ove/ove-utils";
 import { useForm, Controller } from "react-hook-form";
 import { useUpload } from "../hooks/files";
@@ -129,8 +129,8 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
   const fullName = name ? addFileExtension(name, language) : "ERROR";
   const projectId = useProjectId();
   const uploadFile = useUpload(assert(projectId));
-
-  const initialHtmlRef = React.useRef<string>(form.getValues("data") ?? "");
+  const initialHtmlRef = useRef<string>(form.getValues("data") ?? "");
+  const richTextDialogRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (mode === "edit" && file) {
@@ -145,6 +145,33 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
     }
   }, [mode, file?.data, file?.name]);
 
+  const richTextHtml = (
+    content: string,
+    editorWidth: number = 1920,
+    editorHeight: number = 1080,
+  ) => {
+    return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  html {
+    font-size: min(
+      calc(100vw * 16 / ${editorWidth}),
+      calc(100vh * 16 / ${editorHeight})
+    );
+  }
+</style>
+</head>
+<body>
+<!-- editor: richtext -->
+${content}
+</body>
+</html>`;
+  }
+
   const onSubmit = async ({
     name,
     data,
@@ -152,8 +179,8 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
   }: z.infer<typeof FormSchema>) => {
     if (name === "") return toast.error("Missing file name");
 
-    if (language === "richtext" && !data.includes("editor: richtext")) {
-      data = `<!-- editor: richtext -->\n` + data;
+    if (language === "richtext") {
+      data = richTextHtml(data, richTextDialogRef.current?.clientWidth, richTextDialogRef.current?.clientHeight);
     }
 
     const ok = await uploadFile({
@@ -179,6 +206,11 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
       {language === "richtext" ?
         <TinyMCEEditor
           licenseKey="gpl"
+          onInit={
+            (evt, editor) => { 
+              richTextDialogRef.current = editor.getContainer(); 
+            }
+          }
           init={{
             height: "calc(((80vw/16)*9) - 8rem)",
             menubar: false,
@@ -188,8 +220,38 @@ const FileEditor = ({ file, close }: FileEditorProps) => {
             custom_colors: false,
             toolbar:
               "undo redo | fontfamily fontsize blocks | bold italic forecolor backcolor | bullist numlist",
+            font_size_formats: "0.75rem 0.875rem 1rem 1.25rem 1.5rem 2rem 3rem 4rem",
+            content_style: `
+              html { font-size: 16px; }
+              body { font-size: 1rem; line-height: 1; }
+            `,
+            setup: (editor) => {
+              editor.on('PreInit', () => {
+                editor.getBody().style.fontSize = '1rem';
+              });
+            },
             ui_mode: "split",
-            font_family_formats: 'Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; AkrutiKndPadmini=Akpdmi-n; Imperial=ImperialSansText'
+            content_css: '/editor-fonts.css', 
+            font_family_formats: `
+              Imperial Sans Display='Imperial Sans Display', sans-serif;
+              Andale Mono=andale mono,times; 
+              Arial=arial,helvetica,sans-serif; 
+              Arial Black=arial black,avant garde; 
+              Book Antiqua=book antiqua,palatino; 
+              Comic Sans MS=comic sans ms,sans-serif; 
+              Courier New=courier new,courier; 
+              Georgia=georgia,palatino; 
+              Helvetica=helvetica; 
+              Impact=impact,chicago; 
+              Symbol=symbol; 
+              Tahoma=tahoma,arial,helvetica,sans-serif; 
+              Terminal=terminal,monaco; 
+              Times New Roman=times new roman,times; 
+              Trebuchet MS=trebuchet ms,geneva; 
+              Verdana=verdana,geneva; 
+              Webdings=webdings; 
+              Wingdings=wingdings,zapf dingbats;
+            `.trim()
           }}
           initialValue={initialHtmlRef.current}
           onEditorChange={(content) =>

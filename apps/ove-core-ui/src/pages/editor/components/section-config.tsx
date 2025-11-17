@@ -1,13 +1,9 @@
 import {
   fromURL,
-  getLatest,
-  hasVersion,
-  toURL,
   useFiles,
 } from "../hooks/files";
 import { z } from "zod";
 import { type Control, useForm, type UseFormSetValue, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import {
   Button,
   Form,
@@ -16,14 +12,8 @@ import {
   FormItem,
   FormLabel,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   useFormErrorHandling,
 } from "@ove/ui-base-components";
-import { assert } from "@ove/ove-utils";
 import { useCells } from "../hooks/canvas";
 import { useProjectId } from "../hooks/projects";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,9 +21,9 @@ import type { Geometry as TGeometry, Observatory } from "../types";
 import { useObservatory } from "../../../hooks/observatories";
 import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
-import { usePartialUpdateSection, useSections, useUpdateSection } from "../hooks/sections";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Bounds, type DataType, dataTypes, type File } from "@ove/ove-types";
+import { usePartialUpdateSection, useSections } from "../hooks/sections";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Bounds, dataTypes, type File } from "@ove/ove-types";
 
 const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
   if (!asset) return null;
@@ -53,13 +43,6 @@ const detectDataType = (asset: string | undefined, ordinary: File[]): string | n
   }
 
   return null;
-};
-
-
-const sort = (k: keyof DataType, a: DataType, b: DataType) => {
-  if (a[k] > b[k]) return 1;
-  if (a[k] === b[k]) return 0;
-  return -1;
 };
 
 const toPercentage = (x: number) => parseFloat(`${x * 100}`.slice(0, 5));
@@ -146,7 +129,7 @@ const SectionConfig = () => {
   const selected = useSectionStore((state) => state.selectedSection);
   const preview = useSectionStore((state) => state.previewPos);
   const cells = useCells();
-  const updateSection = useUpdateSection();
+  const partialUpdateSection = usePartialUpdateSection();
   const { bounds } = useObservatory();
   const { ordinary } = useFiles(projectId);
   const section = useMemo(
@@ -170,10 +153,9 @@ const SectionConfig = () => {
     },
     resolver: zodResolver(SectionConfigFormSchema),
   });
-  const { handleSubmit, setValue, resetField, watch } = form;
+  const { setValue, resetField } = form;
   useFormErrorHandling(form.formState.errors);
   const [mode, setMode] = useState<"custom" | "grid">("custom");
-  const [fileName, fileVersion] = watch(["fileName", "fileVersion"]);
 
   useEffect(() => {
     if (section === null) {
@@ -220,87 +202,27 @@ const SectionConfig = () => {
     setValue("y", preview.yPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
   }, [preview, selected, setValue]);
 
-  const onSubmit = (section: SectionConfigForm) => {
-    if (mode === "grid" && (bounds === null || cells === null)) {
-      toast.error("Please select an observatory");
-      return;
-    }
-    if (section.asset === "" || section.dataType === "") {
-      toast.error("Please enter an asset/data type");
-      return;
-    }
-    updateSection({
-      x:
-        mode === "custom"
-          ? fromPercentage(assert(section.x))
-          : assert(section.columnFrom) / assert(bounds).columns,
-      y:
-        mode === "custom"
-          ? fromPercentage(assert(section.y))
-          : assert(section.rowFrom) / assert(bounds).rows,
-      width:
-        mode === "custom"
-          ? fromPercentage(assert(section.width))
-          : (assert(section.columnTo) - assert(section.columnFrom)) *
-            (1 / assert(bounds).columns),
-      height:
-        mode === "custom"
-          ? fromPercentage(assert(section.height))
-          : (assert(section.rowTo) - assert(section.rowFrom)) *
-            (1 / assert(bounds).rows),
-      assetId:
-        ordinary.find(
-          ({ name, version }) =>
-            name === section.fileName &&
-            version.toString() === section.fileVersion,
-        )?.name ?? null,
-      asset: section.asset,
-      dataType: section.dataType,
-      states: [state],
-      ordering:
-        sections.find((section) => section.id === selected)?.ordering ??
-        sections.length,
-      projectId: assert(projectId),
-    });
-
-    form.reset();
-  };
-
-  const url = watch("asset");
-
+  const assetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onAssetChange = useCallback(
     (asset: string | undefined) => {
       const file = fromURL(ordinary, asset ?? "");
+      const dt = detectDataType(asset, ordinary) ?? "html";
       setValue("fileVersion", file === null ? "" : file.version);
       setValue(
         "fileName",
         file === null ? "" : `${file.bucketName}/${file.name}`,
       );
-      setValue("dataType", detectDataType(asset, ordinary) ?? "");
-    },
-    [setValue, ordinary],
+      setValue("dataType", dt);
+
+      partialUpdateSection({
+        asset,
+        assetId: file?.name ?? null,
+        dataType: dt,
+      });
+    }, [ordinary, partialUpdateSection, setValue]
   );
-
-  useEffect(() => {
-    onAssetChange(url);
-  }, [url, onAssetChange]);
-
-  useEffect(() => {
-    if (fileName === "") return;
-    const [bn, fn] = fileName.split("/");
-    const fv =
-      fileVersion === "" || !hasVersion(ordinary, bn, fn, fileVersion)
-        ? getLatest(ordinary, bn, fn).version
-        : fileVersion;
-    setValue("asset", toURL(bn, fn, fv));
-  }, [fileName, setValue, fileVersion, ordinary]);
 
   const isDisabled = section === null;
-  const detectedDataType = detectDataType(watch("asset"), ordinary);
-  const shouldSelectDataType = (
-    !detectedDataType && form.watch("asset") !== '') || 
-    (form.watch("dataType") && form.watch("dataType") !== detectedDataType
-  );
 
   return (
     <section className="h-full px-4">
@@ -308,10 +230,7 @@ const SectionConfig = () => {
         Section Config
       </h2>
       <Form {...form}>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex w-full flex-row"
-        >
+        <div className="flex w-full flex-row">
           <div className="flex w-[calc(100%-2.5rem)] flex-col">
             <Geometry
               setMode={setMode}
@@ -321,8 +240,7 @@ const SectionConfig = () => {
               control={form.control}
               isDisabled={isDisabled}
             />
-          </div>
-          <fieldset className="flex w-[66%] flex-col" disabled={isDisabled}>
+          <fieldset className="flex w-[calc((100%-2rem)-0.5rem)] flex-col" disabled={isDisabled}>
             <FormField
               control={form.control}
               name="asset"
@@ -337,10 +255,15 @@ const SectionConfig = () => {
                           list="file-list"
                           value={q}
                           onChange={(e) => {
-                            field.onChange(e.target.value)
+                            field.onChange(e.target.value);
+                            if (assetTimeoutRef.current) clearTimeout(assetTimeoutRef.current);
+                            assetTimeoutRef.current = setTimeout(() => {
+                              onAssetChange(e.target.value);
+                            }, 300);
                           }}
                           className="w-full border p-2 rounded"
                           type="text"
+                          disabled={isDisabled}
                         />
                         {q.length > 0 && (
                           <datalist id="file-list">
@@ -364,44 +287,9 @@ const SectionConfig = () => {
                   </FormItem>
               )}}
             />
-            {shouldSelectDataType && (
-            <FormField
-              control={form.control}
-              name="dataType"
-              render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel className="font-semibold">Data Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isDisabled}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select data type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent position="popper">
-                      {dataTypes
-                        .sort((a, b) => sort("displayName", a, b))
-                        .map(({ displayName, name }) => (
-                          <SelectItem value={name} key={name}>
-                            {displayName}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-            )}
-            <div className="mt-2 flex w-full flex-col">
-              <Button variant="default" className="w-full" type="submit">
-                UPDATE
-              </Button>
-            </div>
           </fieldset>
-        </form>
+          </div>
+        </div>
       </Form>
     </section>
   );

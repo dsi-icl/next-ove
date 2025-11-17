@@ -136,15 +136,16 @@ function drawObservatory(
   sectionG.each(function (d) {
     const g = d3.select<SVGGElement, Section>(this);
     const rect = g.select<SVGRectElement>("rect");
-    const wPx = +rect.attr("width") - 4;
-    const hPx = +rect.attr("height") - 4;
-    placeSEHandle(g, wPx, hPx);
 
     g.attr("transform", `translate(${x(d.x)}, ${y(d.y)})`);
 
     g.select("rect")
       .attr("width", x(d.width))
       .attr("height", y(d.height));
+
+    const wPx = +rect.attr("width") - 4;
+    const hPx = +rect.attr("height") - 4;
+    placeSEHandle(g, wPx, hPx);
 
     const baseSize = Math.min(x(d.width), y(d.height)) / 8;
 
