@@ -210,6 +210,7 @@ export const auth = {
       queryFn: async ({ signal }) => {
         const user = (await (await fetch(`${env.CORE_URL}/api/refresh`, {credentials: "include", signal})).json()) as Omit<User, "password">;
         useStore.getState().setUser(user);
+        return user;
       },
     }),
   },

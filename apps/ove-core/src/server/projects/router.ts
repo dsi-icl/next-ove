@@ -478,10 +478,11 @@ export const projectsRouter = router({
       z.strictObject({
         projectId: z.string(),
         observatory: z.string(),
+        layout: z.string().optional(),
       }),
     )
     .output(z.union([z.string(), OVEExceptionSchema]))
-    .query(({ ctx, input: { projectId, observatory } }) => {
+    .query(({ ctx, input: { projectId, observatory, layout } }) => {
       logger.info(`Getting controller for ${projectId}`);
       return safe(logger, () =>
         controller.getController(
@@ -490,6 +491,7 @@ export const projectsRouter = router({
           ctx.username,
           projectId,
           observatory,
+          layout,
         ),
       );
     }),

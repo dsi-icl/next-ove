@@ -569,10 +569,12 @@ const getController = async (
   username: string,
   projectId: string,
   observatory: string,
+  layout: string | undefined,
 ) => {
   if (s3 === null) return raise("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
   let data: string;
+  let envJson: Record<string, unknown> = {};
   if (project === null) {
     data = readFileSync(
       path.join(__dirname, "assets", "control-template.html"),
@@ -586,6 +588,15 @@ const getController = async (
     );
     if (isError(url)) return url;
     data = await (await fetch(url)).text();
+
+    const envUrl = await getPresignedGetURL(
+      s3,
+      project.bucket ?? titleToBucketName(project.title),
+      "env.json",
+      "latest",
+    );
+    if (isError(envUrl)) return envUrl;
+    envJson = (await (await fetch(envUrl)).json()) as Record<string, unknown>;
   }
 
   if (env.TEMPLATES?.CONTROLLER === undefined) {
@@ -603,8 +614,25 @@ const getController = async (
   data = data
     .replaceAll("{{OBSERVATORY}}", observatory)
     .replaceAll("{{PROJECT_ID}}", projectId)
-    .replaceAll("{{SPACE}}", env.TEMPLATES.CONTROLLER.SPACE);
+    .replaceAll("{{SPACE}}", env.TEMPLATES.CONTROLLER.SPACE)
+    .replaceAll("{{SERVER}}", env.TEMPLATES.CONTROLLER.SERVER)
+    .replaceAll("{{RENDERER}}", env.TEMPLATES.CONTROLLER.RENDERER);
 
+  if (layout !== undefined) {
+    data = data
+      .replaceAll(
+        /project = await [^;]+/g,
+        `project = ${Json.stringify(project, undefined, 2)}`,
+      )
+      .replaceAll(/projectEnv = [^;]+/g,
+        `projectEnv = ${Json.stringify(envJson, undefined, 2)}`,
+      )
+      .replaceAll(
+        /project\.layouts = [^;]+/g,
+        `project.layouts = ${Json.stringify(Json.parse(layout), undefined, 2)}`,
+      );
+  }
+  
   return data;
 };
 
