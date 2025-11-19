@@ -52,24 +52,24 @@ const schemas = {
 const schema = makeSchema(schemas);
 
 const show = (schema) => {
-  const dbDir = path.join(__dirname, "..", "tools", "db");
+  const schemaFile = path.join(__dirname, "..", "tools", "db", schema);
 
-  run(`cd ${dbDir} && pnpx prisma studio --schema=${schema}`, args.dryRun);
+  run(`pnpm prisma studio --schema='${schemaFile}'`, args.dryRun);
 };
 
 const sync = (schema) => {
-  const dbDir = path.join(__dirname, "..", "tools", "db");
-  run(`cd ${dbDir} && pnpx prisma generate --schema=${schema}`, args.dryRun);
+  const schemaFile = path.join(__dirname, "..", "tools", "db", schema);
+  run(`pnpm prisma generate --schema='${schemaFile}'`, args.dryRun);
 };
 
 const push = (schema) => {
-  const dbDir = path.join(__dirname, "..", "tools", "db");
-  run(`cd ${dbDir} && pnpx prisma db push --schema=${schema}`, args.dryRun);
+  const schemaFile = path.join(__dirname, "..", "tools", "db", schema);
+  run(`pnpm prisma db push --schema='${schemaFile}'`, args.dryRun);
 };
 
 const pull = (schema) => {
-  const dbDir = path.join(__dirname, "..", "tools", "db");
-  run(`cd ${dbDir} && pnpx prisma db pull --schema=${schema}`, args.dryRun);
+  const schemaFile = path.join(__dirname, "..", "tools", "db", schema);
+  run(`pnpm prisma db pull --schema='${schemaFile}'`, args.dryRun);
 };
 
 const user = (args) => {
