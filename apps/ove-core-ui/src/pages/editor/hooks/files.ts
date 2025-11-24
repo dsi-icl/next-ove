@@ -108,7 +108,7 @@ export const useUpload = (projectId: string) => {
         return false;
       }
 
-      const formattedFile = new File([formattedText], fileName, { type: "text/plain" });
+      const formattedFile = new File([formattedText], fileName, { type: getFormattedExtension(fileName) === "html" ? "text/html" : "text/plain" });
       await uploadFile.mutateAsync({ url: formattedUrl, payload: formattedFile });
 
       apiUtils.projects.getFiles.invalidate({ projectId }).catch(() => {});
