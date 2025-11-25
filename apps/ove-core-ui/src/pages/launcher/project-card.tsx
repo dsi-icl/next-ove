@@ -1,6 +1,5 @@
 import React from "react";
 import { api } from "../../utils/api";
-import { isError } from "@ove/ove-types";
 import { useNavigate } from "react-router-dom";
 import type { Project, User } from ".prisma/client";
 import { Button, DialogTrigger } from "@ove/ui-base-components";
@@ -22,16 +21,18 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
   });
   const { local } = useFiles(project.id);
   const thumbnail = fromURL(local, project.thumbnail);
-  const thumbnailURL = api.projects.getPresignedGetURL.useQuery({
-    bucketName: thumbnail?.bucketName ?? "ERROR",
-    objectName: thumbnail?.name ?? "ERROR",
-    versionId: thumbnail?.version ?? "ERROR",
-  }, { enabled: thumbnail !== null });
+  const thumbnailURL = api.projects.getPresignedGetURL.useQuery(
+    {
+      bucketName: thumbnail?.bucketName ?? "ERROR",
+      objectName: thumbnail?.name ?? "ERROR",
+      versionId: thumbnail?.version ?? "ERROR",
+    },
+    { enabled: thumbnail !== null },
+  );
   const canEdit =
     user.role === "admin" ||
     ((user.id === project.creatorId ||
       (getCollaborators.status === "success" &&
-        !isError(getCollaborators.data) &&
         getCollaborators.data.find(
           (collaborator) => collaborator.id === user.id,
         ) !== undefined)) &&
@@ -45,7 +46,7 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
       <img
         className="aspect-square w-full rounded-xl"
         src={
-          thumbnailURL.data !== undefined && !isError(thumbnailURL.data)
+          thumbnailURL.status === "success"
             ? thumbnailURL.data
             : "/missing-thumbnail.jpg"
         }

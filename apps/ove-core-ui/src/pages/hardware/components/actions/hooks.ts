@@ -1,8 +1,18 @@
 import { toast } from "sonner";
-import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
-import { checkErrors, formatIds } from "../../utils";
-import { isError, type Source } from "@ove/ove-types";
+import { getFailingDevices } from "../../utils";
+import type { Source } from "@ove/ove-types";
+
+const handleFailingDevices = (
+  action: { error: string; success: string },
+  data: Parameters<typeof getFailingDevices>[0],
+) => {
+  const failing = getFailingDevices(data);
+  if (failing.length > 0) {
+    return `Failed to ${action} ${failing.join(", ")}`;
+  }
+  return `${action} devices`;
+};
 
 export const useStart = (
   bridgeId: string,
@@ -10,45 +20,33 @@ export const useStart = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const start = api.hardware.start.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to start: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully started: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to start: ${deviceId}`);
-    }
-  });
-  const startAll = api.hardware.startAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to start devices");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses => toast.error(`Failed to start: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully started devices")
-      });
-    },
-    onError: () => toast.error("Failed to start devices")
-  });
+  const start = api.hardware.start.useMutation();
+  const startAll = api.hardware.startAll.useMutation();
 
   if (deviceId === null) {
     return {
       start: () =>
-        void startAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(startAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Starting devices...",
+          error: `Failed to start devices`,
+          success: (data) =>
+            handleFailingDevices({ error: "start", success: "Started" }, data),
+        }),
     };
   }
   return {
-    start: () => void start.mutateAsync({
-      bridgeId,
-      deviceId: deviceId
-    }).catch(logger.error)
+    start: () =>
+      toast.promise(
+        start.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Starting ${deviceId}...`,
+          error: `Failed to start ${deviceId}`,
+          success: `Started ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -58,46 +56,36 @@ export const useShutdown = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const shutdown = api.hardware.shutdown.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to shutdown: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully shutdown: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to shutdown: ${deviceId}`);
-    }
-  });
-  const shutdownAll = api.hardware.shutdownAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to shutdown devices");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses =>
-          toast.error(`Failed to shutdown: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully shutdown devices")
-      });
-    },
-    onError: () => toast.error("Failed to shutdown devices")
-  });
+  const shutdown = api.hardware.shutdown.useMutation();
+  const shutdownAll = api.hardware.shutdownAll.useMutation();
 
   if (deviceId === null) {
     return {
       shutdown: () =>
-        void shutdownAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(shutdownAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Shutting down devices...",
+          error: "Failed to shut down devices",
+          success: (data) =>
+            handleFailingDevices(
+              { error: "shut down", success: "Shut down" },
+              data,
+            ),
+        }),
     };
   }
   return {
-    shutdown: () => void shutdown.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    shutdown: () =>
+      toast.promise(
+        shutdown.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Shutting down ${deviceId}`,
+          error: `Failed to shut down ${deviceId}`,
+          success: `Shut down ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -107,45 +95,36 @@ export const useReboot = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const reboot = api.hardware.reboot.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to reboot: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully rebooted: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to reboot: ${deviceId}`);
-    }
-  });
-  const rebootAll = api.hardware.rebootAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to reboot devices");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses => toast.error(`Failed to reboot: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully rebooted devices")
-      });
-    },
-    onError: () => toast.error("Failed to reboot devices")
-  });
+  const reboot = api.hardware.reboot.useMutation();
+  const rebootAll = api.hardware.rebootAll.useMutation();
 
   if (deviceId === null) {
     return {
       reboot: () =>
-        void rebootAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(rebootAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Rebooting devices...",
+          success: (data) =>
+            handleFailingDevices(
+              { error: "reboot", success: "Rebooted" },
+              data,
+            ),
+          error: "Failed to reboot devices",
+        }),
     };
   }
   return {
-    reboot: () => void reboot.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    reboot: () =>
+      toast.promise(
+        reboot.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Rebooting ${deviceId}...`,
+          error: `Failed to reboot ${deviceId}`,
+          success: `Rebooted ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -155,47 +134,42 @@ export const useReloadBrowsers = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const reloadBrowsers = api.hardware.reloadBrowsers.useMutation({
-    retry: false,
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to reload browsers");
-        return;
-      }
-
-      toast.success("Successfully reloaded browsers");
-    },
-    onError: () => toast.error("Unable to reload browsers")
-  });
-  const reloadBrowsersAll = api.hardware.reloadBrowsersAll.useMutation({
-    retry: false,
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to reload browsers");
-        return;
-      }
-
-      checkErrors({
-        data: response,
-        onSuccess: () => toast.success("Successfully reloaded browsers"),
-        onError: responses =>
-          toast.error(`Unable to reload browsers on ${formatIds(responses)}`)
-      });
-    },
-    onError: () => toast.error("Unable to reload browsers")
-  });
+  const reloadBrowsers = api.hardware.reloadBrowsers.useMutation();
+  const reloadBrowsersAll = api.hardware.reloadBrowsersAll.useMutation();
 
   if (deviceId === null) {
     return {
       reloadBrowsers: () =>
-        void reloadBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(
+          reloadBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          {
+            loading: "Reloading browsers...",
+            error: "Unable to reload browsers",
+            success: (data) =>
+              handleFailingDevices(
+                {
+                  error: "reload browsers on",
+                  success: "Reloaded browsers on",
+                },
+                data,
+              ),
+          },
+        ),
     };
   }
   return {
-    reloadBrowsers: () => void reloadBrowsers.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    reloadBrowsers: () =>
+      toast.promise(
+        reloadBrowsers.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Reloading browsers on ${deviceId}...`,
+          error: `Unable to reload browsers on ${deviceId}`,
+          success: `Reloaded browsers on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -205,47 +179,39 @@ export const useCloseBrowsers = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const closeBrowsers = api.hardware.closeBrowsers.useMutation({
-    retry: false,
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to close browsers");
-        return;
-      }
-
-      toast.success("Successfully closed browsers");
-    },
-    onError: () => toast.error("Unable to close browsers")
-  });
-  const closeBrowsersAll = api.hardware.closeBrowsersAll.useMutation({
-    retry: false,
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to close browsers");
-        return;
-      }
-
-      checkErrors({
-        data: response,
-        onSuccess: () => toast.success("Successfully closed browsers"),
-        onError: responses =>
-          toast.error(`Unable to close browsers on ${formatIds(responses)}`)
-      });
-    },
-    onError: () => toast.error("Unable to close browsers")
-  });
+  const closeBrowsers = api.hardware.closeBrowsers.useMutation();
+  const closeBrowsersAll = api.hardware.closeBrowsersAll.useMutation();
 
   if (deviceId === null) {
     return {
       closeBrowsers: () =>
-        void closeBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(
+          closeBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          {
+            loading: "Closing browsers...",
+            error: "Failed to close browsers",
+            success: (data) =>
+              handleFailingDevices(
+                { error: "close browsers on", success: "Closed browsers on" },
+                data,
+              ),
+          },
+        ),
     };
   }
   return {
-    closeBrowsers: () => void closeBrowsers.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    closeBrowsers: () =>
+      toast.promise(
+        closeBrowsers.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Closing browsers on ${deviceId}...`,
+          error: `Failed to close browsers on ${deviceId}`,
+          success: `Closed browsers on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -255,46 +221,39 @@ export const useOpenBrowsers = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const openBrowsers = api.hardware.openBrowsers.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to open browsers on: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully opened browsers on: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to open browsers on: ${deviceId}`);
-    }
-  });
-  const openBrowsersAll = api.hardware.openBrowsersAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to open browsers on devices");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses =>
-          toast.error(`Failed to open browsers on: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully opened browsers")
-      });
-    },
-    onError: () => toast.error("Failed to open browsers on devices")
-  });
+  const openBrowsers = api.hardware.openBrowsers.useMutation();
+  const openBrowsersAll = api.hardware.openBrowsersAll.useMutation();
 
   if (deviceId === null) {
     return {
       openBrowsers: () =>
-        void openBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(
+          openBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          {
+            loading: "Opening browsers...",
+            error: "Unable to open browsers",
+            success: (data) =>
+              handleFailingDevices(
+                { error: "open browsers on", success: "Opened browsers on" },
+                data,
+              ),
+          },
+        ),
     };
   }
   return {
-    openBrowsers: () => void openBrowsers.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    openBrowsers: () =>
+      toast.promise(
+        openBrowsers.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: "Opening browsers...",
+          error: `Unable to open browsers on ${deviceId}`,
+          success: `Opened browsers on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -304,48 +263,40 @@ export const useSetSource = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const setSource = api.hardware.setSource.useMutation({
-    retry: false,
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to set source");
-        return;
-      }
-
-      toast.success("Successfully set source");
-    },
-    onError: () => toast.error("Unable to set source")
-  });
-  const setSourceAll = api.hardware.setSourceAll.useMutation({
-    retry: false,
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to set source");
-        return;
-      }
-
-      checkErrors({
-        data: response,
-        onSuccess: () => toast.success("Successfully set source"),
-        onError: responses =>
-          toast.error(`Unable to set source on ${formatIds(responses)}`)
-      });
-    },
-    onError: () => toast.error("Unable to set source")
-  });
+  const setSource = api.hardware.setSource.useMutation();
+  const setSourceAll = api.hardware.setSourceAll.useMutation();
 
   if (deviceId === null) {
     return {
       setSource: (source: Source) =>
-        void setSourceAll.mutateAsync({ bridgeId, tags, source, deviceIds }).catch(logger.error)
+        toast.promise(
+          setSourceAll.mutateAsync({ bridgeId, tags, source, deviceIds }),
+          {
+            loading: "Setting source...",
+            success: (data) =>
+              handleFailingDevices(
+                { error: "set source to", success: "Set source to" },
+                data,
+              ),
+            error: "Failed to set source",
+          },
+        ),
     };
   }
   return {
-    setSource: (source: Source) => void setSource.mutateAsync({
-      bridgeId,
-      deviceId,
-      source
-    }).catch(logger.error)
+    setSource: (source: Source) =>
+      toast.promise(
+        setSource.mutateAsync({
+          bridgeId,
+          deviceId,
+          source,
+        }),
+        {
+          loading: "Setting source...",
+          error: `Failed to set source on ${deviceId}`,
+          success: `Set source on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -353,47 +304,35 @@ export const useMute = (
   bridgeId: string,
   deviceId: string | null,
   tags?: string[],
-  deviceIds?: string[]
+  deviceIds?: string[],
 ) => {
-  const mute = api.hardware.mute.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to mute: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully muted: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to mute: ${deviceId}`);
-    }
-  });
-  const muteAll = api.hardware.muteAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to mute devices");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses => toast.error(`Failed to mute: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully muted devices")
-      });
-    },
-    onError: () => toast.error("Failed to mute devices")
-  });
+  const mute = api.hardware.mute.useMutation();
+  const muteAll = api.hardware.muteAll.useMutation();
 
   if (deviceId === null) {
     return {
       mute: () =>
-        void muteAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(muteAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Muting devices...",
+          error: "Failed to mute devices",
+          success: (data) =>
+            handleFailingDevices({ error: "mute", success: "Muted" }, data),
+        }),
     };
   }
   return {
-    mute: () => void mute.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    mute: () =>
+      toast.promise(
+        mute.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Muting ${deviceId}`,
+          error: `Failed to mute ${deviceId}`,
+          success: `Muted ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -403,45 +342,33 @@ export const useUnmute = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const unmute = api.hardware.unmute.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to unmute: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully unmuted: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to unmute: ${deviceId}`);
-    }
-  });
-  const unmuteAll = api.hardware.unmuteAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to unmute devices");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses => toast.error(`Failed to unmute: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully unmuted devices")
-      });
-    },
-    onError: () => toast.error("Failed to unmute devices")
-  });
+  const unmute = api.hardware.unmute.useMutation();
+  const unmuteAll = api.hardware.unmuteAll.useMutation();
 
   if (deviceId === null) {
     return {
       unmute: () =>
-        void unmuteAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(unmuteAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Unmuting devices...",
+          error: "Failed to unmute devices",
+          success: (data) =>
+            handleFailingDevices({ error: "unmute", success: "Unmuted" }, data),
+        }),
     };
   }
   return {
-    unmute: () => void unmute.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    unmute: () =>
+      toast.promise(
+        unmute.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Unmuting ${deviceId}`,
+          error: `Failed to unmute ${deviceId}`,
+          success: `Unmuted ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -451,46 +378,36 @@ export const useMuteAudio = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const muteAudio = api.hardware.muteAudio.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to mute audio on: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully muted audio on: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to mute audio on: ${deviceId}`);
-    }
-  });
-  const muteAudioAll = api.hardware.muteAudioAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to mute audio");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses =>
-          toast.error(`Failed to mute audio on: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Muted audio")
-      });
-    },
-    onError: () => toast.error("Failed to mute audio")
-  });
+  const muteAudio = api.hardware.muteAudio.useMutation();
+  const muteAudioAll = api.hardware.muteAudioAll.useMutation();
 
   if (deviceId === null) {
     return {
       muteAudio: () =>
-        void muteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(muteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Muting audio...",
+          error: "Failed to mute audio",
+          success: (data) =>
+            handleFailingDevices(
+              { error: "mute audio on", success: "Muted audio on" },
+              data,
+            ),
+        }),
     };
   }
   return {
-    muteAudio: () => void muteAudio.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    muteAudio: () =>
+      toast.promise(
+        muteAudio.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Muting audio on ${deviceId}`,
+          error: `Failed to mute audio on ${deviceId}`,
+          success: `Muted audio on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -500,46 +417,39 @@ export const useUnmuteAudio = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const unmuteAudio = api.hardware.unmuteAudio.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to unmute audio on: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully unmuted audio on: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to unmute audio on: ${deviceId}`);
-    }
-  });
-  const unmuteAudioAll = api.hardware.unmuteAudioAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to unmute audio");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses =>
-          toast.error(`Failed to unmute audio on: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully unmuted audio")
-      });
-    },
-    onError: () => toast.error("Failed to unmute audio")
-  });
+  const unmuteAudio = api.hardware.unmuteAudio.useMutation();
+  const unmuteAudioAll = api.hardware.unmuteAudioAll.useMutation();
 
   if (deviceId === null) {
     return {
       unmuteAudio: () =>
-        void unmuteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(
+          unmuteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          {
+            loading: "Unmuting audio...",
+            error: "Failed to unmute audio",
+            success: (data) =>
+              handleFailingDevices(
+                { error: "unmute audio on", success: "Unmuted audio on" },
+                data,
+              ),
+          },
+        ),
     };
   }
   return {
-    unmuteAudio: () => void unmuteAudio.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    unmuteAudio: () =>
+      toast.promise(
+        unmuteAudio.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Unmuting audio on ${deviceId}`,
+          error: `Failed to unmute audio on ${deviceId}`,
+          success: `Unmuted audio on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -549,46 +459,36 @@ export const useMuteVideo = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const muteVideo = api.hardware.muteVideo.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to mute video on: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully muted video on: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to mute video on: ${deviceId}`);
-    }
-  });
-  const muteVideoAll = api.hardware.muteVideoAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to mute video");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses =>
-          toast.error(`Failed to mute video on: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully muted video")
-      });
-    },
-    onError: () => toast.error("Failed to mute video")
-  });
+  const muteVideo = api.hardware.muteVideo.useMutation();
+  const muteVideoAll = api.hardware.muteVideoAll.useMutation();
 
   if (deviceId === null) {
     return {
       muteVideo: () =>
-        void muteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(muteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+          loading: "Muting video...",
+          error: "Failed to mute video",
+          success: (data) =>
+            handleFailingDevices(
+              { error: "mute video on", success: "Muted video on" },
+              data,
+            ),
+        }),
     };
   }
   return {
-    muteVideo: () => void muteVideo.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    muteVideo: () =>
+      toast.promise(
+        muteVideo.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Muting video on ${deviceId}`,
+          error: `Failed to mute video on ${deviceId}`,
+          success: `Muted video on ${deviceId}`,
+        },
+      ),
   };
 };
 
@@ -598,45 +498,38 @@ export const useUnmuteVideo = (
   tags?: string[],
   deviceIds?: string[],
 ) => {
-  const unmuteVideo = api.hardware.unmuteVideo.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error(`Failed to unmute video on: ${deviceId}`);
-        return;
-      }
-      toast.success(`Successfully unmuted video on: ${deviceId}`);
-    },
-    onError: () => {
-      toast.error(`Failed to unmute video on: ${deviceId}`);
-    }
-  });
-  const unmuteVideoAll = api.hardware.unmuteVideoAll.useMutation({
-    onSuccess: data => {
-      if (isError(data.response)) {
-        toast.error("Failed to unmute video");
-        return;
-      }
-
-      checkErrors({
-        data: data.response,
-        onError: responses =>
-          toast.error(`Failed to unmute video on: ${formatIds(responses)}`),
-        onSuccess: () => toast.success("Successfully unmuted video")
-      });
-    },
-    onError: () => toast.error("Failed to unmute video")
-  });
+  const unmuteVideo = api.hardware.unmuteVideo.useMutation();
+  const unmuteVideoAll = api.hardware.unmuteVideoAll.useMutation();
 
   if (deviceId === null) {
     return {
       unmuteVideo: () =>
-        void unmuteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }).catch(logger.error)
+        toast.promise(
+          unmuteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          {
+            loading: "Unmuting video...",
+            error: "Failed to unmute video",
+            success: (data) =>
+              handleFailingDevices(
+                { error: "unmute video on", success: "Unmuted video on" },
+                data,
+              ),
+          },
+        ),
     };
   }
   return {
-    unmuteVideo: () => void unmuteVideo.mutateAsync({
-      bridgeId,
-      deviceId
-    }).catch(logger.error)
+    unmuteVideo: () =>
+      toast.promise(
+        unmuteVideo.mutateAsync({
+          bridgeId,
+          deviceId,
+        }),
+        {
+          loading: `Unmuting video on ${deviceId}`,
+          error: `Failed to unmute video on ${deviceId}`,
+          success: `Unmuted video on ${deviceId}`,
+        },
+      ),
   };
 };

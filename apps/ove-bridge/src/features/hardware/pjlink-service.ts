@@ -2,8 +2,6 @@
 
 import {
   type Device,
-  isError,
-  type OVEException,
   type PJLinkInfo,
   PJLinkSource,
   PJLinkSourceSchema,
@@ -12,7 +10,6 @@ import {
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env } from "../../env";
-import { raise } from "@ove/ove-utils";
 import * as PJLink from "@ove/pjlink-control";
 import { syncStatus } from "../../utils/status";
 import { controller } from "../reconciliation/controller";
@@ -82,7 +79,7 @@ const start = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.setPower(
+  await PJLink.setPower(
     {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -91,10 +88,6 @@ const start = async (
     PJLink.POWER.ON,
   );
 
-  if (isError(response)) {
-    return response;
-  }
-
   return true;
 };
 
@@ -102,7 +95,7 @@ const getInfo = async (
   device: Device,
   args: TBridgeServiceArgs<"getInfo">,
   ac?: () => AbortController,
-): Promise<OVEException | undefined | PJLinkInfo> => {
+): Promise<undefined | PJLinkInfo> => {
   const infoOptsSchema = z
     .object({ type: z.literal("general").optional() })
     .strict();
@@ -184,24 +177,6 @@ const getInfo = async (
   (controller.getState()[device.id] as PJLinkState).video.observed =
     isVideoMuted;
 
-  if (
-    isError(info) ||
-    isError(source) ||
-    isError(power) ||
-    isError(pjlinkClass) ||
-    isError(isMuted) ||
-    isError(isAudioMuted) ||
-    isError(isVideoMuted) ||
-    isError(errors) ||
-    isError(lamp) ||
-    isError(name) ||
-    isError(manufacturer) ||
-    isError(product) ||
-    isError(sources)
-  ) {
-    return raise("Unable to gather system information");
-  }
-
   return {
     info,
     source,
@@ -230,12 +205,13 @@ const getStatus = async (
   if (!parsedOpts.success) return undefined;
 
   return syncStatus(async () => {
-    const res = await PJLink.getPower({
+    // TODO: determine power state from result
+    await PJLink.getPower({
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
       ac: ac?.(),
     });
-    return isError(res) ? res : "on";
+    return "on";
   }, device);
 };
 
@@ -254,7 +230,7 @@ const setSource = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.setInput(
+  await PJLink.setInput(
     {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -263,8 +239,6 @@ const setSource = async (
     PJLink.INPUT[parsedOpts.data.source],
     parsedOpts.data.channel,
   );
-
-  if (isError(response)) return response;
 
   return true;
 };
@@ -279,13 +253,11 @@ const mute = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.mute({
+  await PJLink.mute({
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-
-  if (isError(response)) return response;
 
   return true;
 };
@@ -300,13 +272,11 @@ const unmute = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.unmute({
+  await PJLink.unmute({
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-
-  if (isError(response)) return response;
 
   return true;
 };
@@ -321,13 +291,11 @@ const muteAudio = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.muteAudio({
+  await PJLink.muteAudio({
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-
-  if (isError(response)) return response;
 
   return true;
 };
@@ -342,13 +310,11 @@ const unmuteAudio = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.unmuteAudio({
+  await PJLink.unmuteAudio({
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-
-  if (isError(response)) return response;
 
   return true;
 };
@@ -363,13 +329,11 @@ const muteVideo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.muteVideo({
+  await PJLink.muteVideo({
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-
-  if (isError(response)) return response;
 
   return true;
 };
@@ -384,13 +348,11 @@ const unmuteVideo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const response = await PJLink.unmuteVideo({
+  await PJLink.unmuteVideo({
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-
-  if (isError(response)) return response;
 
   return true;
 };

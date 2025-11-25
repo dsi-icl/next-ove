@@ -3,7 +3,6 @@ import ace from "ace-builds";
 import {
   Button,
   DialogClose,
-  DialogCloseX,
   DialogContent,
   DialogDescription,
   DialogFooter,

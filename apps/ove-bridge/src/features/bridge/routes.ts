@@ -41,11 +41,14 @@ export const initBridge = async () => {
   });
 
   const getHandler = <Key extends keyof TSocketOutEvents>(k: Key) => {
-    return ((args: TParameters<Key>, callback: TCallback<Key>) => {
-      controller[k](args).then((res) => {
-        callback(res);
-        logger.info(`Handled: ${k}`);
-      });
+    return (async (args: TParameters<Key>, callback: TCallback<Key>) => {
+      try {
+        const res = await controller[k](args);
+        callback({ status: "success", data: res });
+      } catch (e) {
+        logger.error(e);
+        callback({ status: "error", error: (e as Error).message });
+      }
     }) as TSocketOutEvents[Key];
   };
 

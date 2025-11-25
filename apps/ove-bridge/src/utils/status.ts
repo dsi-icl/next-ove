@@ -1,6 +1,5 @@
 import {
   type Device,
-  type OVEException,
   type StatusOptions
 } from "@ove/ove-types";
 import { env, logger } from "../env";
@@ -19,20 +18,20 @@ const getTimeout = (device: Device): number => {
 };
 
 export const syncStatus = async (
-  handler: () => Promise<StatusOptions | OVEException>,
+  handler: () => Promise<StatusOptions>,
   device: Device,
   ac?: AbortController,
-): Promise<StatusOptions | OVEException> => {
+): Promise<StatusOptions> => {
   const res = await statusOptions(handler, device, ac);
   controller.getState()[device.id].status.observed = res;
   return res;
 };
 
 const statusOptions = async (
-  handler: () => Promise<StatusOptions | OVEException>,
+  handler: () => Promise<StatusOptions>,
   device: Device,
   controller?: AbortController,
-): Promise<StatusOptions | OVEException> => {
+): Promise<StatusOptions> => {
   let status: StatusOptions = "off";
   try {
     if (controller !== undefined) {

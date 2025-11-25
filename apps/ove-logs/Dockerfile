@@ -16,8 +16,8 @@ COPY ../../dist/apps/ove-logs/package.json ./
 COPY ../../dist/apps/ove-logs/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.17.1  \
-    @prisma/client@6.17.1 esbuild@0.24.2 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618
+RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.19.0  \
+    @prisma/client@6.19.0 esbuild@0.24.2 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618
 
 COPY ../../tools/db ./tools/db
 COPY ../../cli ./cli

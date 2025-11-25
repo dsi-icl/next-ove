@@ -15,13 +15,13 @@ export type LoadLogger = {
 export type Logger = {
   name: string
   getLogLabel: (logLevel: LogLevel) => object
-  buildLogMessage: (logLevel: LogLevel, ...args: string[]) => string[]
-  fatal: (...args: string[]) => void
-  error: (...args: string[]) => void
-  warn: (...args: string[]) => void
-  info: (...args: string[]) => void
-  debug: (...args: string[]) => void
-  trace: (...args: string[]) => void
+  buildLogMessage: (logLevel: LogLevel, ...args: any[]) => string[]
+  fatal: (...args: any[]) => void
+  error: (...args: any[]) => void
+  warn: (...args: any[]) => void
+  info: (...args: any[]) => void
+  debug: (...args: any[]) => void
+  trace: (...args: any[]) => void
 }
 
 export type ConstantsType = {

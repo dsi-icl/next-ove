@@ -1,12 +1,11 @@
 import { api } from "../../utils/api";
 import { assert } from "@ove/ove-utils";
-import { isError } from "@ove/ove-types";
 import ProjectCard from "./project-card";
 import { Plus } from "lucide-react";
 import { Dialog } from "@ove/ui-base-components";
 import type { Project, User } from ".prisma/client";
 import LaunchConfig, {
-  type TLaunchConfig
+  type TLaunchConfig,
 } from "../../components/launch-config/launch-config";
 import React, { useCallback, useMemo, useState } from "react";
 import Controller from "../../components/controller/controller";
@@ -47,25 +46,20 @@ const Projects = () => {
   const projects = api.projects.getProjects.useQuery();
   const user = useStore((state) => state.user);
   const projectsLoaded = useMemo(
-    () =>
-      projects.status === "success" && !isError(projects.data) && user !== null,
-    [user, projects.status, projects.data],
+    () => projects.status === "success" && user !== null,
+    [user, projects.status],
   );
   const privateProjects = useMemo(
     () =>
-      projects.data !== undefined && !isError(projects.data)
-        ? projects.data
-            .filter((x) => !isError(x) && !x.isPublic)
-            .map(formatProject)
+      projects.data !== undefined
+        ? projects.data.filter((x) => !x.isPublic).map(formatProject)
         : [],
     [projects.data],
   );
   const publicProjects = useMemo(
     () =>
-      projects.data !== undefined && !isError(projects.data)
-        ? projects.data
-            .filter((x) => !isError(x) && x.isPublic)
-            .map(formatProject)
+      projects.data !== undefined
+        ? projects.data.filter((x) => x.isPublic).map(formatProject)
         : [],
     [projects.data],
   );
@@ -84,10 +78,10 @@ const Projects = () => {
         {projectsLoaded ? (
           <div className="relative h-[calc(90vh-1px)] w-screen border-t border-solid border-t-white">
             <section className="relative z-0 h-full pb-16">
-              {privateProjects.length > 0 ? <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
+              <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
                 Your Projects
-              </h4> : null}
-              <ul className="grid grid-cols-4 justify-items-center p-8">
+              </h4>
+              <ul className="grid grid-cols-4 justify-items-center gap-x-4 gap-y-16 p-8">
                 {privateProjects.map((project) => (
                   <ProjectCard
                     key={project.id}
@@ -97,10 +91,10 @@ const Projects = () => {
                   />
                 ))}
               </ul>
-              {publicProjects.length > 0 ? <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
+              <h4 className="m-8 border-b border-solid border-b-gray-400 text-2xl font-bold">
                 Public Projects
-              </h4> : null}
-              <ul className="grid grid-cols-4 justify-items-center p-8">
+              </h4>
+              <ul className="grid grid-cols-4 justify-items-center gap-x-4 gap-y-16 p-8">
                 {publicProjects.map((project) => (
                   <ProjectCard
                     project={project}

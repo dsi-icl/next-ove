@@ -1,8 +1,8 @@
 /* global AbortController */
 
 import { z } from "zod";
-import { type Device, type Optional } from "../hardware";
-import { type TBridgeRoutesSchema } from "./bridge-transform";
+import type { Device } from "../hardware";
+import type { TBridgeRoutesSchema } from "./bridge-transform";
 import {
   ClientAPITransformSchema,
   type TClientRoutesSchema
@@ -20,7 +20,6 @@ export const BridgeServiceKeys: readonly (keyof TClientRoutesSchema)[] =
 
 export {
   type TBridgeRoutesSchema,
-  type TBridgeResponseSchema,
 } from "./bridge-transform";
 
 /**
@@ -31,16 +30,19 @@ export type TBridgeHardwareService = {
     device: Device,
     args: z.infer<TClientRoutesSchema[Key]["args"]>,
     ac?: () => AbortController,
-  ) => Promise<Optional<z.infer<TClientRoutesSchema[Key]["client"]>>>;
+  ) => Promise<z.infer<TClientRoutesSchema[Key]["returns"]> | undefined>;
 };
 
 /**
  * Cloud -> observatory events
  */
+
+export type SafeCallback<T> = {status: "success"; data: T } | {status: "error"; error: string}
+
 export type THardwareServerToClientEvents = {
   [Key in keyof TBridgeRoutesSchema]: (
     args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
-    callback: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void,
+    callback: (response: SafeCallback<z.infer<TBridgeRoutesSchema[Key]["returns"]>>) => void,
   ) => void;
 };
 

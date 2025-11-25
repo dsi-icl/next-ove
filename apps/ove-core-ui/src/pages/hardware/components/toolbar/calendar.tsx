@@ -15,7 +15,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 
 const Calendar = ({ bridgeId }: { bridgeId: string }) => {
   const getCalendar = api.bridge.getCalendar.useQuery({ bridgeId });
-  const { calendar, lastUpdated } = useCalendar(getCalendar.data?.response);
+  const { calendar, lastUpdated } = useCalendar(getCalendar.data);
 
   return calendar !== undefined ? (
     <Dialog>

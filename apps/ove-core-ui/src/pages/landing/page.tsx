@@ -17,6 +17,9 @@ const Landing = () => (
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
               The next generation of the Open Visualisation Environment
             </h1>
+            <p className="mx-auto max-w-[700px] text-gray-700 md:text-xl font-semibold dark:text-gray-600">
+              By Data Science Imperial
+            </p>
             <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
               Powerful tools for data visualization, hardware management, and
               project creation. All in one suite.

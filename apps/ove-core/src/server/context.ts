@@ -12,6 +12,7 @@ export const createContext = async ({ req, res }: ContextOptions) => {
     req,
     res,
     username: req.username,
+    role: req.role,
     prisma,
     s3,
   };

@@ -713,3 +713,5 @@ Dockerfile
 
 /apps/ove-logs/data/postgres
 .env.postgres
+
+/apps/ove-client/tests/.env.tests

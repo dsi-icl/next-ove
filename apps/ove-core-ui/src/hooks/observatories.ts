@@ -1,10 +1,9 @@
 import { api } from "../utils/api";
-import { isError } from "@ove/ove-types";
 import { useStore } from "../store";
 
 export const useObservatories = () => {
   const getObservatories = api.core.getObservatoryBounds.useQuery();
-  return getObservatories.status !== "success" || isError(getObservatories.data) ? {} : getObservatories.data;
+  return getObservatories.status !== "success" ? {} : getObservatories.data;
 };
 
 export const useObservatory = () => {

@@ -67,6 +67,7 @@ const schema = z.strictObject({
         PORT: z.number(),
         USE_SSL: z.boolean(),
         GLOBAL_BUCKETS: z.string().array(),
+        USER_BUCKET: z.string(),
       })
       .optional(),
     THUMBNAIL_GENERATOR: z
@@ -130,6 +131,7 @@ const staticConfig = {
   API_VERSION: 2,
   TITLE: "next-ove core",
   DESCRIPTION: "The heart of next-ove.",
+  SALT_ROUNDS: 10,
 } as const;
 
 const passPhrase = nanoid(16);

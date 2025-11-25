@@ -1,4 +1,3 @@
-import { isError } from "@ove/ove-types";
 import { useMemo, useState } from "react";
 import { api } from "../../../../utils/api";
 
@@ -14,10 +13,9 @@ export const useBrowserConfig = (
 
   return useMemo((): string => {
     if (getBrowserConfig.status !== "success") return "";
-    const res = getBrowserConfig.data.response;
-    if (isError(res) || res.type !== "node" || isError(res.browserConfigs) || res.browserConfigs === null) return "";
-    return res.browserConfigs[displayId];
-  }, [getBrowserConfig.status, getBrowserConfig.data?.response, displayId]);
+    if (getBrowserConfig.data.type !== "node" || getBrowserConfig.data.browserConfigs === null) return "";
+    return getBrowserConfig.data.browserConfigs[displayId];
+  }, [getBrowserConfig.status, getBrowserConfig.data, displayId]);
 };
 
 export const useBrowser = (
@@ -32,14 +30,13 @@ export const useBrowser = (
 
   return useMemo((): string => {
     if (getBrowsers.status !== "success") return "";
-    const res = getBrowsers.data.response;
-    if (isError(res) || res.type !== "node" || isError(res.browsers) || res.browsers === null) return "";
+    if (getBrowsers.data.type !== "node" || getBrowsers.data.browsers === null) return "";
     return (
-      Array.from(Object.values(res.browsers)).find(
+      Array.from(Object.values(getBrowsers.data.browsers)).find(
         ({ displayId: id }) => id === displayId,
       )?.url ?? ""
     );
-  }, [getBrowsers.status, getBrowsers.data?.response, displayId]);
+  }, [getBrowsers.status, getBrowsers.data, displayId]);
 };
 
 export const useLiveFeed = (
@@ -60,12 +57,11 @@ export const useLiveFeed = (
       setCache(null);
       return null;
     }
-    const res = getLiveUpdate.data.response;
-    if (isError(res) || res.type !== "node" || isError(res.screenshots)) {
+    if (getLiveUpdate.data.type !== "node") {
       setCache(null);
       return null;
     }
-    setCache(res.screenshots?.[displayId] ?? null);
-    return res.screenshots?.[displayId] ?? null;
-  }, [getLiveUpdate.status, getLiveUpdate.data?.response]);
+    setCache(getLiveUpdate.data.screenshots?.[displayId] ?? null);
+    return getLiveUpdate.data.screenshots?.[displayId] ?? null;
+  }, [getLiveUpdate.status, getLiveUpdate.data]);
 };

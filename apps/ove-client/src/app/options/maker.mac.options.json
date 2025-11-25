@@ -7,7 +7,7 @@
   "mac": {
     "target": ["dmg", "pkg", "zip"],
     "category": "public.app-category.developer-tools",
-    "icon": "apps/ove-client/build/icon.png",
+    "icon": "apps/ove-client/build/icon-mac.png",
     "type": "distribution"
   },
   "dmg": {
