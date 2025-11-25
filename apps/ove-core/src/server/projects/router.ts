@@ -317,13 +317,14 @@ export const projectsRouter = router({
       }),
     )
     .output(z.string())
-    .query(({ ctx, input: { projectId, observatory } }) =>
+    .query(({ ctx, input: { projectId, observatory, layout } }) =>
       controller.getController(
         ctx.prisma,
         ctx.s3,
         ctx.username,
         projectId,
         observatory,
+        layout,
       ),
     ),
   formatData: procedure

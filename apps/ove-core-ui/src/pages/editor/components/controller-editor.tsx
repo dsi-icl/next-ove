@@ -37,7 +37,7 @@ const ControllerEditor = ({ projectId, bucket }: ControllerEditorProps) => {
   const save = useCallback(async () => {
     await uploadFile({
       objectName: controller.name,
-      file: new File([data], controller.name, { type: "text/plain" }),
+      file: new File([data], controller.name, { type: "text/html" }),
       intent: "update"
     });
   }, [uploadFile, controller.name, data]);

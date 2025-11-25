@@ -22,7 +22,7 @@ const ProjectEditor = () => {
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel defaultSize={95}>
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={60}>
+              <ResizablePanel defaultSize={55}>
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel defaultSize={75}>
                     <StateTabs />
@@ -35,7 +35,7 @@ const ProjectEditor = () => {
                 </ResizablePanelGroup>
               </ResizablePanel>
               <ResizableHandle withHandle={!isOpen} />
-              <ResizablePanel defaultSize={40}>
+              <ResizablePanel defaultSize={45}>
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel defaultSize={20}>
                     <ObservatoryConfig />

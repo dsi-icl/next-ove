@@ -37,6 +37,7 @@ import {
   PopoverTrigger,
   Textarea,
   useFormErrorHandling,
+  Dialog,
 } from "@ove/ui-base-components";
 import { actionColors } from "../utils";
 import { useTags } from "../hooks/tags";
@@ -49,6 +50,8 @@ import { useCollaborators } from "../hooks/collaborators";
 import React, { useRef, useState, useEffect } from "react";
 import { Check, ChevronsUpDown, Paintbrush, X } from "lucide-react";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
+import { data } from "react-router-dom";
+import { set } from "date-fns";
 
 const sumText = (text: string) =>
   text.split("").reduce((acc, x) => acc + x.charCodeAt(0), 0);
@@ -133,12 +136,13 @@ const Metadata = () => {
   const [tagOpen, setTagOpen] = useState(false);
   const [publicationOpen, setPublicationOpen] = useState(false);
   const [collaboratorOpen, setCollaboratorOpen] = useState(false);
+  const [publicDialogOpen, setPublicDialogOpen] = useState(false);
   const tagRef = useRef<HTMLDivElement | null>(null);
   const publicationRef = useRef<HTMLDivElement | null>(null);
   const collaboratorRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
-  const onSubmit = (data: MetadataForm) => {
+  const onSetProject = (data: MetadataForm) => {
     setProject((cur) => ({
       ...cur,
       title: data.title,
@@ -160,7 +164,25 @@ const Metadata = () => {
     closeRef.current?.click();
   };
 
+  const onSubmit = (data: MetadataForm) => {
+    const isFirstSave = 
+      (!project.title || project.title.trim().length === 0) 
+      && (data.title && data.title.trim().length > 0);
+    if (!data.isPublic && isFirstSave) {
+      setPublicDialogOpen(true);
+      return;
+    }
+
+    onSetProject(data);
+  };
+
+  const confirmPublic = (isPublic: boolean) => {
+    setPublicDialogOpen(false);
+    onSetProject({ ...form.getValues(), isPublic });
+  }
+
   return (
+    <>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Project Settings</DialogTitle>
@@ -622,6 +644,31 @@ const Metadata = () => {
         </form>
       </Form>
     </DialogContent>
+
+
+    <Dialog open={publicDialogOpen} onOpenChange={setPublicDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Make this project public?</DialogTitle>
+          <DialogDescription>
+            We encourage you to set your project to public so others can
+            discover and learn from your work.  
+            <br />
+            If your project contains confidential or sensitive information,
+            keep it private instead.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-6 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => confirmPublic(false)}>
+            No, keep private
+          </Button>
+          <Button variant="default" onClick={() => confirmPublic(true)}>
+            Yes, make public
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
