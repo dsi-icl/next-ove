@@ -98,10 +98,14 @@
         "mac": {
           "platform": ["windows", "linux", "mac"],
           "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        },
+        "ci": {
+          "platform": ["windows"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.ci.options.json"
         }
       }
     },
-    "release:linux": {
+    "release": {
       "executor": "nx-electron:make",
       "options": {
         "name": "ove-client",
@@ -120,6 +124,10 @@
         "mac": {
           "platform": ["windows", "linux", "mac"],
           "makerOptionsPath": "apps/ove-client/src/app/options/maker.mac.options.json"
+        },
+        "ci": {
+          "platform": ["windows"],
+          "makerOptionsPath": "apps/ove-client/src/app/options/maker.ci.options.json"
         }
       }
     },
