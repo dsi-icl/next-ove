@@ -2,7 +2,6 @@ import { z } from "zod";
 import ace from "ace-builds";
 import {
   Button,
-  Dialog,
   DialogCloseX,
   DialogContent,
   DialogDescription,
@@ -185,7 +184,7 @@ ${content}
 
     const ok = await uploadFile({
       objectName: fullName,
-      file: new File([data], fullName, { type: "text/plain" }),
+      file: new File([data], fullName, { type: getExtensionForLanguage(language) === "html" ? "text/html" : "text/plain" }),
       intent: mode === "edit" ? "update" : "create"
     });
     if (ok) close();

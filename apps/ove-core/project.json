@@ -9,6 +9,9 @@
   "targets": {
     "db": {
       "executor": "nx:run-commands",
+      "inputs": [
+        "{workspaceRoot}/tools/db/schema.prisma"
+      ],
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": [

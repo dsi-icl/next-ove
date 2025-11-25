@@ -1,17 +1,11 @@
 /* global Proxy */
 
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import type { TLogger } from "@ove/ove-logging";
-// eslint-disable-next-line @nx/enforce-module-boundaries
-import type { Device, OVEException } from "@ove/ove-types";
+import type { Device } from "@ove/ove-types";
 
 export const replaceAll = (s: string, xs: string[]): string => {
   const replaceFn = (match: string) => xs[parseInt(match.substring(1)) - 1];
   return s.replaceAll(/\$\d+/g, replaceFn);
-};
-
-export const raise = (error: string): OVEException => {
-  return { oveError: error };
 };
 
 export const assert = <T>(x: T | undefined | null) => {
@@ -53,22 +47,6 @@ export const DeepProxy = <T extends object>(
   });
 };
 
-export const safe = async <T>(
-  logger: TLogger,
-  handler: () => Promise<T>,
-): Promise<T | OVEException> => {
-  try {
-    return await handler();
-  } catch (e) {
-    logger.trace(e);
-    if (typeof e === "string") return { oveError: e };
-    else if (typeof e === "object" && e !== null && "message" in e) {
-      return { oveError: JSON.stringify(e.message) };
-    }
-    return { oveError: `UNKNOWN: ${JSON.stringify(e)}` };
-  }
-};
-
 export const recordEquals = <T, U>(
   r1: Record<string, T>,
   r2: Record<string, U>,
@@ -108,7 +86,9 @@ export const buildDeviceURL = (device: Device) => {
   return `${protocol}${hostname}${port}`;
 };
 
-export const filterRejected = (x: PromiseSettledResult<unknown>): x is PromiseRejectedResult => {
+export const filterRejected = (
+  x: PromiseSettledResult<unknown>,
+): x is PromiseRejectedResult => {
   return (
     x !== undefined &&
     typeof x === "object" &&
@@ -118,7 +98,9 @@ export const filterRejected = (x: PromiseSettledResult<unknown>): x is PromiseRe
   );
 };
 
-export const filterFulfilled = <T>(x: PromiseSettledResult<T>): x is PromiseFulfilledResult<T> => {
+export const filterFulfilled = <T>(
+  x: PromiseSettledResult<T>,
+): x is PromiseFulfilledResult<T> => {
   return (
     x !== undefined &&
     typeof x === "object" &&

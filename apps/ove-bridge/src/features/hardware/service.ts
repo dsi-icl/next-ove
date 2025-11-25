@@ -1,37 +1,29 @@
-import {
-  type Device,
-  is,
-  isAll,
-  type Optional,
-  OVEExceptionSchema,
-  type TBridgeHardwareService,
-  type TBridgeRoutesSchema,
-  type TBridgeServiceArgs,
+import type {
+  Device,
+  SafeCallback,
+  TClientRoutesSchema,
+  TBridgeHardwareService,
+  TBridgeRoutesSchema,
+  TBridgeServiceArgs,
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env, logger } from "../../env";
-import { assert, Json, raise } from "@ove/ove-utils";
+import { assert, filterFulfilled } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
 import { controller } from "../reconciliation/controller";
 
-export const wrapCallback = <Key extends keyof TBridgeRoutesSchema>(
-  cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void,
-) => {
-  return (response: z.infer<TBridgeRoutesSchema[Key]["client"]>) =>
-    cb({
-      response: response,
-      meta: { bridge: assert(env.AUTH.NAME) },
-    });
-};
-
 export const getDevices = async (filterTags?: string[], ids?: string[]) => {
   const devices = env.HARDWARE.DEVICES.filter(
-    ({ tags, id }) => (filterTags === undefined && ids === undefined) || (ids !== undefined && ids.includes(id)) || (filterTags !== undefined && tags.some((t) => filterTags.includes(t))),
+    ({ tags, id }) =>
+      (filterTags === undefined && ids === undefined) ||
+      (ids !== undefined && ids.includes(id)) ||
+      (filterTags !== undefined && tags.some((t) => filterTags.includes(t))),
   );
 
   if (devices.length === 0) {
-    const tagStatus = filterTags !== undefined ? ` with tags: ${filterTags.join(", ")}` : "";
-    return raise(`No devices found${tagStatus}`);
+    const tagStatus =
+      filterTags !== undefined ? ` with tags: ${filterTags.join(", ")}` : "";
+    throw new Error(`No devices found${tagStatus}`);
   }
 
   return devices;
@@ -39,9 +31,8 @@ export const getDevices = async (filterTags?: string[], ids?: string[]) => {
 
 export const getDevice = async (deviceId: string) => {
   const device = env.HARDWARE.DEVICES.find(({ id }) => deviceId === id);
-
   if (device === undefined) {
-    return raise(`No device found with id: ${deviceId}`);
+    throw new Error(`No device found with id: ${deviceId}`);
   }
 
   return device;
@@ -57,7 +48,7 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
   k: Key,
   args: TBridgeServiceArgs<Key>,
   device: Device,
-): Promise<Optional<z.infer<TBridgeRoutesSchema[Key]["client"]>>> => {
+): Promise<z.infer<TClientRoutesSchema[Key]["returns"]> | undefined> => {
   if (
     (Object.keys(service) as Array<keyof TBridgeHardwareService>).includes(k)
   ) {
@@ -85,41 +76,33 @@ const without =
 export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   k: Key,
   args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
-  cb: (response: z.infer<TBridgeRoutesSchema[Key]["bridge"]>) => void,
+  callback: (response: SafeCallback<z.infer<TBridgeRoutesSchema[Key]["returns"]>>) => void,
 ) => {
-  logger.info(`Handling: ${k}`);
-  const callback = wrapCallback(cb);
-  const device = await getDevice(args.deviceId);
-
-  if (is(OVEExceptionSchema, device)) {
-    callback(device);
-    return;
-  }
-
-  const serviceArgs: TBridgeServiceArgs<Key> = without<
-    typeof args,
-    TBridgeServiceArgs<Key>
-  >(args)("deviceId");
-  let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
   try {
+    logger.trace(`Handling: ${k}`);
+    const device = await getDevice(args.deviceId);
+
+    const serviceArgs: TBridgeServiceArgs<Key> = without<
+      typeof args,
+      TBridgeServiceArgs<Key>
+    >(args)("deviceId");
+    let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
     response = await applyService<typeof k>(
       getServiceForProtocol(device.type),
       k,
       serviceArgs,
       device,
     );
+    if (response === undefined) {
+      callback({ status: "error", error: "Command not available on device" });
+      return;
+    }
+
+    callback({ status: "success", data: response });
   } catch (e) {
     logger.error(e);
-    callback(raise(`Failed to handle ${k}`));
-    return;
+    callback({ status: "error", error: (e as Error).message });
   }
-
-  if (response === undefined) {
-    callback(raise("Command not available on device"));
-    return;
-  }
-
-  callback(response);
 };
 
 export const multiDeviceHandler = async <
@@ -127,25 +110,17 @@ export const multiDeviceHandler = async <
 >(
   k: Key,
   args: z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>,
-  cb: (response: z.infer<TBridgeRoutesSchema[`${Key}All`]["bridge"]>) => void,
+  callback: (response: SafeCallback<z.infer<TBridgeRoutesSchema[`${Key}All`]["returns"]>>) => void,
 ) => {
-  logger.info(`Handling: ${k}All`);
-  const callback = wrapCallback(cb);
-  const devices = await getDevices(args.tags, args.deviceIds);
-
-  if (is(OVEExceptionSchema, devices)) {
-    callback(devices);
-    return;
-  }
-
-  delete args["tags"];
-  delete args["deviceIds"];
-  let result: Awaited<
-    TBridgeRoutesSchema[Key]["client"]["_output"] | undefined
-  >[];
-
   try {
-    result = await Promise.all(
+    logger.trace(`Handling: ${k}All`);
+    const devices = await getDevices(args.tags, args.deviceIds);
+
+    delete args["tags"];
+    delete args["deviceIds"];
+    let results: PromiseSettledResult<
+      Awaited<TClientRoutesSchema[Key]["returns"]["_output"] | undefined>
+    >[] = await Promise.allSettled(
       devices.map((device) =>
         applyService<Key>(
           getServiceForProtocol(device.type),
@@ -155,23 +130,16 @@ export const multiDeviceHandler = async <
         ),
       ),
     );
+
+    const response = results
+      .map((x, i) => ({
+        deviceId: devices[i].id,
+        response: filterFulfilled(x) ? { status: "success" as const, data: x.value } : { status: "error" as const, error: x.reason },
+      }))
+      .filter(filterUndefinedResponse);
+
+    callback({ status: "success", data: response });
   } catch (e) {
-    logger.error(e);
-    callback(raise(Json.stringify(e)));
-    return;
+    callback({ status: "error", error: (e as Error).message });
   }
-
-  if (isAll(z.undefined(), result)) {
-    callback(raise("Command not available on devices"));
-    return;
-  }
-
-  const response = result
-    .map((x, i) => ({
-      deviceId: devices[i].id,
-      response: x,
-    }))
-    .filter(filterUndefinedResponse);
-
-  callback(response);
 };

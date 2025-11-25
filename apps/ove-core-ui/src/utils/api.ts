@@ -21,6 +21,12 @@ import type { User } from ".prisma/client";
  */
 export const api = createTRPCReact<AppRouter>();
 
+type MutationOptions<T> = {
+  enabled?: boolean;
+  onSuccess?: (data: T) => void;
+  onError?: (error: unknown) => void;
+}
+
 export const s3 = {
   getFileData: {
     useQuery: (
@@ -39,7 +45,7 @@ export const s3 = {
       })
   },
   uploadFile: {
-    useMutation: (options?: { enabled: boolean }) =>
+    useMutation: (options?: MutationOptions<void>) =>
       useMutation({
         ...(options ?? { enabled: true }),
         mutationFn: async ({

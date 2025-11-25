@@ -19,12 +19,11 @@ import {
 } from "@ove/ui-base-components";
 import React, { useMemo } from "react";
 import type { User } from ".prisma/client";
-import { logger } from "../../env";
 import { Check, X } from "lucide-react";
 import { useInvites } from "./hooks/invites";
 import { api } from "../../utils/api";
-import { isError } from "@ove/ove-types";
 import { assert } from "@ove/ove-utils";
+import { toast } from "sonner";
 
 const getStatusClass = (status: string) => {
   switch (status) {
@@ -60,9 +59,11 @@ const Pending = ({ invite }: { invite: Invite }) => {
         <DropdownMenuItem
           className="flex cursor-pointer items-center"
           onClick={() =>
-            acceptInvite
-              .mutateAsync({ inviteId: invite.id })
-              .catch(logger.error)
+            toast.promise(acceptInvite.mutateAsync({ inviteId: invite.id }), {
+              loading: "Accepting invite...",
+              error: "Failed to accept invite",
+              success: "Accepted invite",
+            })
           }
         >
           <Check className="size-4" />
@@ -71,9 +72,11 @@ const Pending = ({ invite }: { invite: Invite }) => {
         <DropdownMenuItem
           className="flex cursor-pointer items-center"
           onClick={() =>
-            declineInvite
-              .mutateAsync({ inviteId: invite.id })
-              .catch(logger.error)
+            toast.promise(declineInvite.mutateAsync({ inviteId: invite.id }), {
+              loading: "Declining invite...",
+              error: "Failed to decline invite",
+              success: "Declined invite",
+            })
           }
         >
           <X className="size-4" />
@@ -167,13 +170,15 @@ const Collaboration = () => {
   const { accepted, pending, declined, isLoaded, sent } = useInvites();
   const getUsers = api.projects.getUsers.useQuery();
   const users = useMemo(() => {
-    if (getUsers.status !== "success" || isError(getUsers.data)) return [];
+    if (getUsers.status !== "success") return [];
     return getUsers.data;
   }, [getUsers.status, getUsers.data]);
 
   return isLoaded ? (
     <main>
-      {pending.length > 0 || accepted.length > 0 || declined.length > 0 ? <h2 className="px-64 mt-4 font-bold text-xl">Inbox</h2> : null}
+      {pending.length > 0 || accepted.length > 0 || declined.length > 0 ? (
+        <h2 className="mt-4 px-64 text-xl font-bold">Inbox</h2>
+      ) : null}
       <ul className="mt-4 flex flex-col gap-4 px-64 py-0">
         {pending.map((invite) => (
           <InviteCard
@@ -204,7 +209,9 @@ const Collaboration = () => {
           />
         ))}
       </ul>
-      {sent.length > 0 ? <h2 className="px-64 mt-4 font-bold text-xl">Outbox</h2> : null}
+      {sent.length > 0 ? (
+        <h2 className="mt-4 px-64 text-xl font-bold">Outbox</h2>
+      ) : null}
       <ul className="mt-4 flex flex-col gap-4 px-64 py-0">
         {sent.map((invite) => (
           <InviteCard

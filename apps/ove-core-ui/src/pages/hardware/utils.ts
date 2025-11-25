@@ -1,42 +1,24 @@
-import { isError, type OVEException } from "@ove/ove-types";
-
 export type HardwareID = {
   bridgeId: string;
-} & ({ type: "single", deviceId: string } | { type: "multi", tags?: string[], deviceIds?: string[] });
+} & (
+  | { type: "single"; deviceId: string }
+  | { type: "multi"; tags?: string[]; deviceIds?: string[] }
+);
 
 export const formatIds = (responses: { deviceId: string }[]) =>
   responses.map(({ deviceId }) => deviceId).join(", ");
 
-export const checkErrors = <T>(args: {
-  data: {
+export const getFailingDevices = <T>(
+  responses: {
     deviceId: string;
-    response: T | OVEException;
-  }[];
-  onError: (
-    responses: {
-      deviceId: string;
-      response: T | OVEException;
-    }[],
-  ) => void;
-  onSuccess: () => void;
-}) => {
-  const failing: {
-    deviceId: string;
-    response: T | OVEException;
-  }[] = [];
-
-  args.data.forEach((response) => {
-    if (isError(response.response)) {
-      failing.push(response);
-    }
-  });
-
-  if (failing.length === 0) {
-    args.onSuccess();
-  } else {
-    args.onError(failing);
-  }
-};
+    response:
+      | { status: "success"; data: T }
+      | { status: "error"; error: string };
+  }[],
+) =>
+  responses
+    .filter(({ response }) => response.status === "error")
+    .map(({ deviceId }) => deviceId);
 
 export const format = (value: unknown) => {
   if (

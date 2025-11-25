@@ -32,13 +32,9 @@ const PowerControls = ({ bridgeId }: { bridgeId: string }) => {
   const [open, setOpen] = useState(false);
   const powerOn = api.hardware.startAll.useMutation({
     retry: false,
-    onSuccess: () => toast.success("Successfully powered on"),
-    onError: () => toast.error("Failed to power on"),
   });
   const powerOff = api.hardware.shutdownAll.useMutation({
     retry: false,
-    onSuccess: () => toast.success("Successfully powered off"),
-    onError: () => toast.error("Failed to power off"),
   });
 
   const form = useForm<PowerControlForm>({
@@ -52,9 +48,17 @@ const PowerControls = ({ bridgeId }: { bridgeId: string }) => {
       return;
     }
     if (mode === "on") {
-      powerOn.mutateAsync({ bridgeId });
+      toast.promise(powerOn.mutateAsync({ bridgeId }), {
+        loading: "Turning on...",
+        success: "Successfully turned on",
+        error: "Unable to turn on",
+      });
     } else if (mode === "off") {
-      powerOff.mutateAsync({ bridgeId });
+      toast.promise(powerOff.mutateAsync({ bridgeId }), {
+        loading: "Turning off...",
+        success: "Successfully turned off",
+        error: "Unable to turn off",
+      });
     }
     setMode(null);
     setOpen(false);
@@ -87,7 +91,9 @@ const PowerControls = ({ bridgeId }: { bridgeId: string }) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Action</DialogTitle>
-          <DialogDescription>Please confirm the action you are about to take.</DialogDescription>
+          <DialogDescription>
+            Please confirm the action you are about to take.
+          </DialogDescription>
 
           <Form {...form}>
             <form
@@ -100,7 +106,8 @@ const PowerControls = ({ bridgeId }: { bridgeId: string }) => {
                 render={({ field }) => (
                   <FormItem className="mt-4 flex items-center space-y-0">
                     <FormLabel>
-                      You are about to turn the Observatory on/off, please confirm:
+                      You are about to turn the Observatory on/off, please
+                      confirm:
                     </FormLabel>
                     <FormControl className="ml-1 mt-0">
                       <Checkbox

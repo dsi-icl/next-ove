@@ -1,10 +1,12 @@
-import React, { type RefObject, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import {
-  Bounds,
-  type Device,
-  isError,
-  type StatusOptions,
-} from "@ove/ove-types";
+import React, {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+} from "react";
+import { Bounds, type Device, type StatusOptions } from "@ove/ove-types";
 import { InfoIcon, Moon, Sun } from "lucide-react";
 import { useStatus } from "./hooks";
 import { env, logger } from "../../../env";
@@ -13,44 +15,70 @@ import Preview from "./preview/preview";
 import Toolbar from "./toolbar/toolbar";
 import { api } from "../../../utils/api";
 import { columns, type FilterValue } from "./columns";
-import { Badge, Popover, PopoverContent, PopoverTrigger } from "@ove/ui-base-components";
+import {
+  Badge,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@ove/ui-base-components";
 import Container from "./container";
 import { buildDeviceURL } from "@ove/ove-utils";
 
-const ObservatoryInfo = ({ bridgeId, ref }: { bridgeId: string, ref: RefObject<HTMLElement | null> }) => {
+const ObservatoryInfo = ({
+  bridgeId,
+  ref,
+}: {
+  bridgeId: string;
+  ref: RefObject<HTMLElement | null>;
+}) => {
   const getNextSchedule = api.bridge.getNextScheduled.useQuery({ bridgeId });
   const nextScheduledStart = useMemo(() => {
-    if (getNextSchedule.status === "success" && !isError(getNextSchedule.data.response) && getNextSchedule.data.response.nextStart !== null) {
-      return new Date(getNextSchedule.data.response.nextStart).toLocaleString();
+    if (
+      getNextSchedule.status === "success" &&
+      getNextSchedule.data.nextStart !== null
+    ) {
+      return new Date(getNextSchedule.data.nextStart).toLocaleString();
     } else {
       return "-";
     }
-  }, [getNextSchedule.data?.response, getNextSchedule.status]);
+  }, [getNextSchedule.data?.nextStart, getNextSchedule.status]);
 
   const nextScheduledStop = useMemo(() => {
-    if (getNextSchedule.status === "success" && !isError(getNextSchedule.data.response) && getNextSchedule.data.response.nextStop !== null) {
-      return new Date(getNextSchedule.data.response.nextStop).toLocaleString();
+    if (
+      getNextSchedule.status === "success" &&
+      getNextSchedule.data.nextStop !== null
+    ) {
+      return new Date(getNextSchedule.data.nextStop).toLocaleString();
     } else {
       return "-";
     }
-  }, [getNextSchedule.data?.response, getNextSchedule.status]);
+  }, [getNextSchedule.status, getNextSchedule.data?.nextStop]);
 
-  return <Popover>
-    <PopoverTrigger>
-      <InfoIcon className="size-4" />
-    </PopoverTrigger>
-    <PopoverContent className="w-[250px] max-w-[unset] flex flex-col gap-1" container={ref.current}>
-      <div className="flex items-center">
-        <Sun className="size-4" strokeWidth={3} />
-        <span className="ml-auto font-mono font-normal">{nextScheduledStart}</span>
-      </div>
-      <div className="flex items-center">
-        <Moon className="size-4" strokeWidth={3} />
-        <span className="ml-auto font-mono font-normal">{nextScheduledStop}</span>
-      </div>
-    </PopoverContent>
-  </Popover>
-}
+  return (
+    <Popover>
+      <PopoverTrigger>
+        <InfoIcon className="size-4" />
+      </PopoverTrigger>
+      <PopoverContent
+        className="flex w-[250px] max-w-[unset] flex-col gap-1"
+        container={ref.current}
+      >
+        <div className="flex items-center">
+          <Sun className="size-4" strokeWidth={3} />
+          <span className="ml-auto font-mono font-normal">
+            {nextScheduledStart}
+          </span>
+        </div>
+        <div className="flex items-center">
+          <Moon className="size-4" strokeWidth={3} />
+          <span className="ml-auto font-mono font-normal">
+            {nextScheduledStop}
+          </span>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 type ActionStateHelper<T extends keyof FilterValue> = Pick<FilterValue, T> & {
   command: T;
@@ -91,14 +119,9 @@ const useDevices = (isOnline: boolean, bridgeId: string) => {
     { enabled: isOnline },
   );
   return useMemo(() => {
-    if (
-      !isOnline ||
-      getDevices.status !== "success" ||
-      isError(getDevices.data.response)
-    )
-      return [];
-    return getDevices.data.response;
-  }, [isOnline, getDevices.status, getDevices.data?.response]);
+    if (!isOnline || getDevices.status !== "success") return [];
+    return getDevices.data;
+  }, [isOnline, getDevices.status, getDevices.data]);
 };
 
 const getStatusClass = (status: StatusOptions | "pending" | "error" | null) => {
@@ -173,7 +196,13 @@ const Observatory = ({
   }, [isOnline, utils.core.getObservatoryBounds]);
 
   useEffect(() => {
-    const interval = setInterval(() => utils.hardware.getLiveUpdate.invalidate({ bridgeId: name }).catch(logger.error), env.LIVE_UPDATE_REFRESH_INTERVAL);
+    const interval = setInterval(
+      () =>
+        utils.hardware.getLiveUpdate
+          .invalidate({ bridgeId: name })
+          .catch(logger.error),
+      env.LIVE_UPDATE_REFRESH_INTERVAL,
+    );
     return () => clearInterval(interval);
   }, [name, utils.hardware.getLiveUpdate]);
 
@@ -206,14 +235,12 @@ const Observatory = ({
   return (
     <section className="relative mx-8 mb-0 mt-8">
       <h2 ref={headingRef} className="mb-2 font-bold">
-        Observatory {name} - {isOnline ? "online" : "offline"}<ObservatoryInfo ref={headingRef} bridgeId={name} />
+        Observatory {name} - {isOnline ? "online" : "offline"}
+        <ObservatoryInfo ref={headingRef} bridgeId={name} />
       </h2>
       {isOnline ? (
         <>
-          {isOnline &&
-          bounds.status === "success" &&
-          !isError(bounds.data) &&
-          name in bounds.data ? (
+          {isOnline && bounds.status === "success" && name in bounds.data ? (
             <Preview
               bridgeId={name}
               selected={filters.selected}

@@ -1,7 +1,6 @@
 import { api } from "../../../utils/api";
 import { logger } from "../../../env";
 import { useMemo } from "react";
-import { isError } from "@ove/ove-types";
 
 export const useCollaborators = (project: {creatorId: string, id: string}) => {
   const apiUtils = api.useUtils();
@@ -21,12 +20,12 @@ export const useCollaborators = (project: {creatorId: string, id: string}) => {
   });
 
   const collaborators = useMemo(() => {
-    if (getCollaborators.status !== "success" || isError(getCollaborators.data)) return [];
+    if (getCollaborators.status !== "success") return [];
     return getCollaborators.data;
   }, [getCollaborators.status, getCollaborators.data]);
 
   const users = useMemo(() => {
-    if (getUsers.status !== "success" || isError(getUsers.data)) return [];
+    if (getUsers.status !== "success") return [];
     return getUsers.data.filter(({id}) => collaborators.find(c => c.id === id) === undefined);
   }, [getUsers.status, getUsers.data, collaborators]);
 

@@ -11,7 +11,7 @@ import { BrowserConfigSchema } from "@ove/ove-types";
 const schema = z.strictObject({
   LOGGING: z
     .strictObject({
-      SERVER: z.string(),
+      SERVER: z.string().optional(),
       LEVEL: z.number().optional(),
       IDENTIFIER: z.string().optional(),
     })

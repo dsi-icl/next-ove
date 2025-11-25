@@ -6,6 +6,9 @@
   "targets": {
     "db": {
       "executor": "nx:run-commands",
+      "inputs": [
+        "{workspaceRoot}/tools/db/schema.prisma"
+      ],
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": [
@@ -142,7 +145,7 @@
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": [
-        "coverage/apps/ove-client"
+        "{workspaceRoot}/out/coverage/tests/apps/{projectName}"
       ],
       "options": {
         "jestConfig": "apps/ove-client/jest.config.ts",

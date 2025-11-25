@@ -1,7 +1,6 @@
 import { prisma } from "../db";
 import { state } from "../state";
 import { logger } from "../../env";
-import { raise } from "@ove/ove-utils";
 import { io as SocketServer } from "../sockets";
 import type { Namespace } from "socket.io";
 
@@ -49,7 +48,7 @@ export const initSockets = (stateId: string, clients: Namespace) => {
 export const initObservatorySockets = (observatory: string) => {
   const observatoryState = state.rendering.get(observatory);
   if (observatoryState === undefined) {
-    return raise("Missing observatory state");
+    throw new Error("Missing observatory state");
   }
 
   observatoryState.clients.on("connection", (socket) => {

@@ -1,7 +1,5 @@
 import { toast } from "sonner";
 import { assert } from "@ove/ove-utils";
-import { isError } from "@ove/ove-types";
-import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
 import React, { useMemo, useState } from "react";
 import ScreenshotDisplay from "./screenshot-display";
@@ -31,64 +29,58 @@ const useTakeScreenshots = (
   const takeScreenshots = api.hardware.screenshot.useMutation({
     retry: false,
     onError: () => {
-      toast.error("Unable to take screenshots");
       closeDialog();
     },
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to take screenshots");
-        closeDialog();
-        return;
-      }
+    onSuccess: (response) => {
       setScreenshots([{ deviceId: assert(deviceId), response }]);
     },
   });
   const takeScreenshotsAll = api.hardware.screenshotAll.useMutation({
     retry: false,
     onError: () => {
-      toast.error("Unable to take screenshots");
       closeDialog();
     },
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to take screenshots");
-        closeDialog();
-        return;
-      }
-
+    onSuccess: (responses) => {
       setScreenshots(
-        response.filter(({ deviceId, response }) => {
-          if (isError(response)) {
-            toast.error(`Unable to take screenshots on ${deviceId}`);
-            return false;
-          }
-          return true;
-        }) as { deviceId: string; response: string[] }[],
+        responses.map(({ deviceId, response }) => {
+          if (response.status !== "success") return undefined;
+          return { deviceId, response: response.data };
+        }).filter(Boolean) as { deviceId: string; response: string[] }[],
       );
     },
   });
 
   if (deviceId === null) {
     return (screens: number[], method: TransferMethod) =>
-      takeScreenshotsAll
-        .mutateAsync({
+      toast.promise(
+        takeScreenshotsAll.mutateAsync({
           bridgeId,
           tags,
           deviceIds,
           screens,
           method,
-        })
-        .catch(logger.error);
+        }),
+        {
+          loading: "Taking screenshots...",
+          success: "Screenshots taken",
+          error: "Unable to take screenshots",
+        },
+      );
   }
   return (screens: number[], method: TransferMethod) =>
-    takeScreenshots
-      .mutateAsync({
+    toast.promise(
+      takeScreenshots.mutateAsync({
         bridgeId,
         deviceId,
         screens,
         method,
-      })
-      .catch(logger.error);
+      }),
+      {
+        loading: "Taking screenshots...",
+        success: "Screenshots taken",
+        error: "Unable to take screenshots",
+      },
+    );
 };
 
 const useDisplays = (
@@ -115,33 +107,32 @@ const useDisplays = (
 
   return useMemo(() => {
     if (deviceId === null) {
-      if (
-        getDisplayConfigAll.status !== "success" ||
-        isError(getDisplayConfigAll.data.response)
-      )
+      if (getDisplayConfigAll.status !== "success")
         return [];
-      const xs = getDisplayConfigAll.data.response.filter(
-        ({ response }) => !isError(response),
+      const xs = getDisplayConfigAll.data.filter(
+        ({ response }) => response.status !== "error",
       );
-      const allIds = new Set(xs.flatMap(
-        ({ response }) =>
-          Object.keys(response).map(parseInt))
+      const allIds = new Set(
+        xs.flatMap(({ response }) => Object.keys(response).map(parseInt)),
       );
-      return Array.from(allIds).map((x) => ({value: x, label: `Screen ${x}`}));
+      return Array.from(allIds).map((x) => ({
+        value: x,
+        label: `Screen ${x}`,
+      }));
     } else {
-      if (
-        getDisplayConfig.status !== "success" ||
-        isError(getDisplayConfig.data.response)
-      )
+      if (getDisplayConfig.status !== "success")
         return [];
-      return Object.keys(getDisplayConfig.data.response).map((x) => ({value: parseInt(x), label: `Screen ${x}`}));
+      return Object.keys(getDisplayConfig.data).map((x) => ({
+        value: parseInt(x),
+        label: `Screen ${x}`,
+      }));
     }
   }, [
     deviceId,
     getDisplayConfigAll.status,
     getDisplayConfig.status,
-    getDisplayConfigAll.data?.response,
-    getDisplayConfig.data?.response,
+    getDisplayConfigAll.data,
+    getDisplayConfig.data,
   ]);
 };
 
@@ -152,13 +143,12 @@ const Screenshot = ({
   tags,
   deviceIds,
 }: ScreenshotProps) => {
-  const [state, setState] = useState<"config" | "display">("config");
   const [screenshots, setScreenshots] = useState<
     {
       deviceId: string;
       response: string[];
-    }[]
-  >([]);
+    }[] | null
+  >(null);
   const [selectedMethod, setSelectedMethod] = useState<TransferMethod>("local");
   const takeScreenshots = useTakeScreenshots(
     setScreenshots,
@@ -169,12 +159,11 @@ const Screenshot = ({
     deviceIds,
   );
   const displays = useDisplays(deviceId, bridgeId, tags, deviceIds);
-  return state === "config" ? (
+  return screenshots === null ? (
     <ScreenshotConfig
       displays={displays}
       method={selectedMethod}
       takeScreenshots={takeScreenshots}
-      transition={() => setState("display")}
       setMethod={setSelectedMethod}
     />
   ) : (

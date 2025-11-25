@@ -11,8 +11,6 @@ import { SliderRange, SliderThumb, SliderTrack } from "@radix-ui/react-slider";
 import React, { useCallback, useState } from "react";
 import { api } from "../../../../utils/api";
 import { toast } from "sonner";
-import { isError } from "@ove/ove-types";
-import { logger } from "../../../../env";
 
 const useVolume = (
   closeDialog: () => void,
@@ -22,68 +20,44 @@ const useVolume = (
   deviceIds?: string[],
 ) => {
   const setVolume = api.hardware.setVolume.useMutation({
-    retry: false,
-    onError: () => {
-      toast.error("Unable to set volume");
-      closeDialog();
-    },
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to set volume");
-        closeDialog();
-        return;
-      }
-
-      toast.info("Successfully set volume");
-      closeDialog();
-    },
+    onError: () => closeDialog(),
+    onSuccess: () => closeDialog(),
   });
 
   const setVolumeAll = api.hardware.setVolumeAll.useMutation({
-    retry: false,
-    onError: () => {
-      toast.error("Unable to set volume");
-      closeDialog();
-    },
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        toast.error("Unable to set volume");
-        closeDialog();
-        return;
-      }
-
-      const errors = response.filter(({ response }) => isError(response));
-
-      if (errors.length === 0) {
-        toast.info("Successfully set volume");
-      } else {
-        errors.forEach(({ deviceId }) =>
-          toast.error(`Unable to set volume on ${deviceId}`),
-        );
-      }
-      closeDialog();
-    },
+    onError: () => closeDialog(),
+    onSuccess: () => closeDialog(),
   });
 
   if (deviceId === null) {
     return (volume: number) =>
-      void setVolumeAll
-        .mutateAsync({
+      toast.promise(
+        setVolumeAll.mutateAsync({
           bridgeId,
           tags,
           deviceIds,
           volume,
-        })
-        .catch(logger.error);
+        }),
+        {
+          loading: "Setting volume...",
+          success: "Volume set",
+          error: "Unable to set volume",
+        },
+      );
   }
   return (volume: number) =>
-    void setVolume
-      .mutateAsync({
+    toast.promise(
+      setVolume.mutateAsync({
         bridgeId,
         deviceId,
         volume,
-      })
-      .catch(logger.error);
+      }),
+      {
+        loading: "Setting volume...",
+        success: "Volume set",
+        error: "Unable to set volume",
+      },
+    );
 };
 
 type VolumeProps = {
@@ -94,7 +68,13 @@ type VolumeProps = {
   deviceIds?: string[];
 };
 
-const Volume = ({ closeDialog, deviceId, bridgeId, tags, deviceIds }: VolumeProps) => {
+const Volume = ({
+  closeDialog,
+  deviceId,
+  bridgeId,
+  tags,
+  deviceIds,
+}: VolumeProps) => {
   const [volume, setVolume] = useState(50);
   const [isMuted, setIsMuted] = useState(false);
   const trigger = useVolume(closeDialog, deviceId, bridgeId, tags, deviceIds);

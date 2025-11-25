@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { toast } from "sonner";
 import {
   DialogClose,
   DialogContent,
@@ -12,7 +11,6 @@ import {
 import { X } from "lucide-react";
 import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
-import { isError } from "@ove/ove-types";
 import { useForm } from "react-hook-form";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,25 +32,15 @@ const useConsole = (
   );
   const execute = api.hardware.execute.useMutation({
     onSuccess: ({ response }) => {
-      if (isError(response)) {
-        addCommand(`${deviceId} > ERROR`);
-        return;
-      }
-
-      addCommand(`${response.response}`);
+      addCommand(`${response}`);
     },
-    onError: () => toast.error("Unable to execute command"),
+    onError: () => addCommand("ERROR"),
   });
   const executeAll = api.hardware.executeAll.useMutation({
-    onSuccess: ({ response }) => {
-      if (isError(response)) {
-        addCommand(`${bridgeId} > ERROR`);
-        return;
-      }
-
+    onSuccess: (response) => {
       response.forEach(({ deviceId, response }) => {
-        if ("response" in response) {
-          addCommand(`${deviceId} > ${response.response}`);
+        if (response.status === "success" && response.data !== undefined) {
+          addCommand(`${deviceId} > ${response.data}`);
         } else {
           addCommand(`${deviceId} > ERROR`);
         }

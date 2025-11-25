@@ -22,14 +22,13 @@ import {
 } from "@ove/ui-base-components";
 import { useForm } from "react-hook-form";
 import { Check, ChevronsUpDown } from "lucide-react";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 
 type ScreenshotConfigProps = {
   displays: { value: number; label: string }[];
   method: TransferMethod;
   setMethod: (method: TransferMethod) => void;
   takeScreenshots: (screens: number[], method: TransferMethod) => void;
-  transition: () => void;
 };
 
 export type TransferMethod = "response" | "upload" | "local";
@@ -39,7 +38,6 @@ const ScreenshotConfig = ({
   method,
   setMethod,
   takeScreenshots,
-  transition,
 }: ScreenshotConfigProps) => {
   const [screens, setScreens] = useState<number[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -50,11 +48,6 @@ const ScreenshotConfig = ({
   } = useForm();
   useFormErrorHandling(errors);
 
-  const onSubmit = useCallback(() => {
-    takeScreenshots(screens, method);
-    transition();
-  }, [takeScreenshots, screens, method, transition]);
-
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
@@ -63,7 +56,7 @@ const ScreenshotConfig = ({
           Select how you want the screenshots to be taken
         </DialogDescription>
       </DialogHeader>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(() => takeScreenshots(screens, method))}>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="method">Transfer Method</Label>

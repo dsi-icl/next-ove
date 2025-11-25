@@ -1,6 +1,5 @@
 import {
   type Device,
-  isError,
   type MDCInfo as TMDCInfo,
   type PJLinkInfo as TPJLinkInfo,
 } from "@ove/ove-types";
@@ -93,9 +92,7 @@ export const useInfo = (
               0,
               {
                 deviceId,
-                response: isError(getInfo.data.response)
-                  ? null
-                  : (getInfo.data.response as object),
+                response: (getInfo.data ?? null) as object | null,
               },
             ],
           ]);
@@ -108,16 +105,12 @@ export const useInfo = (
     } else {
       switch (getInfoAll.status) {
         case "success": {
-          if (isError(getInfoAll.data.response)) {
-            toast.error("Cannot get information for devices");
-            return new Map();
-          }
           return new Map(
-            getInfoAll.data.response.map(({ deviceId, response }, i) => [
+            getInfoAll.data.map(({ deviceId, response }, i) => [
               i,
               {
                 deviceId,
-                response: isError(response) ? null : (response as object),
+                response: response.status === "error" ? null : (response as object),
               },
             ]),
           );
@@ -132,9 +125,9 @@ export const useInfo = (
   }, [
     deviceId,
     getInfo.status,
-    getInfo.data?.response,
+    getInfo.data,
     getInfoAll.status,
-    getInfoAll.data?.response,
+    getInfoAll.data,
   ]);
 
   return {

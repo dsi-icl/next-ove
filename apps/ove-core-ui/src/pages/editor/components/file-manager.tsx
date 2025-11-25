@@ -15,8 +15,8 @@ import {
   Input,
   Select,
   SelectContent,
-  SelectTrigger,
   SelectItem,
+  SelectTrigger,
   SelectValue,
   useFormErrorHandling,
 } from "@ove/ui-base-components";
@@ -25,31 +25,44 @@ import { assert } from "@ove/ove-utils";
 import { api } from "../../../utils/api";
 import { useForm } from "react-hook-form";
 import { useProjectId } from "../hooks/projects";
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { File as FileT } from "@ove/ove-types";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
 import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";
 
-const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (file: FileT | null) => void }) => {
+const FileView = ({
+  file,
+  files,
+  edit,
+}: {
+  files: FileT[];
+  file: FileT;
+  edit: (file: FileT | null) => void;
+}) => {
   const latestFile = getLatest(files, file.bucketName, file.name);
   const isImage = file.name.match(env.CONSTANTS.IMAGE_EXTENSION_REGEX) !== null;
   const processImage = api.projects.formatDZI.useMutation({ retry: false });
   const process = useCallback(
     () =>
-      processImage
-        .mutateAsync({
+      toast.promise(
+        processImage.mutateAsync({
           bucketName: file.bucketName,
           objectName: file.name,
           versionId: latestFile.version,
-        })
-        .then(() => toast.success(`Converted ${file.name} to DZI`))
-        .catch(() => toast.error(`Error converting ${file.name} to DZI`)),
-    [processImage, files, file.name, file.bucketName],
+        }),
+        {
+          loading: "Converting to DZI...",
+          error: `Unable to convert ${file.name} to DZI`,
+          success: `Converted ${file.name} to DZI`,
+        },
+      ),
+    [processImage, file.name, latestFile.version, file.bucketName],
   );
 
-  const copyUrl = useCallback(async (version: string) => {
+  const copyUrl = useCallback(
+    async (version: string) => {
       const url = toURL(file.bucketName, file.name, version);
       await navigator.clipboard.writeText(url);
       toast.success(`Copied internal URL for ${file.name} (${version})`);
@@ -59,16 +72,23 @@ const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (f
 
   const canEdit = (name: string) => {
     const editableExtensions = [
-      "css", "csv", "html", "json", "md", "markdown", "tex", "tsv"
+      "css",
+      "csv",
+      "html",
+      "json",
+      "md",
+      "markdown",
+      "tex",
+      "tsv",
     ];
     const ext = name.split(".").pop()?.toLowerCase() ?? "";
     return editableExtensions.includes(ext);
-  }
+  };
 
   return (
     <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
-      <div className="flex min-w-0 items-center space-x-4 mr-2">
-        <div className="max-w-[40vw] overflow-x-auto whitespace-nowrap scrollbar-hide">
+      <div className="mr-2 flex min-w-0 items-center space-x-4">
+        <div className="scrollbar-hide max-w-[40vw] overflow-x-auto whitespace-nowrap">
           <p className="font-medium text-black">{file.name}</p>
         </div>
       </div>
@@ -83,12 +103,17 @@ const FileView = ({ file, files, edit }: { files: FileT[]; file: FileT, edit: (f
             <Gear className="size-4" />
           </Button>
         ) : null}
-        {canEdit(latestFile.name) && (<Button onClick={() => edit(latestFile)}>Edit</Button>)}
+        {canEdit(latestFile.name) && (
+          <Button onClick={() => edit(latestFile)}>Edit</Button>
+        )}
         <Select
           value={latestFile.version}
           onValueChange={(version) => copyUrl(version)}
         >
-          <SelectTrigger className="text-black" title="Click a version to copy its URL">
+          <SelectTrigger
+            className="text-black"
+            title="Click a version to copy its URL"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -147,10 +172,14 @@ const FileManager = ({ edit }: FileManagerProps) => {
       toast.error("No file selected");
       return;
     }
-    await uploadFile({ objectName: selected.name, file: selected, intent: "auto" });
-    
+    await uploadFile({
+      objectName: selected.name,
+      file: selected,
+      intent: "auto",
+    });
+
     form.reset();
-    setFileInputKey(k => k + 1); 
+    setFileInputKey((k) => k + 1);
   };
   const { files } = useFiles(assert(projectId));
 
@@ -204,7 +233,9 @@ const FileManager = ({ edit }: FileManagerProps) => {
                         {...rest}
                         onChange={(e) => {
                           const files = e.target.files;
-                          rest.onChange(files && files.length ? files[0] : undefined);
+                          rest.onChange(
+                            files && files.length ? files[0] : undefined,
+                          );
                         }}
                       />
                     </FormControl>

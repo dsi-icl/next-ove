@@ -1,18 +1,14 @@
 import {
   CoreAPI,
-  isError,
-  type OVEException,
   type TCoreAPI,
   type TCoreAPIOutput,
   type THardwareClientToServerEvents,
-  type THardwareServerToClientEvents,
+  type THardwareServerToClientEvents
 } from "@ove/ove-types";
 import { io } from "./sockets";
 import { state } from "../state";
-import { logger } from "../../env";
-import { safe } from "@ove/ove-utils";
 import type { Socket } from "socket.io";
-import { procedure, router } from "../trpc";
+import { adminProcedure, procedure, router } from "../trpc";
 
 const getSocket: (
   socketId: string,
@@ -26,10 +22,10 @@ const getSocket: (
 };
 
 const generateProcedure = <Key extends keyof TCoreAPI>(k: Key) =>
-  procedure
+  (CoreAPI[k].meta.admin ? adminProcedure : procedure)
     .meta(CoreAPI[k].meta)
     .input<TCoreAPI[Key]["args"]>(CoreAPI[k].args)
-    .output<TCoreAPI[Key]["bridge"]>(CoreAPI[k].bridge);
+    .output<TCoreAPI[Key]["returns"]>(CoreAPI[k].returns);
 
 const handler = async <
   Key extends keyof TCoreAPI,
@@ -42,21 +38,12 @@ const handler = async <
 ): Promise<TCoreAPIOutput<Key>> => {
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   const { bridgeId, ...args } = input;
-  logger.info(`Handling: ${k}`);
-  const res: OVEException | TCoreAPIOutput<Key> = (await safe(logger, (): Promise<TCoreAPIOutput<Key>> => {
-    const socket = getSocket(bridgeId);
-    if (socket === null) throw new Error(`${bridgeId} is not connected`);
-    // @ts-expect-error arg spread
-    return socket.emitWithAck(k, args) as Promise<TCoreAPIOutput<Key>>;
-  }));
-  if (isError(res)) {
-    return {
-      meta: {
-        bridge: bridgeId,
-      },
-      response: res,
-    };
-  } else return res;
+  const socket = getSocket(bridgeId);
+  if (socket === null) throw new Error(`${bridgeId} is not connected`);
+  // @ts-expect-error arg spread
+  const res = await socket.emitWithAck(k, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
 };
 
 const generateQuery = <Key extends keyof TCoreAPI>(k: Key) =>

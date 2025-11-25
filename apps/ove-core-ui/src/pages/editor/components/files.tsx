@@ -1,4 +1,4 @@
-import { File } from "@ove/ove-types";
+import type { File } from "@ove/ove-types";
 import FileManager from "./file-manager";
 import { useData } from "../hooks/files";
 import FileEditor, { type Language } from "./file-editor";

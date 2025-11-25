@@ -1,5 +1,5 @@
 import { parentPort } from "worker_threads";
-import { type Device, isError, type PJLinkSource } from "@ove/ove-types";
+import type { Device, PJLinkSource } from "@ove/ove-types";
 import { getServiceForProtocol } from "./features/hardware/utils";
 import type {
   MDCState,
@@ -8,10 +8,11 @@ import type {
   State,
 } from "./features/reconciliation/state";
 import { logger } from "./env";
-import { Json, safe } from "@ove/ove-utils";
+import { Json } from "@ove/ove-utils";
 import type { NodeService } from "./features/hardware/node-service";
 import type { MDCService } from "./features/hardware/mdc-service";
 import type { PJLinkService } from "./features/hardware/pjlink-service";
+import type { TLogger } from "@ove/ove-logging";
 
 if (!parentPort) {
   throw new Error("This file is meant to be run as a Worker");
@@ -27,6 +28,14 @@ type Data =
       reconcile: boolean;
     } & MessageData)
   | { type: "update"; deviceId: string; key: string; value: any };
+
+const safe = async <T>(logger: TLogger, fn: () => Promise<T>) => {
+  try {
+    return await fn();
+  } catch (e) {
+    logger.error(e);
+  }
+};
 
 const update = async ({
   deviceId,
@@ -74,12 +83,9 @@ const reconcileBrowsers = async (
   if (
     current.browsers.target === null ||
     current.browsers.target ===
-      (current.browsers.observed !== undefined &&
-        !isError(
-          current.browsers.observed
-            ? Object.keys(current.browsers.observed).length > 0
-            : current.browsers.observed,
-        ))
+      (current.browsers.observed !== undefined && current.browsers.observed
+        ? Object.keys(current.browsers.observed).length > 0
+        : current.browsers.observed)
   )
     return;
   if (current.browsers.target) {
@@ -232,7 +238,7 @@ const observeNode = async (
     service.screenshot(device, {
       method: "response",
       screens:
-        configs !== undefined && !isError(configs)
+        configs !== undefined
           ? Array.from({ length: configs.length }).map((_x, i) => i)
           : [],
     }),
@@ -264,9 +270,9 @@ const observeMDC = async (
 ) => {
   const status = await safe(logger, () => service.getStatus(device, {}));
   const info = await safe(logger, () => service.getInfo(device, {}));
-  const source = info !== undefined && !isError(info) ? info.source : info;
-  const volume = info !== undefined && !isError(info) ? info.volume : info;
-  const muted = info !== undefined && !isError(info) ? info.isMuted : info;
+  const source = info !== undefined ? info.source : info;
+  const volume = info !== undefined ? info.volume : info;
+  const muted = info !== undefined ? info.isMuted : info;
 
   state[device.id] = {
     type: "mdc" as const,
@@ -298,12 +304,10 @@ const observePJLink = async (
   const status = await safe(logger, () => service.getStatus(device, {}));
   const info = await safe(logger, () => service.getInfo(device, {}));
   const source =
-    info !== undefined && !isError(info)
-      ? (info.source as keyof PJLinkSource)
-      : info;
-  const muted = info !== undefined && !isError(info) ? info.isMuted : info;
-  const audio = info !== undefined && !isError(info) ? info.isAudioMuted : info;
-  const video = info !== undefined && !isError(info) ? info.isVideoMuted : info;
+    info !== undefined ? (info.source as keyof PJLinkSource) : info;
+  const muted = info !== undefined ? info.isMuted : info;
+  const audio = info !== undefined ? info.isAudioMuted : info;
+  const video = info !== undefined ? info.isVideoMuted : info;
 
   state[device.id] = {
     type: "pjlink" as const,

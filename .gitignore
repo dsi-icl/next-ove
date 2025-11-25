@@ -28,7 +28,7 @@ node_modules
 # misc
 /.sass-cache
 /connect.lock
-/coverage
+#/coverage
 /libpeerconnection.log
 npm-debug.log
 yarn-error.log
@@ -135,7 +135,7 @@ pids
 lib-cov
 
 # Coverage directory used by tools like istanbul
-coverage
+#coverage
 *.lcov
 
 # nyc test coverage
@@ -457,3 +457,6 @@ dev/tools/auto-populate/data/global_buckets/*
 
 /apps/ove-logs/data/postgres
 .env.postgres
+
+/apps/ove-client/tests/.env.tests
+/tools/security/check-compromised/installed.txt

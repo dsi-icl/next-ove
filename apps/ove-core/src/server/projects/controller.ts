@@ -9,10 +9,10 @@ import type { Client } from "minio";
 import { readFileSync } from "atomically";
 import unzip, { Entry } from "unzip-stream";
 import { S3Controller } from "./s3-controller";
-import { type DataTypes, isError } from "@ove/ove-types";
+import type { DataTypes } from "@ove/ove-types";
 import type { PrismaClient, Project, Section } from ".prisma/client";
-import type { DataFormatConfigOptions, InviteStatus } from "./router";
-import { assert, Json, raise, titleToBucketName } from "@ove/ove-utils";
+import type { DataFormatConfigOptions, InviteStatus } from "../schemas";
+import { assert, Json, titleToBucketName } from "@ove/ove-utils";
 
 import "@total-typescript/ts-reset";
 
@@ -170,7 +170,7 @@ const createProject = async (
     },
   });
   if (user === null) {
-    return raise("User cannot be null");
+    throw new Error("User cannot be null");
   }
 
   const input = project ?? {};
@@ -443,7 +443,7 @@ const getPresignedGetURL = async (
   objectName: string,
   versionId: string,
 ) => {
-  if (s3 === null) return raise("No S3 store configured");
+  if (s3 === null) throw new Error("No S3 store configured");
   return S3Controller.getPresignedGetURL(
     s3,
     bucketName,
@@ -460,8 +460,8 @@ const getPresignedPutURL = async (
   objectName: string,
 ) => {
   const project = await getProject(prisma, username, projectId);
-  if (project === null) return raise(`No project with id ${projectId}`);
-  if (s3 === null) return raise("No S3 store configured");
+  if (project === null) throw new Error(`No project with id ${projectId}`);
+  if (s3 === null) throw new Error("No S3 store configured");
   return S3Controller.getPresignedPutURL(
     s3,
     project.bucket ?? titleToBucketName(project.title),
@@ -475,11 +475,11 @@ const generateThumbnail = async (
   tags: string[],
 ) => {
   if (env.SERVICES.THUMBNAIL_GENERATOR === undefined) {
-    return raise("Thumbnail generator not configured");
+    throw new Error("Thumbnail generator not configured");
   }
   const project = await prisma.project.findUnique({ where: { id: projectId } });
-  if (project === null) return raise("Project not found");
-  if (project.thumbnail !== null) return raise("Thumbnail already exists");
+  if (project === null) throw new Error("Project not found");
+  if (project.thumbnail !== null) throw new Error("Thumbnail already exists");
   const prompt = encodeURI(tags.join(" "));
   const thumbnail = await (
     await fetch(
@@ -545,16 +545,15 @@ const getEnv = async (
   username: string,
   projectId: string,
 ) => {
-  if (s3 === null) return raise("No S3 store configured");
+  if (s3 === null) throw new Error("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
-  if (project === null) return raise(`No project with id ${projectId}`);
+  if (project === null) throw new Error(`No project with id ${projectId}`);
   const url = await getPresignedGetURL(
     s3,
     project.bucket ?? titleToBucketName(project.title),
     "env.json",
     "latest",
   );
-  if (isError(url)) return url;
   const data = (await (await fetch(url)).json()) as Record<string, string>;
   return Object.fromEntries(
     Object.entries(data)
@@ -571,7 +570,7 @@ const getController = async (
   observatory: string,
   layout: string | undefined,
 ) => {
-  if (s3 === null) return raise("No S3 store configured");
+  if (s3 === null) throw new Error("No S3 store configured");
   const project = await getProject(prisma, username, projectId);
   let data: string;
   let envJson: Record<string, unknown> = {};
@@ -586,7 +585,6 @@ const getController = async (
       "control.html",
       "latest",
     );
-    if (isError(url)) return url;
     data = await (await fetch(url)).text();
 
     const envUrl = await getPresignedGetURL(
@@ -600,7 +598,7 @@ const getController = async (
   }
 
   if (env.TEMPLATES?.CONTROLLER === undefined) {
-    return raise("Unable to format controller");
+    throw new Error("Unable to format controller");
   }
 
   for (const [k, v] of Object.entries(env.TEMPLATES.CONTROLLER)) {
@@ -779,16 +777,15 @@ const formatDZI = async (
   objectName: string,
   versionId: string,
 ) => {
-  if (s3 === null) return raise("No S3 store configured");
+  if (s3 === null) throw new Error("No S3 store configured");
   const url = await getPresignedGetURL(s3, bucketName, objectName, versionId);
-  if (isError(url)) return url;
   if (env.SERVICES.DATA_FORMATTER === undefined) {
-    return raise("No data formatter configured");
+    throw new Error("No data formatter configured");
   }
   const formatter = new URL(env.SERVICES.DATA_FORMATTER.URL);
   await new Promise((resolve, reject) => {
     if (env.SERVICES.DATA_FORMATTER === undefined) {
-      reject(raise("No data formatter configured"));
+      reject("No data formatter configured");
       return;
     }
     const data = Json.stringify({

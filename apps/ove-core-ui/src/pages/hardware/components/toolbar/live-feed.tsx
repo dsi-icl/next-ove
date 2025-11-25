@@ -14,9 +14,8 @@ import {
   DialogTrigger,
 } from "@ove/ui-base-components";
 import { Video } from "lucide-react";
-import { isError } from "@ove/ove-types";
 import { api } from "../../../../utils/api";
-import React, { memo, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 
 const LiveFeed = memo(({ bridgeId }: { bridgeId: string }) => {
   const [open, setOpen] = useState(false);
@@ -26,25 +25,51 @@ const LiveFeed = memo(({ bridgeId }: { bridgeId: string }) => {
   const startStreams = api.bridge.startStreams.useMutation({
     retry: false,
     onSuccess: () => {
-      context.bridge.getStreamStatus.invalidate({ bridgeId }).catch(() =>
-        toast.error("Unable to get stream status"),
-      );
-      context.bridge.getStreams.invalidate({ bridgeId }).catch(() =>
-        toast.error("Unable to get streams"),
+      toast.promise(
+        async () => {
+          await context.bridge.getStreamStatus.invalidate({ bridgeId });
+          await context.bridge.getStreams.invalidate({ bridgeId });
+        },
+        {
+          loading: "Updating stream status...",
+          success: "Successfully updated stream status",
+          error: "Unable to update stream status",
+        },
       );
     },
   });
   const stopStreams = api.bridge.stopStreams.useMutation({
     retry: false,
     onSuccess: () => {
-      context.bridge.getStreamStatus.invalidate({ bridgeId }).catch(() =>
-        toast.error("Unable to get stream status"),
-      );
-      context.bridge.getStreams.invalidate({ bridgeId }).catch(() =>
-        toast.error("Unable to get streams"),
+      toast.promise(
+        async () => {
+          await context.bridge.getStreamStatus.invalidate({ bridgeId });
+          await context.bridge.getStreams.invalidate({ bridgeId });
+        },
+        {
+          loading: "Updating stream status...",
+          success: "Successfully updated stream status",
+          error: "Unable to update stream status",
+        },
       );
     },
   });
+
+  const start = useCallback(() => {
+    toast.promise(startStreams.mutateAsync({ bridgeId }), {
+      loading: "Starting live feed...",
+      success: "Successfully started live feed",
+      error: "Unable to start live feed",
+    });
+  }, [startStreams, bridgeId]);
+
+  const stop = useCallback(() => {
+    toast.promise(stopStreams.mutateAsync({ bridgeId }), {
+      loading: "Stopping live feed...",
+      success: "Successfully stopped live feed",
+      error: "Unable to stop live feed",
+    });
+  }, [stopStreams, bridgeId]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -59,11 +84,11 @@ const LiveFeed = memo(({ bridgeId }: { bridgeId: string }) => {
           <DialogTitle>Observatory Live Feed</DialogTitle>
           <DialogDescription>Live camera feed of observatory</DialogDescription>
         </DialogHeader>
-        <div className="h-[80vh] flex flex-col">
-          {streams.status === "success" && !isError(streams.data.response) ? (
+        <div className="flex h-[80vh] flex-col">
+          {streams.status === "success" ? (
             <Carousel className="ml-8 h-[calc(100%-2.5rem)] w-[calc(100%-4rem)]">
               <CarouselContent>
-                {streams.data.response?.map((stream, i) => (
+                {streams.data?.map((stream, i) => (
                   <CarouselItem
                     key={stream}
                     className="flex w-full items-center justify-center"
@@ -80,27 +105,13 @@ const LiveFeed = memo(({ bridgeId }: { bridgeId: string }) => {
               <CarouselNext />
             </Carousel>
           ) : null}
-          {getStatus.status === "success" &&
-          !isError(getStatus.data.response) ? (
+          {getStatus.status === "success" ? (
             <Button
               className="ml-auto"
-              variant={getStatus.data.response ? "destructive" : "default"}
-              onClick={() => {
-                (getStatus.data.response ? stopStreams : startStreams)
-                  .mutateAsync({ bridgeId })
-                  .then(() =>
-                    toast.success(
-                      `Successfully ${getStatus.data.response ? "stopped" : "started"} live feed`,
-                    ),
-                  )
-                  .catch(() =>
-                    toast.error(
-                      `Unable to ${getStatus.data.response ? "stop" : "start"} live feed`,
-                    ),
-                  );
-              }}
+              variant={getStatus.data ? "destructive" : "default"}
+              onClick={getStatus.data ? stop : start}
             >
-              {getStatus.data.response ? "Stop" : "Start"}
+              {getStatus.data ? "Stop" : "Start"}
             </Button>
           ) : null}
         </div>

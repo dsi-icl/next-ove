@@ -4,8 +4,8 @@
     "outDir": "../dist/out-tsc/tools",
     "rootDir": ".",
     "module": "commonjs",
-    "target": "es5",
-    "types": ["node"],
+    "target": "esnext",
+    "types": ["node", "doiuse/types.d.ts"],
     "importHelpers": false
   },
   "include": ["**/*.ts"]

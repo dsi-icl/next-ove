@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { api } from "../../utils/api";
-import { isError } from "@ove/ove-types";
 import Observatory from "./components/observatory";
 import { useQueryClient } from "@tanstack/react-query";
 import { logger } from "../../env";
@@ -22,7 +21,7 @@ const HardwareManager = () => {
       <h1 className="mt-4 w-full text-center text-2xl font-bold">
         Hardware Manager
       </h1>
-      {getObservatories.status === "success" && !isError(getObservatories.data)
+      {getObservatories.status === "success"
         ? getObservatories.data?.map(({ name, isOnline }) => (
             <Observatory name={name} isOnline={isOnline} key={name} />
           ))

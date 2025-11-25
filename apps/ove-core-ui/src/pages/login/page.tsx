@@ -24,16 +24,12 @@ const LoginFormSchema = z.strictObject({
 type LoginForm = z.infer<typeof LoginFormSchema>;
 
 const Login = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>({
+  const form = useForm<LoginForm>({
     resolver: zodResolver(LoginFormSchema),
   });
   const login = useLogin();
-  useFormErrorHandling(errors);
-  const onSubmit = handleSubmit(({ username, password }) => {
+  useFormErrorHandling(form.formState.errors);
+  const onSubmit = form.handleSubmit(({ username, password }) => {
     login(username, password).catch(logger.error);
   });
 
@@ -56,13 +52,13 @@ const Login = () => {
                   autoComplete="username"
                   placeholder="Enter your username"
                   autoCorrect="off"
-                  {...register("username", {
+                  {...form.register("username", {
                     required: "Username is required",
                   })}
                 />
-                {errors.username && (
+                {form.formState.errors.username && (
                   <p className="text-sm text-red-500">
-                    {errors.username.message}
+                    {form.formState.errors.username.message}
                   </p>
                 )}
               </div>
@@ -73,7 +69,7 @@ const Login = () => {
                   type="password"
                   autoComplete="current-password"
                   placeholder="Enter your password"
-                  {...register("password", {
+                  {...form.register("password", {
                     required: "Password is required",
                     minLength: {
                       value: 8,
@@ -81,15 +77,15 @@ const Login = () => {
                     },
                   })}
                 />
-                {errors.password && (
+                {form.formState.errors.password && (
                   <p className="text-sm text-red-500">
-                    {errors.password.message}
+                    {form.formState.errors.password.message}
                   </p>
                 )}
               </div>
             </div>
-            <Button className="mt-4 w-full bg-[#002147]" type="submit">
-              Log in
+            <Button className="mt-4 w-full bg-[#002147]" type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Logging in" : "Log in"}
             </Button>
           </form>
         </CardContent>

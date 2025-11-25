@@ -6,28 +6,61 @@ import type { Section } from ".prisma/client";
 import { formatState } from "../hooks/states";
 import { api } from "../../../utils/api";
 import { useMemo } from "react";
-import { isError } from "@ove/ove-types";
 
 const getContent = (section: Section) => {
   const file = useMemo(() => {
-    const parsed = /^\/store\/(.+)\/(.+)\?versionId=(.+)$/.exec(section.asset);
-    if (parsed === null || parsed.length !== 4) return null;
-    return parsed.length !== 4 ? null : {bucketName: parsed[1], name: parsed[2],version: parsed[3]};
+    const parsed = /^\/store\/(.+)\/(.+)\.(.+)\?versionId=(.+)$/.exec(section.asset);
+    if (parsed === null || parsed.length !== 5) return null;
+    return parsed.length !== 5 ? null : {bucketName: parsed[1], name: parsed[2], ext: parsed[3], version: parsed[4]};
   }, [section.asset]);
+
+  const objectName = useMemo(() => {
+  if (!file) return null;
+  const { name, ext } = file;
+
+  switch (section.dataType) {
+    case "images":
+    case "videos":
+    case "audio":
+    case "svg":
+      return `${name}.${ext}`;
+
+    case "data-table":
+      return `${name}.${ext}_OVE_FORMAT.html`;
+
+    case "geojson":
+      return `${name}_OVE_FORMAT.json`;
+
+    case "json":
+    case "html":
+    case "latex":
+    case "markdown":
+      return `${name}_OVE_FORMAT.html`;
+
+    default:
+      return `${name}_OVE_FORMAT.${ext}`;
+  }
+}, [file, section.dataType]);
+
   const getURL = api.projects.getPresignedGetURL.useQuery({
     bucketName: file?.bucketName ?? "ERROR",
-    objectName: file?.name ?? "ERROR",
+    objectName: objectName ?? "ERROR",
     versionId: file?.version ?? "ERROR",
   }, {enabled: file !== null});
 
   const url = useMemo(() => {
     if (file === null) return section.asset;
-    if (getURL.status !== "success" || isError(getURL.data)) return undefined;
+    if (getURL.status !== "success") return undefined;
     return getURL.data;
   }, [file, getURL.status, getURL.data, section.asset]);
 
   switch (section.dataType) {
-    case "html": return <iframe key={section.id}
+    case "html":
+    case "latex":
+    case "markdown":
+    case "json":
+    case "data-table":
+    case "geojson": return <iframe key={section.id}
                                 className="absolute bg-red-500/30"
                                 style={{
                                   left: `${section.x * 100}%`,

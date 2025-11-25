@@ -1,4 +1,4 @@
-import { type Calendar, type OVEException } from "@ove/ove-types";
+import type { Calendar } from "@ove/ove-types";
 import { parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 
@@ -16,13 +16,12 @@ const formatLastUpdated = (lastUpdated: Date) => {
   return `${lastUpdated?.toDateString()}${getLastUpdatedTime(lastUpdated)}`;
 };
 
-export const useCalendar = (response: Calendar | OVEException | undefined) => {
+export const useCalendar = (response: Calendar | undefined) => {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const calendar = useMemo(() => {
     if (
       response === undefined ||
-      "oveError" in response ||
       response.lastUpdated === null
     )
       return;
