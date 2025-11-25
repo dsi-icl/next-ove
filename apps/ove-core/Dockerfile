@@ -56,8 +56,8 @@ COPY ../../dist/apps/ove-core/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.19.0 @prisma/client@6.19.0 esbuild@0.24.2 typescript@5.9.0-dev.20250618
-RUN pnpm add zod-openapi@4.2.4 date-fns@4.1.0
+RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.19.0 esbuild@0.24.2 typescript@5.9.0-dev.20250618 tsx@4.19.4
+RUN pnpm add zod-openapi@4.2.4 date-fns@4.1.0 zod@3.22.3 @prisma/client@6.19.0
 
 COPY ../../apps/ove-core ./apps/ove-core
 COPY ../../apps/ove-renderer ./apps/ove-renderer
