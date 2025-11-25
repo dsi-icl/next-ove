@@ -18,7 +18,7 @@ COPY ../../dist/apps/ove-renderer/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.9.0-dev.20250618 @nx/vite@20.3.2 vite@7.2.2 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.4 vite-plugin-singlefile@2.2.0
+RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.9.0-dev.20250618 @nx/vite@20.3.2 vite@7.2.2 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.4 vite-plugin-singlefile@2.2.0 tsx@4.19.4
 RUN pnpm add date-fns@4.1.0
 
 COPY ../../apps/ove-renderer ./apps/ove-renderer
@@ -97,7 +97,7 @@ COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.19.0 @prisma/client@6.19.0 vite@7.2.2 @vitejs/plugin-react@4.4.1 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.87.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.4
+RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.19.0 @prisma/client@6.19.0 vite@7.2.2 @vitejs/plugin-react@4.4.1 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.87.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.4 tsx@4.19.4
 RUN pnpm add react-big-calendar@1.19.4
 
 COPY ../../apps/ove-core-ui ./apps/ove-core-ui
