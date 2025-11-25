@@ -593,7 +593,6 @@ const getController = async (
       "env.json",
       "latest",
     );
-    if (isError(envUrl)) return envUrl;
     envJson = (await (await fetch(envUrl)).json()) as Record<string, unknown>;
   }
 
