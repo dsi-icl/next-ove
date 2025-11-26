@@ -223,15 +223,14 @@ ${content}
             font_size_formats: "0.75rem 0.875rem 1rem 1.25rem 1.5rem 2rem 3rem 4rem",
             content_style: `
               html { font-size: 16px; }
-              body { font-size: 1rem; line-height: 1; }
+              body { font-size: 1rem; line-height: 1; font-family: 'Imperial Sans Display', sans-serif;}
             `,
             setup: (editor) => {
               editor.on('PreInit', () => {
                 editor.getBody().style.fontSize = '1rem';
               });
             },
-            ui_mode: "split",
-            content_css: '/editor-fonts.css', 
+            ui_mode: "split", 
             font_family_formats: `
               Imperial Sans Display='Imperial Sans Display', sans-serif;
               Andale Mono=andale mono,times; 

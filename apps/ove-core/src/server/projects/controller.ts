@@ -262,7 +262,9 @@ const saveProject = async (
     throw new Error("Cannot make changes to public project");
   }
 
-  const sectionIds = (await prisma.section.findMany()).map(({ id }) => id);
+  const sectionIds = (await prisma.section.findMany({
+    where: { projectId: id },
+  })).map(({ id }) => id);
   const newSectionIds = layout.map(({ id }) => id).filter(Boolean);
   for (const sectionId of sectionIds) {
     if (newSectionIds.includes(sectionId)) continue;

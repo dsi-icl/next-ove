@@ -7,7 +7,7 @@ import ResizeContainer from "./resize-container";
 import { useCanvas, useCells } from "../hooks/canvas";
 import { type Bounds, dataTypes } from "@ove/ove-types";
 import { useObservatory } from "../../../hooks/observatories";
-import React, { type RefObject, useMemo, useRef } from "react";
+import React, { type RefObject, useEffect, useMemo, useRef } from "react";
 import { useDragSection, usePartialUpdateSection, useSections } from "../hooks/sections";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 
@@ -369,24 +369,27 @@ const Canvas = () => {
     (state) => state.setSelectedSection,
   );
   const partialUpdate = usePartialUpdateSection();
-  const sections = useMemo(
-    () =>
-      getSections(selectedState).map((s) => ({
+  const sections = bounds
+    ? getSections(selectedState).map((s) => ({
         ...s,
-        width: s.width * (bounds?.width ?? 0),
-        height: s.height * (bounds?.height ?? 0),
-        x: s.x * (bounds?.width ?? 0),
-        y: s.y * (bounds?.height ?? 0),
-      })),
-    [getSections, selectedState, bounds?.width, bounds?.height],
-  );
+        width: s.width * bounds.width,
+        height: s.height * bounds.height,
+        x: s.x * bounds.width,
+        y: s.y * bounds.height,
+      }))
+    : [];
   const cells = useCells();
   const canvas = useCanvas();
   const svg_ = useRef<SVGSVGElement | null>(null);
   const defs_ = useRef<SVGDefsElement | null>(null);
   const dragSection = useDragSection();
 
-  if (bounds !== null && cells !== null) {
+  useEffect(() => {
+    if (!bounds || !cells || !svg_.current) {
+      d3.select(svg_.current).selectAll("*").remove();
+      return;
+    }
+
     drawObservatory(
       sections,
       canvas,
@@ -398,9 +401,17 @@ const Canvas = () => {
       svg_,
       partialUpdate,
     );
-  } else {
-    d3.select(svg_.current).selectAll("*").remove();
-  }
+  }, [
+    sections,
+    canvas.width,
+    canvas.height,
+    dragSection,
+    setSelectedSection,
+    selectedSection,
+    bounds,
+    cells,
+    partialUpdate,
+  ]);
 
   return (
     <ResizeContainer canvas={canvas}>
