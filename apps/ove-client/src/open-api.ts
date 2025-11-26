@@ -7,4 +7,5 @@ export const openApiDocument = generateOpenApiDocument(appRouter, {
   description: env.DESCRIPTION,
   version: env.API_VERSION.toString(),
   baseUrl: env.SERVER.EXTERNAL_URL ?? `http://${env.SERVER.HOSTNAME}:${env.SERVER.PORT}/api/v${env.API_VERSION}`,
+  docsUrl: "/docs",
 });

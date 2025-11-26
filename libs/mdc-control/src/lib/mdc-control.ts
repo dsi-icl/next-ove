@@ -1,12 +1,10 @@
 /* global AbortController, setTimeout */
 
 import { Socket } from "net";
-import { assert, raise } from "@ove/ove-utils";
+import { assert } from "@ove/ove-utils";
 import {
-  isError,
   type MDCInfo,
   type MDCSource,
-  type OVEException
 } from "@ove/ove-types";
 
 const MDC_PORT = 1515;
@@ -42,7 +40,8 @@ type CommandArgs = {
 };
 
 const sendCommand = (
-  resolve: (obj: Uint8Array | OVEException) => void,
+  resolve: (obj: Uint8Array) => void,
+  reject: (reason: string) => void,
   commandId: number,
   cmdArgs: CommandArgs,
   ...args: number[]
@@ -51,11 +50,11 @@ const sendCommand = (
   socket.setTimeout(cmdArgs.timeout);
 
   socket.on("timeout", () => {
-    socket.end(() => resolve(raise("Timeout")));
+    socket.end(() => reject("TIMEOUT"));
   });
 
   socket.on("error", (err) => {
-    socket.end(() => resolve(raise(err.message)));
+    socket.end(() => reject(err.message));
   });
 
   socket.on("data", (data) => {
@@ -65,13 +64,13 @@ const sendCommand = (
       if (status === 0x41) {
         resolve(args);
       } else {
-        resolve(raise(`Received error: ${args.at(6)}`));
+        reject(`Received error: ${args.at(6)}`);
       }
     });
   });
 
   setTimeout(() => {
-    socket.end(() => resolve(raise("TIMEOUT")));
+    socket.end(() => reject("TIMEOUT"));
   }, cmdArgs.timeout);
 
   socket.connect(cmdArgs.port ?? MDC_PORT, cmdArgs.host, () => {
@@ -80,7 +79,7 @@ const sendCommand = (
     command.push(checksum);
     socket.write(new Uint8Array(command), (err) => {
       if (err) {
-        socket.end(() => resolve(raise(err.message)));
+        socket.end(() => reject(err.message));
       }
     });
   });
@@ -88,69 +87,63 @@ const sendCommand = (
 
 export const getStatus = async (
   args: CommandArgs,
-): Promise<"on" | "off" | OVEException> => {
-  const status = await new Promise<Uint8Array | OVEException>((resolve) =>
-    sendCommand(resolve, 0x11, args),
+): Promise<"on" | "off"> => {
+  const status = await new Promise<Uint8Array>((resolve, reject) =>
+    sendCommand(resolve, reject, 0x11, args),
   );
-  if (isError(status)) return status;
   if (status.at(6) === undefined || status[6] > 0x01)
-    return raise("Error getting status");
+    throw new Error("Couldn't get status");
   return status.at(6) === 0x00 ? "off" : "on";
 };
 
 export const setPower = async (
   args: CommandArgs,
   state: "on" | "off" | "reboot",
-): Promise<boolean | OVEException> => {
+): Promise<boolean> => {
   const powerState = state === "off" ? 0x00 : state === "on" ? 0x01 : 0x02;
-  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
-    sendCommand(resolve, 0x11, args, powerState),
+  const res = await new Promise<Uint8Array>((resolve, reject) =>
+    sendCommand(resolve, reject, 0x11, args, powerState),
   );
-  if (isError(res)) return res;
   return res.at(6) === powerState;
 };
 
 export const setVolume = async (
   args: CommandArgs,
   volume: number,
-): Promise<boolean | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
-    sendCommand(resolve, 0x12, args, volume),
+): Promise<boolean> => {
+  const res = await new Promise<Uint8Array>((resolve, reject) =>
+    sendCommand(resolve, reject, 0x12, args, volume),
   );
-  if (isError(res)) return res;
   return res.at(6) === volume;
 };
 
 export const setIsMute = async (
   args: CommandArgs,
   state: boolean,
-): Promise<boolean | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
-    sendCommand(resolve, 0x13, args, state ? 0x01 : 0x00),
+): Promise<boolean> => {
+  const res = await new Promise<Uint8Array>((resolve, reject) =>
+    sendCommand(resolve, reject, 0x13, args, state ? 0x01 : 0x00),
   );
-  if (isError(res)) return res;
   return res.at(6) === (state ? 0x01 : 0x00);
 };
 
 export const setSource = async (
   args: CommandArgs,
   source: MDCSourceVal,
-): Promise<boolean | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
-    sendCommand(resolve, 0x14, args, source),
+): Promise<boolean> => {
+  const res = await new Promise<Uint8Array>((resolve, reject) =>
+    sendCommand(resolve, reject, 0x14, args, source),
   );
-  if (isError(res)) return res;
   return res.at(6) === source;
 };
 
 export const getInfo = async (
   args: CommandArgs,
-): Promise<MDCInfo | OVEException> => {
-  const res = await new Promise<Uint8Array | OVEException>((resolve) =>
-    sendCommand(resolve, 0x00, args),
+): Promise<MDCInfo> => {
+  const res = await new Promise<Uint8Array>((resolve, reject) =>
+    sendCommand(resolve, reject, 0x00, args),
   );
-  if (isError(res)) return res;
-  if (res.length < 10) return raise("Incorrect result");
+  if (res.length < 10) throw new Error("Incorrect result");
 
   return {
     power: res[6] === 0x00 ? "off" : "on",

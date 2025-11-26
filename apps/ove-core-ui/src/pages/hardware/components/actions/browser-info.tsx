@@ -16,7 +16,7 @@ import {
   TableCell,
 } from "@ove/ui-base-components";
 import React, { useMemo, useState } from "react";
-import { type Browser, isError } from "@ove/ove-types";
+import type { Browser } from "@ove/ove-types";
 import { format } from "../../utils";
 import TableHeader from "../table-header";
 import { api } from "../../../../utils/api";
@@ -53,12 +53,7 @@ const useBrowser = (
     if (deviceId !== null) {
       switch (getBrowsers.status) {
         case "success": {
-          if (isError(getBrowsers.data.response)) {
-            toast.error("Unable to get browsers");
-            return [];
-          }
-
-          return [{ deviceId, browsers: getBrowsers.data.response }];
+          return [{ deviceId, browsers: getBrowsers.data }];
         }
         case "error":
           toast.error("Unable to get browsers");
@@ -69,23 +64,22 @@ const useBrowser = (
     } else {
       switch (getBrowsersAll.status) {
         case "success": {
-          if (isError(getBrowsersAll.data.response)) {
-            toast.error("Unable to get browsers");
-            return [];
-          }
-
-          const data = getBrowsersAll.data.response.filter(({ response }) => {
-            if (isError(response)) {
+          const data = getBrowsersAll.data.filter(({ response }) => {
+            if (response.status === "error") {
               toast.error(`Failed to get browsers on ${deviceId}`);
               return false;
             }
             return true;
           });
 
-          return data.map(({ deviceId, response }) => ({
-            deviceId,
-            browsers: response as Record<string, Browser>,
-          }));
+          return data
+            .map(({ deviceId, response }) => {
+              if (response.status !== "success") throw new Error("Impossible");
+              return {
+                deviceId,
+                browsers: response.data,
+              };
+            });
         }
         case "error":
           toast.error("Unable to get browsers");
@@ -94,13 +88,7 @@ const useBrowser = (
           return [];
       }
     }
-  }, [
-    getBrowsersAll.status,
-    getBrowsersAll.data?.response,
-    deviceId,
-    getBrowsers.status,
-    getBrowsers.data?.response,
-  ]);
+  }, [getBrowsersAll.status, getBrowsersAll.data, deviceId, getBrowsers.status, getBrowsers.data]);
   return browsers;
 };
 

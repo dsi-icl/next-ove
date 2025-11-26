@@ -74,6 +74,16 @@ export const start = () => {
     );
   }
 
+  app.get("/openapi.json", (_req, res) => {
+    res.send(openApiDocument);
+  });
+
+  app.get("/favicon.ico", (_req, res) =>
+    res.sendFile(path.join(__dirname, "assets", "favicon.ico")));
+
+  app.get("/docs", (_req, res) =>
+    res.sendFile(path.join(__dirname, "assets", "docs.html")))
+
   app.use("/assets", express.static(path.join(__dirname, "assets")));
 
   const server = app.listen(env.SERVER.PORT, `${env.SERVER.HOSTNAME}`, () => {

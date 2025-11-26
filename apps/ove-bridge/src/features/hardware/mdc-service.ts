@@ -2,7 +2,6 @@
 
 import {
   type Device,
-  isError,
   MDCSourceSchema,
   type TBridgeHardwareService,
   type TBridgeServiceArgs
@@ -100,15 +99,21 @@ const getInfo = async (
     port: device.port,
   });
 
-  (controller.getState()[device.id] as MDCState).muted.observed = isError(info)
-    ? info
-    : info.isMuted;
-  (controller.getState()[device.id] as MDCState).source.observed = isError(info)
-    ? info
-    : info.source;
-  (controller.getState()[device.id] as MDCState).volume.observed = isError(info)
-    ? info
-    : info.volume;
+  try {
+  (controller.getState()[device.id] as MDCState).muted.observed = info.isMuted;
+  } catch (e) {
+    (controller.getState()[device.id] as MDCState).muted.observed = null;
+  }
+  try {
+    (controller.getState()[device.id] as MDCState).source.observed = info.source;
+  } catch (e) {
+    (controller.getState()[device.id] as MDCState).muted.observed = null;
+  }
+  try {
+    (controller.getState()[device.id] as MDCState).volume.observed = info.volume;
+  } catch (e) {
+    (controller.getState()[device.id] as MDCState).muted.observed = null;
+  }
 
   return info;
 };

@@ -274,13 +274,7 @@ const Actions = ({
           .catch(() => toast.error(`Unable to update status for: ${id}`));
       });
     }
-  }, [
-    utils.hardware.getStatus,
-    utils.hardware.getLiveUpdate,
-    device,
-    bridgeId,
-    deviceIds,
-  ]);
+  }, [utils.hardware.getStatus, utils.hardware.getLiveUpdate, device, bridgeId]);
   return (
     <Dialog
       open={open}

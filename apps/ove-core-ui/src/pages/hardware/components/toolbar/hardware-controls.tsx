@@ -33,7 +33,7 @@ const HardwareControls = ({
   );
   const tags = useMemo(
     () => (filterType === "tags" ? (filter ?? undefined) : undefined),
-    [filterType, filter],
+    [filter],
   );
   const deviceIds = useMemo(
     () =>
@@ -41,7 +41,7 @@ const HardwareControls = ({
         ? (devices.filter(({ id }) => filter !== null && filter.includes(id))?.map((device) => device.id) ??
           null)
         : null,
-    [filterType, filter, devices],
+    [filter, devices],
   );
   const containerRef: RefObject<HTMLDivElement | null> = useRef(null);
 

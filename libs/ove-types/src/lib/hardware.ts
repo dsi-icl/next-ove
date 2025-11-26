@@ -8,8 +8,6 @@ export const IDSchema = z.number();
 export const DeviceIDSchema = z.string();
 export const StatusSchema = z.boolean();
 
-export type Optional<T> = T | undefined;
-
 export const ScreenshotMethodSchema = z.union([
   z.literal("upload"),
   z.literal("local"),

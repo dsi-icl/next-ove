@@ -6,7 +6,6 @@ import type { Section } from ".prisma/client";
 import { formatState } from "../hooks/states";
 import { api } from "../../../utils/api";
 import { useMemo } from "react";
-import { isError } from "@ove/ove-types";
 
 const getContent = (section: Section) => {
   const file = useMemo(() => {
@@ -51,7 +50,7 @@ const getContent = (section: Section) => {
 
   const url = useMemo(() => {
     if (file === null) return section.asset;
-    if (getURL.status !== "success" || isError(getURL.data)) return undefined;
+    if (getURL.status !== "success") return undefined;
     return getURL.data;
   }, [file, getURL.status, getURL.data, section.asset]);
 

@@ -2,16 +2,20 @@
 
 import { getSchedule, setMode, updateCalendar } from "./power-scheduler";
 import { controller } from "../reconciliation/controller";
-import { assert, raise } from "@ove/ove-utils";
+import { assert } from "@ove/ove-utils";
 import { execPromise } from "@ove/ove-server-utils";
 import { getSocketStatus } from "./sockets";
 import { env, logger, version } from "../../env";
 import { type TBridgeService } from "@ove/ove-types";
 
 export const service: TBridgeService = {
-  getDevice: async ({ deviceId }) =>
-    env.HARDWARE.DEVICES.find(({ id }) => id === deviceId) ??
-    raise(`No device with id: ${deviceId}`),
+  getDevice: async ({ deviceId }) => {
+    const device = env.HARDWARE.DEVICES.find(({ id }) => id === deviceId);
+    if (device === undefined) {
+      throw new Error(`Device with id ${deviceId} not found`);
+    }
+    return device;
+  },
   getDevices: async ({ tags }) =>
     tags === undefined
       ? env.HARDWARE.DEVICES
@@ -62,7 +66,7 @@ export const service: TBridgeService = {
     }
   },
   getStreams: async () => env.LIVE_VIEW?.SOURCES,
-  getCalendar: async () =>{
+  getCalendar: async () => {
     await updateCalendar();
     return env.CALENDAR?.DATA;
   },
@@ -95,6 +99,9 @@ export const service: TBridgeService = {
   },
   getNextScheduled: async () => {
     const { nextStart, nextStop } = getSchedule();
-    return { nextStart: nextStart?.toISOString() ?? null, nextStop: nextStop?.toISOString() ?? null };
+    return {
+      nextStart: nextStart?.toISOString() ?? null,
+      nextStop: nextStop?.toISOString() ?? null,
+    };
   },
 };

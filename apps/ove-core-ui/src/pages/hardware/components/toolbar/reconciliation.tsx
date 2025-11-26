@@ -1,41 +1,55 @@
-import { isError } from "@ove/ove-types";
-import { logger } from "../../../../env";
 import { api } from "../../../../utils/api";
 import { Button } from "@ove/ui-base-components";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
+import { toast } from "sonner";
 
 const useReconciliation = (bridgeId: string) => {
   const reconciliationStatus = api.bridge.getReconciliation.useQuery({
     bridgeId,
   });
   const apiUtils = api.useUtils();
-  const startReconciliation = api.bridge.startReconciliation.useMutation();
-  const stopReconciliation = api.bridge.stopReconciliation.useMutation();
+  const startReconciliation = api.bridge.startReconciliation.useMutation({
+    onSuccess: () => {
+      toast.promise(
+        apiUtils.bridge.getReconciliation.invalidate({ bridgeId }),
+        {
+          loading: "Updating reconciliation status...",
+          success: "Successfully updated reconciliation status",
+          error: "Failed to update reconciliation status",
+        },
+      );
+    },
+  });
+  const stopReconciliation = api.bridge.stopReconciliation.useMutation({
+    onSuccess: () => {
+      toast.promise(
+        apiUtils.bridge.getReconciliation.invalidate({ bridgeId }),
+        {
+          loading: "Updating reconciliation status...",
+          success: "Successfully updated reconciliation status",
+          error: "Failed to update reconciliation status",
+        },
+      );
+    },
+  });
 
   const start = useCallback(async () => {
-    await startReconciliation.mutateAsync({ bridgeId }).catch(logger.error);
-    apiUtils.bridge.getReconciliation
-      .invalidate({ bridgeId })
-      .catch(logger.error);
-  }, [startReconciliation, bridgeId, apiUtils.bridge.getReconciliation]);
+    toast.promise(startReconciliation.mutateAsync({ bridgeId }), {
+      loading: "Starting reconciliation...",
+      success: "Successfully started reconciliation",
+      error: "Failed to start reconciliation",
+    });
+  }, [startReconciliation, bridgeId]);
 
   const stop = useCallback(async () => {
-    await stopReconciliation.mutateAsync({ bridgeId }).catch(logger.error);
-    apiUtils.bridge.getReconciliation
-      .invalidate({ bridgeId })
-      .catch(logger.error);
-  }, [stopReconciliation, bridgeId, apiUtils.bridge.getReconciliation]);
+    toast.promise(stopReconciliation.mutateAsync({ bridgeId }), {
+      loading: "Stopping reconciliation...",
+      error: "Failed to stop reconciliation",
+      success: "Successfully stopped reconciliation",
+    });
+  }, [stopReconciliation, bridgeId]);
 
-  const status = useMemo(() => {
-    if (
-      reconciliationStatus.status !== "success" ||
-      isError(reconciliationStatus.data.response)
-    )
-      return null;
-    return reconciliationStatus.data.response;
-  }, [reconciliationStatus.data?.response, reconciliationStatus.status]);
-
-  return { status, start, stop };
+  return { status: reconciliationStatus.data ?? null, start, stop };
 };
 
 const Reconciliation = ({ bridgeId }: { bridgeId: string }) => {

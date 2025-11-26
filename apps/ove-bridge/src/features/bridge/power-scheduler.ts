@@ -42,6 +42,7 @@ export const setMode = (mode?: PowerMode) => {
       logger.info("Setting eco mode");
       setEcoSchedule().then(logSchedule).catch(logger.error);
       if (env.CALENDAR?.REFRESH_INTERVAL !== undefined) {
+        clearInterval(calendarRefresh);
         calendarRefresh = setInterval(() => {
           logger.info("Updating eco mode");
           setEcoSchedule().then(logSchedule).catch(logger.error);
@@ -121,26 +122,40 @@ const setEcoSchedule = async (): Promise<void> => {
   await schedule.gracefulShutdown();
 
   groups.forEach(({ start, end }) => {
-    schedule.scheduleJob(`start-${nanoid(8)}`, start, () => {
-      if (process.env.NODE_ENV === "development") {
-        logger.info(`Triggered for ${start.toISOString()}`);
-      } else {
-        multiDeviceHandler("start", {}, (response) =>
-          logger.info(`Started devices with response: 
+    if (start.getTime() >= Date.now()) {
+      logger.trace("Scheduling start for ", start.toISOString());
+      schedule.scheduleJob(`start-${nanoid(8)}`, start, () => {
+        if (process.env.NODE_ENV === "development") {
+          logger.info(`Triggered for ${start.toISOString()}`);
+        } else {
+          multiDeviceHandler("start", {}, (response) =>
+            logger.info(`Started devices with response: 
           ${Json.stringify(response)}`),
-        );
-      }
-    });
-    schedule.scheduleJob(`end-${nanoid(8)}`, end, () => {
-      if (process.env.NODE_ENV === "development") {
-        logger.info(`Triggered for ${end.toISOString()}`);
-      } else {
-        multiDeviceHandler("shutdown", {}, (response) =>
-          logger.info(`Stopped devices with response: 
+          )
+            .then(() => logger.info("Completed startup on schedule"))
+            .catch((e) =>
+              logger.error("Failed to complete startup on schedule:", e),
+            );
+        }
+      });
+    }
+    if (end.getTime() >= Date.now()) {
+      logger.trace("Scheduling stop for ", end.toISOString());
+      schedule.scheduleJob(`end-${nanoid(8)}`, end, () => {
+        if (process.env.NODE_ENV === "development") {
+          logger.info(`Triggered for ${end.toISOString()}`);
+        } else {
+          multiDeviceHandler("shutdown", {}, (response) =>
+            logger.info(`Stopped devices with response: 
           ${Json.stringify(response)}`),
-        );
-      }
-    });
+          )
+            .then(() => logger.info("Completed startup on schedule"))
+            .catch((e) =>
+              logger.error("Failed to complete startup on schedule:", e),
+            );
+        }
+      });
+    }
   });
 };
 
@@ -206,11 +221,23 @@ export const getSchedule = () => {
   for (const name in schedule.scheduledJobs) {
     const job = schedule.scheduledJobs[name];
     if (job.nextInvocation() === null) continue;
-    if (name.startsWith("start-") && (nextStart === null || job.nextInvocation()!.getTime() < nextStart.getTime())) {
-      nextStart = (job.nextInvocation() as unknown as { toDate: () => Date }).toDate();
+    if (
+      name.startsWith("start-") &&
+      (nextStart === null ||
+        job.nextInvocation()!.getTime() < nextStart.getTime())
+    ) {
+      nextStart = (
+        job.nextInvocation() as unknown as { toDate: () => Date }
+      ).toDate();
     }
-    if (name.startsWith("end-") && (nextStop === null || job.nextInvocation()!.getTime() < nextStop.getTime())) {
-      nextStop = (job.nextInvocation() as unknown as { toDate: () => Date }).toDate();
+    if (
+      name.startsWith("end-") &&
+      (nextStop === null ||
+        job.nextInvocation()!.getTime() < nextStop.getTime())
+    ) {
+      nextStop = (
+        job.nextInvocation() as unknown as { toDate: () => Date }
+      ).toDate();
     }
   }
 

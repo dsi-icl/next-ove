@@ -1,6 +1,6 @@
 import * as net from "net";
 import * as crypto from "crypto";
-import { Device, isError, OVEException, PJLinkSource } from "@ove/ove-types";
+import type { Device, PJLinkSource, Optional } from "@ove/ove-types";
 import { replaceAll } from "@ove/ove-utils";
 import { z } from "zod";
 
@@ -8,36 +8,41 @@ import { z } from "zod";
 
 type PJLinkState = {
   settings: {
-    host: string
-    port: number
-    password: string | null,
-    timeout: number
-  }
-  class: number
-  _connection: net.Socket | null
-  _sessionToken: string | null
-  _curCmd: string | null
-  _callback: ((response: PJLinkResponse) => void) | null
-  _received: boolean
+    host: string;
+    port: number;
+    password: string | null;
+    timeout: number;
+  };
+  class: number;
+  _connection: net.Socket | null;
+  _sessionToken: string | null;
+  _curCmd: string | null;
+  _callback: ((response: Optional<string>) => void) | null;
+  _received: boolean;
 };
 
-export const PowerSchema = z.object({
-  OFF: z.literal(0),
-  ON: z.literal(1),
-  COOLING_DOWN: z.literal(2),
-  WARMING_UP: z.literal(3)
-}).strict();
+export const PowerSchema = z
+  .object({
+    OFF: z.literal(0),
+    ON: z.literal(1),
+    COOLING_DOWN: z.literal(2),
+    WARMING_UP: z.literal(3),
+  })
+  .strict();
 
 export type Power = z.infer<typeof PowerSchema>;
 
 export const POWER: Power = { OFF: 0, ON: 1, COOLING_DOWN: 2, WARMING_UP: 3 };
 
 export const INPUT: PJLinkSource = {
-  RGB: 1, VIDEO: 2, DIGITAL: 3, STORAGE: 4, NETWORK: 5
+  RGB: 1,
+  VIDEO: 2,
+  DIGITAL: 3,
+  STORAGE: 4,
+  NETWORK: 5,
 };
 
-type PJLinkResponse = OVEException | string;
-type PJLinkCallback = (response: PJLinkResponse) => void;
+type PJLinkCallback = (response: Optional<string>) => void;
 
 const calcDigest = (rand: string, password: string | null): unknown => {
   const md5 = crypto.createHash("md5");
@@ -56,30 +61,30 @@ const init = (
   callback: PJLinkCallback,
   timeout: number,
   device?: Device,
-  password?: string
+  password?: string,
 ): PJLinkState => {
   return {
     settings: {
       host: device?.host ?? "192.168.1.1",
       port: device?.port ?? 4352,
       password: password ?? null,
-      timeout: timeout
+      timeout: timeout,
     },
     class: 1,
     _connection: null,
     _sessionToken: null,
     _curCmd: command,
-    _callback(response: PJLinkResponse) {
+    _callback(response: Optional<string>) {
       this._received = true;
       callback(response);
     },
-    _received: false
+    _received: false,
   };
 };
 
 const disconnect = (state: PJLinkState) => {
   if (!state._received) {
-    state._callback?.({ oveError: "Connection closed" });
+    state._callback?.({ status: "error", error: "Connection closed" });
   }
 
   if (state._connection) {
@@ -96,7 +101,7 @@ const disconnect = (state: PJLinkState) => {
 };
 
 const onError = (state: PJLinkState) => (err: Error) => {
-  state._callback?.({ oveError: err.message });
+  state._callback?.({ status: "error", error: err.message });
 };
 
 const onClose = (state: PJLinkState) => () => {
@@ -104,7 +109,7 @@ const onClose = (state: PJLinkState) => () => {
 };
 
 const onTimeout = (state: PJLinkState) => () => {
-  state._callback?.({ oveError: "Connection timeout" });
+  state._callback?.({ status: "error", error: "Connection timeout" });
   disconnect(state);
 };
 
@@ -116,7 +121,7 @@ const REGEX = {
   UC_ERROR_REGEX: /^%.*=ERR1\r$/,
   OOP_ERROR_REGEX: /^%.*=ERR2\r$/,
   UT_ERROR_REGEX: /^%.*=ERR3\r$/,
-  PDF_ERROR_REGEX: /^%.*=ERR4\r$/
+  PDF_ERROR_REGEX: /^%.*=ERR4\r$/,
 };
 
 const onData = (state: PJLinkState) => (buffer: Buffer) => {
@@ -138,23 +143,26 @@ const onData = (state: PJLinkState) => (buffer: Buffer) => {
 
     state._connection?.write(message);
   } else if (REGEX.SUCCESS_REGEX.test(response)) {
-    state._callback?.(response);
+    state._callback?.({ status: "success", data: response });
   } else if (REGEX.GET_REGEX.test(response)) {
     const res = REGEX.GET_REGEX.exec(response)?.pop();
     if (res === undefined) throw new Error("Result cannot be undefined");
-    state._callback?.(res);
+    state._callback?.({ status: "success", data: res });
   } else if (REGEX.AUTH_ERROR_REGEX.test(response)) {
-    state._callback?.({ oveError: "Incorrect password" });
+    state._callback?.({ status: "error", error: "Incorrect password" });
   } else if (REGEX.UC_ERROR_REGEX.test(response)) {
-    state._callback?.({ oveError: "Undefined command" });
+    state._callback?.({ status: "error", error: "Undefined command" });
   } else if (REGEX.OOP_ERROR_REGEX.test(response)) {
-    state._callback?.({ oveError: "Out of parameter" });
+    state._callback?.({ status: "error", error: "Out of parameter" });
   } else if (REGEX.UT_ERROR_REGEX.test(response)) {
-    state._callback?.({ oveError: "Unavailable time" });
+    state._callback?.({ status: "error", error: "Unavailable time" });
   } else if (REGEX.PDF_ERROR_REGEX.test(response)) {
-    state._callback?.({ oveError: "Projector/Display failure" });
+    state._callback?.({ status: "error", error: "Projector/Display failure" });
   } else {
-    state._callback?.({ oveError: `Unknown response: ${response}` });
+    state._callback?.({
+      status: "error",
+      error: `Unknown response: ${response}`,
+    });
   }
 };
 
@@ -164,7 +172,7 @@ const connect = (state: PJLinkState, ac?: AbortController) => {
     port: state.settings.port,
     signal: ac?.signal,
     timeout: state.settings.timeout,
-    noDelay: true
+    noDelay: true,
   });
 
   state._connection.on("data", onData(state));
@@ -192,107 +200,161 @@ export const COMMAND = {
   GET_MANUFACTURER: "%1INF1 ?\r",
   GET_PRODUCT: "%1INF2 ?\r",
   GET_INFO: "%1INFO ?\r",
-  GET_CLASS: "%1CLSS ?\r"
+  GET_CLASS: "%1CLSS ?\r",
 };
 
 type CommandArgs = {
-  timeout: number,
-  device: Device,
-  ac?: AbortController
-}
+  timeout: number;
+  device: Device;
+  ac?: AbortController;
+};
 
-const runCommand = (
-  command: string,
-  cmd: CommandArgs,
-  ...args: string[]
-) =>
-  new Promise<PJLinkResponse>(resolve => {
+const runCommand = (command: string, cmd: CommandArgs, ...args: string[]) =>
+  new Promise<Optional<string>>((resolve) => {
     if (args.length > 0) {
       command = replaceAll(command, args);
     }
 
     const state = init(
       command,
-      (response: PJLinkResponse) => resolve(response),
+      (response: Optional<string>) => resolve(response),
       cmd.timeout,
-      cmd.device
+      cmd.device,
     );
     connect(state, cmd.ac);
   });
 
-export const setPower = (args: CommandArgs, power: number) =>
-  runCommand(COMMAND.SET_POWER, args, power.toString());
+export const setPower = async (args: CommandArgs, power: number) => {
+  const res = await runCommand(COMMAND.SET_POWER, args, power.toString());
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getPower = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_POWER, args);
+export const getPower = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_POWER, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const setInput = (
+export const setInput = async (
   args: CommandArgs,
   input: number,
-  channel?: number
-) =>
-  runCommand(COMMAND.SET_INPUT, args, input.toString(),
-    (channel ?? 1).toString());
+  channel?: number,
+) => {
+  const res = await runCommand(
+    COMMAND.SET_INPUT,
+    args,
+    input.toString(),
+    (channel ?? 1).toString(),
+  );
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getInput = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_INPUT, args);
+export const getInput = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_INPUT, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const muteVideo = (args: CommandArgs) =>
-  runCommand(COMMAND.MUTE_VIDEO, args);
+export const muteVideo = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.MUTE_VIDEO, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const unmuteVideo = (args: CommandArgs) =>
-  runCommand(COMMAND.UNMUTE_VIDEO, args);
+export const unmuteVideo = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.UNMUTE_VIDEO, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const muteAudio = (args: CommandArgs) =>
-  runCommand(COMMAND.MUTE_AUDIO, args);
+export const muteAudio = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.MUTE_AUDIO, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const unmuteAudio = (args: CommandArgs) =>
-  runCommand(COMMAND.UNMUTE_AUDIO, args);
+export const unmuteAudio = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.UNMUTE_AUDIO, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const mute = (args: CommandArgs) =>
-  runCommand(COMMAND.MUTE, args);
+export const mute = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.MUTE, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const unmute = (args: CommandArgs) =>
-  runCommand(COMMAND.UNMUTE, args);
+export const unmute = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.UNMUTE, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
 export const getIsMuted = async (args: CommandArgs) => {
   const res = await runCommand(COMMAND.GET_IS_MUTED, args);
-  if (isError(res)) return res;
-  return res.split("=")[1] === "31";
+  if (res.status === "error") throw new Error(res.error);
+  return res.data.split("=")[1] === "31";
 };
 
 export const getIsAudioMuted = async (args: CommandArgs) => {
   const res = await runCommand(COMMAND.GET_IS_MUTED, args);
-  if (isError(res)) return res;
-  return res.split("=")[1] === "21";
+  if (res.status === "error") throw new Error(res.error);
+  return res.data.split("=")[1] === "21";
 };
 
 export const getIsVideoMuted = async (args: CommandArgs) => {
   const res = await runCommand(COMMAND.GET_IS_MUTED, args);
-  if (isError(res)) return res;
-  return res.split("=")[1] === "11";
+  if (res.status === "error") throw new Error(res.error);
+  return res.data.split("=")[1] === "11";
 };
 
-export const getErrors = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_ERRORS, args);
+export const getErrors = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_ERRORS, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getLamp = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_LAMP, args);
+export const getLamp = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_LAMP, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getInputs = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_INPUTS, args);
+export const getInputs = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_INPUTS, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getName = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_NAME, args);
+export const getName = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_NAME, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getManufacturer = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_MANUFACTURER, args);
+export const getManufacturer = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_MANUFACTURER, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getProduct = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_PRODUCT, args);
+export const getProduct = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_PRODUCT, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getInfo = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_INFO, args);
+export const getInfo = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_INFO, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};
 
-export const getClass = (args: CommandArgs) =>
-  runCommand(COMMAND.GET_CLASS, args);
+export const getClass = async (args: CommandArgs) => {
+  const res = await runCommand(COMMAND.GET_CLASS, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
+};

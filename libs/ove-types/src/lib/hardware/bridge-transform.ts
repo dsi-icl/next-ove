@@ -1,28 +1,19 @@
 import { objectUtil, z } from "zod";
 import {
   ClientAPITransformSchema,
-  getDeviceResponseSchema,
   type TClientRouteInputTransformSchema,
   type TClientRouteOutputTransformSchema,
-  type TClientRouteSchema,
   type TClientRoutesSchema,
-  type TDeviceResponseSchema,
 } from "./client-transform";
 import { DeviceIDSchema } from "../hardware";
-import { OVEExceptionSchema } from "../ove-types";
 import {
   type APIExposureLevel,
-  type ExposureLevel,
   type OpenAPIMethod,
-  type RouteMethod,
+  TServiceRouteSchema,
 } from "./service"; /* Utility Schemas */
 
 /* Utility Schemas */
 
-/**
- * All bridge routes are wrapped with metadata for identification
- */
-export const BridgeMetadataSchema = z.object({ bridge: z.string() });
 /**
  * Generates multi-device response schema for wrapping with errors
  * @param {z.ZodTypeAny} schema
@@ -31,100 +22,22 @@ export const BridgeMetadataSchema = z.object({ bridge: z.string() });
 export const getMultiDeviceResponseSchema = <T extends z.ZodTypeAny>(
   schema: T,
 ): TMultiDeviceResponseSchema<T> =>
-  z.union([
-    z.array(
-      z.object({
-        deviceId: z.string(),
-        response: getDeviceResponseSchema(schema),
-      }),
-    ),
-    OVEExceptionSchema,
-  ]);
-
-/**
- * Generates response schema wrapped with metadata
- * @param {z.ZodTypeAny} schema
- * @return {TBridgeResponseSchema}
- */
-export const getBridgeResponseSchema = <T extends z.ZodTypeAny>(
-  schema: T,
-): TBridgeResponseSchema<T> =>
-  z.object({
-    meta: BridgeMetadataSchema,
+  z.strictObject({
+    deviceId: z.string(),
     response: schema,
-  });
+  }).array();
 
 /* Utility Types */
 
 /**
  * Wraps multiple device responses with errors
  */
-export type TMultiDeviceResponseSchema<T extends z.ZodTypeAny> = z.ZodUnion<
-  readonly [
-    z.ZodArray<
-      z.ZodObject<{
-        deviceId: z.ZodString;
-        response: TDeviceResponseSchema<T>;
-      }>
-    >,
-    typeof OVEExceptionSchema,
-  ]
->;
-
-/**
- * Wraps bridge response with metadata
- */
-export type TBridgeResponseSchema<T extends z.ZodTypeAny> = z.ZodObject<{
-  meta: typeof BridgeMetadataSchema;
-  response: T;
-}>;
-
-export type TBridgeResponse<T> = {
-  meta: z.infer<typeof BridgeMetadataSchema>;
-  response: T;
-};
-
-/* API Route Types */
-
-/**
- * Schema for each single-device route as a type for mapping
- */
-export type TBridgeRouteSchema<
-  A extends z.ZodRawShape,
-  U extends z.ZodTypeAny,
-  M extends RouteMethod,
-  E extends ExposureLevel,
-> = {
-  bridge: TBridgeResponseSchema<TClientRouteSchema<A, U, M, E>["client"]>;
-} & {
-  [Key in keyof TClientRouteSchema<A, U, M, E>]: TClientRouteSchema<
-    A,
-    U,
-    M,
-    E
-  >[Key];
-};
-
-/**
- * Schema for each multi-device route as a type for mapping
- */
-export type TBridgeMultiRouteSchema<
-  A extends z.ZodRawShape,
-  U extends z.ZodTypeAny,
-  M extends RouteMethod,
-  E extends ExposureLevel,
-> = {
-  bridge: TBridgeResponseSchema<
-    TMultiDeviceResponseSchema<TClientRouteSchema<A, U, M, E>["returns"]>
-  >;
-} & {
-  [Key in keyof TClientRouteSchema<A, U, M, E>]: TClientRouteSchema<
-    A,
-    U,
-    M,
-    E
-  >[Key];
-};
+export type TMultiDeviceResponseSchema<T extends z.ZodTypeAny> = z.ZodArray<
+  z.ZodObject<{
+    deviceId: z.ZodString;
+    response: T;
+  }>
+>
 
 /* API Types */
 
@@ -132,7 +45,7 @@ export type TBridgeMultiRouteSchema<
  * All possible single-device routes as schema types.
  */
 export type TBridgeSingleRoutesSchema = {
-  [Key in keyof TClientRoutesSchema]: TBridgeRouteSchema<
+  [Key in keyof TClientRoutesSchema]: TServiceRouteSchema<
     objectUtil.MergeShapes<
       TClientRouteInputTransformSchema<Key>,
       { deviceId: z.ZodString }
@@ -147,7 +60,7 @@ export type TBridgeSingleRoutesSchema = {
  * All possible multi-device routes as schema types.
  */
 export type TBridgeMultiRoutesSchema = {
-  [Key in keyof TClientRoutesSchema as `${Key}All`]: TBridgeMultiRouteSchema<
+  [Key in keyof TClientRoutesSchema as `${Key}All`]: TServiceRouteSchema<
     objectUtil.MergeShapes<
       TClientRouteInputTransformSchema<Key>,
       {
@@ -155,7 +68,7 @@ export type TBridgeMultiRoutesSchema = {
         deviceIds: z.ZodOptional<z.ZodArray<z.ZodString>>;
       }
     >,
-    TClientRouteOutputTransformSchema<Key>,
+    TMultiDeviceResponseSchema<z.ZodDiscriminatedUnion<"status", [z.ZodObject<{ status: z.ZodLiteral<"success">, data: TClientRouteOutputTransformSchema<Key> }>, z.ZodObject<{status: z.ZodLiteral<"error">, error: z.ZodString}>]>>,
     OpenAPIMethod<Key>,
     APIExposureLevel<Key>
   >;
@@ -182,20 +95,14 @@ export const BridgeAPITransformSchema: TBridgeRoutesSchema = Object.entries(
       args: route.args.extend({
         deviceId: DeviceIDSchema,
       }),
-      client: route.client,
-      bridge: getBridgeResponseSchema(route.client),
     };
     acc[`${k}All`] = {
       meta: route.meta,
-      returns: route.returns,
+      returns: getMultiDeviceResponseSchema(route.returns),
       args: route.args.extend({
         tags: z.string().array().optional(),
         deviceIds: z.string().array().optional(),
       }),
-      client: route.client,
-      bridge: getBridgeResponseSchema(
-        getMultiDeviceResponseSchema(route.returns),
-      ),
     };
     return acc;
   },

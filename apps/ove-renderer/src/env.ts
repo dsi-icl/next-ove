@@ -9,6 +9,7 @@ interface ImportMeta {
 interface ImportMetaEnv {
   VITE_SOCKET_URL: string;
   VITE_SOCKET_PATH: string;
+  VITE_LOGGING_IDENTIFIER?: string;
   VITE_LOG_LEVEL?: string;
   VITE_LOGGING_SERVER?: string;
   VITE_CORE_SERVER: string;
@@ -32,6 +33,7 @@ const schema = z
       .strictObject({
         LOG_LEVEL: z.number().optional(),
         SERVER: z.string().optional(),
+        IDENTIFIER: z.string().optional(),
       })
       .optional(),
   })
@@ -49,6 +51,7 @@ const parsedConfig = schema.parse({
       ? parseInt(assert(env_.VITE_LOG_LEVEL))
       : undefined,
     SERVER: env_.VITE_LOGGING_SERVER,
+    IDENTIFIER: env_.VITE_LOGGING_IDENTIFIER,
   },
 });
 
@@ -64,6 +67,7 @@ export const env = {
 
 export const logger = Logger(
   env.APP_NAME,
+  env.LOGGING?.IDENTIFIER,
   env.LOGGING?.LOG_LEVEL,
   env.LOGGING?.SERVER,
 );

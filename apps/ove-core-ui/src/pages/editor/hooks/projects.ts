@@ -2,7 +2,6 @@ import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { create } from "zustand";
 import { api } from "../../../utils/api";
-import { isError } from "@ove/ove-types";
 import { useSections } from "./sections";
 import { useQuery } from "../../../hooks/query";
 import type { Project, User } from ".prisma/client";
@@ -30,10 +29,7 @@ const loadNewProject = (username: string) => ({
 export const useProjectId = () => {
   const query = useQuery();
   const defaultProjectId = useStore((store) => store.defaultProjectId);
-  return useMemo(
-    () => query.get("project") ?? defaultProjectId,
-    [query],
-  );
+  return useMemo(() => query.get("project") ?? defaultProjectId, [query]);
 };
 
 export const useSave = () => {
@@ -49,53 +45,53 @@ export const useSave = () => {
   const { all: layout } = useSections();
 
   return useCallback(async () => {
-    if (project.title === "") {
-      toast.error("Cannot save project without title");
-      return;
-    }
-    if (project.id.length === 32) {
-      const res = await createProject.mutateAsync({
-        project: {
-          title: project.title,
-          description: project.description,
-          notes: project.notes,
-          thumbnail: project.thumbnail,
-          publications: project.publications,
-          presenterNotes: project.presenterNotes,
-          tags: project.tags,
-          isPublic: project.isPublic,
-        },
-        layout: layout.map((x) => {
-          const { id: _id, projectId: _projectId, ...data } = x;
-          return data;
-        }),
-      });
-      if (isError(res)) {
-        toast.error("Error creating project");
+    try {
+      if (project.title === "") {
+        toast.error("Cannot save project without title");
         return;
       }
-      const updatedProject = {
-        ...project,
-        ...res.project,
-        created: new Date(res.project.created),
-        updated: new Date(res.project.updated),
-      };
-      setProject((cur) => ({ ...cur, ...updatedProject }));
-      navigate(`?project=${res.project.id}`, { replace: true });
-      toast.success("Successfully created project!");
-      return;
-    }
-    saveProject
-      .mutateAsync({
-        project: {
+      if (project.id.length === 32) {
+        const res = await createProject.mutateAsync({
+          project: {
+            title: project.title,
+            description: project.description,
+            notes: project.notes,
+            thumbnail: project.thumbnail,
+            publications: project.publications,
+            presenterNotes: project.presenterNotes,
+            tags: project.tags,
+            isPublic: project.isPublic,
+          },
+          layout: layout.map((x) => {
+            const { id: _id, projectId: _projectId, ...data } = x;
+            return data;
+          }),
+        });
+        const updatedProject = {
           ...project,
-          created: project.created.toISOString(),
-          updated: project.updated.toISOString(),
-        },
-        layout,
-      })
-      .then(() => toast.success("Successfully saved project!"))
-      .catch(() => toast.error("Error saving project"));
+          ...res.project,
+          created: new Date(res.project.created),
+          updated: new Date(res.project.updated),
+        };
+        setProject((cur) => ({ ...cur, ...updatedProject }));
+        navigate(`?project=${res.project.id}`, { replace: true });
+        toast.success("Successfully created project!");
+        return;
+      }
+      saveProject
+        .mutateAsync({
+          project: {
+            ...project,
+            created: project.created.toISOString(),
+            updated: project.updated.toISOString(),
+          },
+          layout,
+        })
+        .then(() => toast.success("Successfully saved project!"))
+        .catch(() => toast.error("Error saving project"));
+    } catch (e) {
+      toast.error("Error saving project");
+    }
   }, [project, layout, createProject, saveProject, setProject, navigate]);
 };
 
@@ -109,12 +105,7 @@ export const useInitProject = (user: Omit<User, "password"> | null) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (
-      getProject.status !== "success" ||
-      isError(getProject.data) ||
-      getProject.data === null
-    )
-      return;
+    if (getProject.status !== "success" || getProject.data === null) return;
     setProject({
       ...getProject.data,
       created: new Date(getProject.data.created),
@@ -124,7 +115,11 @@ export const useInitProject = (user: Omit<User, "password"> | null) => {
   }, [setProject, setIsLoading, getProject.status, getProject.data]);
 
   useEffect(() => {
-    if (projectId.length !== env.CONSTANTS.NEW_PROJECT_ID_LENGTH || user === null) return;
+    if (
+      projectId.length !== env.CONSTANTS.NEW_PROJECT_ID_LENGTH ||
+      user === null
+    )
+      return;
     setProject(loadNewProject(user.id));
     setIsLoading(false);
   }, [projectId, user, setProject]);

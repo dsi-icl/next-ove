@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>next-ove Client API Documentation</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="apple-touch-icon" type="image/svg+xml" href="/favicon.svg"/>
+  <meta charset="utf-8"/>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"/>
+</head>
+
+<body>
+<div id="app"></div>
+
+<!-- Load the Script -->
+<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+
+<!-- Initialize the Scalar API Reference -->
+<script>
+  Scalar.createApiReference('#app', {
+    // The URL of the OpenAPI/Swagger document
+    url: '/openapi.json',
+  })
+</script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 import { state } from "../state";
 import { io } from "../bridge/sockets";
-import { assert } from "@ove/ove-utils";
+import { assert, filterRejected } from "@ove/ove-utils";
 import type { Context } from "../context";
-import { type Bounds, isError } from "@ove/ove-types";
+import type { Bounds } from "@ove/ove-types";
 import { env } from "../../env";
 
 const getObservatories = async (ctx: Context) => {
@@ -28,17 +28,23 @@ const getObservatoryBounds = async (ctx: Context) => {
     ({ isOnline }) => isOnline,
   );
   return (
-    await Promise.all(
-      observatories.map(async ({ name }) =>
-        assert(
+    await Promise.allSettled(
+      observatories.map(async ({ name }) => {
+        const res = await assert(
           io.sockets.get(assert(state.bridgeClients.get(name))),
-        ).emitWithAck("getGeometry", {}),
-      ),
+        ).emitWithAck("getGeometry", {});
+        return { name, response: res };
+      }),
     )
   ).reduce(
     (acc, x) => {
-      if (isError(x.response) || x.response === undefined) return acc;
-      acc[x.meta.bridge] = x.response;
+      if (
+        filterRejected(x) ||
+        x.value.response.status === "error" ||
+        x.value.response.data === undefined
+      )
+        return acc;
+      acc[x.value.name] = x.value.response.data;
       return acc;
     },
     <Record<string, Bounds>>{},

@@ -1,7 +1,6 @@
 import { nanoid } from "nanoid";
 import { assert } from "@ove/ove-utils";
 import { api } from "../../../utils/api";
-import { isError } from "@ove/ove-types";
 import { useProjectId } from "./projects";
 import { useSectionStore } from "./stores";
 import { type Section } from ".prisma/client";
@@ -17,7 +16,7 @@ export const useInitSections = () => {
   const setSections = useSectionStore((state) => state.setSections);
 
   useEffect(() => {
-    if (status !== "success" || isError(data)) return;
+    if (status !== "success") return;
     setSections(data);
     setIsLoading(false);
   }, [setSections, setIsLoading, status, data]);

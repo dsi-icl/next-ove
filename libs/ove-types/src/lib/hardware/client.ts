@@ -1,35 +1,36 @@
 import { z } from "zod";
 import {
-  type TDeviceResponse,
   ClientAPITransformSchema,
-  type TClientRoutesSchema,
   type TClientRouteInputTransformSchema as TClientRouteInputSchema,
-  type TClientRouteOutputTransformSchema as TClientRouteOutputSchema
+  type TClientRouteOutputTransformSchema as TClientRouteOutputSchema,
+  type TClientRoutesSchema,
 } from "./client-transform";
-import {
-  type APIExposureLevel,
-  type TServiceRoutesSchema
-} from "./service";
+import { type APIExposureLevel, type TServiceRoutesSchema } from "./service";
 
-export { TDeviceResponse, TClientRouteInputSchema, TClientRouteOutputSchema };
+export {
+  TClientRoutesSchema,
+  TClientRouteInputSchema,
+  TClientRouteOutputSchema,
+};
 
 export type TClientExposedRoutes = {
-  [Key in keyof TServiceRoutesSchema]:
-  APIExposureLevel<Key> extends "client" ? Key : never
-}[keyof TServiceRoutesSchema]
+  [Key in keyof TServiceRoutesSchema]: APIExposureLevel<Key> extends "client"
+    ? Key
+    : never;
+}[keyof TServiceRoutesSchema];
 
 /* Service Types */
 
 export type TClientService = {
-  [Key in TClientExposedRoutes]:
-  (args: z.infer<TClientRoutesSchema[Key]["args"]>) =>
-    Promise<z.infer<TClientRoutesSchema[Key]["returns"]>>
+  [Key in TClientExposedRoutes]: (
+    args: z.infer<TClientRoutesSchema[Key]["args"]>,
+  ) => Promise<z.infer<TClientRoutesSchema[Key]["returns"]>>;
 };
 
 /* API Types */
 
 export type TClientAPI = {
-  [Key in TClientExposedRoutes]: TClientRoutesSchema[Key]
+  [Key in TClientExposedRoutes]: TClientRoutesSchema[Key];
 };
 
 /* API */
@@ -37,17 +38,21 @@ export type TClientAPI = {
 /**
  * Client API schema, only those that are exposed on the client
  */
-export const ClientAPISchema: TClientAPI =
-  Object.fromEntries(Object.entries(ClientAPITransformSchema)
-    .filter(([_k, route]) => route.exposed === "client")) as TClientAPI;
+export const ClientAPISchema: TClientAPI = Object.fromEntries(
+  Object.entries(ClientAPITransformSchema).filter(
+    ([_k, route]) => route.exposed === "client",
+  ),
+) as TClientAPI;
 
 /* Service Utility Types */
 
 /**
  * Arguments to client service function
  */
-export type TClientServiceArgs<Key extends keyof TClientService> =
-  z.infer<TClientRoutesSchema[Key]["args"]>;
+export type TClientServiceArgs<Key extends keyof TClientService> = z.infer<
+  TClientRoutesSchema[Key]["args"]
+>;
 
-export type TClientAPIReturns<Key extends keyof TClientAPI> =
-  Promise<z.infer<TClientAPI[Key]["client"]>>
+export type TClientAPIReturns<Key extends keyof TClientAPI> = Promise<
+  z.infer<TClientAPI[Key]["returns"]>
+>;

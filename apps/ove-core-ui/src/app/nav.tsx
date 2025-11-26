@@ -17,17 +17,15 @@ import {
   NavigationMenuTrigger,
 } from "@ove/ui-base-components";
 import React, { useMemo } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Server } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { UserCog } from "lucide-react";
 import { useStore } from "../store";
 import { api } from "../utils/api";
-import { isError } from "@ove/ove-types";
 import { env } from "../env";
 import { useLoggedIn, useLogout } from "../hooks/auth";
 
 const Persona = () => {
   const user = useStore((state) => state.user);
-  const navigate = useNavigate();
   const logout = useLogout();
   const getPendingInviteCount = api.projects.getPendingInviteCount.useQuery();
 
@@ -45,17 +43,15 @@ const Persona = () => {
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="flex cursor-pointer"
-          onClick={() => navigate("/collaboration")}
-        >
-          Invites
-          {getPendingInviteCount.status === "success" &&
-          !isError(getPendingInviteCount.data) ? (
-            <Badge variant="destructive" className="ml-auto">
-              {getPendingInviteCount.data}
-            </Badge>
-          ) : null}
+        <DropdownMenuItem asChild>
+          <Link to="/collaboration" className="flex cursor-pointer">
+            Invites
+            {getPendingInviteCount.status === "success" ? (
+              <Badge variant="destructive" className="ml-auto">
+                {getPendingInviteCount.data}
+              </Badge>
+            ) : null}
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem className="cursor-pointer" onClick={logout}>
           Log out
@@ -90,7 +86,7 @@ const Nav = () => {
         <NavigationMenuList className="mr-2 h-full">
           {loggedIn ? (
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Hardware</NavigationMenuTrigger>
+              <NavigationMenuTrigger>Admin</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                   <li className="row-span-3">
@@ -98,12 +94,27 @@ const Nav = () => {
                       asChild
                       className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md"
                     >
-                      <Link to="/hardware">
-                        <Server />
+                      <Link to="/admin">
+                        <UserCog />
                         <h4 className="mb-2 mt-4 text-lg font-medium">
-                          Hardware Manager
+                          Admin Dashboard
                         </h4>
                         <p className="text-muted-foreground text-sm leading-tight">
+                          Manage users, files and projects.
+                        </p>
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                  <li>
+                    <NavigationMenuLink
+                      asChild
+                      className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                    >
+                      <Link to="/hardware">
+                        <div className="text-sm font-medium leading-none">
+                          Hardware Manager
+                        </div>
+                        <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
                           Manage all connected hardware.
                         </p>
                       </Link>

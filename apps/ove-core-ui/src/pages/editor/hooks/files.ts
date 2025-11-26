@@ -3,7 +3,7 @@ import { assert } from "@ove/ove-utils";
 import { useMemo, useState } from "react";
 import { env, logger } from "../../../env";
 import { api, s3 } from "../../../utils/api";
-import { dataTypes, type File as TFile, isError } from "@ove/ove-types";
+import { dataTypes, type File as TFile } from "@ove/ove-types";
 
 export const toURL = (bucketName: string, name: string, version: string) =>
   `/store/${bucketName}/${name}?versionId=${version}`;
@@ -52,14 +52,25 @@ export const useUpload = (projectId: string) => {
 
   type UploadIntent = "create" | "update" | "auto";
 
-  const checkDuplicateName = async (objectName: string) => {
-    const files = await client.projects.getFiles.query({ projectId });
-    return !isError(files) && files.some(f => f.name.toLowerCase() === objectName.toLowerCase());
-  };
+  const checkDuplicateName = async (objectName: string) =>
+    (await client.projects.getFiles.query({ projectId })).some(
+      (f) => f.name.toLowerCase() === objectName.toLowerCase(),
+    );
 
-  return async ({ objectName, file, intent="auto" }: { objectName: string; file: File; intent?: UploadIntent }): Promise<boolean> => {
+  return async ({
+    objectName,
+    file,
+    intent = "auto",
+  }: {
+    objectName: string;
+    file: File;
+    intent?: UploadIntent;
+  }): Promise<boolean> => {
     try {
-      if (!objectName) { toast.error("Missing filename"); return false; }
+      if (!objectName) {
+        toast.error("Missing filename");
+        return false;
+      }
 
       const isDuplicate = await checkDuplicateName(objectName);
       if (isDuplicate && intent === "create") {
@@ -81,20 +92,18 @@ export const useUpload = (projectId: string) => {
           dt.name === "data-table"
             ? {
                 containsHeader: false,
-                tableSource: getFormattedExtension(objectName) as "html" | "csv" | "tsv",
+                tableSource: getFormattedExtension(objectName) as
+                  | "html"
+                  | "csv"
+                  | "tsv",
               }
             : undefined,
       });
-      if (isError(formatted)) {
-        toast.error(formatted.oveError ?? "Error formatting file");
-        return false;
-      }
 
-      const rawUrl = await client.projects.getPresignedPutURL.query({ projectId, objectName });
-      if (isError(rawUrl)) {
-        toast.error(`Missing presigned URL for raw file: ${objectName}`);
-        return false;
-      }
+      const rawUrl = await client.projects.getPresignedPutURL.query({
+        projectId,
+        objectName,
+      });
 
       await uploadFile.mutateAsync({ url: rawUrl, payload: file });
 
@@ -103,13 +112,14 @@ export const useUpload = (projectId: string) => {
         projectId,
         objectName: fileName,
       });
-      if (isError(formattedUrl)) {
-        toast.error("Missing presigned URL for formatted file");
-        return false;
-      }
 
-      const formattedFile = new File([formattedText], fileName, { type: getFormattedExtension(fileName) === "html" ? "text/html" : "text/plain" });
-      await uploadFile.mutateAsync({ url: formattedUrl, payload: formattedFile });
+      const formattedFile = new File([formattedText], fileName, {
+        type: "text/plain",
+      });
+      await uploadFile.mutateAsync({
+        url: formattedUrl,
+        payload: formattedFile,
+      });
 
       apiUtils.projects.getFiles.invalidate({ projectId }).catch(() => {});
       toast.success("Upload complete");
@@ -154,7 +164,7 @@ export const useFiles = (projectId: string) => {
   );
 
   const files = useMemo(() => {
-    if (getFiles.status !== "success" || isError(getFiles.data)) {
+    if (getFiles.status !== "success") {
       return [];
     } else {
       return getFiles.data;
@@ -183,17 +193,12 @@ export const useData = (file: TFile) => {
       objectName: file.name,
       versionId: file.version,
     },
-    { enabled: !!file?.name }
+    { enabled: !!file?.name },
   );
 
   const getData = s3.getFileData.useQuery(
-    {
-      url:
-        getPresigned.status !== "success" || isError(getPresigned.data)
-          ? ""
-          : getPresigned.data,
-    },
-    { enabled: getPresigned.status === "success" }
+    { url: getPresigned.status !== "success" ? "" : getPresigned.data },
+    { enabled: getPresigned.status === "success" },
   );
 
   const exampleFor = (name: string) => {
@@ -211,8 +216,8 @@ export const useData = (file: TFile) => {
     }
   };
 
-  if (getData.status === "success" && typeof getData.data === "string") {
-    return getData.data
+  if (getData.status === "success") {
+    return getData.data;
   }
 
   if (getData.status === "error") {
@@ -221,7 +226,6 @@ export const useData = (file: TFile) => {
 
   return null;
 };
-
 
 export const useFileWithEdit = (
   name: string,

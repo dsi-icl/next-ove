@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { logger } from "../../env";
-import { safe } from "@ove/ove-utils";
 import controller from "./controller";
 import { procedure, router } from "../trpc";
-import { BoundsSchema, OVEExceptionSchema } from "@ove/ove-types";
+import { BoundsSchema } from "@ove/ove-types";
 
 const ObservatorySchema = z.strictObject({
   name: z.string(),
@@ -22,9 +21,10 @@ export const coreRouter = router({
       },
     })
     .input(z.void())
-    .output(z.union([ObservatorySchema.array(), OVEExceptionSchema]))
+    .output(ObservatorySchema.array())
     .query(async ({ ctx }) => {
-      return safe(logger, () => controller.getObservatories(ctx));
+      logger.info("Getting observatories");
+      return controller.getObservatories(ctx);
     }),
   getObservatoryBounds: procedure
     .meta({
@@ -35,10 +35,10 @@ export const coreRouter = router({
       },
     })
     .input(z.void())
-    .output(z.union([ObservatoryBoundsSchema, OVEExceptionSchema]))
+    .output(ObservatoryBoundsSchema)
     .query(async ({ ctx }) => {
       logger.info("Getting observatory bounds");
-      return safe(logger, () => controller.getObservatoryBounds(ctx));
+      return controller.getObservatoryBounds(ctx);
     }),
   getRenderer: procedure
     .meta({
@@ -49,9 +49,9 @@ export const coreRouter = router({
       },
     })
     .input(z.void())
-    .output(z.union([z.string().nullable(), OVEExceptionSchema]))
+    .output(z.string().nullable())
     .query(async () => {
       logger.info("Getting renderer");
-      return safe(logger, () => controller.getRenderer());
+      return controller.getRenderer();
     }),
 });

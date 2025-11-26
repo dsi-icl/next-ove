@@ -1,6 +1,5 @@
 import {
   APIRoutes,
-  isError,
   type TAPIRoutes,
   type TBridgeService,
   type TIsGet,
@@ -8,8 +7,7 @@ import {
 import { io } from "./sockets";
 import { state } from "../state";
 import { logger } from "../../env";
-import { safe } from "@ove/ove-utils";
-import { procedure, router } from "../trpc";
+import { adminProcedure, router } from "../trpc";
 
 const getSocket = (socketId: string) => {
   const clientId = state.bridgeClients.get(socketId) ?? null;
@@ -18,7 +16,7 @@ const getSocket = (socketId: string) => {
 };
 
 const generateProcedure = <Key extends keyof TBridgeService>(k: Key) =>
-  procedure
+  adminProcedure
     .meta(APIRoutes[k].meta)
     .input<TAPIRoutes[Key]["input"]>(APIRoutes[k].input)
     .output<TAPIRoutes[Key]["output"]>(APIRoutes[k].output);
@@ -35,21 +33,12 @@ const handler = async <
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   const { bridgeId, ...args } = input;
   logger.info(`Handling: ${k}`);
-
-  const res = await safe(logger, () => {
-    const socket = getSocket(bridgeId);
-    if (socket === null) throw new Error(`${bridgeId} is not connected`);
-    // @ts-expect-error arg spread
-    return new Promise((resolve) => socket.emit<Key>(k, args, resolve));
-  });
-  if (isError(res)) {
-    return {
-      meta: {
-        bridge: bridgeId,
-      },
-      response: res,
-    };
-  } else return res;
+  const socket = getSocket(bridgeId);
+  if (socket === null) throw new Error(`${bridgeId} is not connected`);
+  // @ts-expect-error arg spread
+  const res = await socket.emitWithAck(k, args);
+  if (res.status === "error") throw new Error(res.error);
+  return res.data;
 };
 
 const generateQuery = <Key extends keyof TBridgeService>(k: Key) =>

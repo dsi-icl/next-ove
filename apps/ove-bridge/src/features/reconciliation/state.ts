@@ -1,20 +1,19 @@
-import {
+import type {
   Browser,
   BrowserConfig,
   MDCSource,
-  OVEException,
   PJLinkSource,
   StatusOptions,
 } from "@ove/ove-types";
 
-type ReconciliationStateValue<T, U> = { target: T | null; observed: U | OVEException | null; };
+type ReconciliationStateValue<T, U> = { target: T | null; observed: U | null; };
 
 export type NodeState = {
   type: "node";
   status: ReconciliationStateValue<StatusOptions, StatusOptions>;
   browsers: ReconciliationStateValue<boolean, Record<string, Browser>>;
   browserConfigs: ReconciliationStateValue<BrowserConfig, BrowserConfig>;
-  screenshots: string[] | OVEException | null;
+  screenshots: string[] | null;
 };
 
 export type MDCState = {

@@ -1,5 +1,5 @@
 import { type Column, ColumnDef } from "@tanstack/react-table";
-import { Log } from "../hooks/log-store";
+import type { Log } from "../hooks/log-store";
 import React, { useCallback } from "react";
 import { ArrowUpDown } from "lucide-react";
 

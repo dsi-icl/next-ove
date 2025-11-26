@@ -3,8 +3,10 @@ import { useLoggedIn } from "../hooks/auth";
 import { auth } from "../utils/api";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/protected-route";
+import { useStore } from "../store";
 
 const Logs = React.lazy(() => import("../pages/logs/page"));
+const Admin = React.lazy(() => import("../pages/admin/page"));
 const Login = React.lazy(() => import("../pages/login/page"));
 const Sockets = React.lazy(() => import("../pages/sockets/page"));
 const Landing = React.lazy(() => import("../pages/landing/page"));
@@ -15,6 +17,7 @@ const ProjectEditorLoader = React.lazy(() => import("../pages/editor/loader"));
 
 const Router = () => {
   const loggedIn = useLoggedIn();
+  const user = useStore((store) => store.user);
   const refresh = auth.refresh.useQuery();
 
   return refresh.isFetched ? (
@@ -22,9 +25,23 @@ const Router = () => {
       <Routes>
         <Route path="/" element={loggedIn ? <Projects /> : <Landing />} />
         <Route
+          path="/admin"
+          element={
+            <ProtectedRoute
+              condition={loggedIn && user?.role === "admin"}
+              redirectTo="/login?to=/admin"
+            >
+              <Admin />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/hardware"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/hardware">
+            <ProtectedRoute
+              condition={loggedIn}
+              redirectTo="/login?to=/hardware"
+            >
               <HardwareManager />
             </ProtectedRoute>
           }
@@ -33,7 +50,10 @@ const Router = () => {
         <Route
           path="/sockets"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/sockets">
+            <ProtectedRoute
+              condition={loggedIn}
+              redirectTo="/login?to=/sockets"
+            >
               <Sockets />
             </ProtectedRoute>
           }
@@ -49,7 +69,10 @@ const Router = () => {
         <Route
           path="/collaboration"
           element={
-            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/collaboration">
+            <ProtectedRoute
+              condition={loggedIn}
+              redirectTo="/login?to=/collaboration"
+            >
               <Collaboration />
             </ProtectedRoute>
           }
@@ -64,7 +87,9 @@ const Router = () => {
         />
       </Routes>
     </Suspense>
-  ) : <div></div>;
+  ) : (
+    <div></div>
+  );
 };
 
 export default Router;

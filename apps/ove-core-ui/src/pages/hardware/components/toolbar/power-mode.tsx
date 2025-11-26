@@ -8,36 +8,32 @@ import {
   DropdownMenuTrigger,
 } from "@ove/ui-base-components";
 import { Leaf } from "lucide-react";
-import React, { useMemo } from "react";
-import { logger } from "../../../../env";
+import React from "react";
 import { api } from "../../../../utils/api";
-import { isError, type PowerMode as TPowerMode } from "@ove/ove-types";
+import type { PowerMode as TPowerMode } from "@ove/ove-types";
 
 const usePowerMode = (bridgeId: string) => {
   const apiUtils = api.useUtils();
   const getPowerMode = api.bridge.getMode.useQuery({ bridgeId });
   const setPowerMode = api.bridge.setMode.useMutation({
     retry: false,
-    onError: () => toast.error("Failed to set power mode"),
-    onSuccess: (data) => {
-      if (isError(data.response)) {
-        toast.error("Failed to set power mode");
-        return;
-      }
-      toast.success("Successfully set power mode");
-      apiUtils.bridge.getMode.invalidate({ bridgeId }).catch(logger.error);
+    onSuccess: () => {
+      toast.promise(apiUtils.bridge.getMode.invalidate({ bridgeId }), {
+        loading: "Updating power mode...",
+        success: "Successfully updated power mode",
+        error: "Unable to update power mode",
+      });
     },
   });
-  const powerMode: TPowerMode = useMemo(() => {
-    if (getPowerMode.data === undefined || isError(getPowerMode.data.response))
-      return "manual";
-    return getPowerMode.data.response;
-  }, [getPowerMode.data]);
 
   return {
-    powerMode,
+    powerMode: getPowerMode.data ?? "manual",
     setPowerMode: (mode: TPowerMode) => {
-      setPowerMode.mutateAsync({ bridgeId, mode }).catch(logger.error);
+      toast.promise(setPowerMode.mutateAsync({ bridgeId, mode }), {
+        loading: "Setting power mode...",
+        success: "Successfully set power mode",
+        error: "Failed to set power mode",
+      });
     },
   };
 };

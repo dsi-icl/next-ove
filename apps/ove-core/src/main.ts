@@ -2,7 +2,7 @@
 
 import * as path from "path";
 import cors from "cors";
-import { env } from "./env";
+import { env, logger } from "./env";
 import auth from "./server/auth";
 import * as dotenv from "dotenv";
 import * as express from "express";
@@ -10,7 +10,6 @@ import { prisma } from "./server/db";
 import cookieParser from "cookie-parser";
 import { appRouter } from "./server/router";
 import promBundle from "express-prom-bundle";
-import * as FileUtils from "@ove/ove-server-utils";
 import { app } from "./server/app";
 import { state } from "./server/state";
 import { createContext } from "./server/context";
@@ -18,16 +17,16 @@ import { openApiDocument } from "./server/open-api";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { createOpenApiExpressMiddleware } from "trpc-to-openapi";
 import {
-  type Request,
-  credentialsMiddleware,
   apiKeyMiddleware,
-  generateOTP,
-  cookieMiddleware,
-  setCookies,
-  getUser,
   clearCookies,
+  cookieMiddleware,
+  credentialsMiddleware,
+  generateOTP,
+  getUser,
   otpMiddleware,
   redirectMiddleware,
+  type Request,
+  setCookies
 } from "@ove/ove-auth";
 
 const metricsMiddleware = promBundle({
@@ -53,11 +52,26 @@ app.get("/api/signing-key", (_req, res) => {
 });
 
 app.use("/api/otp", async (req: Request, res, next) =>
-  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.use("/api/otp", async (req: Request, res, next) =>
-  apiKeyMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
+  apiKeyMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.get("/api/otp", async (req: Request, res) => {
@@ -70,11 +84,25 @@ app.get("/api/otp", async (req: Request, res) => {
 });
 
 app.use("/api/login", async (req: Request, res, next) =>
-  credentialsMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
+  credentialsMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.use("/api/login", async (req: Request, res, next) =>
-  apiKeyMiddleware(prisma, req, res, next, auth.authorize, auth.getCredentials()),
+  apiKeyMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.post("/api/login", async (req: Request, res) => {
@@ -83,12 +111,27 @@ app.post("/api/login", async (req: Request, res) => {
     return;
   }
 
-  await setCookies(prisma, res, { username: req.username, role: req.role }, env.TOKENS);
+  await setCookies(
+    prisma,
+    res,
+    { username: req.username, role: req.role },
+    env.TOKENS,
+  );
 
   res.send(await getUser(req.username, prisma));
 });
 
-app.use("/api/refresh", async (req, res, next) => cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()));
+app.use("/api/refresh", async (req, res, next) =>
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
+);
 
 app.get("/api/refresh", async (req: Request, res) => {
   if (req.username === undefined || req.role === undefined) {
@@ -99,8 +142,32 @@ app.get("/api/refresh", async (req: Request, res) => {
   res.send(await getUser(req.username, prisma));
 });
 
+app.use("/api/validate", async (req, res, next) =>
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
+);
+
+app.get("/api/validate", async (_req: Request, res) => {
+  res.status(200).end();
+});
+
 app.use("/api/logout", async (req, res, next) =>
-  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.post("/api/logout", async (req: Request, res) => {
@@ -125,7 +192,15 @@ app.post("/api/logout", async (req: Request, res) => {
 });
 
 app.use("/api/redirect", async (req, res, next) =>
-  otpMiddleware(state.otps, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+  otpMiddleware(
+    state.otps,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 app.use("/api/redirect", async (req, res, next) =>
   redirectMiddleware(req, res, next, auth.authorize),
@@ -141,19 +216,40 @@ app.get("/api/redirect", async (req: Request, res) => {
     return;
   }
 
-  await setCookies(prisma, res, { username: req.username, role: req.role }, env.TOKENS);
+  await setCookies(
+    prisma,
+    res,
+    { username: req.username, role: req.role },
+    env.TOKENS,
+  );
 
   res.redirect(req.to);
 });
 
 app.use("/sockets/admin", async (req, res, next) =>
-  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.use("/sockets/admin", express.static(env.SOCKETS.DIST_DIR));
 
 app.use(`/api/v${env.API_VERSION}/trpc`, async (req: Request, res, next) =>
-  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.use(
@@ -161,11 +257,22 @@ app.use(
   trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
+    onError: ({ error }) => {
+      logger.error(error);
+    },
   }),
 );
 
 app.use(`/api/v${env.API_VERSION}`, async (req: Request, res, next) =>
-  cookieMiddleware(prisma, req, res, next, env.TOKENS, auth.authorize, auth.getCredentials()),
+  cookieMiddleware(
+    prisma,
+    req,
+    res,
+    next,
+    env.TOKENS,
+    auth.authorize,
+    auth.getCredentials(),
+  ),
 );
 
 app.use(
@@ -173,28 +280,26 @@ app.use(
   createOpenApiExpressMiddleware({
     router: appRouter,
     createContext,
+    onError: ({ error }) => {
+      logger.error(error);
+    },
   }) as Parameters<typeof app.use>[1],
 );
 
 // TODO: merge OpenApi schema with routes in this file
-app.get("/api/ove-core.json", (_req, res) => {
+app.get("/openapi.json", (_req, res) => {
   res.send(openApiDocument);
 });
 
-app.get("/api", (_req, res) => {
-  res.sendFile(path.join(__dirname, "assets", "docs.html"));
-});
-
-FileUtils.saveOpenApi(
-  path.join(`v${env.API_VERSION}`, "ove-core.swagger.json"),
-  openApiDocument,
+app.get("/docs", (_req, res) =>
+  res.sendFile(path.join(__dirname, "assets", "docs.html")),
 );
 
 app.use((req, res, next) => {
   const reqPath = req.path.endsWith("/")
     ? req.path.substring(0, req.path.length - 1)
     : req.path;
-  if (/(.ico|.js|.css|.jpg|.png|.map|.svg|.woff|.woff2)$/i.test(reqPath)) {
+  if (/(.ico|.js|.css|.jpg|.png|.map|.svg|.woff|.woff2|.json)$/i.test(reqPath)) {
     const filePath = path.join(env.SERVICES.UI, ...reqPath.split("/"));
     res.sendFile(filePath);
   } else if (reqPath.includes("socket") && reqPath !== "/sockets") {

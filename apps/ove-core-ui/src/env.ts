@@ -44,7 +44,7 @@ const schema = z
             INGESTION: z.string(),
             SOCKET_ENDPOINT: z.string(),
             SOCKET_PATH: z.string().optional(),
-          }),
+          }).optional(),
         IDENTIFIER: z.string().optional(),
       })
       .optional(),
