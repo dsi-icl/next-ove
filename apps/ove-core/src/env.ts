@@ -48,7 +48,7 @@ const schema = z.strictObject({
           INGESTION: z.string(),
           AUTH: z.string(),
           API_KEY: z.string(),
-        }),
+        }).optional(),
       IDENTIFIER: z.string().optional(),
     })
     .optional(),
