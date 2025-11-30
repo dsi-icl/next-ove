@@ -17,6 +17,23 @@ const getDataType = (name: string) =>
 
 const getFormattedExtension = (name: string) => assert(name.split(".").at(-1));
 
+const getFileType = (name: string): string => {
+  const ext = getFormattedExtension(name).toLowerCase();
+  switch (ext) {
+    case "html":
+    case "htm":
+      return "text/html";
+    case "json":
+      return "application/json";
+    case "csv":
+      return "text/csv";
+    case "tsv":
+      return "text/tab-separated-values";
+    default:
+      return "text/plain";
+  }
+};
+
 export const hasVersion = (
   files: TFile[],
   bucketName: string,
@@ -114,7 +131,7 @@ export const useUpload = (projectId: string) => {
       });
 
       const formattedFile = new File([formattedText], fileName, {
-        type: "text/plain",
+        type: getFileType(fileName),
       });
       await uploadFile.mutateAsync({
         url: formattedUrl,

@@ -184,7 +184,7 @@ ${content}
 
     const ok = await uploadFile({
       objectName: fullName,
-      file: new File([data], fullName, { type: getExtensionForLanguage(language) === "html" ? "text/html" : "text/plain" }),
+      file: new File([data], fullName, { type: getExtensionForLanguage(language) === ".html" ? "text/html" : "text/plain" }),
       intent: mode === "edit" ? "update" : "create"
     });
     if (ok) close();
