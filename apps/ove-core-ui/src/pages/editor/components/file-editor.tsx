@@ -221,8 +221,55 @@ ${content}
               "undo redo | fontfamily fontsize blocks | bold italic forecolor backcolor | bullist numlist",
             font_size_formats: "0.75rem 0.875rem 1rem 1.25rem 1.5rem 2rem 3rem 4rem",
             content_style: `
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Extralight.woff2") format("woff2");
+                font-weight: 200;
+              }
+
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Light.woff2") format("woff2");
+                font-weight: 300;
+              }
+
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Regular.woff2") format("woff2");
+                font-weight: 400;
+              }
+
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Medium.woff2") format("woff2");
+                font-weight: 500;
+              }
+
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Semibold.woff2") format("woff2");
+                font-weight: 600;
+              }
+
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Bold.woff2") format("woff2");
+                font-weight: 700;
+              }
+
+              @font-face {
+                font-family: "Imperial Sans Display";
+                src: url("https://do-store.dsi.ic.ac.uk/fonts/ImperialSansDisplay/ImperialSansDisplay-Extrabold.woff2") format("woff2");
+                font-weight: 800;
+              }
+
               html { font-size: 16px; }
               body { font-size: 1rem; line-height: 1; font-family: 'Imperial Sans Display', sans-serif;}
+
+              h1 { font-size: 2rem; font-weight: 700; }
+              h2 { font-size: 1.5rem; font-weight: 600; }
+              h3 { font-size: 1.25rem; font-weight: 500; }
+              p  { font-size: 1rem; font-weight: 300; }
             `,
             setup: (editor) => {
               editor.on('PreInit', () => {
