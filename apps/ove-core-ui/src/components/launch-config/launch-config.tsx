@@ -57,6 +57,8 @@ const LaunchConfig = ({ project, launch }: LaunchConfigProps) => {
       observatory,
       layout: sections.length === 0 ? null : sections,
     });
+
+    form.reset();
   };
 
   return (

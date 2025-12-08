@@ -74,6 +74,19 @@ export const useUpload = (projectId: string) => {
       (f) => f.name.toLowerCase() === objectName.toLowerCase(),
     );
 
+  const normalizeName = (name: string): string => {
+    name = name.trim();
+    const lastDot = name.lastIndexOf(".");
+    const base = lastDot === -1 ? name : name.slice(0, lastDot);
+    const ext  = lastDot === -1 ? ""   : name.slice(lastDot + 1);
+
+    const normalizedBase = base
+      .replace(/\s+/g, "_")
+      .replace(/[^A-Za-z0-9._-]/g, "");
+
+    return ext ? `${normalizedBase}.${ext}` : normalizedBase;
+  };
+
   return async ({
     objectName,
     file,
@@ -88,6 +101,8 @@ export const useUpload = (projectId: string) => {
         toast.error("Missing filename");
         return false;
       }
+
+      objectName = normalizeName(objectName);
 
       const isDuplicate = await checkDuplicateName(objectName);
       if (isDuplicate && intent === "create") {
