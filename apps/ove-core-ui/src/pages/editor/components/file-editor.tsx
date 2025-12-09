@@ -218,8 +218,8 @@ ${content}
             plugins: "lists",
             custom_colors: false,
             toolbar:
-              "undo redo | fontfamily fontsize blocks | bold italic forecolor backcolor | bullist numlist",
-            font_size_formats: "0.75rem 0.875rem 1rem 1.25rem 1.5rem 2rem 3rem 4rem",
+              "undo redo | fontfamily blocks fontsize increaseFont decreaseFont | bold italic forecolor backcolor | bullist numlist",
+            font_size_formats: "0.75rem 1rem 1.5rem 2rem 3rem 4rem 5rem 6rem 8rem 10rem 12rem 15rem",
             content_style: `
               @font-face {
                 font-family: "Imperial Sans Display";
@@ -274,6 +274,22 @@ ${content}
             setup: (editor) => {
               editor.on('PreInit', () => {
                 editor.getBody().style.fontSize = '1rem';
+              });
+              editor.ui.registry.addButton('increaseFont', {
+                text: 'A+',
+                onAction: () => {
+                  const currFontSize = editor.queryCommandValue('FontSize');
+                  const newFontSize = (parseFloat(currFontSize.replace('rem', '')) + 0.25).toFixed(2);
+                  editor.execCommand('FontSize', false, `${newFontSize}rem`);
+                }
+              });
+              editor.ui.registry.addButton('decreaseFont', {
+                  text: 'A-',
+                  onAction: () => {                         
+                    const currFontSize = editor.queryCommandValue('FontSize');
+                    const newFontSize = (parseFloat(currFontSize.replace('rem', '')) - 0.25).toFixed(2);
+                    editor.execCommand('FontSize', false, `${newFontSize}rem`);
+                  }
               });
             },
             ui_mode: "split", 
