@@ -25,6 +25,7 @@ const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
 
   const projects = await prisma.project.findMany({
     where: {
+      isDeleted: false,
       OR: [
         {
           invites: {
@@ -45,6 +46,9 @@ const getProjectsForUser = async (prisma: PrismaClient, username: string) => {
     include: {
       invites: true,
     },
+    omit: {
+      isDeleted: true,
+    }
   });
   return projects.map(({ invites: _invites, ...project }) => project);
 };
@@ -79,6 +83,9 @@ const getProject = async (
       include: {
         invites: true,
       },
+      omit: {
+        isDeleted: true,
+      },
     });
   return project;
 };
@@ -106,6 +113,7 @@ const getUsers = async (prisma: PrismaClient) =>
       username: true,
     },
     where: {
+      isDeleted: false,
       NOT: {
         role: "bridge",
       },
@@ -159,9 +167,9 @@ const createProject = async (
   s3: Client | null,
   username: string,
   project:
-    | Omit<Project, "id" | "creatorId" | "created" | "updated" | "bucket">
+    | Omit<Project, "id" | "creatorId" | "created_at" | "updated_at" | "bucket" | "isDeleted">
     | undefined,
-  layout: Omit<Section, "id" | "projectId">[] | undefined,
+  layout: Omit<Section, "id" | "projectId" | "created_at" | "updated_at">[] | undefined,
   files: string[] | undefined,
 ) => {
   const user = await prisma.user.findUnique({
@@ -178,7 +186,7 @@ const createProject = async (
   const bucketName = titleToBucketName(title);
   let files_: string[] | undefined = undefined;
 
-  const project_ = await prisma.project.create({
+  const { isDeleted, ...project_ } = await prisma.project.create({
     data: {
       ...input,
       title,
@@ -234,8 +242,8 @@ const createProject = async (
 const saveProject = async (
   prisma: PrismaClient,
   username: string,
-  project: Project,
-  layout: Section[],
+  project: Omit<Project, "isDeleted">,
+  layout: Omit<Section, "created_at" | "updated_at">[],
 ) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -284,13 +292,13 @@ const saveProject = async (
       } else {
         // eslint-disable-next-line no-unused-vars
         const { id, projectId: _projectId, ...data } = section;
-        return prisma.section.update({ data, where: { id } });
+        return prisma.section.update({ data: { ...data, updated_at: new Date() }, where: { id } });
       }
     }),
   );
 
-  const project_ = await prisma.project.update({
-    data,
+  const { isDeleted, ...project_ } = await prisma.project.update({
+    data: { ...data, updated_at: new Date() },
     where: {
       id,
     },
@@ -496,6 +504,7 @@ const generateThumbnail = async (
   await prisma.project.update({
     data: {
       thumbnail,
+      updated_at: new Date(),
     },
     where: {
       id: projectId,
@@ -897,6 +906,7 @@ const acceptInvite = async (prisma: PrismaClient, inviteId: string) => {
     },
     data: {
       status: "accepted",
+      updated_at: new Date(),
     },
   });
 };
@@ -908,6 +918,7 @@ const declineInvite = async (prisma: PrismaClient, inviteId: string) => {
     },
     data: {
       status: "declined",
+      updated_at: new Date(),
     },
   });
 };
@@ -926,6 +937,14 @@ const getPendingInviteCount = async (
     where: {
       recipientId: user.id,
       status: "pending",
+    },
+  });
+};
+
+const recordProjectLaunch = async (prisma: PrismaClient, projectId: string) => {
+  await prisma.projectLaunch.create({
+    data: {
+      projectId,
     },
   });
 };
@@ -956,6 +975,7 @@ const controller = {
   acceptInvite,
   declineInvite,
   getPendingInviteCount,
+  recordProjectLaunch,
 };
 
 export default controller;

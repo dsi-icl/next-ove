@@ -7,8 +7,8 @@ import { fromURL, useFiles } from "../editor/hooks/files";
 
 type ProjectCardProps = {
   user: User;
-  project: Project;
-  openConfig: (project: Project) => void;
+  project: Omit<Project, "isDeleted">;
+  openConfig: (project: Omit<Project, "isDeleted">) => void;
 };
 
 const limitText = (text: string, limit: number) =>

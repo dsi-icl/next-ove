@@ -96,9 +96,12 @@ export const adminRouter = router({
       },
     })
     .input(z.void())
-    .output(z.number())
-    .query(({ ctx }) => {
+    .output(z.strictObject({ total: z.number(), change: z.number() }))
+    .query(async ({ ctx }) => {
       logger.info("Getting project count");
-      return ctx.prisma.project.count();
+      const total = await ctx.prisma.project.count({ where: { isDeleted: false } });
+      const created = await ctx.prisma.project.count({ where: { created_at: { gt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30) } } })
+      const deleted = await ctx.prisma.project.count({ where: { isDeleted: true, updated_at: { gt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30) } } });
+      return { total, change: total === 0 ? 0 : ((created - deleted) / total) * 100 };
     }),
 });

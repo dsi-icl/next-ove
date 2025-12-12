@@ -16,6 +16,7 @@ import url from "ace-builds/src-noconflict/mode-html";
 
 import "ace-builds/src-noconflict/theme-dracula";
 import "ace-builds/src-noconflict/ext-language_tools";
+import { toast } from "sonner";
 
 // TODO: review typecast
 ace.config.setModuleUrl("ace/mode/json", url as unknown as string);
@@ -35,11 +36,11 @@ const ControllerEditor = ({ projectId, bucket }: ControllerEditorProps) => {
   const uploadFile = useUpload(projectId);
 
   const save = useCallback(async () => {
-    await uploadFile({
+    toast.promise(uploadFile({
       objectName: controller.name,
       file: new File([data], controller.name, { type: "text/html" }),
       intent: "update"
-    });
+    }), { loading: "Uploading file...", success: "Uploaded file", error: "Failed to upload file" });
   }, [uploadFile, controller.name, data]);
 
   return (
