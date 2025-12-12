@@ -21,7 +21,14 @@ export const SectionSchema = z.strictObject({
   dataType: z.string(),
   projectId: z.string(),
   ordering: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
+
+export const SectionSchemaOutput = SectionSchema.omit({
+  created_at: true,
+  updated_at: true,
+}).extend({ created_at: z.date(), updated_at: z.date() });
 
 export const ProjectSchema = z.strictObject({
   id: z.string(),

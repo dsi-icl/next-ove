@@ -7,6 +7,7 @@ import {
   ProjectSchema,
   ProjectSchemaOutput,
   SectionSchema,
+  SectionSchemaOutput,
   UserSchema,
 } from "../schemas";
 import { procedure, router } from "../trpc";
@@ -72,7 +73,7 @@ export const projectsRouter = router({
       },
     })
     .input(z.strictObject({ projectId: z.string() }))
-    .output(SectionSchema.array())
+    .output(SectionSchemaOutput.array())
     .query(({ ctx, input: { projectId } }) =>
       controller.getSectionsForProject(ctx.prisma, projectId),
     ),
@@ -107,7 +108,7 @@ export const projectsRouter = router({
     .output(
       z.strictObject({
         project: ProjectSchemaOutput,
-        layout: SectionSchema.array(),
+        layout: SectionSchemaOutput.array(),
         files: z.string().array().optional(),
       }),
     )
@@ -138,7 +139,7 @@ export const projectsRouter = router({
     .output(
       z.strictObject({
         project: ProjectSchemaOutput,
-        layout: SectionSchema.array(),
+        layout: SectionSchemaOutput.array(),
       }),
     )
     .mutation(({ ctx, input }) =>
@@ -286,7 +287,7 @@ export const projectsRouter = router({
       },
     })
     .input(z.strictObject({ projectId: z.string() }))
-    .output(SectionSchema.array())
+    .output(SectionSchemaOutput.array())
     .query(({ ctx, input: { projectId } }) =>
       controller.getLayout(ctx.prisma, projectId),
     ),
