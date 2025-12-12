@@ -17,7 +17,11 @@ export const useInitSections = () => {
 
   useEffect(() => {
     if (status !== "success") return;
-    setSections(data);
+    setSections(data.map(({ created_at, updated_at, ...rest}) => ({
+      ...rest,
+      created_at: new Date(created_at),
+      updated_at: new Date(updated_at),
+    })));
     setIsLoading(false);
   }, [setSections, setIsLoading, status, data]);
 
@@ -223,6 +227,8 @@ export const useSections = () => {
             dataType: "",
             projectId,
             states: [state],
+            created_at: new Date(),
+            updated_at: new Date(),
           },
         ]),
       );
