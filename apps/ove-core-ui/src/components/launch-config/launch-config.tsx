@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { Project, Section } from ".prisma/client";
 import { useObservatories } from "../../hooks/observatories";
 import { useSectionStore } from "../../pages/editor/hooks/stores";
+import { api } from "../../utils/api";
 
 export type TLaunchConfig = {
   projectId: string;
@@ -32,7 +33,7 @@ export type TLaunchConfig = {
 
 type LaunchConfigProps = {
   launch: (config: TLaunchConfig) => void;
-  project: Project;
+  project: Omit<Project, "isDeleted">;
 };
 
 const LaunchConfigFormSchema = z.strictObject({
@@ -45,18 +46,22 @@ type LaunchConfigForm = z.infer<typeof LaunchConfigFormSchema>;
 const LaunchConfig = ({ project, launch }: LaunchConfigProps) => {
   const observatories = useObservatories();
   const sections = useSectionStore((state) => state.sections);
+  const recordProjectLaunch = api.projects.recordProjectLaunch.useMutation();
 
   const form = useForm<LaunchConfigForm>({
     resolver: zodResolver(LaunchConfigFormSchema),
   });
 
-  const onSubmit = ({ observatory, confirmation }: LaunchConfigForm) => {
+  const onSubmit = async ({ observatory, confirmation }: LaunchConfigForm) => {
     if (!confirmation) return;
+    await recordProjectLaunch.mutateAsync({ projectId: project.id });
     launch({
       projectId: project.id,
       observatory,
       layout: sections.length === 0 ? null : sections,
     });
+
+    form.reset();
   };
 
   return (

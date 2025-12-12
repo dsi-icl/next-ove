@@ -8,31 +8,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@ove/ui-base-components";
-import { IconTrendingUp } from "@tabler/icons-react";
+import { IconTrendingUp, IconArrowRight, IconTrendingDown } from "@tabler/icons-react";
 import { api } from "../../../utils/api";
 
 const ProjectCountCard = () => {
   const getProjectCount = api.admin.getProjectCount.useQuery();
+  const getIcon = (change: number) => {
+    if (change > 0) {
+      return <IconTrendingUp className="size-4" />
+    } else if (change < 0) {
+      return <IconTrendingDown className="size-4" />
+    } else {
+      return <IconArrowRight className="size-4" />
+    }
+  }
   return (
     <Card className="@container/card">
       <CardHeader>
+        <div className="flex">
         <CardDescription>Total Projects</CardDescription>
+          <CardAction className="ml-auto">
+            <Badge variant="outline">
+              {getIcon(getProjectCount.data?.change ?? 0)}
+              {(getProjectCount.data?.change ?? 1) > 0 ? "+" : ""}{getProjectCount.data?.change ?? "-"}%
+            </Badge>
+          </CardAction>
+        </div>
         <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-          {getProjectCount.data ?? "-"}
+          {getProjectCount.data?.total ?? "-"}
         </CardTitle>
-        <CardAction>
-          <Badge variant="outline">
-            <IconTrendingUp />
-            +12.5%
-          </Badge>
-        </CardAction>
       </CardHeader>
       <CardFooter className="flex-col items-start gap-1.5 text-sm">
-        <div className="line-clamp-1 flex gap-2 font-medium">
-          Trending up this month <IconTrendingUp className="size-4" />
-        </div>
         <div className="text-muted-foreground">
-          Visitors for the last 6 months
+          Total projects and change in last 30 days.
         </div>
       </CardFooter>
     </Card>
@@ -41,9 +49,9 @@ const ProjectCountCard = () => {
 
 const GeneralOverview = () => {
   return (
-    <main>
-      <h1>Admin Dashboard</h1>
-      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+    <main className="w-full h-full">
+      <h1 className="font-bold text-center w-full text-4xl py-4">Admin Dashboard</h1>
+      <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-4 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
           <ProjectCountCard />
       </div>
     </main>

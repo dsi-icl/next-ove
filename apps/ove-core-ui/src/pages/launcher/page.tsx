@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 type Action = "config" | "launch";
 
 const getDialogContent = (
-  project: Project | null,
+  project: Omit<Project, "isDeleted"> | null,
   action: Action | null,
   launch: (config: TLaunchConfig) => void,
   config: TLaunchConfig | null,
@@ -28,21 +28,21 @@ const getDialogContent = (
 };
 
 const formatProject = (
-  project: Omit<Project, "created" | "updated"> & {
-    created: string;
-    updated: string;
+  project: Omit<Project, "created_at" | "updated_at" | "isDeleted"> & {
+    created_at: string;
+    updated_at: string;
   },
-) => ({
+): Omit<Project, "isDeleted" | "created_at" | "updated_at"> & { created_at: Date; updated_at: Date } => ({
   ...project,
-  created: new Date(project.created),
-  updated: new Date(project.updated),
+  created_at: new Date(project.created_at),
+  updated_at: new Date(project.updated_at),
 });
 
 const Projects = () => {
   const [action, setAction] = useState<"config" | "launch" | null>(null);
   const [config, setConfig] = useState<TLaunchConfig | null>(null);
   const [open, setOpen] = useState(false);
-  const [project, setProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<Omit<Project, "isDeleted"> | null>(null);
   const projects = api.projects.getProjects.useQuery();
   const user = useStore((state) => state.user);
   const projectsLoaded = useMemo(
@@ -65,7 +65,7 @@ const Projects = () => {
   );
 
   const openConfig = useCallback(
-    (project: Project) => {
+    (project: Omit<Project, "isDeleted">) => {
       setProject(project);
       setAction("config");
     },

@@ -89,13 +89,15 @@ export const projectsRouter = router({
         project: ProjectSchema.omit({
           id: true,
           creatorId: true,
-          created: true,
-          updated: true,
+          created_at: true,
+          updated_at: true,
           bucket: true,
         }).optional(),
         layout: SectionSchema.omit({
           id: true,
           projectId: true,
+          updated_at: true,
+          created_at: true,
         })
           .array()
           .optional(),
@@ -145,8 +147,8 @@ export const projectsRouter = router({
         ctx.username,
         {
           ...input.project,
-          created: new Date(input.project.created),
-          updated: new Date(input.project.updated),
+          created_at: new Date(input.project.created_at),
+          updated_at: new Date(input.project.updated_at),
         },
         input.layout,
       ),
@@ -420,6 +422,19 @@ export const projectsRouter = router({
     .output(z.any())
     .mutation(({ input: { inviteId }, ctx }) =>
       controller.declineInvite(ctx.prisma, inviteId),
+    ),
+  recordProjectLaunch: procedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: "/launch",
+        protect: true,
+      },
+    })
+    .input(z.strictObject({ projectId: z.string() }))
+    .output(z.any())
+    .mutation(({ input: { projectId }, ctx }) =>
+      controller.recordProjectLaunch(ctx.prisma, projectId),
     ),
   getPendingInviteCount: procedure
     .meta({

@@ -20,8 +20,8 @@ const loadNewProject = (username: string) => ({
   presenterNotes: "",
   creatorId: username,
   thumbnail: null,
-  created: new Date(),
-  updated: new Date(),
+  created_at: new Date(),
+  updated_at: new Date(),
   isPublic: false,
   bucket: null,
 });
@@ -70,8 +70,8 @@ export const useSave = () => {
         const updatedProject = {
           ...project,
           ...res.project,
-          created: new Date(res.project.created),
-          updated: new Date(res.project.updated),
+          created_at: new Date(res.project.created_at),
+          updated_at: new Date(res.project.updated_at),
         };
         setProject((cur) => ({ ...cur, ...updatedProject }));
         navigate(`?project=${res.project.id}`, { replace: true });
@@ -82,8 +82,8 @@ export const useSave = () => {
         .mutateAsync({
           project: {
             ...project,
-            created: project.created.toISOString(),
-            updated: project.updated.toISOString(),
+            created_at: project.created_at.toISOString(),
+            updated_at: project.updated_at.toISOString(),
           },
           layout,
         })
@@ -108,8 +108,8 @@ export const useInitProject = (user: Omit<User, "password"> | null) => {
     if (getProject.status !== "success" || getProject.data === null) return;
     setProject({
       ...getProject.data,
-      created: new Date(getProject.data.created),
-      updated: new Date(getProject.data.updated),
+      created_at: new Date(getProject.data.created_at),
+      updated_at: new Date(getProject.data.updated_at),
     });
     setIsLoading(false);
   }, [setProject, setIsLoading, getProject.status, getProject.data]);
@@ -128,8 +128,8 @@ export const useInitProject = (user: Omit<User, "password"> | null) => {
 };
 
 type ProjectStore = {
-  project: Project;
-  setProject: (arg: Project | ((cur: Project) => Project)) => void;
+  project: Omit<Project, "isDeleted">;
+  setProject: (arg: Omit<Project, "isDeleted"> | ((cur: Omit<Project, "isDeleted">) => Omit<Project, "isDeleted">)) => void;
 };
 
 export const useProjectStore = create<ProjectStore>((set) => ({

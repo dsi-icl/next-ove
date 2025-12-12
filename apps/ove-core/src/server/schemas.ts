@@ -26,8 +26,8 @@ export const SectionSchema = z.strictObject({
 export const ProjectSchema = z.strictObject({
   id: z.string(),
   creatorId: z.string(),
-  created: z.string(),
-  updated: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
   title: z.string(),
   description: z.string(),
   thumbnail: z.string().nullable(),
@@ -40,9 +40,9 @@ export const ProjectSchema = z.strictObject({
 });
 
 export const ProjectSchemaOutput = ProjectSchema.omit({
-  created: true,
-  updated: true,
-}).extend({ created: z.date(), updated: z.date() });
+  created_at: true,
+  updated_at: true,
+}).extend({ created_at: z.date(), updated_at: z.date() });
 
 export const InviteSchema = z.strictObject({
   id: z.string(),
@@ -52,6 +52,7 @@ export const InviteSchema = z.strictObject({
   project: ProjectSchemaOutput,
   senderId: z.string(),
   recipientId: z.string(),
+  updated_at: z.date(),
 });
 
 export const InviteStatusSchema = z.union([
