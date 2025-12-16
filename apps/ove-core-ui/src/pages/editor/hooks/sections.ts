@@ -90,27 +90,6 @@ export const usePartialUpdateSection = () => {
   }, [setSections, section]);
 }
 
-export const useDragSection = () => {
-  const setSections = useSectionStore((state) => state.setSections);
-
-  return useCallback(
-    (id: string, x: number, y: number) => {
-      setSections((cur) =>
-        cur.map((section) =>
-          section.id === id
-            ? {
-                ...section,
-                x,
-                y,
-              }
-            : section,
-        ),
-      );
-    },
-    [setSections],
-  );
-};
-
 export const useRemoveStateFromSections = () => {
   const setSections = useSectionStore((state) => state.setSections);
   return useCallback(

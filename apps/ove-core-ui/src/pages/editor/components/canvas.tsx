@@ -10,7 +10,7 @@ import type { Section } from ".prisma/client";
 import ResizeContainer from "./resize-container";
 import { useCanvas, useCells } from "../hooks/canvas";
 import { useObservatory } from "../../../hooks/observatories";
-import { useSections, useDragSection, usePartialUpdateSection } from "../hooks/sections";
+import { useSections, usePartialUpdateSection } from "../hooks/sections";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 import type { Bounds } from "@ove/ove-types";
 import { api } from "../../../utils/api";
@@ -140,7 +140,7 @@ interface DraggableSectionProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   isSelected: boolean;
   onSelect: (id: string) => void;
-  onNewPosition: (id: string, xNorm: number, yNorm: number) => void;
+  onNewPosition: (xNorm: number, yNorm: number) => void;
   onNewSize: (widthNorm: number, heightNorm: number) => void; 
 }
 
@@ -339,7 +339,7 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
     const handleMouseUp = () => {
       if (isDragging) {
         setIsDragging(false);
-        onNewPosition(section.id, xNorm, yNorm);
+        onNewPosition(xNorm, yNorm);
       }
       if (isResizing) {
         setIsResizing(false);
@@ -434,7 +434,6 @@ const Canvas: React.FC = () => {
   const selectedSectionId = useSectionStore((state) => state.selectedSection);
   const setSelectedSection = useSectionStore((state) => state.setSelectedSection);
 
-  const dragSection = useDragSection();
   const partialUpdateSection = usePartialUpdateSection();
 
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -445,10 +444,10 @@ const Canvas: React.FC = () => {
   );
 
   const handleNewPosition = useCallback(
-    (id: string, xNorm: number, yNorm: number) => {
-      dragSection(id, xNorm, yNorm);
+    (xNorm: number, yNorm: number) => {
+      partialUpdateSection({ x: xNorm, y: yNorm });
     },
-    [dragSection]
+    [partialUpdateSection]
   );
 
   const handleNewSize = useCallback(

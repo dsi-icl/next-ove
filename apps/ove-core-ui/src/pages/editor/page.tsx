@@ -12,9 +12,11 @@ import StateTabs from "./components/state-tabs";
 import { Dialog } from "@ove/ui-base-components";
 import SectionConfig from "./components/section-config";
 import ObservatoryConfig from "./components/observatory-config";
+import { useSectionStore } from "./hooks/stores";
 
 const ProjectEditor = () => {
   const { isOpen, open, close, content, setAction } = useDialog();
+  const selectedSection = useSectionStore((state) => state.selectedSection);
 
   return (
     <Dialog open={isOpen} onOpenChange={(state) => (state ? open() : close())}>
@@ -42,7 +44,7 @@ const ProjectEditor = () => {
                   </ResizablePanel>
                   <ResizableHandle withHandle={!isOpen} />
                   <ResizablePanel defaultSize={80}>
-                    <SectionConfig />
+                    {selectedSection !== null ? <SectionConfig /> : null}
                   </ResizablePanel>
                 </ResizablePanelGroup>
               </ResizablePanel>
