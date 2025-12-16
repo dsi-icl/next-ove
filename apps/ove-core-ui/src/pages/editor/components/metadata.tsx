@@ -50,8 +50,6 @@ import { useCollaborators } from "../hooks/collaborators";
 import React, { useRef, useState, useEffect } from "react";
 import { Check, ChevronsUpDown, Paintbrush, X } from "lucide-react";
 import S3FileSelect from "../../../components/s3-file-select/s3-file-select";
-import { data } from "react-router-dom";
-import { set } from "date-fns";
 
 const sumText = (text: string) =>
   text.split("").reduce((acc, x) => acc + x.charCodeAt(0), 0);

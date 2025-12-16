@@ -66,8 +66,24 @@ export const recordEquals = <T, U>(
   );
 };
 
-export const titleToBucketName = (title: string) =>
-  title.replaceAll(" ", "-").toLowerCase();
+export const titleToBucketName = (title: string) => {
+  const base = title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  let name = base.slice(0, 63).replace(/-+$/g, "");
+
+  if (name.length < 3) name = (name + "-xxx").slice(0, 3);
+  if (!/^[a-z0-9]/.test(name)) name = "a" + name.slice(1);
+  if (!/[a-z0-9]$/.test(name)) name = name.slice(0, -1) + "0";
+
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(name)) name = `b-${name.replace(/\./g, "-")}`;
+
+  return name;
+};
+
 
 export const fixedEncodeURI = (str: string) =>
   encodeURI(str).replace(/[!'()*]/g, (c) => "%" + c.charCodeAt(0).toString(16));

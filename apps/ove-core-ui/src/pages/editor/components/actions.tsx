@@ -1,4 +1,4 @@
-import { Eye, HatGlasses, Joystick, Rocket, Save, Settings, Upload } from "lucide-react";
+import { HatGlasses, Joystick, Rocket, Save, Settings, Upload } from "lucide-react";
 import { env, logger } from "../../../env";
 import type { TActions } from "../hooks/dialog";
 import { DialogTrigger } from "@ove/ui-base-components";
@@ -37,12 +37,6 @@ const icons: Icon[] = [
     color: "#06d6a0",
     title: "Environment",
     action: "env",
-  },
-  {
-    icon: <Eye className="size-5" />,
-    color: "#118ab2",
-    title: "Preview",
-    action: "preview"
   },
   {
     icon: <Rocket className="size-5" />,

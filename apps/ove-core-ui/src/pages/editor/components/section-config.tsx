@@ -155,7 +155,8 @@ const SectionConfig = () => {
   });
   const { setValue, resetField } = form;
   useFormErrorHandling(form.formState.errors);
-  const [mode, setMode] = useState<"custom" | "grid">("custom");
+  const mode = useSectionStore((store) => store.configMode);
+  const setMode = useSectionStore((store) => store.setConfigMode);
 
   useEffect(() => {
     if (section === null) {
@@ -200,6 +201,13 @@ const SectionConfig = () => {
 
     setValue("x", preview.xPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
     setValue("y", preview.yPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("width", preview.wPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("height", preview.hPct, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+
+    setValue("rowFrom", preview.yGrid, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("columnFrom", preview.xGrid, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("rowTo", preview.yGrid + preview.hGrid, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
+    setValue("columnTo", preview.xGrid + preview.wGrid, { shouldValidate: false, shouldDirty: true, shouldTouch: false });
   }, [preview, selected, setValue]);
 
   const assetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

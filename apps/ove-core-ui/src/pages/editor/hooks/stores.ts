@@ -2,7 +2,17 @@ import { env } from "../../../env";
 import { create } from "zustand/index";
 import type { Section } from ".prisma/client";
 
-type PreviewPos = { id: string; xPct: number; yPct: number } | null;
+type PreviewPos = { 
+  id: string; 
+  xPct: number;
+  yPct: number; 
+  wPct: number;
+  hPct: number;
+  xGrid: number; 
+  yGrid: number; 
+  wGrid: number; 
+  hGrid: number;
+} | null;
 
 type SectionStore = {
   sections: Section[]
@@ -11,6 +21,8 @@ type SectionStore = {
   setSelectedSection: (selectedSection: string | null) => void
   previewPos: PreviewPos
   setPreviewPos: (previewPos: PreviewPos) => void
+  configMode: 'grid' | 'custom'
+  setConfigMode: (configMode: 'grid' | 'custom') => void
 }
 
 const order = (sections: Section[]) =>
@@ -22,7 +34,9 @@ export const useSectionStore = create<SectionStore>(set => ({
   selectedSection: null,
   setSelectedSection: selectedSection => set({ selectedSection }),
   previewPos: null,
-  setPreviewPos: previewPos => set({ previewPos })
+  setPreviewPos: previewPos => set({ previewPos }),
+  configMode: 'grid',
+  setConfigMode: (configMode: 'grid' | 'custom') => set({ configMode }),
 }));
 
 type StateStore = {

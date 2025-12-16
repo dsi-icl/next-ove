@@ -129,9 +129,10 @@ const Sections = () => {
                       variant="ghost"
                       size="sm"
                       type="button"
-                      onClick={() =>
-                        sections.removeFromState(section.id, selectedState)
-                      }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          sections.removeFromState(section.id, selectedState);
+                        }}
                     >
                       <X className="size-4" />
                     </Button>
