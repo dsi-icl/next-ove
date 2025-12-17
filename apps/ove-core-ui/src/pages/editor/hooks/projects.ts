@@ -63,10 +63,11 @@ export const useSave = () => {
             isPublic: project.isPublic,
           },
           layout: layout.map((x) => {
-            const { id: _id, projectId: _projectId, ...data } = x;
+            const { id: _id, projectId: _projectId, created_at, updated_at, ...data } = x;
             return data;
           }),
         });
+        // TODO: look at updating sections with response as well
         const updatedProject = {
           ...project,
           ...res.project,
@@ -85,7 +86,11 @@ export const useSave = () => {
             created_at: project.created_at.toISOString(),
             updated_at: project.updated_at.toISOString(),
           },
-          layout,
+          layout: layout.map((section) => ({
+            ...section,
+            created_at: section.created_at.toISOString(),
+            updated_at: section.updated_at.toISOString(),
+          })),
         })
         .then(() => toast.success("Successfully saved project!"))
         .catch(() => toast.error("Error saving project"));
@@ -129,7 +134,11 @@ export const useInitProject = (user: Omit<User, "password"> | null) => {
 
 type ProjectStore = {
   project: Omit<Project, "isDeleted">;
-  setProject: (arg: Omit<Project, "isDeleted"> | ((cur: Omit<Project, "isDeleted">) => Omit<Project, "isDeleted">)) => void;
+  setProject: (
+    arg:
+      | Omit<Project, "isDeleted">
+      | ((cur: Omit<Project, "isDeleted">) => Omit<Project, "isDeleted">),
+  ) => void;
 };
 
 export const useProjectStore = create<ProjectStore>((set) => ({
