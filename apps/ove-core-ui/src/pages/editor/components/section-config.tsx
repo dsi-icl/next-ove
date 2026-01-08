@@ -232,6 +232,13 @@ const SectionConfig = () => {
 
   const isDisabled = section === null;
 
+  const canUseAspect = !!section && (section.dataType === "images" || section.dataType === "videos");
+  const isAspect = useSectionStore((s) => s.isAspectById[selected ?? ""] ?? false);
+  const setIsAspect = (v: boolean) => {
+    if (!selected) return;
+    useSectionStore.getState().setIsAspectById(selected, v);
+  };
+
   return (
     <section className="h-full px-4">
       <h2 className="mt-2 w-full text-center text-base font-bold">
@@ -247,6 +254,9 @@ const SectionConfig = () => {
               setValue={setValue}
               control={form.control}
               isDisabled={isDisabled}
+              canUseAspect={canUseAspect}
+              isAspect={isAspect}
+              setIsAspect={setIsAspect}
             />
           <fieldset className="flex w-[calc((100%-2rem)-0.5rem)] flex-col" disabled={isDisabled}>
             <FormField
@@ -272,6 +282,7 @@ const SectionConfig = () => {
                           className="w-full border p-2 rounded"
                           type="text"
                           disabled={isDisabled}
+                          placeholder="Enter a file name or paste a URL..."
                         />
                         {q.length > 0 && (
                           <datalist id="file-list">
@@ -309,7 +320,10 @@ const Geometry = ({
   setMode,
   setValue,
   space,
-  isDisabled
+  isDisabled,
+  canUseAspect,
+  isAspect,
+  setIsAspect,
 }: {
   mode: "custom" | "grid";
   setMode: (mode: "custom" | "grid") => void;
@@ -317,6 +331,9 @@ const Geometry = ({
   space: Observatory | null;
   control: Control<SectionConfigForm>;
   isDisabled: boolean;
+  canUseAspect: boolean;
+  isAspect: boolean;
+  setIsAspect: (isAspect: boolean) => void;
 }) => {
   const [x, y, width, height, rowFrom, rowTo, columnFrom, columnTo] = useWatch({ 
     control, name: ["x", "y", "width", "height", "rowFrom", "rowTo", "columnFrom", "columnTo"] 
@@ -373,6 +390,18 @@ const Geometry = ({
           >
             <Grid className="mr-1" /> Grid
           </Button>
+          {canUseAspect && (
+            <label className="flex items-center gap-2 h-10 px-3 rounded-md border text-sm ml-3">
+              <Input
+                type="checkbox"
+                className="h-4 w-4 accent-current"
+                checked={isAspect}
+                onChange={(e) => setIsAspect(e.target.checked)}
+                disabled={isDisabled}
+              />
+              <span className="select-none">Lock Aspect Ratio</span>
+            </label>
+          )}
         </div>
         <Button className="mt-2" type="button" onClick={fullscreen} disabled={isDisabled}>
           <Fullscreen className="mr-1" /> Maximise

@@ -60,7 +60,8 @@ const useObjectName = (file: ReturnType<typeof useSectionFileInfo>, dataType: st
 
 const SectionContent: React.FC<{
   section: Section;
-}> = ({ section }) => {
+  handleMediaMeta: (meta: { w: number; h: number }) => void;
+}> = ({ section, handleMediaMeta }) => {
   const file = useSectionFileInfo(section);
   const objectName = useObjectName(file, section.dataType);
 
@@ -112,6 +113,11 @@ const SectionContent: React.FC<{
           style={baseStyle}
           src={url}
           alt="Image Section"
+          onLoad={(e) => {
+            const img = e.currentTarget;
+            if (!img.naturalWidth || !img.naturalHeight) return;
+            handleMediaMeta({ w: img.naturalWidth, h: img.naturalHeight });
+          }}
         />
       );
     case "videos":
@@ -121,6 +127,11 @@ const SectionContent: React.FC<{
           className="absolute"
           style={baseStyle}
           src={url}
+          onLoadedMetadata={(e) => {
+            const video = e.currentTarget;
+            if (!video.videoWidth || !video.videoHeight) return;
+            handleMediaMeta({ w: video.videoWidth, h: video.videoHeight });
+          }}
         />
       );
     default:
@@ -138,6 +149,7 @@ interface DraggableSectionProps {
   section: Section;
   bounds: Bounds;
   canvasRef: React.RefObject<HTMLDivElement | null>;
+  canvas: { width: number; height: number };
   isSelected: boolean;
   onSelect: (id: string) => void;
   onNewPosition: (xNorm: number, yNorm: number) => void;
@@ -178,6 +190,7 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
   section,
   bounds,
   canvasRef,
+  canvas,
   isSelected,
   onSelect,
   onNewPosition,
@@ -293,31 +306,53 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
         let newWNorm = resizeStart.current.sizeNorm.w + dxSizeNorm;
         let newHNorm = resizeStart.current.sizeNorm.h + dySizeNorm;
 
-        const minWNorm =
-          configMode === "grid"
-            ? stepX
-            : 15 / rect.width;
+        const minWNorm = configMode === "grid" ? stepX : 15 / rect.width;
+        const minHNorm = configMode === "grid" ? stepY : 15 / rect.height;
 
-        const minHNorm =
-          configMode === "grid"
-            ? stepY
-            : 15 / rect.height;
+        const maxWNorm = 1 - xNorm;
+        const maxHNorm = 1 - yNorm;
 
-        const right = xNorm + newWNorm;
-        const snappedRight =
-          configMode === "grid"
-            ? snapToGrid(configMode, right, stepX)
-            : snapPosition(right - newWNorm, newWNorm, bounds.columns, env.CONSTANTS.DRAG_SENSITIVITY.X) + newWNorm;
+        const isAspect = useSectionStore.getState().isAspectById[section.id] ?? false;
+        const aspectRatio = useSectionStore.getState().aspectRatioById[section.id];
+        const useAspect = isAspect && aspectRatio && aspectRatio > 0;
 
-        newWNorm = Math.max(minWNorm, Math.min(1 - xNorm, snappedRight - xNorm));
+        if (useAspect) {
+          const wFromH = (h: number) => (h * rect.height  * aspectRatio) / rect.width;
 
-        const bottom = yNorm + newHNorm;
-        const snappedBottom =
-          configMode === "grid"
-            ? snapToGrid(configMode, bottom, stepY)
-            : snapPosition(bottom - newHNorm, newHNorm, bounds.rows, env.CONSTANTS.DRAG_SENSITIVITY.Y) + newHNorm;
+          const clampSnapWAndDeriveH = (w: number) => {
+            let newW = Math.max(minWNorm, Math.min(maxWNorm, w));
+            if (configMode === "grid") {
+              const snappedRight = snapToGrid("grid", xNorm + newW, stepX);
+              newW = Math.max(minWNorm, Math.min(maxWNorm, snappedRight - xNorm));
+            }
+            const newH = ((newW * rect.width) / aspectRatio) / rect.height
+            return { newW, newH };
+          };
 
-        newHNorm = Math.max(minHNorm, Math.min(1 - yNorm, snappedBottom - yNorm));
+          ({ newW: newWNorm, newH: newHNorm } = clampSnapWAndDeriveH(newWNorm));
+
+          if (newHNorm > maxHNorm) {
+            ({ newW: newWNorm, newH: newHNorm } = clampSnapWAndDeriveH(wFromH(maxHNorm)));
+          } else if (newHNorm < minHNorm) {
+            ({ newW: newWNorm, newH: newHNorm } = clampSnapWAndDeriveH(wFromH(minHNorm)));
+          }
+        } else {
+          const right = xNorm + newWNorm;
+          const snappedRight =
+            configMode === "grid"
+              ? snapToGrid(configMode, right, stepX)
+              : snapPosition(right - newWNorm, newWNorm, bounds.columns, env.CONSTANTS.DRAG_SENSITIVITY.X) + newWNorm;
+
+          newWNorm = Math.max(minWNorm, Math.min(1 - xNorm, snappedRight - xNorm));
+
+          const bottom = yNorm + newHNorm;
+          const snappedBottom =
+            configMode === "grid"
+              ? snapToGrid(configMode, bottom, stepY)
+              : snapPosition(bottom - newHNorm, newHNorm, bounds.rows, env.CONSTANTS.DRAG_SENSITIVITY.Y) + newHNorm;
+
+          newHNorm = Math.max(minHNorm, Math.min(1 - yNorm, snappedBottom - yNorm));
+        }
 
         setWNorm(newWNorm);
         setHNorm(newHNorm);
@@ -370,6 +405,46 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
     section.id,
   ]);
 
+  const setAspectRatioById = useSectionStore((s) => s.setAspectRatioById);
+  const assetRef = useRef<string | null>(null);
+
+  const handleMediaMeta = useCallback(
+    ({ w, h }: { w: number; h: number }) => {
+      if (!w || !h) return;
+
+      setAspectRatioById(section.id, w / h);
+
+      if (assetRef.current === section.asset) return;
+      assetRef.current = section.asset;
+
+      const CW = canvas.width || 1;
+      const CH = canvas.height || 1;
+      const r = w / h;
+
+      const maxW = 1 - xNorm;
+      const maxH = 1 - yNorm;
+
+      let hNorm = maxH;
+      let wNorm = (hNorm * r * CH) / CW;
+
+      if (wNorm > maxW) {
+        wNorm = maxW;
+        hNorm = (wNorm * CW) / (r * CH);
+      }
+
+      hNorm = Math.max(hNorm, 15 / (canvasRef.current?.getBoundingClientRect().height || 1));
+      wNorm = Math.max(wNorm, 15 / (canvasRef.current?.getBoundingClientRect().width || 1));
+
+      wNorm = Math.min(maxW, wNorm);
+      hNorm = Math.min(maxH, hNorm);
+
+      setWNorm(wNorm);
+      setHNorm(hNorm);
+      onNewSize(wNorm, hNorm);
+    },
+    [canvasRef, section.id, section.asset, setAspectRatioById, xNorm, yNorm, onNewSize]
+  );
+
   return (
     <div
       onMouseDown={handleMouseDown}
@@ -386,7 +461,10 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
         userSelect: 'none',
       }}
     >
-      <SectionContent section={{ ...section, x: xNorm, y: yNorm, width: wNorm, height: hNorm }} />
+      <SectionContent 
+        section={{ ...section, x: xNorm, y: yNorm, width: wNorm, height: hNorm }} 
+        handleMediaMeta={handleMediaMeta}
+      />
 
       <div
         style={{
@@ -503,6 +581,7 @@ const Canvas: React.FC = () => {
             section={section}
             bounds={bounds}
             canvasRef={canvasRef}
+            canvas={canvas}
             isSelected={selectedSectionId === section.id}
             onSelect={setSelectedSection}
             onNewPosition={handleNewPosition}

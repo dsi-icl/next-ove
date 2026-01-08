@@ -23,6 +23,10 @@ type SectionStore = {
   setPreviewPos: (previewPos: PreviewPos) => void
   configMode: 'grid' | 'custom'
   setConfigMode: (configMode: 'grid' | 'custom') => void
+  isAspectById: Record<string, boolean>
+  setIsAspectById: (id: string, useAspectRatio: boolean) => void
+  aspectRatioById: Record<string, number | null>
+  setAspectRatioById: (id: string, aspectRatio: number) => void
 }
 
 const order = (sections: Section[]) =>
@@ -37,6 +41,10 @@ export const useSectionStore = create<SectionStore>(set => ({
   setPreviewPos: previewPos => set({ previewPos }),
   configMode: 'grid',
   setConfigMode: (configMode: 'grid' | 'custom') => set({ configMode }),
+  isAspectById: {},
+  setIsAspectById: (id, useAspectRatio) => set(state => ({ isAspectById: { ...state.isAspectById, [id]: useAspectRatio } })),
+  aspectRatioById: {},
+  setAspectRatioById: (id, ratio) => set(state => ({ aspectRatioById: { ...state.aspectRatioById, [id]: ratio } })),
 }));
 
 type StateStore = {
