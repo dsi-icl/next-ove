@@ -25,7 +25,7 @@ const FileEditorContainer = ({
   );
 };
 
-const Files = () => {
+const Files = ({ close }: { close: () => void }) => {
   const [mode, setMode] = useState<"manager" | "editor">("manager");
   const [file, setFile] = useState<File | null>(null);
   const edit = useCallback(
@@ -37,7 +37,7 @@ const Files = () => {
   );
 
   return mode === "manager" ? (
-    <FileManager edit={edit} />
+    <FileManager edit={edit} closeDialog={close} />
   ) : (
     <FileEditorContainer file={file} close={() => setMode("manager")} />
   );

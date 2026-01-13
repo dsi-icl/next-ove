@@ -44,7 +44,7 @@ const ProjectEditor = () => {
                   </ResizablePanel>
                   <ResizableHandle withHandle={!isOpen} />
                   <ResizablePanel defaultSize={80}>
-                    {selectedSection !== null ? <SectionConfig /> : null}
+                    {selectedSection !== null ? <SectionConfig setAction={setAction} openDialog={open} /> : null}
                   </ResizablePanel>
                 </ResizablePanelGroup>
               </ResizablePanel>
