@@ -4,6 +4,7 @@ import {
 } from "../hooks/files";
 import { z } from "zod";
 import { type Control, useForm, type UseFormSetValue, useWatch } from "react-hook-form";
+import { Upload } from "lucide-react";
 import {
   Button,
   Form,
@@ -12,6 +13,10 @@ import {
   FormItem,
   FormLabel,
   Input,
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
   useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { useCells } from "../hooks/canvas";
@@ -22,8 +27,11 @@ import { useObservatory } from "../../../hooks/observatories";
 import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 import { usePartialUpdateSection, useSections } from "../hooks/sections";
-import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { type Bounds, dataTypes, type File } from "@ove/ove-types";
+import { TActions } from "../hooks/dialog";
+import { toast } from "sonner";
+import { env } from "../../../env";
 
 const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
   if (!asset) return null;
@@ -121,7 +129,11 @@ const SectionConfigFormSchema = z.strictObject({
 
 type SectionConfigForm = z.infer<typeof SectionConfigFormSchema>;
 
-const SectionConfig = () => {
+const SectionConfig = ({ setAction, openDialog }: 
+  { 
+    setAction: (action: TActions | null) => void, 
+    openDialog: () => void 
+  }) => {
   const projectId = useProjectId();
   const state = useStateStore((state) => state.selectedState);
   const { getSections } = useSections();
@@ -230,7 +242,19 @@ const SectionConfig = () => {
     }, [ordinary, partialUpdateSection, setValue]
   );
 
+  useEffect(() => {
+    if (!section?.asset) return;
+    onAssetChange(section.asset);
+  }, [section?.asset, onAssetChange]);
+
   const isDisabled = section === null;
+
+  const canUseAspect = !!section && (section.dataType === "images" || section.dataType === "videos");
+  const isAspect = useSectionStore((s) => s.isAspectById[selected ?? ""] ?? false);
+  const setIsAspect = (v: boolean) => {
+    if (!selected) return;
+    useSectionStore.getState().setIsAspectById(selected, v);
+  };
 
   return (
     <section className="h-full px-4">
@@ -247,6 +271,9 @@ const SectionConfig = () => {
               setValue={setValue}
               control={form.control}
               isDisabled={isDisabled}
+              canUseAspect={canUseAspect}
+              isAspect={isAspect}
+              setIsAspect={setIsAspect}
             />
           <fieldset className="flex w-[calc((100%-2rem)-0.5rem)] flex-col" disabled={isDisabled}>
             <FormField
@@ -258,8 +285,8 @@ const SectionConfig = () => {
                   <FormItem className="space-y-1">
                     <FormLabel className="font-semibold">Asset</FormLabel>
                     <FormControl>
-                      <div>
-                        <input
+                      <InputGroup>
+                        <InputGroupInput
                           list="file-list"
                           value={q}
                           onChange={(e) => {
@@ -269,9 +296,9 @@ const SectionConfig = () => {
                               onAssetChange(e.target.value);
                             }, 300);
                           }}
-                          className="w-full border p-2 rounded"
                           type="text"
                           disabled={isDisabled}
+                          placeholder="Enter a file name or paste a URL..."
                         />
                         {q.length > 0 && (
                           <datalist id="file-list">
@@ -290,7 +317,22 @@ const SectionConfig = () => {
                               ))}
                           </datalist>
                         )}
-                      </div>
+                        <InputGroupAddon align="inline-end">
+                          <InputGroupButton
+                            size="icon-sm"
+                            onClick={() => {
+                              if (projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH) {
+                                toast.error("Please save the project before performing this action.");
+                                return;
+                              }
+                              setAction("upload");
+                              openDialog();
+                            }}
+                          >
+                            <Upload />
+                          </InputGroupButton>
+                        </InputGroupAddon>
+                      </InputGroup>
                     </FormControl>
                   </FormItem>
               )}}
@@ -309,7 +351,10 @@ const Geometry = ({
   setMode,
   setValue,
   space,
-  isDisabled
+  isDisabled,
+  canUseAspect,
+  isAspect,
+  setIsAspect,
 }: {
   mode: "custom" | "grid";
   setMode: (mode: "custom" | "grid") => void;
@@ -317,6 +362,9 @@ const Geometry = ({
   space: Observatory | null;
   control: Control<SectionConfigForm>;
   isDisabled: boolean;
+  canUseAspect: boolean;
+  isAspect: boolean;
+  setIsAspect: (isAspect: boolean) => void;
 }) => {
   const [x, y, width, height, rowFrom, rowTo, columnFrom, columnTo] = useWatch({ 
     control, name: ["x", "y", "width", "height", "rowFrom", "rowTo", "columnFrom", "columnTo"] 
@@ -373,6 +421,18 @@ const Geometry = ({
           >
             <Grid className="mr-1" /> Grid
           </Button>
+          {canUseAspect && (
+            <label className="flex items-center gap-2 h-10 px-3 rounded-md border text-sm ml-3">
+              <Input
+                type="checkbox"
+                className="h-4 w-4 accent-current"
+                checked={isAspect}
+                onChange={(e) => setIsAspect(e.target.checked)}
+                disabled={isDisabled}
+              />
+              <span className="select-none">Lock Aspect Ratio</span>
+            </label>
+          )}
         </div>
         <Button className="mt-2" type="button" onClick={fullscreen} disabled={isDisabled}>
           <Fullscreen className="mr-1" /> Maximise

@@ -7,17 +7,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   useFormErrorHandling,
 } from "@ove/ui-base-components";
 import { env } from "../../../env";
@@ -31,15 +30,18 @@ import { File as FileT } from "@ove/ove-types";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
 import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";
+import { usePartialUpdateSection } from "../hooks/sections";
 
 const FileView = ({
   file,
   files,
   edit,
+  closeDialog,
 }: {
   files: FileT[];
   file: FileT;
   edit: (file: FileT | null) => void;
+  closeDialog: () => void;
 }) => {
   const latestFile = getLatest(files, file.bucketName, file.name);
   const isImage = file.name.match(env.CONSTANTS.IMAGE_EXTENSION_REGEX) !== null;
@@ -61,15 +63,6 @@ const FileView = ({
     [processImage, file.name, latestFile.version, file.bucketName],
   );
 
-  const copyUrl = useCallback(
-    async (version: string) => {
-      const url = toURL(file.bucketName, file.name, version);
-      await navigator.clipboard.writeText(url);
-      toast.success(`Copied internal URL for ${file.name} (${version})`);
-    },
-    [file.bucketName, file.name],
-  );
-
   const canEdit = (name: string) => {
     const editableExtensions = [
       "css",
@@ -84,6 +77,8 @@ const FileView = ({
     const ext = name.split(".").pop()?.toLowerCase() ?? "";
     return editableExtensions.includes(ext);
   };
+
+  const partialUpdateSection = usePartialUpdateSection();
 
   return (
     <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
@@ -106,28 +101,28 @@ const FileView = ({
         {canEdit(latestFile.name) && (
           <Button onClick={() => edit(latestFile)}>Edit</Button>
         )}
-        <Select
-          value={latestFile.version}
-          onValueChange={(version) => copyUrl(version)}
-        >
-          <SelectTrigger
-            className="text-black"
-            title="Click a version to copy its URL"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default" size="sm">
+              Select
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
             {files
-              .filter(
-                (f) => f.name === file.name && f.bucketName === file.bucketName,
-              )
+              .filter((f) => f.name === file.name && f.bucketName === file.bucketName)
               .map(({ version }) => (
-                <SelectItem className="w-fit" key={version} value={version}>
-                  {version}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
+              <DropdownMenuItem
+                key={version}
+                onClick={() => {
+                  partialUpdateSection({ asset: toURL(file.bucketName, file.name, version) });
+                  closeDialog();
+                }}
+              >
+                {version}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </li>
   );
@@ -141,9 +136,10 @@ export type FileUploadForm = z.infer<typeof FileUploadFormSchema>;
 
 type FileManagerProps = {
   edit: (file: FileT | null) => void;
+  closeDialog: () => void;
 };
 
-const FileManager = ({ edit }: FileManagerProps) => {
+const FileManager = ({ edit, closeDialog }: FileManagerProps) => {
   const projectId = useProjectId();
   const { ordinary } = useFiles(assert(projectId));
   const form = useForm<FileUploadForm>({
@@ -201,6 +197,7 @@ const FileManager = ({ edit }: FileManagerProps) => {
                 file={file}
                 files={files}
                 edit={edit}
+                closeDialog={closeDialog}
               />
             ))}
           </div>

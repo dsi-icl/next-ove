@@ -24,6 +24,16 @@ export const useDialog = () => {
   const [action, setAction] = useState<TActions | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<TLaunchConfig | null>(null);
+
+  const open = useCallback(() => {
+    setIsOpen(true);
+  }, [setIsOpen]);
+
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setAction(null);
+  }, [setIsOpen, setAction]);
+
   const content = useMemo(() => {
     if (project === null || !isOpen) return null;
     switch (action) {
@@ -34,7 +44,7 @@ export const useDialog = () => {
                                  projectId={project.id} />;
       }
       case "upload":
-        return <Files />;
+        return <Files close={close}/>;
       case "launch":
         return <LaunchConfig launch={(config: TLaunchConfig) => {
           setAction("live");
@@ -50,15 +60,6 @@ export const useDialog = () => {
         return null;
     }
   }, [action, project, config, setAction, setConfig, isOpen]);
-
-  const open = useCallback(() => {
-    setIsOpen(true);
-  }, [setIsOpen]);
-
-  const close = useCallback(() => {
-    setIsOpen(false);
-    setAction(null);
-  }, [setIsOpen, setAction]);
 
   return {
     isOpen,

@@ -1,4 +1,4 @@
-import { HatGlasses, Joystick, Rocket, Save, Settings, Upload } from "lucide-react";
+import { HatGlasses, Joystick, Rocket, Save, Settings } from "lucide-react";
 import { env, logger } from "../../../env";
 import type { TActions } from "../hooks/dialog";
 import { DialogTrigger } from "@ove/ui-base-components";
@@ -19,12 +19,6 @@ const icons: Icon[] = [
     color: "#ef476f",
     title: "Project Details",
     action: "metadata",
-  },
-  {
-    icon: <Upload className="size-5" />,
-    color: "#f78c6b",
-    title: "Upload",
-    action: "upload",
   },
   {
     icon: <Joystick className="size-5" />,
@@ -85,8 +79,7 @@ const Actions = ({ setAction }: ActionsProps) => {
   const handler = useCallback(
     (action: TActions | null) => {
       if ((action === "controller" || 
-          action === "env" || 
-          action === "upload") &&
+          action === "env") &&
           projectId.length === env.CONSTANTS.NEW_PROJECT_ID_LENGTH) {
         toast.error("Please save the project before performing this action.");
         return;
