@@ -317,7 +317,7 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
         const useAspect = isAspect && aspectRatio && aspectRatio > 0;
 
         if (useAspect) {
-          const wFromH = (h: number) => (h * rect.height  * aspectRatio) / rect.width;
+          const wFromH = (h: number) => (h * rect.height * aspectRatio) / rect.width;
 
           const clampSnapWAndDeriveH = (w: number) => {
             let newW = Math.max(minWNorm, Math.min(maxWNorm, w));
@@ -332,7 +332,8 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
           ({ newW: newWNorm, newH: newHNorm } = clampSnapWAndDeriveH(newWNorm));
 
           if (newHNorm > maxHNorm) {
-            ({ newW: newWNorm, newH: newHNorm } = clampSnapWAndDeriveH(wFromH(maxHNorm)));
+            newHNorm = maxHNorm;
+            newWNorm = Math.max(minWNorm, Math.min(maxWNorm, wFromH(newHNorm)));
           } else if (newHNorm < minHNorm) {
             ({ newW: newWNorm, newH: newHNorm } = clampSnapWAndDeriveH(wFromH(minHNorm)));
           }
@@ -417,8 +418,8 @@ const DraggableSection: React.FC<DraggableSectionProps> = ({
       if (assetRef.current === section.asset) return;
       assetRef.current = section.asset;
 
-      const CW = canvas.width || 1;
-      const CH = canvas.height || 1;
+      const CW = canvasRef.current?.getBoundingClientRect().width || 1;
+      const CH = canvasRef.current?.getBoundingClientRect().height || 1;
       const r = w / h;
 
       const maxW = 1 - xNorm;
