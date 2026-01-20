@@ -31,10 +31,10 @@ import { api, s3 } from "../../../utils/api";
 import { CameraIcon } from "lucide-react";
 
 const UserFormSchema = z.strictObject({
-  name: z.string(),
-  username: z.string(),
-  email: z.string(),
-  password: z.string(),
+  name: z.string().trim().min(1, "Name is required"),
+  username: z.string().trim().min(1, "Username is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
   role: z.union([z.literal("creator"), z.literal("admin")]),
   profilePicture: z.custom<FileList>().optional(),
 });
