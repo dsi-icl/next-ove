@@ -92,12 +92,12 @@ const CreateUser = () => {
 
   return (
     <main className="flex h-[90vh] overflow-hidden w-screen items-center justify-center">
-      <Card className="w-[600px] p-6">
-        <CardHeader className="flex flex-col items-center">
+      <Card className="w-[600px] max-h-[85vh] flex flex-col">
+        <CardHeader className="items-center p-5">
           <CardTitle>Create User</CardTitle>
           <CardDescription>Add a user</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="min-h-0 overflow-y-auto">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -229,7 +229,7 @@ const CreateUser = () => {
             )}
           />
 
-          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
+          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full mt-3">
             {form.formState.isSubmitting ? "Creating..." : "Create User"}
           </Button>
         </form>
