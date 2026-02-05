@@ -22,7 +22,7 @@ import { useObservatory } from "../../../hooks/observatories";
 import { Brush, Fullscreen, Grid } from "react-bootstrap-icons";
 import { useSectionStore, useStateStore } from "../hooks/stores";
 import { usePartialUpdateSection, useSections } from "../hooks/sections";
-import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { type Bounds, dataTypes, type File } from "@ove/ove-types";
 
 const detectDataType = (asset: string | undefined, ordinary: File[]): string | null => {
@@ -34,7 +34,7 @@ const detectDataType = (asset: string | undefined, ordinary: File[]): string | n
     const path = (file ? file.name : url.pathname).toLowerCase();
 
     for (const dt of dataTypes) {
-      if (dt.extensions.some(ext => path.endsWith(ext.toLowerCase()))) {
+      if (dt.extensions.some(ext => path.toLowerCase().endsWith(ext.toLowerCase()))) {
         return dt.name;
       }
     }

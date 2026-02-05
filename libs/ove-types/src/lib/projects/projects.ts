@@ -66,14 +66,14 @@ export const dataTypes: DataType[] = [
     name: "latex",
     displayName: "LaTeX",
     color: "#CDC1DC",
-    extensions: [".tex"],
+    extensions: [".tex", ".latex"],
     requiresFormatting: true
   },
   {
     name: "markdown",
     displayName: "Markdown",
     color: "#7F1D33",
-    extensions: [".md"],
+    extensions: [".md", ".markdown"],
     requiresFormatting: true
   },
   {
@@ -87,7 +87,7 @@ export const dataTypes: DataType[] = [
     name: "geojson",
     displayName: "GeoJSON",
     color: "red",
-    extensions: [".json"],
+    extensions: [".json", ".geojson"],
     requiresFormatting: true
   },
   {

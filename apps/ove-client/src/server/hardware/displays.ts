@@ -10,11 +10,12 @@ export type Display = {
   serial: string | null;
 };
 
-export const displays: Display[] = [];
+export let displays: Display[] = [];
 
 export const resolveDisplays = async () => {
   const screens = screen.getAllDisplays();
   const displays_ = (await si.graphics()).displays;
+  displays = [];
 
   screens.forEach((screen, i) => {
     const display = displays_.find((display) => {
