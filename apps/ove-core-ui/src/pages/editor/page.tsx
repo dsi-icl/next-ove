@@ -17,6 +17,7 @@ import { useSectionStore } from "./hooks/stores";
 const ProjectEditor = () => {
   const { isOpen, open, close, content, setAction } = useDialog();
   const selectedSection = useSectionStore((state) => state.selectedSection);
+  const sectionConfigDefaultSize = window.innerHeight > 700 ? 45 : 50;
 
   return (
     <Dialog open={isOpen} onOpenChange={(state) => (state ? open() : close())}>
@@ -24,7 +25,7 @@ const ProjectEditor = () => {
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel defaultSize={95}>
             <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={55}>
+              <ResizablePanel defaultSize={100 - sectionConfigDefaultSize}>
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel defaultSize={75}>
                     <StateTabs />
@@ -37,14 +38,14 @@ const ProjectEditor = () => {
                 </ResizablePanelGroup>
               </ResizablePanel>
               <ResizableHandle withHandle={!isOpen} />
-              <ResizablePanel defaultSize={45}>
+              <ResizablePanel defaultSize={sectionConfigDefaultSize}>
                 <ResizablePanelGroup direction="horizontal">
                   <ResizablePanel defaultSize={20}>
                     <ObservatoryConfig />
                   </ResizablePanel>
                   <ResizableHandle withHandle={!isOpen} />
                   <ResizablePanel defaultSize={80}>
-                    {selectedSection !== null ? <SectionConfig /> : null}
+                    {selectedSection !== null ? <SectionConfig setAction={setAction} openDialog={open} /> : null}
                   </ResizablePanel>
                 </ResizablePanelGroup>
               </ResizablePanel>

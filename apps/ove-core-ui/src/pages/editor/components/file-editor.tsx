@@ -219,7 +219,7 @@ ${content}
             custom_colors: false,
             toolbar:
               "undo redo | fontfamily blocks fontsize increaseFont decreaseFont | bold italic forecolor backcolor | bullist numlist",
-            font_size_formats: "0.75rem 1rem 1.5rem 2rem 3rem 4rem 5rem 6rem 8rem 10rem 12rem 15rem",
+            font_size_formats: "1rem 1.5rem 2rem 3rem 4rem 5rem 6rem 8rem 10rem 12rem 15rem",
             content_style: `
               @font-face {
                 font-family: "Imperial Sans Display";
@@ -266,10 +266,13 @@ ${content}
               html { font-size: 16px; }
               body { font-size: 1rem; line-height: 1; font-family: 'Imperial Sans Display', sans-serif;}
 
-              h1 { font-size: 2rem; font-weight: 700; }
-              h2 { font-size: 1.5rem; font-weight: 600; }
-              h3 { font-size: 1.25rem; font-weight: 500; }
-              p  { font-size: 1rem; font-weight: 300; }
+              h1 { font-size: 15rem; font-weight: 800; }
+              h2 { font-size: 12rem; font-weight: 700; }
+              h3 { font-size: 10rem; font-weight: 600; }
+              h4 { font-size: 8rem; font-weight: 500; }
+              h5 { font-size: 6rem; font-weight: 400; }
+              h6 { font-size: 5rem; font-weight: 300; }
+              p  { font-size: 2rem; font-weight: 200; }
             `,
             setup: (editor) => {
               editor.on('PreInit', () => {
@@ -284,12 +287,12 @@ ${content}
                 }
               });
               editor.ui.registry.addButton('decreaseFont', {
-                  text: 'A-',
-                  onAction: () => {                         
-                    const currFontSize = editor.queryCommandValue('FontSize');
-                    const newFontSize = (parseFloat(currFontSize.replace('rem', '')) - 0.25).toFixed(2);
-                    editor.execCommand('FontSize', false, `${newFontSize}rem`);
-                  }
+                text: 'A-',
+                onAction: () => {                         
+                  const currFontSize = editor.queryCommandValue('FontSize');
+                  const newFontSize = (parseFloat(currFontSize.replace('rem', '')) - 0.25).toFixed(2);
+                  editor.execCommand('FontSize', false, `${newFontSize}rem`);
+                }
               });
             },
             ui_mode: "split", 
