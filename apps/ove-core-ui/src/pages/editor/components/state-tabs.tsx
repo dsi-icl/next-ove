@@ -41,7 +41,7 @@ const StateTabs = () => {
   );
 
   return (
-    <nav className="h-8 overflow-x-scroll border-b border-solid border-[#dadedf]">
+    <nav className="h-8 overflow-x-scroll border-b border-solid border-[#dadedf] no-scrollbar">
       <ul className="flex items-start gap-1 overflow-x-scroll p-1">
         <DefaultTab
           key="default-tab"

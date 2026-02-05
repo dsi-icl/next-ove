@@ -31,10 +31,10 @@ import { api, s3 } from "../../../utils/api";
 import { CameraIcon } from "lucide-react";
 
 const UserFormSchema = z.strictObject({
-  name: z.string(),
-  username: z.string(),
-  email: z.string(),
-  password: z.string(),
+  name: z.string().trim().min(1, "Name is required"),
+  username: z.string().trim().min(1, "Username is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
   role: z.union([z.literal("creator"), z.literal("admin")]),
   profilePicture: z.custom<FileList>().optional(),
 });
@@ -92,12 +92,12 @@ const CreateUser = () => {
 
   return (
     <main className="flex h-[90vh] overflow-hidden w-screen items-center justify-center">
-      <Card className="w-[600px] p-6">
-        <CardHeader className="flex flex-col items-center">
+      <Card className="w-[600px] max-h-[85vh] flex flex-col">
+        <CardHeader className="items-center p-5">
           <CardTitle>Create User</CardTitle>
           <CardDescription>Add a user</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="min-h-0 overflow-y-auto">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -229,7 +229,7 @@ const CreateUser = () => {
             )}
           />
 
-          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
+          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full mt-3">
             {form.formState.isSubmitting ? "Creating..." : "Create User"}
           </Button>
         </form>

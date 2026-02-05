@@ -29,14 +29,13 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
     },
     { enabled: thumbnail !== null },
   );
-  const canEdit =
-    user.role === "admin" ||
-    ((user.id === project.creatorId ||
-      (getCollaborators.status === "success" &&
-        getCollaborators.data.find(
-          (collaborator) => collaborator.id === user.id,
-        ) !== undefined)) &&
-      user.role !== "client");
+  const isAdmin = user.role === "admin";
+  const isCreator = user.id === project.creatorId;
+  const isCollaborator = getCollaborators.status === "success" &&
+    getCollaborators.data.find(
+      (collaborator) => collaborator.id === user.id,
+    ) !== undefined;
+  const canEdit = isAdmin || isCreator || isCollaborator;
 
   return (
     <li

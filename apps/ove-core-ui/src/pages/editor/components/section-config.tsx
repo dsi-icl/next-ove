@@ -42,7 +42,7 @@ const detectDataType = (asset: string | undefined, ordinary: File[]): string | n
     const path = (file ? file.name : url.pathname).toLowerCase();
 
     for (const dt of dataTypes) {
-      if (dt.extensions.some(ext => path.endsWith(ext.toLowerCase()))) {
+      if (dt.extensions.some(ext => path.toLowerCase().endsWith(ext.toLowerCase()))) {
         return dt.name;
       }
     }

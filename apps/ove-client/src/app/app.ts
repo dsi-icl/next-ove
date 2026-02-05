@@ -24,7 +24,7 @@ let initialised = false;
 let pinIdx: number | null = null;
 const windows = new Map<number, BW>();
 
-const initBrowser = (url: string, display?: Display) => {
+const initBrowser = async (url: string, display?: Display) => {
   let bounds;
 
   if (display !== undefined) {
@@ -68,6 +68,8 @@ const initBrowser = (url: string, display?: Display) => {
       callback(-3);
     }
   });
+  await browser.webContents.session.clearCache();
+  await browser.webContents.session.clearStorageData();
 
   return browser.id;
 };
@@ -107,7 +109,7 @@ const formatURL = (url?: string) => {
 const loadDefaultWindows = async () => {
   const idxs: number[] = [];
   if (env.AUTH.STORED_CREDENTIALS === undefined) {
-    const idx = initBrowser("/auth");
+    const idx = await initBrowser("/auth");
     pinIdx = idx;
     idxs.push(idx);
     loadURL(idx, formatURL());
@@ -118,7 +120,7 @@ const loadDefaultWindows = async () => {
       );
       const idx =
         browser === undefined
-          ? initBrowser(v, getDisplay(parseInt(k)))
+          ? await initBrowser(v, getDisplay(parseInt(k)))
           : browser[0];
       await new Promise((resolve) => setTimeout(resolve, env.BROWSERS.DELAY));
       idxs.push(idx);
@@ -163,6 +165,8 @@ const init = (
     exit(0);
   });
   application.on("ready", async () => {
+    await session.defaultSession.clearCache();
+    await session.defaultSession.clearStorageData();
     if (env.EXTENSIONS?.SYNC !== undefined) {
       try {
         const ext = await session.defaultSession.loadExtension(
@@ -205,6 +209,7 @@ const app = {
   initialise: init,
   open: async () => {
     closeAll();
+    await resolveDisplays();
     return new Promise<number[]>((resolve) =>
       setTimeout(
         async () => resolve(await loadDefaultWindows()),
