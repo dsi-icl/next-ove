@@ -40,6 +40,12 @@ const schema = z.strictObject({
       END_DELTA: z.number().optional(),
       GAP_THRESHOLD: z.number().optional(),
     })
+    .refine(
+      (x) =>
+        (x.START_DELTA === undefined && x.END_DELTA === undefined) ||
+        (x.GAP_THRESHOLD !== undefined &&
+          (x.START_DELTA ?? 0) + (x.END_DELTA ?? 0) < x.GAP_THRESHOLD),
+    )
     .optional(),
   POWER: z.strictObject({
     MODE: PowerModeSchema,
