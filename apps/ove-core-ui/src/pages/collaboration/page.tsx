@@ -132,7 +132,7 @@ const InviteCard = ({
   type,
 }: {
   invite: Invite;
-  user: Omit<User, "password">;
+  user: Omit<User, "password" | "created_at" | "updated_at" | "isDeleted">;
   type: InviteType;
 }) => {
   return (

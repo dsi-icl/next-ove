@@ -4,6 +4,7 @@ import {
   AutoScheduleSchema,
   CalendarSchema,
   PowerModeSchema,
+  type Traceable,
 } from "../ove-types";
 
 /* Utility Types */
@@ -26,13 +27,13 @@ export type TBridgeServiceReturn<Key extends keyof TAPIRoutes> = z.infer<
   TAPIRoutes[Key]["output"]
 >;
 
-export type TParameters<Key extends keyof TBridgeService> = Parameters<
+export type TParameters<Key extends keyof TBridgeService> = Traceable<Parameters<
   TBridgeService[Key]
->[0];
+>[0]>;
 export type TCallback<Key extends keyof TBridgeService> = (
   response:
-    | { status: "success"; data: TBridgeServiceReturn<Key> }
-    | { status: "error"; error: string },
+    | Traceable<{ status: "success"; data: TBridgeServiceReturn<Key> }>
+    | Traceable<{ status: "error"; error: string }>,
 ) => void;
 
 export type TBridgeController = {
@@ -43,7 +44,7 @@ export type TBridgeController = {
 
 export type TSocketOutEvents = {
   [Key in keyof APIController]: (
-    args: TParameters<Key>,
+    args: Traceable<TParameters<Key>>,
     callback: TCallback<Key>,
   ) => void;
 };

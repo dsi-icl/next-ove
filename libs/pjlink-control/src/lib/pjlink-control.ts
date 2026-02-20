@@ -1,8 +1,9 @@
 import * as net from "net";
 import * as crypto from "crypto";
-import type { Device, PJLinkSource, Optional } from "@ove/ove-types";
+import type { Device, Optional, PJLinkSource } from "@ove/ove-types";
 import { replaceAll } from "@ove/ove-utils";
 import { z } from "zod";
+import { Mutex } from "async-mutex";
 
 /* global Buffer, AbortController */
 
@@ -209,6 +210,24 @@ type CommandArgs = {
   ac?: AbortController;
 };
 
+const deviceLocks = new Map<string, Mutex>();
+
+const getLock = (id: string) => {
+  let lock = deviceLocks.get(id);
+  if (!lock) {
+    lock = new Mutex();
+    deviceLocks.set(id, lock);
+  }
+  return lock;
+};
+
+const sendCommandLocked = (
+  deviceId: string,
+  command: string,
+  cmd: CommandArgs,
+  ...args: string[]
+) => getLock(deviceId).runExclusive(() => runCommand(command, cmd, ...args));
+
 const runCommand = (command: string, cmd: CommandArgs, ...args: string[]) =>
   new Promise<Optional<string>>((resolve) => {
     if (args.length > 0) {
@@ -224,24 +243,26 @@ const runCommand = (command: string, cmd: CommandArgs, ...args: string[]) =>
     connect(state, cmd.ac);
   });
 
-export const setPower = async (args: CommandArgs, power: number) => {
-  const res = await runCommand(COMMAND.SET_POWER, args, power.toString());
+export const setPower = async (deviceId: string, args: CommandArgs, power: number) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.SET_POWER, args, power.toString());
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getPower = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_POWER, args);
+export const getPower = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_POWER, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
 export const setInput = async (
+  deviceId: string,
   args: CommandArgs,
   input: number,
   channel?: number,
 ) => {
-  const res = await runCommand(
+  const res = await sendCommandLocked(
+    deviceId,
     COMMAND.SET_INPUT,
     args,
     input.toString(),
@@ -251,110 +272,111 @@ export const setInput = async (
   return res.data;
 };
 
-export const getInput = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_INPUT, args);
+export const getInput = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_INPUT, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const muteVideo = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.MUTE_VIDEO, args);
+export const muteVideo = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.MUTE_VIDEO, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const unmuteVideo = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.UNMUTE_VIDEO, args);
+export const unmuteVideo = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.UNMUTE_VIDEO, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const muteAudio = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.MUTE_AUDIO, args);
+export const muteAudio = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.MUTE_AUDIO, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const unmuteAudio = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.UNMUTE_AUDIO, args);
+export const unmuteAudio = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.UNMUTE_AUDIO, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const mute = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.MUTE, args);
+export const mute = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.MUTE, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const unmute = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.UNMUTE, args);
+export const unmute = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.UNMUTE, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getIsMuted = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_IS_MUTED, args);
+export const getIsMuted = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_IS_MUTED, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data.split("=")[1] === "31";
 };
 
-export const getIsAudioMuted = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_IS_MUTED, args);
+export const getIsAudioMuted = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_IS_MUTED, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data.split("=")[1] === "21";
 };
 
-export const getIsVideoMuted = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_IS_MUTED, args);
+export const getIsVideoMuted = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_IS_MUTED, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data.split("=")[1] === "11";
 };
 
-export const getErrors = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_ERRORS, args);
+export const getErrors = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_ERRORS, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getLamp = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_LAMP, args);
+export const getLamp = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_LAMP, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getInputs = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_INPUTS, args);
+export const getInputs = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_INPUTS, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getName = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_NAME, args);
+export const getName = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_NAME, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getManufacturer = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_MANUFACTURER, args);
+export const getManufacturer = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_MANUFACTURER, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getProduct = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_PRODUCT, args);
+export const getProduct = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_PRODUCT, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getInfo = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_INFO, args);
+export const getInfo = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_INFO, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };
 
-export const getClass = async (args: CommandArgs) => {
-  const res = await runCommand(COMMAND.GET_CLASS, args);
+// Returns "1" | "2"
+export const getClass = async (deviceId: string, args: CommandArgs) => {
+  const res = await sendCommandLocked(deviceId, COMMAND.GET_CLASS, args);
   if (res.status === "error") throw new Error(res.error);
   return res.data;
 };

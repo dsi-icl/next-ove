@@ -3,17 +3,17 @@ Benchmark, formatOutput, __BENCHMARKS__ */
 
 import { writeFileSync } from "fs";
 import { bench } from "@arktype/attest";
-import { type TDeviceResponse } from "./client";
+import type { TClientAPIReturns } from "./client";
 
 describe("client types", () => {
   const benchmarks: Record<string, Benchmark> = {};
 
-  it("TDeviceResponse", () => {
+  it("TClientAPIReturns", () => {
     init();
-    bench("TDeviceResponse",
-      () => ({}) as TDeviceResponse<string>)
-      .mean([0, "ns"]).types([0, "instantiations"]);
-    benchmarks["TDeviceResponse"] = formatOutput(console.log as LogFn);
+    bench("TClientAPIReturns", () => ({}) as TClientAPIReturns<"getStatus">)
+      .mean([0, "ns"])
+      .types([0, "instantiations"]);
+    benchmarks["TClientAPIReturns"] = formatOutput(console.log as LogFn);
   });
 
   afterAll(() => {

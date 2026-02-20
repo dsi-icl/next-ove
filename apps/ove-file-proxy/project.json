@@ -1,0 +1,89 @@
+{
+  "name": "ove-file-proxy",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-file-proxy",
+  "projectType": "application",
+  "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-file-proxy/tsconfig.app.json --noEmit --incremental"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-file-proxy/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "main": "apps/ove-file-proxy/src/main.ts",
+        "outputPath": "dist/apps/ove-file-proxy",
+        "outputFileName": "main.cjs",
+        "tsConfig": "apps/ove-file-proxy/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      }
+    },
+    "prebuild": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "main": "apps/ove-file-proxy/src/main.ts",
+        "outputPath": "dist/apps/ove-file-proxy",
+        "outputFileName": "main.cjs",
+        "tsConfig": "apps/ove-file-proxy/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": false,
+        "generatePackageJson": true,
+        "skipTypeCheck": true,
+        "platform": "node",
+        "minify": true
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "ove-file-proxy:build:development"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "ove-file-proxy:build:production"
+        }
+      }
+    },
+    "make": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "docker build --rm -t next-ove/file-proxy:latest --platform linux/amd64 -f apps/ove-file-proxy/Dockerfile ."
+        ]
+      },
+      "configurations": {
+        "arm": {
+          "commands": [
+            "docker build --rm -t next-ove/file-proxy:latest --platform linux/arm64 -f apps/ove-file-proxy/Dockerfile ."
+          ]
+        }
+      },
+      "dependsOn": ["prebuild"]
+    }
+  }
+}

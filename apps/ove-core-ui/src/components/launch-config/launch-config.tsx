@@ -24,6 +24,7 @@ import type { Project, Section } from ".prisma/client";
 import { useObservatories } from "../../hooks/observatories";
 import { useSectionStore } from "../../pages/editor/hooks/stores";
 import { api } from "../../utils/api";
+import { analytics } from "../../analytics";
 
 export type TLaunchConfig = {
   projectId: string;
@@ -55,6 +56,13 @@ const LaunchConfig = ({ project, launch }: LaunchConfigProps) => {
   const onSubmit = async ({ observatory, confirmation }: LaunchConfigForm) => {
     if (!confirmation) return;
     await recordProjectLaunch.mutateAsync({ projectId: project.id });
+    analytics?.capture({
+      event: "demo_launch",
+      properties: {
+        projectId: project.id,
+        observatory
+      }
+    });
     launch({
       projectId: project.id,
       observatory,

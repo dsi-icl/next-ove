@@ -1,16 +1,18 @@
 import type {
   Device,
   SafeCallback,
-  TClientRoutesSchema,
   TBridgeHardwareService,
   TBridgeRoutesSchema,
   TBridgeServiceArgs,
+  TClientRoutesSchema,
+  Traceable,
 } from "@ove/ove-types";
 import { z } from "zod";
 import { env, logger } from "../../env";
 import { assert, filterFulfilled } from "@ove/ove-utils";
 import { getServiceForProtocol } from "./utils";
 import { controller } from "../reconciliation/controller";
+import { injectTrace, traceSocketListener } from "../../utils/tracing";
 
 export const getDevices = async (filterTags?: string[], ids?: string[]) => {
   const devices = env.HARDWARE.DEVICES.filter(
@@ -75,71 +77,100 @@ const without =
 
 export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
   k: Key,
-  args: z.infer<TBridgeRoutesSchema[Key]["args"]>,
-  callback: (response: SafeCallback<z.infer<TBridgeRoutesSchema[Key]["returns"]>>) => void,
+  args: Traceable<z.infer<TBridgeRoutesSchema[Key]["args"]>>,
+  callback: (
+    response: Traceable<
+      SafeCallback<z.infer<TBridgeRoutesSchema[Key]["returns"]>>
+    >,
+  ) => void,
 ) => {
-  try {
-    logger.trace(`Handling: ${k}`);
-    const device = await getDevice(args.deviceId);
+  const otel =
+    typeof args === "object" && args?.__otel ? args.__otel : undefined;
 
-    const serviceArgs: TBridgeServiceArgs<Key> = without<
-      typeof args,
-      TBridgeServiceArgs<Key>
-    >(args)("deviceId");
-    let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
-    response = await applyService<typeof k>(
-      getServiceForProtocol(device.type),
-      k,
-      serviceArgs,
-      device,
-    );
-    if (response === undefined) {
-      callback({ status: "error", error: "Command not available on device" });
-      return;
+  traceSocketListener(k, otel, async () => {
+    try {
+      logger.trace(`Handling: ${k}`);
+      const device = await getDevice(args.deviceId);
+
+      const serviceArgs: TBridgeServiceArgs<Key> = without<
+        typeof args,
+        TBridgeServiceArgs<Key>
+      >(args)("deviceId");
+      let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
+      response = await applyService<typeof k>(
+        getServiceForProtocol(device.type),
+        k,
+        serviceArgs,
+        device,
+      );
+      if (response === undefined) {
+        callback({
+          status: "error",
+          error: "Command not available on device",
+          __otel: injectTrace(),
+        });
+        return;
+      }
+
+      callback({ status: "success", data: response, __otel: injectTrace() });
+    } catch (e) {
+      logger.error(e);
+      callback({
+        status: "error",
+        error: (e as Error).message,
+        __otel: injectTrace(),
+      });
     }
-
-    callback({ status: "success", data: response });
-  } catch (e) {
-    logger.error(e);
-    callback({ status: "error", error: (e as Error).message });
-  }
+  });
 };
 
 export const multiDeviceHandler = async <
   Key extends keyof TBridgeHardwareService,
 >(
   k: Key,
-  args: z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>,
-  callback: (response: SafeCallback<z.infer<TBridgeRoutesSchema[`${Key}All`]["returns"]>>) => void,
+  args: Traceable<z.infer<TBridgeRoutesSchema[`${Key}All`]["args"]>>,
+  callback: (
+    response: Traceable<SafeCallback<
+      z.infer<TBridgeRoutesSchema[`${Key}All`]["returns"]>
+    >>,
+  ) => void,
 ) => {
-  try {
-    logger.trace(`Handling: ${k}All`);
-    const devices = await getDevices(args.tags, args.deviceIds);
+  const otel =
+    typeof args === "object" && args?.__otel ? args.__otel : undefined;
 
-    delete args["tags"];
-    delete args["deviceIds"];
-    let results: PromiseSettledResult<
-      Awaited<TClientRoutesSchema[Key]["returns"]["_output"] | undefined>
-    >[] = await Promise.allSettled(
-      devices.map((device) =>
-        applyService<Key>(
-          getServiceForProtocol(device.type),
-          k,
-          args as TBridgeServiceArgs<Key>,
-          device,
+  traceSocketListener(k, otel, async () => {
+    try {
+      logger.trace(`Handling: ${k}All`);
+      const devices = await getDevices(args.tags, args.deviceIds);
+
+      delete args["tags"];
+      delete args["deviceIds"];
+      delete args["__otel"];
+      let results: PromiseSettledResult<
+        Awaited<TClientRoutesSchema[Key]["returns"]["_output"] | undefined>
+      >[] = await Promise.allSettled(
+        devices.map((device) =>
+          applyService<Key>(
+            getServiceForProtocol(device.type),
+            k,
+            args as TBridgeServiceArgs<Key>,
+            device,
+          ),
         ),
-      ),
-    );
+      );
 
-    const response = results
-      .map((x, i) => ({
-        deviceId: devices[i].id,
-        response: filterFulfilled(x) ? { status: "success" as const, data: x.value } : { status: "error" as const, error: x.reason },
-      }))
-      .filter(filterUndefinedResponse);
+      const response = results
+        .map((x, i) => ({
+          deviceId: devices[i].id,
+          response: filterFulfilled(x)
+            ? { status: "success" as const, data: x.value }
+            : { status: "error" as const, error: x.reason },
+        }))
+        .filter(filterUndefinedResponse);
 
-    callback({ status: "success", data: response });
-  } catch (e) {
-    callback({ status: "error", error: (e as Error).message });
-  }
+      callback({ status: "success", data: response, __otel: injectTrace() });
+    } catch (e) {
+      callback({ status: "error", error: (e as Error).message, __otel: injectTrace() });
+    }
+  });
 };

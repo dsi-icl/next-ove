@@ -1,101 +1,190 @@
-/* global console, fetch */
+import { context, trace } from "@opentelemetry/api";
 
-import chalk from "chalk";
-import { Json } from "@ove/ove-utils";
-import { format } from "date-fns/format";
-import { default as Constants } from "./constants";
+type LogLevel = "debug" | "trace" | "info" | "warn" | "error";
 
-export type LogLevel = {
-  name: string;
-  consoleLogger: string;
-  level: number;
-  label: {
-    bgColor: string;
-    color: string;
+type CollectorConfig = { endpoint: string; apiKey: string };
+
+const LOG_LEVELS: Record<LogLevel, number> = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  trace: 3,
+  debug: 4,
+};
+
+interface LogAttributes {
+  [key: string]: string;
+}
+
+interface LogEntry {
+  timestamp: string;
+  source: string;
+  service: string;
+  level: LogLevel;
+  trace_id: string;
+  span_id: string;
+  message: string;
+  host: string;
+  attributes: LogAttributes;
+}
+
+const isBrowser =
+  typeof window !== "undefined" && typeof window.document !== "undefined";
+
+const safeToString = (value: unknown): string => {
+  if (typeof value === "string") return value;
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return "[unserializable]";
+  }
+};
+
+const extractFromArgs = (
+  args: unknown[],
+): {
+  message: string;
+  attributes: Record<string, string>;
+} => {
+  const attributes: Record<string, string> = {};
+  let messageParts: string[] = [];
+
+  args.forEach((arg, index) => {
+    if (arg instanceof Error) {
+      attributes[`error.name`] = arg.name;
+      attributes[`error.message`] = arg.message;
+      attributes[`error.stack`] = arg.stack ?? "";
+      messageParts.push(arg.message);
+      return;
+    }
+
+    if (typeof arg === "object" && arg !== null) {
+      Object.entries(arg as Record<string, unknown>).forEach(([key, value]) => {
+        attributes[key] = safeToString(value);
+      });
+      return;
+    }
+
+    if (typeof arg === "string") {
+      messageParts.push(arg);
+      return;
+    }
+
+    attributes[`arg_${index}`] = safeToString(arg);
+  });
+
+  if (messageParts.length === 0) {
+    messageParts = ["(no message)"];
+  }
+
+  return {
+    message: messageParts.join(" "),
+    attributes,
   };
+};
+
+const getTraceContext = (): { traceId: string; spanId: string } => {
+  const span = trace.getSpan(context.active());
+
+  if (!span) {
+    return { traceId: "", spanId: "" };
+  }
+
+  const spanContext = span.spanContext();
+
+  return {
+    traceId: spanContext.traceId,
+    spanId: spanContext.spanId,
+  };
+};
+
+const sendToRemoteCollector = (
+  entry: LogEntry,
+  collector: CollectorConfig,
+): void => {
+  console.log("Sending to collector", isBrowser);
+  if (!isBrowser) return;
+
+  const payload = JSON.stringify({
+    api_key: collector.apiKey,
+    log: entry,
+  });
+
+  // Prefer sendBeacon for non-blocking logging
+  if (navigator.sendBeacon) {
+    const blob = new Blob([payload], {
+      type: "application/json",
+    });
+    navigator.sendBeacon(collector.endpoint, blob);
+    return;
+  }
+
+  // Fallback to fetch
+  void fetch(collector.endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {
+    // Swallow errors — logging must never break the app
+  });
+};
+
+const log = (
+  currentLogLevel: LogLevel,
+  level: LogLevel,
+  serviceName: string,
+  hostname: string,
+  source: string,
+  collector: CollectorConfig | undefined,
+  args: unknown[],
+): void => {
+  if (LOG_LEVELS[level] > LOG_LEVELS[currentLogLevel]) {
+    return;
+  }
+
+  const { message, attributes } = extractFromArgs(args);
+  const { traceId, spanId } = getTraceContext();
+  const entry: LogEntry = {
+    timestamp: new Date().toISOString(), // RFC3339, Fluent Bit compatible
+    source: source,
+    service: serviceName,
+    level,
+    trace_id: traceId,
+    span_id: spanId,
+    message,
+    host: hostname,
+    attributes,
+  };
+
+  if (isBrowser && collector !== undefined) {
+    sendToRemoteCollector(entry, collector);
+    return;
+  }
+
+  console.log(`${JSON.stringify(entry)}\n`);
 };
 
 export const Logger = (
-  name?: string,
-  id?: string,
-  logLevel?: number,
-  loggingServerURL?: string,
-) => {
-  const logLevel_ = logLevel ?? Constants.DEFAULT_LOG_LEVEL;
-  const name_: string = name ?? Constants.UNKNOWN_APP_NAME;
-  const id_: string = id ?? Constants.UNKNOWN_APP_ID;
-
-  const getLogLabel = (logLevel: LogLevel) =>
-    chalk.bgHex(logLevel.label.bgColor).hex(logLevel.label.color).bold;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buildLogMessage = (logLevel: LogLevel, ...args: any[]): string[] => {
-    const whitespace = logLevel.name.length === 4 ? " " : "";
-    const logLabel = getLogLabel(logLevel)(`[${logLevel.name}]`);
-    const date = format(new Date(), "dd/MM/yyyy, HH:mm:ss");
-    const paddedName = name_.padEnd(Constants.APP_LOG_NAME_WIDTH);
-    const paddedId = id_.padEnd(Constants.APP_LOG_ID_WIDTH);
-    return [whitespace + logLabel, date, "-", paddedName, "-", paddedId, ":"].concat(
-      Object.values(args),
-    );
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const log = (level: LogLevel, ...args: any[]): void => {
-    if (logLevel_ > level.level) return;
-
-    const message = buildLogMessage(level, ...args);
-
-    if (loggingServerURL !== undefined) {
-      // fails silently
-      // DO NOTHING
-      const doNothing = (_e: unknown) => {};
-      try {
-        fetch(loggingServerURL, {
-          method: "POST",
-          body: message
-            .slice(0, 7)
-            .concat(message.slice(7).map((x) => Json.stringify(x)))
-            .join(" "),
-        }).catch(doNothing);
-      } catch (e) {
-        doNothing(e);
-      }
-    }
-
-    switch (level.consoleLogger) {
-      case "error":
-        console.error(...message);
-        break;
-      case "warn":
-        console.warn(...message);
-        break;
-      case "info":
-        console.info(...message);
-        break;
-      case "log":
-        console.log(...message);
-        break;
-      case "trace":
-        console.trace(...message);
-        break;
-    }
-  };
-
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    fatal: (...args: any[]) => log(Constants.LogLevels["fatal"], ...args),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    error: (...args: any[]) => log(Constants.LogLevels["error"], ...args),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    warn: (...args: any[]) => log(Constants.LogLevels["warn"], ...args),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    info: (...args: any[]) => log(Constants.LogLevels["info"], ...args),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    debug: (...args: any[]) => log(Constants.LogLevels["debug"], ...args),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    trace: (...args: any[]) => log(Constants.LogLevels["trace"], ...args),
-  };
-};
+  serviceName: string,
+  hostname: string,
+  source: string, // allows for Docker/Python/NodeJS/Browser etc
+  logLevel: LogLevel,
+  collector?: { endpoint: string; apiKey: string },
+) => ({
+  debug: (...args: unknown[]) =>
+    log(logLevel, "debug", serviceName, hostname, source, collector, args),
+  trace: (...args: unknown[]) =>
+    log(logLevel, "trace", serviceName, hostname, source, collector, args),
+  info: (...args: unknown[]) =>
+    log(logLevel, "info", serviceName, hostname, source, collector, args),
+  warn: (...args: unknown[]) =>
+    log(logLevel, "warn", serviceName, hostname, source, collector, args),
+  error: (...args: unknown[]) =>
+    log(logLevel, "error", serviceName, hostname, source, collector, args),
+});
 
 export type TLogger = ReturnType<typeof Logger>;

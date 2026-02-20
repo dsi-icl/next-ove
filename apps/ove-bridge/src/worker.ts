@@ -33,7 +33,7 @@ const safe = async <T>(logger: TLogger, fn: () => Promise<T>) => {
   try {
     return await fn();
   } catch (e) {
-    logger.error(e);
+    logger.debug(e);
   }
 };
 

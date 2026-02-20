@@ -4,9 +4,11 @@ import { z } from "zod";
 import dotenv from "dotenv";
 import * as path from "path";
 import { nanoid } from "nanoid";
-import { Logger } from "@ove/ove-logging";
 import { generateKeyPairSync } from "crypto";
 import type { Algorithm } from "jsonwebtoken";
+
+import { Logger } from "@ove/ove-logging";
+import { LogLevel } from "@ove/ove-types";
 import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 dotenv.config();
@@ -22,6 +24,16 @@ const schema = z.strictObject({
     z.literal("testing"),
     z.literal("api"),
   ]),
+  CLICKHOUSE: z.strictObject({
+    CA_PATH: z.string().optional(),
+    URL: z.string(),
+    USER: z.string().optional(),
+    PASSWORD: z.string().optional(),
+    DATABASE: z.string(),
+    TIMEOUT: z.number().optional(),
+    LIVE_QUERY_INTERVAL: z.number().optional(),
+  }).optional(),
+  DOCS: z.string().optional(),
   TESTING: z
     .strictObject({
       USERNAME: z.string(),
@@ -42,14 +54,13 @@ const schema = z.strictObject({
   }),
   LOGGING: z
     .strictObject({
-      LEVEL: z.number().optional(),
-      SERVER: z
+      LEVEL: LogLevel.optional(),
+      HOSTNAME: z.string().optional(),
+      OTEL: z
         .strictObject({
-          INGESTION: z.string(),
-          AUTH: z.string(),
-          API_KEY: z.string(),
-        }).optional(),
-      IDENTIFIER: z.string().optional(),
+          COLLECTOR_URL: z.string(),
+        })
+        .optional(),
     })
     .optional(),
   SERVER: z.strictObject({
@@ -72,6 +83,20 @@ const schema = z.strictObject({
       .optional(),
     THUMBNAIL_GENERATOR: z
       .strictObject({
+        MAX_KEYWORDS: z.number().optional(),
+        PROVIDER: z.string(),
+        PROVIDER_CONFIGURATIONS: z.record(
+          z.string(),
+          z.strictObject({
+            ENDPOINT: z.string(),
+            API_KEY: z.string(),
+            MODEL: z.string(),
+            BACKGROUND: z
+              .union([z.literal("transparent"), z.literal("white")])
+              .optional(),
+            SIZE: z.string().optional(),
+          }),
+        ),
         URL: z.string(),
         API_KEY: z.string(),
       })
@@ -80,6 +105,10 @@ const schema = z.strictObject({
       .strictObject({
         URL: z.string(),
         API_KEY: z.string(),
+        MISSING_DATA: z.strictObject({
+          HTML: z.string(),
+        }),
+        WEBHOOK_ARN: z.string(),
       })
       .optional(),
   }),
@@ -127,6 +156,7 @@ const schema = z.strictObject({
 });
 
 const staticConfig = {
+  SOURCE: "NodeJS",
   APP_NAME: "ove-core",
   API_VERSION: 2,
   TITLE: "next-ove core",
@@ -225,8 +255,8 @@ const configPath = getConfigPath(
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
-  env.LOGGING?.IDENTIFIER,
-  env.LOGGING?.LEVEL,
-  env.LOGGING?.SERVER?.INGESTION,
+  env.LOGGING?.HOSTNAME ?? "unknown",
+  env.SOURCE,
+  env.LOGGING?.LEVEL ?? "info",
 );
 logger.info(`Loaded configuration from ${configPath}`);

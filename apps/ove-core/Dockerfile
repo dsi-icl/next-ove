@@ -1,37 +1,3 @@
-FROM node:iron-alpine AS build-renderer
-LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
-
-WORKDIR /usr/src/app
-
-ENV NODE_ENV=production
-ENV NX_DAEMON=false
-
-RUN npm install -g pnpm
-
-COPY ../../tsconfig.base.json ./
-COPY ../../tsconfig.json ./
-COPY ../../nx.json ./
-COPY ../../babel.config.json ./
-
-COPY ../../dist/apps/ove-renderer/package.json ./
-COPY ../../dist/apps/ove-renderer/pnpm-lock.yaml ./
-
-RUN pnpm install --frozen-lockfile
-
-RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 typescript@5.9.0-dev.20250618 @nx/vite@20.3.2 vite@7.2.2 tsconfig-paths@4.2.0 vite-tsconfig-paths@5.1.4 vite-plugin-singlefile@2.2.0 tsx@4.19.4
-RUN pnpm add date-fns@4.1.0
-
-COPY ../../apps/ove-renderer ./apps/ove-renderer
-
-# reliant on following libraries
-COPY ../../libs/ove-logging ./libs/ove-logging
-COPY ../../libs/ove-utils ./libs/ove-utils
-COPY ../../libs/ove-types ./libs/ove-types
-COPY ../../libs/ove-auth ./libs/ove-auth
-COPY ../../package.json ./
-
-RUN pnpx nx run ove-renderer:build:production
-
 FROM node:iron-alpine AS build-server
 LABEL org.opencontainers.image.authors="Brython Caley-Davies <ove@imperial.ac.uk>"
 
@@ -56,14 +22,14 @@ COPY ../../dist/apps/ove-core/pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
 
-RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.19.0 esbuild@0.24.2 typescript@5.9.0-dev.20250618 tsx@4.19.4
+RUN pnpm add -D nx@20.3.2 @nx/esbuild@20.3.2 prisma@6.19.0 esbuild@0.24.2 typescript@5.9.0-dev.20250618 tsx@4.19.4 commander@14.0.3 execa@9.6.1
 RUN pnpm add zod-openapi@4.2.4 date-fns@4.1.0 zod@3.22.3 @prisma/client@6.19.0
 
 COPY ../../apps/ove-core ./apps/ove-core
-COPY ../../apps/ove-renderer ./apps/ove-renderer
 
 # reliant on following libraries
 COPY ../../cli ./cli
+COPY ../../libs/ove-analytics ./libs/ove-analytics
 COPY ../../libs/ove-server-utils ./libs/ove-server-utils
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
@@ -97,7 +63,7 @@ COPY ../../tools/db ./tools/db
 COPY ../../babel.config.json ./
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.19.0 @prisma/client@6.19.0 vite@7.2.2 @vitejs/plugin-react@4.4.1 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.87.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.4 tsx@4.19.4
+RUN pnpm add -D nx@20.3.2 @nx/vite@20.3.2 prisma@6.19.0 @prisma/client@6.19.0 vite@7.2.2 @vitejs/plugin-react@4.4.1 autoprefixer@10.4.20 @nx/react@20.3.2 sass@1.87.0 postcss@8.4.49 tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618 vite-tsconfig-paths@5.1.4 tsx@4.19.4 commander@14.0.3 execa@9.6.1
 RUN pnpm add react-big-calendar@1.19.4 @tabler/icons-react@3.35.0
 
 COPY ../../apps/ove-core-ui ./apps/ove-core-ui
@@ -105,6 +71,7 @@ COPY ../../package.json ./
 
 # reliant on following libraries
 COPY ../../cli ./cli
+COPY ../../libs/ove-analytics ./libs/ove-analytics
 COPY ../../libs/ove-logging ./libs/ove-logging
 COPY ../../libs/ove-utils ./libs/ove-utils
 COPY ../../libs/ove-types ./libs/ove-types
@@ -139,6 +106,6 @@ COPY --from=build-ui /usr/src/app/node_modules/@socket.io/admin-ui/ui/dist ./soc
 COPY --from=build-ui /usr/src/app/dist/apps/ove-core-ui/ ./ui
 COPY --from=build-ui /usr/src/app/node_modules/tinymce/skins ./ui/skins
 
-COPY --from=build-renderer /usr/src/app/dist/apps/ove-renderer/index.html /usr/src/app/dist/apps/ove-core/public/renderer.html
+#COPY ./docs/* ./public/docs
 
 CMD ["/bin/sh", "-c", "./env.sh;node main.cjs"]

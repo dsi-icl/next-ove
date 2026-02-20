@@ -19,9 +19,10 @@
 
 <!-- Initialize the Scalar API Reference -->
 <script>
+  const params = new URLSearchParams(window.location.search);
   Scalar.createApiReference('#app', {
     // The URL of the OpenAPI/Swagger document
-    url: '/openapi.json',
+    url: params.has("spec") ? params.get("spec") : '/openapi.json',
   })
 </script>
 </body>

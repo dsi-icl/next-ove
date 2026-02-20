@@ -1,80 +1,68 @@
-import path from "node:path";
-import {
-  defaultAlias,
-  makeSchema,
-  parseArgs,
-  printSchemas,
-  run,
-} from "./utils";
 import { z } from "zod";
+import { Command } from "commander";
 
-const tagline = "Security tools for next-ove";
-const help =
-  'Use "npm run security [COMMAND] -- --help" for more information about a command';
-const descriptions = {
-  "lock-versions": "Lock dependency versions to those currently installed",
-  "check-compromised": "Check for known vulnerabilities in dependencies",
-};
-const description = "DESCRIPTION\n\tSecurity tools for next-ove.";
+import { run } from "./utils/exec";
+import { resolveFromRoot } from "./utils/paths";
 
-const schemas = {
-  "lock-versions": z.strictObject({
-    __cmd__: z.literal("lock-versions"),
-  }),
-  "check-compromised": z.strictObject({
-    __cmd__: z.literal("check-compromised"),
-  }),
-};
+const program = new Command();
 
-const schema = makeSchema(schemas);
+program
+  .name("security")
+  .description("Security tools for next-ove")
+  .option("--dry-run", "Print commands without executing")
+  .showHelpAfterError();
 
-const lockVersions = (args: { dryRun: boolean }) => {
-  const cwd = process.cwd();
-  const toolDir = path.join(
-    import.meta.dirname,
-    "..",
-    "tools",
-    "security",
-    "lock-versions",
-  );
-  run(`cd ${toolDir} && ./lock-versions.sh && cd ${cwd}`, args.dryRun);
-};
+const baseSchema = z.object({
+  dryRun: z.boolean().optional(),
+});
 
-const checkCompromised = (args: { dryRun: boolean }) => {
-  const cwd = process.cwd();
-  const toolDir = path.join(
-    import.meta.dirname,
-    "..",
-    "tools",
-    "security",
-    "check-compromised",
-  );
-  run(`cd ${toolDir} && ./check-compromised.sh && cd ${cwd}`, args.dryRun);
+const lockVersionsSchema = baseSchema;
+type LockVersionsArgs = z.infer<typeof lockVersionsSchema>;
+
+const checkCompromisedSchema = baseSchema;
+type CheckCompromisedArgs = z.infer<typeof checkCompromisedSchema>;
+
+const lockVersions = async (args: LockVersionsArgs): Promise<void> => {
+  const toolDir = resolveFromRoot("tools", "security", "lock-versions");
+
+  await run("./lock-versions.sh", [], {
+    cwd: toolDir,
+    dryRun: args.dryRun,
+  });
 };
 
-const runSecurity = (args: { __cmd__: string }) => {
-  switch (args.__cmd__) {
-    case "lock-versions":
-      lockVersions(
-        args as unknown as NonNullable<Parameters<typeof lockVersions>>[0],
-      );
-      break;
-    case "check-compromised":
-      checkCompromised(
-        args as unknown as NonNullable<Parameters<typeof checkCompromised>>[0],
-      );
-      break;
-    default:
-      throw new Error("Unknown command");
-  }
+const checkCompromised = async (args: CheckCompromisedArgs): Promise<void> => {
+  const toolDir = resolveFromRoot("tools", "security", "check-compromised");
+
+  await run("./check-compromised.sh", [], {
+    cwd: toolDir,
+    dryRun: args.dryRun,
+  });
 };
 
-const args = parseArgs(schema, true, defaultAlias);
+program
+  .command("lock-versions")
+  .description("Lock dependency versions to those currently installed")
+  .action(async (_, cmd) => {
+    const parsed = lockVersionsSchema.parse({
+      dryRun: cmd.parent?.opts().dryRun,
+    });
 
-if (args.__cmd__ === undefined && args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help);
-} else if (args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help, args.__cmd__);
-} else {
-  runSecurity(args);
-}
+    await lockVersions(parsed);
+  });
+
+program
+  .command("check-compromised")
+  .description("Check for known vulnerabilities in dependencies")
+  .action(async (_, cmd) => {
+    const parsed = checkCompromisedSchema.parse({
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await checkCompromised(parsed);
+  });
+
+program.parseAsync(process.argv).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

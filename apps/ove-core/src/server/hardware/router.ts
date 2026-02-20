@@ -3,11 +3,12 @@ import {
   type TCoreAPI,
   type TCoreAPIOutput,
   type THardwareClientToServerEvents,
-  type THardwareServerToClientEvents
+  type THardwareServerToClientEvents,
 } from "@ove/ove-types";
 import { io } from "./sockets";
 import { state } from "../state";
 import type { Socket } from "socket.io";
+import { injectTrace, wrapSocketCall } from "../tracing";
 import { adminProcedure, procedure, router } from "../trpc";
 
 const getSocket: (
@@ -40,10 +41,12 @@ const handler = async <
   const { bridgeId, ...args } = input;
   const socket = getSocket(bridgeId);
   if (socket === null) throw new Error(`${bridgeId} is not connected`);
-  // @ts-expect-error arg spread
-  const res = await socket.emitWithAck(k, args);
-  if (res.status === "error") throw new Error(res.error);
-  return res.data;
+  return wrapSocketCall(k, async () => {
+    // @ts-expect-error arg spread
+    const res = await socket.emitWithAck(k, { ...args, __otel: injectTrace() });
+    if (res.status === "error") throw new Error(res.error);
+    return res.data;
+  });
 };
 
 const generateQuery = <Key extends keyof TCoreAPI>(k: Key) =>

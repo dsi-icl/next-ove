@@ -14,7 +14,7 @@ import { controller } from "../reconciliation/controller";
 import { MDCState } from "../reconciliation/state";
 
 const reboot = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"reboot">,
   ac?: () => AbortController,
 ) => {
@@ -24,6 +24,7 @@ const reboot = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setPower(
+    id,
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -36,7 +37,7 @@ const reboot = async (
 };
 
 const shutdown = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"shutdown">,
   ac?: () => AbortController,
 ) => {
@@ -46,6 +47,7 @@ const shutdown = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setPower(
+    id,
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -58,7 +60,7 @@ const shutdown = async (
 };
 
 const start = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"start">,
   ac?: () => AbortController,
 ) => {
@@ -68,6 +70,7 @@ const start = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setPower(
+    id,
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -91,7 +94,7 @@ const getInfo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const info = await mdc.getInfo({
+  const info = await mdc.getInfo(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.MDC,
     id: 0x01,
     host: device.host,
@@ -130,7 +133,7 @@ const getStatus = async (
 
   return syncStatus(
     async () =>
-      mdc.getStatus({
+      mdc.getStatus(device.id, {
         timeout: env.HARDWARE.TIMEOUTS.MDC,
         id: 0x01,
         host: device.host,
@@ -142,7 +145,7 @@ const getStatus = async (
 };
 
 const mute = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"mute">,
   ac?: () => AbortController,
 ) => {
@@ -152,6 +155,7 @@ const mute = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setIsMute(
+    id,
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -164,7 +168,7 @@ const mute = async (
 };
 
 const unmute = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"unmute">,
   ac?: () => AbortController,
 ) => {
@@ -174,6 +178,7 @@ const unmute = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setIsMute(
+    id,
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -186,7 +191,7 @@ const unmute = async (
 };
 
 const setVolume = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"setVolume">,
   ac?: () => AbortController,
 ) => {
@@ -196,6 +201,7 @@ const setVolume = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setVolume(
+    id,
     {
       id: 0x01,
       timeout: env.HARDWARE.TIMEOUTS.MDC,
@@ -208,7 +214,7 @@ const setVolume = async (
 };
 
 const setSource = async (
-  { host, port }: Device,
+  { id, host, port }: Device,
   args: TBridgeServiceArgs<"setSource">,
   ac?: () => AbortController,
 ) => {
@@ -220,6 +226,7 @@ const setSource = async (
   if (!parsedOpts.success) return undefined;
 
   return mdc.setSource(
+    id,
     {
       timeout: env.HARDWARE.TIMEOUTS.MDC,
       id: 0x01,

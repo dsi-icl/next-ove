@@ -1,0 +1,36 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "nx": true,
+  "entry": [
+    "apps/ove-bridge/src/worker.ts",
+    "apps/ove-client/src/app/api/main.preload.ts",
+    "apps/ove-mirror/src/content.ts",
+    "apps/ove-mirror/src/seed-hook.ts",
+    "apps/**/src/{index,main}.{ts,tsx,js,jsx}",
+    "libs/**/src/**/*.{ts,tsx,js,jsx}",
+    "cli/**/*.ts",
+    "tools/**/*.ts"
+  ],
+  "project": [
+    "apps/**/src/**/*.{ts,tsx,js,jsx}",
+    "libs/**/src/**/*.{ts,tsx,js,jsx}",
+    "cli/**/*.ts",
+    "tools/**/*.{ts,tsx}"
+  ],
+  "tags": ["-lintignore"],
+  "eslint": {
+    "config": [
+      ".eslintrc.json",
+      ".eslintrc.js",
+      "apps/**/.eslintrc.json",
+      "libs/**/.eslintrc.json"
+    ]
+  },
+  "tailwind": {
+    "config": [
+      "tailwind.config.js",
+      "apps/**/tailwind.config.js",
+      "libs/**/tailwind.config.js"
+    ]
+  }
+}

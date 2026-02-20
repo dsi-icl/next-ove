@@ -380,8 +380,6 @@ dev/tools/auto-populate/data/global_buckets/*
 !/dev/certs/.gitkeep
 
 # database config
-/apps/ove-logs/data/logs.db
-!/apps/ove-logs/data/postgres
 /tools/db/.env.production
 
 # Core environment config
@@ -389,16 +387,16 @@ dev/tools/auto-populate/data/global_buckets/*
 !/apps/ove-core/config/*.example.json
 /apps/ove-core/config.production.json
 
+# Collector environment config
+/apps/ove-collector/config/*.json
+!/apps/ove-collector/*.example.json
+
 # Core UI logging component
 !/apps/ove-core-ui/src/pages/logs
 
 # Bridge environment config
 /apps/ove-bridge/config/*.json
 !/apps/ove-bridge/config/*.example.json
-
-# Logging environment config
-/apps/ove-logs/config/*.json
-!/apps/ove-logs/config/*.example.json
 
 # Test environment config
 /tests/**/private.*
@@ -441,7 +439,7 @@ dev/tools/auto-populate/data/global_buckets/*
 !/libs/ui-base-components/src/lib
 
 # logging production environment
-/apps/ove-logs/.env.production
+/apps/ove-collector/.env.production
 
 # Electron app build directory
 !/apps/ove-client/build/
@@ -455,8 +453,22 @@ dev/tools/auto-populate/data/global_buckets/*
 *.bak
 *.old
 
-/apps/ove-logs/data/postgres
-.env.postgres
-
 /apps/ove-client/tests/.env.tests
 /tools/security/check-compromised/installed.txt
+
+/apps/ove-data-formatter/.env.production
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+
+/docs/compatibility/css/browser-usage.json
+/docs/compatibility/bundle/*.html
+
+!/apps/ove-core/src/server/logs
+
+/docs/bundle
+
+/apps/ove-demo-manager/config/config.json
+/apps/ove-demo-manager/public/icons/*.svg
+
+/apps/ove-file-proxy/config/config.json

@@ -7,7 +7,12 @@
     "db": {
       "executor": "nx:run-commands",
       "inputs": [
-        "{workspaceRoot}/tools/db/schema.prisma"
+        "{workspaceRoot}/tools/db/schema.prisma",
+        "{workspaceRoot}/pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "{workspaceRoot}/node_modules/.prisma",
+        "{workspaceRoot}/node_modules/@prisma/client"
       ],
       "options": {
         "cwd": "{workspaceRoot}/",
@@ -19,22 +24,6 @@
       "options": {
         "cwd": "{workspaceRoot}/",
         "commands": ["tsc -p apps/ove-bridge/tsconfig.app.json --noEmit --incremental"]
-      }
-    },
-    "make": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "{workspaceRoot}/",
-        "commands": [
-          "docker build --progress=plain --rm -t next-ove/bridge:latest --platform linux/amd64 -f apps/ove-bridge/Dockerfile ."
-        ]
-      },
-      "configurations": {
-        "arm": {
-          "commands": [
-            "docker build --progress=plain --rm -t next-ove/bridge:latest --platform linux/arm64 -f apps/ove-bridge/Dockerfile ."
-          ]
-        }
       }
     },
     "build": {

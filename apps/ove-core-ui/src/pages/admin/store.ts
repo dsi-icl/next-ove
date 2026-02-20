@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type AdminView = "overview" | "create-user" | "user-overview";
+export type AdminView = "overview" | "create-user" | "user-overview" | "data-formatter";
 
 type AdminStore = {
   view: AdminView;

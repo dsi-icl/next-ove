@@ -9,7 +9,7 @@ import React, { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Nav from "./nav";
 
-export const App = () => {
+const App = () => {
   const trpcClient = useMemo(
     () =>
       api.createClient({
@@ -32,8 +32,13 @@ export const App = () => {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: {},
-          mutations: {},
+          queries: {
+            retry: 1,
+            staleTime: 30_000,
+          },
+          mutations: {
+            retry: 0,
+          },
         },
       }),
     [],

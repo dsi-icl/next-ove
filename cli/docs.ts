@@ -1,323 +1,481 @@
+// noinspection RequiredAttributes
+
 import path from "node:path";
-import {
-  defaultAlias,
-  handlePathname,
-  makeSchema,
-  parseArgs,
-  printSchemas,
-  run,
-} from "./utils";
-import glob from "glob";
+import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { Command } from "commander";
 import { z } from "zod";
+import { glob } from "glob";
 
-import fs from "node:fs";
-import { execSync } from "node:child_process";
+import { run } from "./utils/exec";
+import { resolveFromRoot, resolveOutputPath } from "./utils/paths";
 
-const tagline = "Document the next-ove system";
-const help =
-  'Use "npm run document [COMMAND] -- --help" for more information about a command';
-const descriptions = {
-  api: "Document the next-ove APIs",
-  code: "Document the next-ove codebase",
-  types: "Document the next-ove codebase's types",
-  build: "Compile documentation into 'docs' directory",
-  show: "Run doc-viewer to display documentation as web application",
-};
-const description =
-  "DESCRIPTION\n\tCode and type documentation for the next-ove system.";
+const program = new Command();
 
-const schemas = {
-  api: z.strictObject({
-    __cmd__: z.literal("api"),
-    outDir: z.string().optional(),
-    coreConfig: z.string().optional(),
-    clientConfig: z.string().optional(),
-  }),
-  code: z.strictObject({
-    __cmd__: z.literal("code"),
-    input: z.string().optional(),
-    config: z.string().optional(),
-    outDir: z.string().optional(),
-  }),
-  types: z.strictObject({
-    __cmd__: z.literal("types"),
-    config: z.string().optional(),
-    tsConfig: z.string().optional(),
-    outDir: z.string().optional(),
-  }),
-  build: z.strictObject({
-    __cmd__: z.literal("build"),
-    codeDir: z.string().optional(),
-    typesDir: z.string().optional(),
-    apiDir: z.string().optional(),
-    coverageDir: z.string().optional(),
-    cssDir: z.string().optional(),
-    basePath: z.string().optional(),
-  }),
-  show: z.strictObject({
-    __cmd__: z.literal("show"),
-  }),
-};
+program
+  .name("document")
+  .description("Code and type documentation for the next-ove system")
+  .option("--dry-run", "Print commands without executing")
+  .showHelpAfterError();
 
-const schema = makeSchema(schemas);
+const apiSchema = z.object({
+  outDir: z.string().optional(),
+  coreConfig: z.string().optional(),
+  clientConfig: z.string().optional(),
+  dryRun: z.boolean().optional(),
+});
+type ApiArgs = z.infer<typeof apiSchema>;
 
-const code = (args: {
-  input: string;
-  config: string;
-  outDir: string;
-  dryRun: boolean;
-}) => {
-  const input = handlePathname(args.input, ".");
-  const config = handlePathname(args.config, "tools/jsdoc/jsdoc.json");
-  const outDir = handlePathname(args.outDir, "out/documentation");
-  const rootDir = path.join(import.meta.dirname, "..");
+const codeSchema = z.object({
+  input: z.string().optional(),
+  config: z.string().optional(),
+  outDir: z.string().optional(),
+  dryRun: z.boolean().optional(),
+});
+type CodeArgs = z.infer<typeof codeSchema>;
 
-  [
-    `mkdir -p ${outDir}`,
-    `cd ${rootDir} && npx jsdoc ${input} -c ${config}`,
-  ].forEach((x) => run(x, args.dryRun));
-};
+const typesSchema = z.object({
+  config: z.string().optional(),
+  tsConfig: z.string().optional(),
+  outDir: z.string().optional(),
+  dryRun: z.boolean().optional(),
+});
+type TypesArgs = z.infer<typeof typesSchema>;
 
-const types = (args: {
-  config: string;
-  tsConfig: string;
-  outDir: string;
-  dryRun: boolean;
-}) => {
-  const config = handlePathname(args.config, "tools/typedoc/typedoc.json");
-  const tsConfig = handlePathname(args.tsConfig, "tsconfig.json");
-  const rootDir = path.join(import.meta.dirname, "..");
-  const outDir = handlePathname(args.outDir, "out/documentation");
+const buildSchema = z.object({
+  component: z
+    .enum([
+      "code",
+      "types",
+      "apis",
+      "css",
+      "bundles",
+      "packages",
+      "features",
+      "coverage",
+      "specs",
+    ])
+    .optional(),
+  codeDir: z.string().optional(),
+  typesDir: z.string().optional(),
+  apiDir: z.string().optional(),
+  coverageDir: z.string().optional(),
+  cssDir: z.string().optional(),
+  bundleDir: z.string().optional(),
+  packageDir: z.string().optional(),
+  basePath: z.string().optional(),
+  dryRun: z.boolean().optional(),
+});
+type BuildArgs = z.infer<typeof buildSchema>;
 
-  [
-    `mkdir -p ${outDir}`,
-    `cd ${rootDir} && npx typedoc --options ${config} --tsconfig ${tsConfig}`,
-  ].forEach((x) => run(x, args.dryRun));
-};
+const api = async (args: ApiArgs): Promise<void> => {
+  const outDir = resolveOutputPath(args.outDir, "out/documentation/api");
 
-const build = (args: {
-  codeDir: string;
-  typesDir: string;
-  apiDir: string;
-  coverageDir: string;
-  basePath: string;
-  packageDir: string;
-  dryRun: boolean;
-  cssDir: string;
-}) => {
-  const docsDir = path.join(import.meta.dirname, "..", "docs");
-  const specsDir = path.join(import.meta.dirname, "..", "docs", "specs");
-
-  const buildCode = () => {
-    const codeDir = handlePathname(args.codeDir, "out/documentation/code");
-    if (!fs.existsSync(codeDir)) {
-      console.log(
-        'Missing code documentation, this can be generated using "npm run analyse code".',
-      );
-      return [];
-    }
-    return [`cp -R ${codeDir} ${docsDir}`];
-  };
-
-  const buildTypes = () => {
-    const typesDir = handlePathname(args.typesDir, "out/documentation/types");
-    if (!fs.existsSync(typesDir)) {
-      console.log(
-        'Missing type documentation, this can be generated using "npm run analyse types".',
-      );
-      return [];
-    }
-    return [`cp -R ${typesDir} ${docsDir}`];
-  };
-
-  const buildAPIs = () => {
-    const apiDir = handlePathname(args.apiDir, "out/documentation/api");
-    if (!fs.existsSync(apiDir)) {
-      console.log(
-        'Missing API documentation, this can be generated using "npm run analyse api".',
-      );
-      return [];
-    }
-    return [`cp -R ${apiDir} ${docsDir}`];
-  };
-
-  const buildCoverage = () => {
-    const coverageDir = handlePathname(args.coverageDir, "out/coverage");
-    if (!fs.existsSync(coverageDir)) {
-      console.log(
-        'Missing test & type coverage, this can be generated using "npm run test" for test coverage and "npm run analyse types" for type coverage.',
-      );
-      return [];
-    }
-    return [`cp -R ${coverageDir} ${docsDir}`];
-  };
-
-  const buildFeatures = () => {
-    const featuresDir = path.join(import.meta.dirname, "..", "docs", "features");
-    if (!fs.existsSync(featuresDir)) {
-      console.log(
-        "Missing feature documentation, this can be found on the GitHub.",
-      );
-      return [];
-    }
-    let pandocInstalled;
-    const featuresPublicDir = path.join(featuresDir, "public");
-    const template = path.join(
-      import.meta.dirname,
-      "..",
-      "apps",
-      "ove-docs",
-      "src",
-      "assets",
-      "feature.html",
-    );
-
-    try {
-      execSync("pandoc -v");
-      pandocInstalled = true;
-    } catch (e) {
-      pandocInstalled = false;
-    }
-
-    if (!pandocInstalled) {
-      console.log(
-        "Using unformatted feature documentation, for formatted output, please install pandoc.",
-      );
-      return [];
-    }
-
-    return [
-      `mkdir -p ${featuresPublicDir}`,
-      ...glob
-        .globSync(path.join(import.meta.dirname, "..", "docs", "features", "*.md"))
-        .flatMap((feature) => {
-          const name =
-            feature.split("/").at(-1)?.split(".")?.at(0) ?? "unknown";
-          const title = name
-            .split("-")
-            .map((x) => `${x.charAt(0).toUpperCase()}${x.slice(1)}`)
-            .join(" ");
-          const file = path.join(featuresPublicDir, `${name}.html`);
-
-          return [
-            `pandoc ${feature} > ${file}`,
-            `node -e "${[
-              "const fs = require('fs')",
-              `const data = fs.readFileSync('${file}').toString()`,
-              `const template = fs.readFileSync('${template}').toString().replace('%%title%%', '${title}').replace('%%body%%', data).replaceAll('%BASE_PATH%', '${args.basePath ?? ""}')`,
-              `fs.writeFileSync('${file}', template);`,
-            ].join("; ")}"`,
-          ];
-        }),
-    ];
-  };
-
-  const buildPackages = () => {
-    const packagesDir = handlePathname(
-      args.packageDir,
-      "out/analysis/packages",
-    );
-    if (!fs.existsSync(packagesDir)) {
-      console.log(
-        'Missing package analysis, this can be generated using "npm run analyse packages".',
-      );
-      return [];
-    }
-    return [`cp -R ${packagesDir} ${docsDir}`];
-  };
-
-  const buildCSS = () => {
-    const cssDir = handlePathname(args.cssDir, "out/analysis/css");
-    if (!fs.existsSync(cssDir)) {
-      console.log(
-        'Missing CSS compatibility information, this can be generated using "npm run analyse css".',
-      );
-      return [];
-    }
-    return [`cp -R ${cssDir} ${docsDir}`];
-  };
-
-  if (!fs.existsSync(specsDir)) {
-    console.log("Missing specifications, these can be found on the GitHub");
-  }
-
-  [
-    ...buildCSS(),
-    ...buildPackages(),
-    ...buildTypes(),
-    ...buildCode(),
-    ...buildAPIs(),
-    ...buildCoverage(),
-    ...buildFeatures(),
-  ].forEach((x) => run(x, args.dryRun));
-};
-
-const api = (args: {
-  outDir: string;
-  coreConfig: string;
-  clientConfig: string;
-  dryRun: boolean;
-}) => {
-  const core = path.join(
-    import.meta.dirname,
-    "..",
+  const coreScript = resolveFromRoot(
     "apps",
     "ove-core",
     "open-api-generate.ts",
   );
-  const client = path.join(
-    import.meta.dirname,
-    "..",
+
+  const clientScript = resolveFromRoot(
     "apps",
     "ove-client",
     "open-api-generate.ts",
   );
-  const outDir = handlePathname(args.outDir, "out/documentation/api");
-  const coreConfig = args.coreConfig ?? "api-config.json";
-  const clientConfig = handlePathname(
-    args.clientConfig,
-    "~/Application Support/Electron/ove-client-config.json",
+
+  await run("mkdir", ["-p", outDir], {
+    dryRun: args.dryRun,
+  });
+
+  await run(
+    "pnpx",
+    [
+      "tsx",
+      coreScript,
+      outDir,
+      "--configFile",
+      args.coreConfig ?? "api-config.json",
+    ],
+    { dryRun: args.dryRun },
   );
-  [
-    `mkdir -p "${outDir}"`,
-    `npx tsx ${core} ${outDir} --configFile="${coreConfig}"`,
-    `npx tsx ${client} ${outDir} --configFile="${clientConfig}"`,
-  ].forEach((x) => run(x, args.dryRun));
+
+  await run(
+    "pnpx",
+    [
+      "tsx",
+      clientScript,
+      outDir,
+      "--configFile",
+      args.clientConfig ??
+        resolveOutputPath(
+          "~/Application Support/Electron/ove-client-config.json",
+          "",
+        ),
+    ],
+    { dryRun: args.dryRun },
+  );
 };
 
-const show = () => {
-  const docsDir = path.join(import.meta.dirname, "..", "apps", "ove-docs");
-  run(`cd ${docsDir} && node server.js`, args.dryRun);
+const code = async (args: CodeArgs): Promise<void> => {
+  const root = resolveFromRoot();
+  const input = resolveOutputPath(args.input, ".");
+  const config = resolveOutputPath(args.config, "tools/jsdoc/jsdoc.json");
+  const outDir = resolveOutputPath(args.outDir, "out/documentation/code");
+
+  await run("mkdir", ["-p", outDir], {
+    dryRun: args.dryRun,
+  });
+
+  await run("pnpx", ["jsdoc", input, "-c", config], {
+    cwd: root,
+    dryRun: args.dryRun,
+  });
 };
 
-const runDocumentation = (args: { __cmd__: string; }) => {
-  switch (args.__cmd__) {
-    case "api":
-      api(args as unknown as NonNullable<Parameters<typeof api>>[0]);
-      break;
-    case "code":
-      code(args as unknown as NonNullable<Parameters<typeof code>>[0]);
-      break;
-    case "types":
-      types(args as unknown as NonNullable<Parameters<typeof types>>[0]);
-      break;
-    case "build":
-      build(args as unknown as NonNullable<Parameters<typeof build>>[0]);
-      break;
-    case "show":
-      show();
-      break;
-    default:
-      throw new Error("Unknown command");
+const types = async (args: TypesArgs): Promise<void> => {
+  const root = resolveFromRoot();
+  const config = resolveOutputPath(args.config, "tools/typedoc/typedoc.json");
+  const tsConfig = resolveOutputPath(args.tsConfig, "tsconfig.json");
+
+  await run("pnpx", ["typedoc", "--options", config, "--tsconfig", tsConfig], {
+    cwd: root,
+    dryRun: args.dryRun,
+  });
+};
+
+const generateHtml = async (
+  inputFile: string,
+  outputFile: string,
+  template: string,
+  title: string,
+  args: BuildArgs,
+): Promise<void> => {
+  const outputDir = path.dirname(outputFile);
+
+  await run("mkdir", ["-p", outputDir], {
+    dryRun: args.dryRun,
+  });
+
+  await run(
+    "pandoc",
+    [inputFile, "-o", outputFile],
+    { dryRun: args.dryRun },
+  );
+
+  if (!args.dryRun) {
+    const content = await fs.readFile(
+      outputFile,
+      "utf-8",
+    );
+
+    const html = template
+      .replace("%%title%%", title)
+      .replace("%%body%%", content)
+      .replaceAll(
+        "%BASE_PATH%",
+        args.basePath ?? "",
+      );
+
+    await fs.writeFile(outputFile, html);
   }
 };
 
-const args = parseArgs(schema, true, defaultAlias);
+const generateTitleFromSegments = (segments: string[]): string => segments
+  .filter(Boolean)
+  .map((segment) =>
+    segment
+      .replace(/-/g, " ") // hyphen readable in title
+      .replace(/\b\w/g, (c) => c.toUpperCase()),
+  )
+  .join(" › ");
 
-if (args.__cmd__ === undefined && args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help);
-} else if (args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help, args.__cmd__);
-} else {
-  runDocumentation(args);
-}
+const resolveOutputPathForMarkdown = (
+  file: string,
+): { outputFile: string; titleSegments: string[] } => {
+  const root = resolveFromRoot();
+  const publicRoot = resolveFromRoot(
+    "docs",
+    "features",
+    "public",
+  );
+
+  const relative = path.relative(root, file);
+
+  if (relative === "README.md") {
+    return {
+      outputFile: path.join(
+        publicRoot,
+        "project",
+        "index.html",
+      ),
+      titleSegments: ["Project"],
+    };
+  }
+
+  if (relative.startsWith("docs/features/")) {
+    const subPath = relative.replace(
+      /^docs\/features\//,
+      "",
+    );
+
+    return {
+      outputFile: path.join(
+        publicRoot,
+        "features",
+        subPath.replace(/\.md$/, ".html"),
+      ),
+      titleSegments: [
+        "Features",
+        ...subPath
+          .replace(/\.md$/, "")
+          .split(/[\\/]/),
+      ],
+    };
+  }
+
+  const topLevel = relative.split(/[\\/]/)[0];
+
+  const categoryMap: Record<string, string> = {
+    apps: "Apps",
+    libs: "Libraries",
+    tools: "Tools",
+    cli: "CLI",
+  };
+
+  if (topLevel in categoryMap) {
+    const subPath = relative.replace(
+      new RegExp(`^${topLevel}[\\\\/]`),
+      "",
+    );
+
+    return {
+      outputFile: path.join(
+        publicRoot,
+        topLevel,
+        subPath
+          .replace(/README\.md$/, "index.html")
+          .replace(/\.md$/, ".html"),
+      ),
+      titleSegments: [
+        categoryMap[topLevel],
+        ...subPath
+          .replace(/README\.md$/, "")
+          .replace(/\.md$/, "")
+          .split(/[\\/]/)
+          .filter(Boolean),
+      ],
+    };
+  }
+
+  return {
+    outputFile: path.join(
+      publicRoot,
+      relative.replace(/\.md$/, ".html"),
+    ),
+    titleSegments: relative
+      .replace(/\.md$/, "")
+      .split(/[\\/]/),
+  };
+};
+
+const buildFeatures = async (args: BuildArgs): Promise<void> => {
+  const featuresRoot = resolveFromRoot("docs", "features");
+  const publicRoot = path.join(featuresRoot, "public");
+
+  const templatePath = resolveFromRoot("docs", "assets", "feature.html");
+
+  if (!existsSync(templatePath)) {
+    console.log("Missing feature template.");
+    return;
+  }
+
+  const template = await fs.readFile(templatePath, "utf-8");
+
+  await run("mkdir", ["-p", publicRoot], {
+    dryRun: args.dryRun,
+  });
+
+  const DOC_SOURCES = [
+    { name: "apps", dir: "apps" },
+    { name: "libs", dir: "libs" },
+    { name: "tools", dir: "tools" },
+    { name: "cli", dir: "cli" },
+  ];
+
+  const markdownFiles = [
+    ...(await glob(resolveFromRoot("docs", "features", "**/*.md"))),
+    ...(
+      await Promise.all(
+        DOC_SOURCES.map((source) =>
+          glob(resolveFromRoot(source.dir, "**/*.md")),
+        ),
+      )
+    ).flat(),
+    resolveFromRoot("README.md"),
+  ];
+
+  for (const file of markdownFiles) {
+    if (!existsSync(file)) continue;
+
+    const { outputFile, titleSegments } =
+      resolveOutputPathForMarkdown(file);
+
+    await generateHtml(
+      file,
+      outputFile,
+      template,
+      generateTitleFromSegments(titleSegments),
+      args,
+    );
+  }
+
+  console.log("Built feature documentation successfully.");
+};
+
+const build = async (args: BuildArgs): Promise<void> => {
+  const docsDir = resolveFromRoot("docs");
+
+  const copyIfExists = async (
+    srcDefault: string,
+    provided: string | undefined,
+    message: string,
+  ) => {
+    const src = resolveOutputPath(provided, srcDefault);
+
+    if (!existsSync(src)) {
+      console.log(message);
+      return;
+    }
+
+    await run("cp", ["-R", src, docsDir], {
+      dryRun: args.dryRun,
+    });
+  };
+
+  if (!args.component || args.component === "code") {
+    await copyIfExists(
+      "out/documentation/code",
+      args.codeDir,
+      "Missing code documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "types") {
+    await copyIfExists(
+      "out/documentation/types",
+      args.typesDir,
+      "Missing type documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "apis") {
+    await copyIfExists(
+      "out/documentation/api",
+      args.apiDir,
+      "Missing API documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "coverage") {
+    await copyIfExists(
+      "out/coverage",
+      args.coverageDir,
+      "Missing coverage documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "css") {
+    await copyIfExists(
+      "out/analysis/css",
+      args.cssDir,
+      "Missing CSS documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "bundles") {
+    await copyIfExists(
+      "out/analysis/bundle",
+      args.bundleDir,
+      "Missing bundle documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "packages") {
+    await copyIfExists(
+      "out/analysis/packages",
+      args.packageDir,
+      "Missing package documentation.",
+    );
+  }
+
+  if (!args.component || args.component === "features") {
+    await buildFeatures(args);
+  }
+};
+
+program
+  .command("api")
+  .description("Document the next-ove APIs")
+  .option("--out-dir <path>")
+  .option("--core-config <path>")
+  .option("--client-config <path>")
+  .action(async (opts, cmd) => {
+    const parsed = apiSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+    await api(parsed);
+  });
+
+program
+  .command("code")
+  .description("Document the next-ove codebase")
+  .option("--input <path>")
+  .option("--config <path>")
+  .option("--out-dir <path>")
+  .action(async (opts, cmd) => {
+    const parsed = codeSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+    await code(parsed);
+  });
+
+program
+  .command("types")
+  .description("Document the next-ove type system")
+  .option("--config <path>")
+  .option("--ts-config <path>")
+  .option("--out-dir <path>")
+  .action(async (opts, cmd) => {
+    const parsed = typesSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+    await types(parsed);
+  });
+
+program
+  .command("build")
+  .description("Compile documentation into docs directory")
+  .option("--component <component>")
+  .option("--base-path <path>")
+  .option("--code-dir <path>")
+  .option("--types-dir <path>")
+  .option("--api-dir <path>")
+  .option("--coverage-dir <path>")
+  .option("--css-dir <path>")
+  .option("--bundle-dir <path>")
+  .option("--package-dir <path>")
+  .action(async (opts, cmd) => {
+    const parsed = buildSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+    await build(parsed);
+  });
+
+program.parseAsync(process.argv).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

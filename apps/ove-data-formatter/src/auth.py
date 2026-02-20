@@ -1,43 +1,44 @@
-import os
-import requests
+# API Key authentication
+from fastapi import Security, HTTPException, Depends, status
+from fastapi.security import APIKeyHeader, HTTPBearer, \
+    HTTPAuthorizationCredentials
 
-APP_NAME = "ove-data-formatter"
-signing_key = requests.get(os.environ["AUTH_SERVER_URL"]).text
+from .config import settings
 
-
-def authorize(role, url):
-    # TODO: implement authorization
-    print(role, url)
-    return True
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
+security = HTTPBearer()
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if "Authorization" in request.headers:
-            token = request.headers["Authorization"].split(" ")[1]
-        if not token:
-            return {
-                "message": "Authentication Token is missing!",
-                "data": None,
-                "error": "Unauthorized"
-            }, 401
-        try:
-            data=jwt.decode(token, signing_key, audience=[APP_NAME], algorithms=[os.environ["JWT_ALGORITHM"])
-            if not authorize(data.role, request.url):
-                return {
-                    "message": "Unauthorized",
-                    "data": None,
-                    "error": "Unauthorized"
-                }, 403
-        except Exception as e:
-            return {
-                "message": "Something went wrong",
-                "data": None,
-                "error": str(e)
-            }, 500
+def verify_token(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    if credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid authentication scheme",
+        )
 
-        return f(*args, **kwargs)
+    if settings.minio_webhook_key is None or credentials.credentials != settings.minio_webhook_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid token",
+        )
 
-    return decorated
+    return credentials.credentials
+
+
+def get_valid_api_keys():
+    """Parse and return valid API keys from settings"""
+    return [key.strip() for key in settings.api_keys.split(",") if key.strip()]
+
+
+async def verify_api_key(api_key: str = Security(api_key_header)):
+    """Verify the provided API key"""
+    valid_keys = get_valid_api_keys()
+    if api_key not in valid_keys:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+    return api_key

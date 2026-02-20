@@ -3,14 +3,16 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/ove-core/src",
   "projectType": "application",
-  "implicitDependencies": [
-    "ove-renderer"
-  ],
   "targets": {
     "db": {
       "executor": "nx:run-commands",
       "inputs": [
-        "{workspaceRoot}/tools/db/schema.prisma"
+        "{workspaceRoot}/tools/db/schema.prisma",
+        "{workspaceRoot}/pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "{workspaceRoot}/node_modules/.prisma",
+        "{workspaceRoot}/node_modules/@prisma/client"
       ],
       "options": {
         "cwd": "{workspaceRoot}/",
@@ -43,7 +45,6 @@
       },
       "dependsOn": [
         "prebuild",
-        {"target": "build", "projects": "ove-renderer", "params": "forward"},
         {"target": "build", "projects": "ove-core-ui", "params": "forward"}
       ]
     },

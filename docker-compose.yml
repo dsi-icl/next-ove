@@ -11,6 +11,19 @@ services:
       - ./tools/db/.env.production:/usr/src/app/.env:ro
     env_file:
       apps/ove-core-ui/.env.docker
+  ove-data-formatter:
+    image: next-ove/ove-data-formatter:latest
+    container_name: ove-data-formatter
+    build:
+      context: .
+      dockerfile: apps/ove-data-formatter/Dockerfile
+    platform: linux/amd64
+    ports:
+      - "8000:8000"
+    restart: "unless-stopped"
+    volumes:
+      - ./apps/ove-data-formatter/.env.production:/.env:ro
+      - /Users/bc2918/do-ca.crt:/do-ca.crt:ro
   ove-docs:
     image: next-ove/docs:latest
     container_name: ove-docs
@@ -26,7 +39,7 @@ services:
     container_name: ove-logs
     build:
       context: .
-      dockerfile: apps/ove-logs/Dockerfile
+      dockerfile: apps/ove-collector/Dockerfile
     platform: linux/amd64
     ports:
       - "8082:8080"
@@ -38,7 +51,7 @@ services:
   ove-logs-db:
     image: postgres:18-alpine
     platform: linux/amd64
-    env_file: ./apps/ove-logs/.env.postgres
+    env_file: apps/ove-collector/.env.postgres
     container_name: ove-logs-db
     restart: "unless-stopped"
     volumes:

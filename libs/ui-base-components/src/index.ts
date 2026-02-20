@@ -40,3 +40,6 @@ export * from "./lib/reorderable-list/index";
 export * from "./lib/carousel";
 export * from "./lib/input-group";
 export * from "./lib/combobox";
+export * from "./lib/tabs";
+export * from "./lib/separator";
+export * from "./lib/alert";

@@ -4,7 +4,7 @@ import {
   AutoScheduleSchema,
   BoundsSchema,
   CalendarSchema,
-  DeviceSchema,
+  DeviceSchema, LogLevel,
   PowerModeSchema
 } from "@ove/ove-types";
 import { z } from "zod";
@@ -20,9 +20,12 @@ const schema = z.strictObject({
   }),
   LOGGING: z
     .strictObject({
-      SERVER: z.string().optional(),
-      LEVEL: z.number().optional(),
-      IDENTIFIER: z.string().optional(),
+      LEVEL: LogLevel.optional(),
+      HOSTNAME: z.string().optional(),
+      OTEL: z.strictObject({
+        COLLECTOR_URL: z.string(),
+        SOCKET_MESSAGING_DESTINATION: z.string().optional(),
+      }).optional()
     })
     .optional(),
   CORE: z.strictObject({
@@ -93,6 +96,7 @@ const schema = z.strictObject({
 });
 
 const staticConfig = {
+  SOURCE: "NodeJS",
   APP_NAME: "ove-bridge",
   UI_ALIAS: "ove-bridge-ui",
   CLIENT_API_VERSION: "1",
@@ -157,9 +161,9 @@ const configPath = getConfigPath(
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
-  env.LOGGING?.IDENTIFIER,
-  env.LOGGING?.LEVEL,
-  env.LOGGING?.SERVER,
+  env.LOGGING?.HOSTNAME ?? "unknown",
+  env.SOURCE,
+  env.LOGGING?.LEVEL ?? "info",
 );
 export const version = process.env.npm_package_version ?? "UNKNOWN-VERSION";
 

@@ -26,6 +26,7 @@ const reboot = async (
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower(
+    device.id,
     {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -36,6 +37,7 @@ const reboot = async (
   return await new Promise<boolean>((resolve) =>
     setTimeout(async () => {
       await PJLink.setPower(
+        device.id,
         {
           timeout: env.HARDWARE.TIMEOUTS.PJLINK,
           device,
@@ -59,6 +61,7 @@ const shutdown = async (
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower(
+    device.id,
     {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -80,6 +83,7 @@ const start = async (
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setPower(
+    device.id,
     {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -103,67 +107,67 @@ const getInfo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  const info = await PJLink.getInfo({
+  const info = await PJLink.getInfo(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const source = await PJLink.getInput({
+  const source = await PJLink.getInput(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const power = await PJLink.getPower({
+  const power = await PJLink.getPower(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const pjlinkClass = await PJLink.getClass({
+  const pjlinkClass = await PJLink.getClass(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const isMuted = await PJLink.getIsMuted({
+  const isMuted = await PJLink.getIsMuted(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const isAudioMuted = await PJLink.getIsAudioMuted({
+  const isAudioMuted = await PJLink.getIsAudioMuted(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const isVideoMuted = await PJLink.getIsVideoMuted({
+  const isVideoMuted = await PJLink.getIsVideoMuted(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const errors = await PJLink.getErrors({
+  const errors = await PJLink.getErrors(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const lamp = await PJLink.getLamp({
+  const lamp = await PJLink.getLamp(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const name = await PJLink.getName({
+  const name = await PJLink.getName(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const manufacturer = await PJLink.getManufacturer({
+  const manufacturer = await PJLink.getManufacturer(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const product = await PJLink.getProduct({
+  const product = await PJLink.getProduct(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
   });
-  const sources = await PJLink.getInputs({
+  const sources = await PJLink.getInputs(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
@@ -205,13 +209,23 @@ const getStatus = async (
   if (!parsedOpts.success) return undefined;
 
   return syncStatus(async () => {
-    // TODO: determine power state from result
-    await PJLink.getPower({
+    const res = await PJLink.getPower(device.id, {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
       ac: ac?.(),
     });
-    return "on";
+    switch (res) {
+      case "1":
+      case "3": // warming up → effectively on
+        return "on";
+
+      case "0":
+      case "2": // cooling down → effectively off
+        return "off";
+
+      default:
+        throw new Error(`Unknown power state: ${res}`);
+    }
   }, device);
 };
 
@@ -231,6 +245,7 @@ const setSource = async (
   if (!parsedOpts.success) return undefined;
 
   await PJLink.setInput(
+    device.id,
     {
       timeout: env.HARDWARE.TIMEOUTS.PJLINK,
       device,
@@ -253,7 +268,7 @@ const mute = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.mute({
+  await PJLink.mute(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
@@ -272,7 +287,7 @@ const unmute = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.unmute({
+  await PJLink.unmute(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
@@ -291,7 +306,7 @@ const muteAudio = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.muteAudio({
+  await PJLink.muteAudio(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
@@ -310,7 +325,7 @@ const unmuteAudio = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.unmuteAudio({
+  await PJLink.unmuteAudio(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
@@ -329,7 +344,7 @@ const muteVideo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.muteVideo({
+  await PJLink.muteVideo(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),
@@ -348,7 +363,7 @@ const unmuteVideo = async (
 
   if (!parsedOpts.success) return undefined;
 
-  await PJLink.unmuteVideo({
+  await PJLink.unmuteVideo(device.id, {
     timeout: env.HARDWARE.TIMEOUTS.PJLINK,
     device,
     ac: ac?.(),

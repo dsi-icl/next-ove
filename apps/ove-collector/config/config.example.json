@@ -1,0 +1,32 @@
+{
+  "SERVER": {
+    "PORT": 8080
+  },
+  "CLICKHOUSE": {
+    "CA_PATH": "/private-ca.crt",
+    "URL": "http://localhost:8123",
+    "USER": "clickhouse",
+    "PASSWORD": "example",
+    "DATABASE": "observability",
+    "TIMEOUT": 60000
+  },
+  "PROJECTS": [
+    {
+      "publicKey": "public api key",
+      "projectId": "ove-core-ui"
+    }
+  ],
+  "API": {
+    "BUFFER": {
+      "FLUSH_INTERVAL_MS": 30000,
+      "BATCH_SIZE": 50
+    },
+    "RATE_LIMIT": {
+      "MAX_EVENTS_PER_REQUEST": 100,
+      "WINDOW_MS": 60000,
+      "LIMIT": 1000,
+      "STANDARD_HEADERS": "draft-7",
+      "LEGACY_HEADERS": false
+    }
+  }
+}

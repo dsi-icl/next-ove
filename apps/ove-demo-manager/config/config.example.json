@@ -1,0 +1,28 @@
+{
+  "_config": {
+    "base_path": "/demo-manager",
+    "healthcheck_timeout": "1000",
+    "timeout": 3600,
+    "port": 3000,
+    "host": "127.0.0.1",
+    "running": "",
+    "logging": "on",
+    "publicDir": "../public",
+    "auth": {
+      "server": "AUTH SERVER URL - COOKIE VALIDATION ENDPOINT",
+      "key": "API KEY"
+    }
+  },
+  "routes": {
+    "demo-1": {
+      "up": "echo demo 1 going up",
+      "down": "echo demo 1 going down",
+      "location": "."
+    },
+    "demo-2": {
+      "up": "echo demo 2 going up",
+      "down": "echo demo 2 going down",
+      "location": "."
+    }
+  }
+}

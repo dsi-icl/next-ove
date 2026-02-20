@@ -13,6 +13,7 @@
     "plugins/markdown"
   ],
   "source": {
+    "include": ["apps", "libs"],
     "includePattern": "\\.(jsx|js|ts|tsx)$",
     "excludePattern": "node_modules/*"
   }

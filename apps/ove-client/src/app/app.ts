@@ -81,7 +81,7 @@ const loadURL = (idx: number, url: string, isFatal = false) => {
     .then(() => logger.info(`Loaded url: ${url}`))
     .catch((reason) => {
       if (isFatal) {
-        logger.fatal(reason);
+        logger.error(reason);
         closeServer();
         application.exit(1);
         exit(1);

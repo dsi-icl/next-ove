@@ -56,7 +56,7 @@ export const InviteSchema = z.strictObject({
   sent: z.date(),
   status: z.string(),
   projectId: z.string(),
-  project: ProjectSchemaOutput,
+  project: ProjectSchemaOutput.extend({ isDeleted: z.boolean() }),
   senderId: z.string(),
   recipientId: z.string(),
   updated_at: z.date(),
@@ -77,14 +77,3 @@ export const CollaboratorSchema = z.strictObject({
   icon: z.string().nullable(),
   email: z.string().nullable(),
 });
-
-export const DataFormatConfigOptionsSchema = z.strictObject({
-  containsHeader: z.boolean().optional(),
-  tableSource: z
-    .union([z.literal("csv"), z.literal("html"), z.literal("tsv")])
-    .optional(),
-});
-
-export type DataFormatConfigOptions = z.infer<
-  typeof DataFormatConfigOptionsSchema
->;

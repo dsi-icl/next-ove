@@ -4,20 +4,14 @@
   "sourceRoot": "apps/ove-data-formatter",
   "projectType": "application",
   "targets": {
-    "build": {
-      "command": "docker build --no-cache --progress=plain -t next-ove/ove-data-formatter:latest --platform linux/amd64 -f Dockerfile .",
+    "make": {
+      "command": "docker build -t next-ove/ove-data-formatter:latest --platform linux/amd64 -f Dockerfile .",
       "options": {
         "cwd": "{projectRoot}"
       }
     },
-    "start": {
-      "command": "docker compose up -d",
-      "options": {
-        "cwd": "{projectRoot}"
-      }
-    },
-    "stop": {
-      "command": "docker compose down",
+    "serve": {
+      "command": "uv run main.py",
       "options": {
         "cwd": "{projectRoot}"
       }

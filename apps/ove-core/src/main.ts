@@ -1,5 +1,7 @@
 /* global process, __dirname */
 
+import "./otel";
+
 import * as path from "path";
 import cors from "cors";
 import { env, logger } from "./env";
@@ -286,14 +288,170 @@ app.use(
   }) as Parameters<typeof app.use>[1],
 );
 
-// TODO: merge OpenApi schema with routes in this file
+const authOpenApiPaths = {
+  "/api/signing-key": {
+    get: {
+      summary: "Get public signing key",
+      responses: {
+        200: {
+          description: "Public signing key",
+          content: {
+            "text/plain": {
+              schema: {
+                type: "string",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/otp": {
+    get: {
+      summary: "Generate OTP",
+      security: [{ cookieAuth: [] }, { apiKeyAuth: [] }],
+      responses: {
+        200: {
+          description: "Generated OTP",
+          content: {
+            "application/json": {
+              schema: {
+                type: "string",
+              },
+            },
+          },
+        },
+        401: { description: "Unauthorized" },
+      },
+    },
+  },
+
+  "/api/login": {
+    post: {
+      summary: "Login and set auth cookies",
+      security: [{ apiKeyAuth: [] }],
+      responses: {
+        200: {
+          description: "Authenticated user",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                additionalProperties: true,
+              },
+            },
+          },
+        },
+        401: { description: "Unauthorized" },
+      },
+    },
+  },
+
+  "/api/refresh": {
+    get: {
+      summary: "Refresh user session",
+      security: [{ cookieAuth: [] }],
+      responses: {
+        200: {
+          description: "Authenticated user",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                additionalProperties: true,
+              },
+            },
+          },
+        },
+        401: { description: "Unauthorized" },
+      },
+    },
+  },
+
+  "/api/validate": {
+    get: {
+      summary: "Validate current session",
+      security: [{ cookieAuth: [] }],
+      responses: {
+        200: { description: "Session is valid" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  },
+
+  "/api/logout": {
+    post: {
+      summary: "Logout and clear cookies",
+      security: [{ cookieAuth: [] }],
+      responses: {
+        200: { description: "Logged out" },
+        401: { description: "Unauthorized" },
+      },
+    },
+  },
+
+  "/api/redirect": {
+    get: {
+      summary: "OTP-based redirect login",
+      security: [{ otpAuth: [] }],
+      parameters: [
+        {
+          name: "to",
+          in: "query",
+          required: true,
+          schema: { type: "string" },
+        },
+      ],
+      responses: {
+        302: { description: "Redirect to target" },
+        403: { description: "Forbidden" },
+      },
+    },
+  },
+};
+
 app.get("/openapi.json", (_req, res) => {
-  res.send(openApiDocument);
+  res.send({
+    ...openApiDocument,
+    paths: {
+      ...openApiDocument.paths,
+      ...authOpenApiPaths,
+    },
+    components: {
+      ...openApiDocument.components,
+      securitySchemes: {
+        ...openApiDocument.components?.securitySchemes,
+
+        // ADDED: shared auth mechanisms
+        cookieAuth: {
+          type: "apiKey",
+          in: "cookie",
+          name: env.TOKENS.ACCESS.COOKIE.ID,
+        },
+        apiKeyAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "x-api-key",
+        },
+        otpAuth: {
+          type: "apiKey",
+          in: "query",
+          name: "otp",
+        },
+      },
+    },
+  });
 });
 
-app.get("/docs", (_req, res) =>
+app.get("/api/docs", (_req, res) =>
   res.sendFile(path.join(__dirname, "assets", "docs.html")),
 );
+
+if (env.DOCS !== undefined) {
+  app.use("/docs", express.static(env.DOCS));
+}
+// app.use("/docs/features", express.static(path.join(__dirname, "public", "docs", "features", "public")));
 
 app.use((req, res, next) => {
   const reqPath = req.path.endsWith("/")

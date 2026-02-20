@@ -1,8 +1,8 @@
 import { createServer } from "http";
-import { type Socket as ClientSocket } from "socket.io-client";
+import type { Socket as ClientSocket } from "socket.io-client";
 import { type Namespace, Server, type Socket as ServerSocket } from "socket.io";
-import { type DefaultEventsMap } from "socket.io/dist/typed-events";
-import { type Device, OVEExceptionSchema } from "../../libs/ove-types/src";
+import type { DefaultEventsMap } from "socket.io/dist/typed-events";
+import type { Device } from "../../libs/ove-types/src";
 import { readFileSync } from "atomically";
 import * as path from "path";
 import { execSync } from "child_process";
@@ -36,6 +36,8 @@ type Env = {
 
 type BridgeEnv = { HARDWARE: Device[], BRIDGE_NAME?: string }
 
+const OptionalSchema = z.discriminatedUnion("status", [z.strictObject({ status: z.literal("success"), data: z.unknown() }), z.strictObject({ status: z.literal("error"), error: z.string() })])
+
 const ENVIRONMENT = "dev";
 const SKIP_POWER = true;
 
@@ -65,7 +67,7 @@ describe("ove-bridge hardware module", () => {
     response: object
   }, onSuccess: () => void) => {
     if (!deviceDirectory.get(deviceId)) {
-      expect(OVEExceptionSchema.safeParse(result.response).success).toBe(true);
+      expect(OptionalSchema.safeParse(result.response).success).toBe(true);
     } else {
       onSuccess();
     }
@@ -86,7 +88,7 @@ describe("ove-bridge hardware module", () => {
   }, onSuccess: (response: unknown, deviceId: string) => void) => {
     result.response.forEach(({ deviceId, response }) => {
       if (!deviceDirectory.get(deviceId)) {
-        expect(OVEExceptionSchema.safeParse(response).success).toBe(true);
+        expect(OptionalSchema.safeParse(response).success).toBe(true);
       } else {
         onSuccess(response, deviceId);
       }
@@ -155,10 +157,10 @@ describe("ove-bridge hardware module", () => {
     });
   };
 
-  const pingDevices = () => Promise.all(env.HARDWARE.map(({ id, ip }) => {
+  const pingDevices = () => Promise.all(env.HARDWARE.map(({ id, host }) => {
     try {
       const regex = /[^%]+, (.*)% packet loss/;
-      const res = execSync(`ping -t 1 ${ip} -c 1`).toString();
+      const res = execSync(`ping -t 1 ${host} -c 1`).toString();
 
       return regex.test(res) ? [id, parseFloat(res.match(regex)?.[1] ?? "-1") === 0] as const : [id, false] as const;
     } catch (e) {

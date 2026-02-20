@@ -1,3 +1,5 @@
+import "./otel";
+
 import http from "node:http";
 import { env, logger } from "./env";
 import client from "prom-client";
