@@ -57,3 +57,12 @@ export type TokenPayload = {
 export type Optional<T> =
   | { status: "success"; data: T }
   | { status: "error"; error: string };
+
+export type Traceable<T> = T & { __otel?: Record<string, string> };
+
+export const LogLevel = z.union([
+  z.literal("debug"),
+  z.literal("info"),
+  z.literal("warn"),
+  z.literal("error"),
+]);

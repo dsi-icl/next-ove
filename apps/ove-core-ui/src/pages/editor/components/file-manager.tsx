@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { toast } from "sonner";
 import {
+  Badge,
   Button,
   DialogContent,
   DialogDescription,
@@ -17,20 +18,73 @@ import {
   FormItem,
   FormLabel,
   Input,
-  useFormErrorHandling,
+  useFormErrorHandling
 } from "@ove/ui-base-components";
-import { env } from "../../../env";
 import { assert } from "@ove/ove-utils";
-import { api } from "../../../utils/api";
 import { useForm } from "react-hook-form";
 import { useProjectId } from "../hooks/projects";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { File as FileT } from "@ove/ove-types";
+import type { File as FileT } from "@ove/ove-types";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { getLatest, toURL, useFiles, useUpload } from "../hooks/files";
-import { Brush, Gear, Upload as UploadButton } from "react-bootstrap-icons";
 import { usePartialUpdateSection } from "../hooks/sections";
+import { Brush, Check, Upload as UploadButton, X } from "lucide-react";
+import { api } from "../../../utils/api";
+
+const Version = ({
+  file,
+  version,
+  closeDialog,
+}: {
+  closeDialog: () => void;
+  file: FileT;
+  version: string;
+}) => {
+  const convertedFiles = [
+    "png",
+    "jpg",
+    "jpeg",
+    "tiff",
+    "tif",
+    "webp",
+    "md",
+    "markdown",
+    "latex",
+    "tex",
+  ];
+  const getConversionStatus = api.projects.getConversionStatus.useQuery(
+    {
+      bucketName: file.bucketName,
+      objectName: file.name,
+      versionId: version,
+    },
+    {
+      enabled:
+        version !== "latest" &&
+        convertedFiles.includes(
+          file.name.split(".").at(-1)?.toLowerCase() ?? "",
+        ),
+    },
+  );
+  const partialUpdateSection = usePartialUpdateSection();
+  return (
+    <DropdownMenuItem
+      key={version}
+      onClick={() => {
+        partialUpdateSection({
+          asset: toURL(file.bucketName, file.name, version),
+        });
+        closeDialog();
+      }}
+    >
+      {version}
+      {version !== "latest" && getConversionStatus.data !== undefined ? (
+        <Badge className="rounded-circle" variant={getConversionStatus.data ? "green" : "red"}>{getConversionStatus.data ? <Check /> : <X />}</Badge>
+      ) : null}
+    </DropdownMenuItem>
+  );
+};
 
 const FileView = ({
   file,
@@ -44,24 +98,6 @@ const FileView = ({
   closeDialog: () => void;
 }) => {
   const latestFile = getLatest(files, file.bucketName, file.name);
-  const isImage = file.name.match(env.CONSTANTS.IMAGE_EXTENSION_REGEX) !== null;
-  const processImage = api.projects.formatDZI.useMutation({ retry: false });
-  const process = useCallback(
-    () =>
-      toast.promise(
-        processImage.mutateAsync({
-          bucketName: file.bucketName,
-          objectName: file.name,
-          versionId: latestFile.version,
-        }),
-        {
-          loading: "Converting to DZI...",
-          error: `Unable to convert ${file.name} to DZI`,
-          success: `Converted ${file.name} to DZI`,
-        },
-      ),
-    [processImage, file.name, latestFile.version, file.bucketName],
-  );
 
   const canEdit = (name: string) => {
     const editableExtensions = [
@@ -78,8 +114,6 @@ const FileView = ({
     return editableExtensions.includes(ext);
   };
 
-  const partialUpdateSection = usePartialUpdateSection();
-
   return (
     <li className="mt-2 flex w-full items-center justify-between rounded-lg border border-gray-100 bg-white p-4 shadow">
       <div className="mr-2 flex min-w-0 items-center space-x-4">
@@ -88,16 +122,6 @@ const FileView = ({
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        {isImage ? (
-          <Button
-            variant="ghost"
-            type="button"
-            title="process asset"
-            onClick={() => process()}
-          >
-            <Gear className="size-4" />
-          </Button>
-        ) : null}
         {canEdit(latestFile.name) && (
           <Button onClick={() => edit(latestFile)}>Edit</Button>
         )}
@@ -109,18 +133,16 @@ const FileView = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {files
-              .filter((f) => f.name === file.name && f.bucketName === file.bucketName)
+              .filter(
+                (f) => f.name === file.name && f.bucketName === file.bucketName,
+              )
               .map(({ version }) => (
-              <DropdownMenuItem
-                key={version}
-                onClick={() => {
-                  partialUpdateSection({ asset: toURL(file.bucketName, file.name, version) });
-                  closeDialog();
-                }}
-              >
-                {version}
-              </DropdownMenuItem>
-            ))}
+                <Version
+                  file={file}
+                  version={version}
+                  closeDialog={closeDialog}
+                />
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -168,14 +190,24 @@ const FileManager = ({ edit, closeDialog }: FileManagerProps) => {
       toast.error("No file selected");
       return;
     }
-    await uploadFile({
+    const handler = uploadFile({
       objectName: selected.name,
       file: selected,
       intent: "auto",
+    }).then(() => {
+      form.reset();
+      setFileInputKey((k) => k + 1);
     });
+    toast.promise(
+      handler,
+      {
+        loading: "Uploading file",
+        success: "File uploaded",
+        error: "Failed to upload file",
+      },
+    );
 
-    form.reset();
-    setFileInputKey((k) => k + 1);
+
   };
   const { files } = useFiles(assert(projectId));
 

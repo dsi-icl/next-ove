@@ -1,146 +1,256 @@
-import path from "node:path";
-import {
-  printSchemas,
-  handlePathname,
-  run,
-  parseArgs,
-  defaultAlias,
-  makeSchema,
-} from "./utils";
 import { z } from "zod";
+import path from "node:path";
+import { Command } from "commander";
 
-const tagline = "Analyse the next-ove system";
-const help =
-  'Use "npm run analyse [COMMAND] -- --help" for more information about a command';
-const descriptions = {
-  api: "Generate API documentation for the next-ove system",
-  bundle: "Analyse the web bundle of the UI components",
-  packages:
-    "Audit and list dependencies, identify security issues and deprecations",
-  css: "Analyse CSS browser compatibility",
-  coverage:
-    "Determine the coverage of TypeScript types throughout the codebase",
-};
-const description =
-  "DESCRIPTION\n\tPackage & bundle analysis, css compatibility and type checking & coverage for the next-ove system.";
+import { run } from "./utils/exec";
+import { resolveFromRoot, resolveOutputPath } from "./utils/paths";
 
-const schemas = {
-  bundle: z.strictObject({
-    __cmd__: z.literal("bundle"),
-    component: z
-      .union([z.literal("core"), z.literal("bridge"), z.literal("client")])
-      .optional(),
-    open: z.coerce.boolean().optional(),
-    outDir: z.string().optional(),
-  }),
-  packages: z.strictObject({
-    __cmd__: z.literal("packages"),
-    outDir: z.string().optional(),
-  }),
-  css: z.strictObject({
-    __cmd__: z.literal("css"),
-    outDir: z.string().optional(),
-  }),
-  coverage: z.strictObject({
-    __cmd__: z.literal("coverage"),
-    outDir: z.string().optional(),
-  }),
-};
+const program = new Command();
 
-const schema = makeSchema(schemas);
+program
+  .name("analyse")
+  .description("Package & bundle analysis, css compatibility and type coverage")
+  .option("--dry-run", "Print commands without executing")
+  .showHelpAfterError();
 
-const bundle = (args: { open: boolean; component: string | undefined; outDir: string; dryRun: boolean }) => {
-  const bundleComponent = (c: string) => {
-    const appDir = path.join(import.meta.dirname, "..", "apps", `ove-${c}-ui`);
-    const open = args.open ?? false;
-    const outDir = handlePathname(args.outDir, "out/analysis/bundle");
-    const output = path.join(outDir, `ove-${c}.html`);
-    const distDir = path.join(import.meta.dirname, "..", "dist");
+const bundleSchema = z.object({
+  component: z.enum(["core", "bridge", "client"]).optional(),
+  open: z.boolean().optional(),
+  outDir: z.string().optional(),
+  dryRun: z.boolean().optional(),
+});
 
+type BundleArgs = z.infer<typeof bundleSchema>;
+
+const packagesSchema = z.object({
+  outDir: z.string().optional(),
+  dryRun: z.boolean().optional(),
+  component: z.enum(["directory", "audit", "deprecation", "security", "unused", "updates"]).optional(),
+});
+
+type PackagesArgs = z.infer<typeof packagesSchema>;
+
+const cssSchema = packagesSchema;
+type CssArgs = z.infer<typeof cssSchema>;
+
+const coverageSchema = packagesSchema;
+type CoverageArgs = z.infer<typeof coverageSchema>;
+
+const bundle = async (args: BundleArgs): Promise<void> => {
+  const component = args.component ?? "core";
+
+  const appDir = resolveFromRoot(
+    "apps",
+    component === "core" ? "ove-core-ui" : component,
+  );
+
+  const outDir = resolveOutputPath(args.outDir, "out/analysis/bundle");
+
+  const output = path.join(outDir, `${component}.html`);
+
+  await run("mkdir", ["-p", outDir], {
+    dryRun: args.dryRun,
+  });
+
+  await run(
+    "pnpx",
     [
-      `mkdir -p ${outDir}`,
-      `cd ${appDir} && npx vite-bundle-visualizer --open=${open} --output=${output}`,
-      `npx rimraf ${distDir}`,
-    ].forEach((x) => run(x, args.dryRun));
-  };
-
-  if (args.component === undefined) {
-    bundleComponent("client");
-    bundleComponent("bridge");
-    bundleComponent("core");
-  } else {
-    bundleComponent(args.component);
-  }
-};
-
-const packages = (args: { outDir: string; dryRun: boolean; }) => {
-  const outDir = handlePathname(args.outDir, "out/analysis/packages");
-  const auditOutput = path.join(outDir, "audit.txt");
-  const deprecationDir = path.join(import.meta.dirname, "..", "tools", "deprecation");
-  const deprecation = path.join(deprecationDir, "analyze.sh");
-  const deprecationOutput = path.join(deprecationDir, "analysis.txt");
-  const deprecationOutputDest = path.join(outDir, "deprecated.txt");
-  const sandwormOutput = path
-    .join(path.relative(import.meta.dirname, outDir), "security")
-    .replace("../", "");
-  const packagesTxt = path.join(outDir, "packages.txt");
-  const packagesJSON = path.join(outDir, "packages.json");
-  const updates = path.join(outDir, "updates.txt");
-
-  [
-    `mkdir -p ${sandwormOutput}`,
-    `npm audit > ${auditOutput}`,
-    `${deprecation}`,
-    `cp ${deprecationOutput} ${deprecationOutputDest}`,
-    `npm ls --all --json --silent > ${packagesJSON}`,
-    `npm ls --all --silent > ${packagesTxt}`,
-    `tail -n +2 ${packagesTxt} > ${packagesTxt}`,
-    `npx sandworm-audit --summary -d --max-depth=3 -o ${sandwormOutput}`,
-    `npx taze -l -r --ignore-paths node_modules major --sort time-desc > ${updates}`,
-  ].forEach((x) => run(x, args.dryRun));
-};
-
-const css = (args: { outDir: string; dryRun: boolean; }) => {
-  const outDir = handlePathname(args.outDir, "out/analysis/css");
-  const doiuse = path.join(import.meta.dirname, "..", "tools", "doiuse", "doiuse.js");
-  const output = path.join(outDir, "browser-usage.json");
-
-  run(`node ${doiuse} ${output}`, args.dryRun);
-};
-
-const coverage = (args: { outDir: string; dryRun: boolean; }) => {
-  const outDir = handlePathname(args.outDir, "out/coverage/types");
-
-  [`mkdir -p ${outDir}`, `npx typescript-coverage-report -o ${outDir}`].forEach(
-    (x) => run(x, args.dryRun),
+      "vite-bundle-visualizer",
+      `--open=${args.open ?? false}`,
+      `--output=${output}`,
+    ],
+    {
+      cwd: appDir,
+      dryRun: args.dryRun,
+    },
   );
 };
 
-const runAnalysis = (args: any) => {
-  switch (args.__cmd__) {
-    case "bundle":
-      bundle(args);
-      break;
-    case "packages":
-      packages(args);
-      break;
-    case "css":
-      css(args);
-      break;
-    case "coverage":
-      coverage(args);
-      break;
-    default:
-      throw new Error("Unknown command");
+const packages = async (args: PackagesArgs): Promise<void> => {
+  const outDir = resolveOutputPath(args.outDir, "out/analysis/packages");
+  const auditOutput = path.join(outDir, "audit.json");
+  const deprecationDir = resolveFromRoot(
+    "tools",
+    "deprecation",
+  );
+  const deprecation = path.join(deprecationDir, "analyze.sh");
+  const deprecationOutput = path.join(deprecationDir, "analysis.txt");
+  const deprecationOutputDest = path.join(outDir, "deprecated.txt");
+  const sandwormOutput = path.join(outDir, "security");
+  const packagesJSON = path.join(outDir, "packages.json");
+  const updates = path.join(outDir, "updates.txt");
+
+
+  await run("mkdir", ["-p", args.component === undefined || args.component === "security" ? sandwormOutput : outDir], {
+    dryRun: args.dryRun,
+  });
+
+  if (args.component === undefined || args.component === "audit") {
+    await run("pnpm", ["audit", "--json"], {
+      outputFile: auditOutput,
+      cwd: resolveFromRoot(),
+      dryRun: args.dryRun,
+      reject: false,
+    });
+  }
+
+  if (args.component === undefined || args.component === "deprecation") {
+    await run(deprecation, [], {
+      cwd: resolveFromRoot(),
+      dryRun: args.dryRun,
+    });
+
+    await run("cp", [deprecationOutput, deprecationOutputDest], {
+      cwd: resolveFromRoot(),
+      dryRun: args.dryRun,
+    });
+  }
+
+  if (args.component === undefined || args.component === "directory") {
+    await run("pnpm", ["ls", "--json", "--depth", "5"], {
+      outputFile: packagesJSON,
+      cwd: resolveFromRoot(),
+      dryRun: args.dryRun,
+      reject: false,
+    });
+  }
+
+  if (args.component === undefined || args.component === "updates") {
+    await run(
+      "pnpm",
+      [
+        "taze",
+        "-l",
+        "-r",
+        "--ignore-paths",
+        "node_modules",
+        "major",
+        "--sort",
+        "time-desc",
+      ],
+      {
+        outputFile: updates,
+        cwd: resolveFromRoot(),
+        dryRun: args.dryRun,
+      },
+    );
+  }
+
+  if (args.component === undefined || args.component === "security") {
+    await run(
+      "pnpm",
+      [
+        "sandworm-audit",
+        "--summary",
+        "-d",
+        "--max-depth=3",
+        "-o",
+        sandwormOutput,
+      ],
+      {
+        cwd: resolveFromRoot(),
+        dryRun: args.dryRun,
+      },
+    );
+  }
+
+  if (args.component === undefined || args.component === "unused") {
+    await run(
+      "pnpm",
+      [
+        "--silent",
+        "knip",
+        "--no-exit-code",
+        "--reporter=json",
+      ],
+      {
+        outputFile: path.join(outDir, "unused.json"),
+        dryRun: args.dryRun,
+        cwd: resolveFromRoot(),
+        reject: false,
+      },
+    );
   }
 };
 
-const args = parseArgs(schema, true, defaultAlias);
+const css = async (args: CssArgs): Promise<void> => {
+  const outDir = resolveOutputPath(args.outDir, "out/analysis/css/browser-usage.json");
 
-if (args.__cmd__ === undefined && args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help);
-} else if (args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help, args.__cmd__);
-} else {
-  runAnalysis(args);
-}
+  const doiuse = resolveFromRoot("tools", "doiuse", "doiuse.ts");
+
+  await run("tsx", [doiuse, outDir], {
+    dryRun: args.dryRun,
+  });
+};
+
+const coverage = async (args: CoverageArgs): Promise<void> => {
+  const outDir = resolveOutputPath(args.outDir, "out/coverage/types");
+
+  await run("mkdir", ["-p", outDir], {
+    dryRun: args.dryRun,
+  });
+
+  await run("pnpx", ["typescript-coverage-report", "-o", outDir], {
+    dryRun: args.dryRun,
+  });
+};
+
+program
+  .command("bundle")
+  .description("Analyse the web bundle of UI components")
+  .option("--component <component>", "core | bridge | client")
+  .option("--open", "Open visualizer")
+  .option("--out-dir <path>")
+  .action(async (opts, cmd) => {
+    const parsed = bundleSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await bundle(parsed);
+  });
+
+program
+  .command("packages")
+  .description("Audit dependencies, identify security issues and deprecations")
+  .option("--out-dir <path>")
+  .option("--component <component>", "directory | audit | deprecation | security | unused | updates")
+  .action(async (opts, cmd) => {
+    const parsed = packagesSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await packages(parsed);
+  });
+
+program
+  .command("css")
+  .description("Analyse CSS browser compatibility")
+  .option("--out-dir <path>")
+  .action(async (opts, cmd) => {
+    const parsed = cssSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await css(parsed);
+  });
+
+program
+  .command("coverage")
+  .description("Determine TypeScript type coverage")
+  .option("--out-dir <path>")
+  .action(async (opts, cmd) => {
+    const parsed = coverageSchema.parse({
+      ...opts,
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await coverage(parsed);
+  });
+
+program.parseAsync(process.argv).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

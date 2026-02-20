@@ -1,49 +1,42 @@
+import { Command } from "commander";
 import { z } from "zod";
-import path from "node:path";
-import {
-  makeSchema,
-  parseArgs,
-  defaultAlias,
-  printSchemas,
-  run,
-} from "./utils";
-const tagline = "Manage next-ove asset files";
-const help =
-  'Use "npm run files [COMMAND] -- --help" for more information about a command';
-const descriptions = {
-  upload: "Upload a file to the asset store",
-};
-const description = "DESCRIPTION\n\tFile management for the next-ove system.";
+import { run } from "./utils/exec";
+import { resolveFromRoot } from "./utils/paths";
 
-const schemas = {
-  upload: z.strictObject({
-    __cmd__: z.literal("upload"),
-  }),
-};
+const program = new Command();
 
-const schema = makeSchema(schemas);
+program
+  .name("files")
+  .description("File management for the next-ove system")
+  .option("--dry-run", "Print commands without executing")
+  .showHelpAfterError();
 
-const upload = () => {
-  const fp = path.join(import.meta.dirname, "..", "tools", "files", "upload.js");
-  run(`node ${fp}`, args.dryRun);
+const uploadSchema = z.object({
+  dryRun: z.boolean().optional(),
+});
+
+type UploadArgs = z.infer<typeof uploadSchema>;
+
+const upload = async (args: UploadArgs): Promise<void> => {
+  const scriptPath = resolveFromRoot("tools", "files", "upload.js");
+
+  await run("node", [scriptPath], {
+    dryRun: args.dryRun,
+  });
 };
 
-const runAnalysis = (args: { __cmd__: string }) => {
-  switch (args.__cmd__) {
-    case "upload":
-      upload();
-      break;
-    default:
-      throw new Error("Unknown command");
-  }
-};
+program
+  .command("upload")
+  .description("Upload a file to the asset store")
+  .action(async (_opts, cmd) => {
+    const parsed = uploadSchema.parse({
+      dryRun: cmd.parent?.opts().dryRun,
+    });
 
-const args = parseArgs(schema, true, defaultAlias);
+    await upload(parsed);
+  });
 
-if (args.__cmd__ === undefined && args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help);
-} else if (args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help, args.__cmd__);
-} else {
-  runAnalysis(args);
-}
+program.parseAsync(process.argv).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

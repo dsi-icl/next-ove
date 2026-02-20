@@ -2,7 +2,6 @@ import { z } from "zod";
 import controller from "./controller";
 import {
   CollaboratorSchema,
-  DataFormatConfigOptionsSchema,
   InviteSchema,
   ProjectSchema,
   ProjectSchemaOutput,
@@ -11,7 +10,8 @@ import {
   UserSchema,
 } from "../schemas";
 import { procedure, router } from "../trpc";
-import { DataTypesSchema, FileSchema } from "@ove/ove-types";
+import { FileSchema } from "@ove/ove-types";
+import { logger } from "../../env";
 
 export const projectsRouter = router({
   getProjects: procedure
@@ -167,6 +167,24 @@ export const projectsRouter = router({
     .query(({ ctx, input: { projectId } }) =>
       controller.getFiles(ctx.prisma, ctx.s3, ctx.username, projectId),
     ),
+  getConversionStatus: procedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/project/{bucketName}/file/{objectName}/{versionId}/conversion/status",
+        protect: true,
+      },
+    })
+    .input(z.strictObject({
+      bucketName: z.string(),
+      objectName: z.string(),
+      versionId: z.string(),
+    }))
+    .output(z.boolean())
+    .query(({ ctx, input }) => {
+      logger.info(`Getting conversion status for ${input.objectName}`);
+      return controller.getConversionStatus(ctx.s3, input.bucketName, input.objectName, input.versionId);
+    }),
   getPresignedGetURL: procedure
     .meta({
       openapi: {
@@ -180,6 +198,7 @@ export const projectsRouter = router({
         bucketName: z.string(),
         objectName: z.string(),
         versionId: z.string(),
+        isThumbnail: z.boolean().optional(),
       }),
     )
     .output(z.string())
@@ -189,6 +208,7 @@ export const projectsRouter = router({
         input.bucketName,
         input.objectName,
         input.versionId,
+        input.isThumbnail ?? false,
       ),
     ),
   getPresignedPutURL: procedure
@@ -231,7 +251,12 @@ export const projectsRouter = router({
     )
     .output(z.string())
     .mutation(({ ctx, input }) =>
-      controller.generateThumbnail(ctx.prisma, input.projectId, input.tags),
+      controller.generateThumbnail(
+        ctx.prisma,
+        ctx.s3,
+        input.projectId,
+        input.tags,
+      ),
     ),
   inviteCollaborator: procedure
     .meta({
@@ -329,50 +354,6 @@ export const projectsRouter = router({
         observatory,
         layout,
       ),
-    ),
-  formatData: procedure
-    .meta({
-      openapi: {
-        method: "POST",
-        path: "/project/data/format",
-        protect: true,
-      },
-    })
-    .input(
-      z.strictObject({
-        title: z.string(),
-        dataType: DataTypesSchema,
-        data: z.string(),
-        opts: DataFormatConfigOptionsSchema.optional(),
-      }),
-    )
-    .output(
-      z.strictObject({
-        data: z.string(),
-        fileName: z.string(),
-      }),
-    )
-    .mutation(({ input: { title, dataType, data, opts } }) =>
-      controller.formatData(title, dataType, data, opts),
-    ),
-  formatDZI: procedure
-    .meta({
-      openapi: {
-        method: "POST",
-        path: "/project/{bucketName}/file/{objectName}/{versionId}/format/dzi",
-        protect: true,
-      },
-    })
-    .input(
-      z.strictObject({
-        bucketName: z.string(),
-        objectName: z.string(),
-        versionId: z.string(),
-      }),
-    )
-    .output(z.undefined())
-    .mutation(({ input: { bucketName, objectName, versionId }, ctx }) =>
-      controller.formatDZI(ctx.s3, bucketName, objectName, versionId),
     ),
   getCollaborationInvites: procedure
     .meta({

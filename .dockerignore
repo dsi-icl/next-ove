@@ -690,9 +690,7 @@ Temporary Items
 !cli/
 /dist/apps/ove-core/config/config.json
 /dist/apps/ove-core/config/config.example.json
-
-!/dist/apps/ove-logs/package.json
-!/dist/apps/ove-logs/pnpm-lock.yaml
+/dist/apps/ove-core/config/*.json
 
 !/dist/apps/ove-core/package.json
 !/dist/apps/ove-core/pnpm-lock.yaml
@@ -700,18 +698,25 @@ Temporary Items
 !/dist/apps/ove-core-ui/package.json
 !/dist/apps/ove-core-ui/pnpm-lock.yaml
 
-!/dist/apps/ove-renderer/package.json
-!/dist/apps/ove-renderer/pnpm-lock.yaml
-
 !/dist/apps/ove-docs/package.json
 !/dist/apps/ove-docs/pnpm-lock.yaml
+
+!/dist/apps/ove-collector/package.json
+!/dist/apps/ove-collector/pnpm-lock.yaml
 
 Dockerfile
 
 *.old
 *.bak
 
-/apps/ove-logs/data/postgres
+/apps/ove-collector/data/postgres
 .env.postgres
 
 /apps/ove-client/tests/.env.tests
+
+/apps/ove-data-formatter/.env.production
+
+/docs/
+
+!/apps/ove-core/src/server/logs
+/apps/ove-file-proxy/config/config.json

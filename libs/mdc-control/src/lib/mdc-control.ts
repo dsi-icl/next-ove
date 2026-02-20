@@ -1,11 +1,9 @@
 /* global AbortController, setTimeout */
 
 import { Socket } from "net";
+import { Mutex } from "async-mutex";
 import { assert } from "@ove/ove-utils";
-import {
-  type MDCInfo,
-  type MDCSource,
-} from "@ove/ove-types";
+import { type MDCInfo, type MDCSource } from "@ove/ove-types";
 
 const MDC_PORT = 1515;
 
@@ -38,6 +36,30 @@ type CommandArgs = {
   port?: number;
   timeout: number;
 };
+
+const deviceLocks = new Map<string, Mutex>();
+
+const getLock = (id: string) => {
+  let lock = deviceLocks.get(id);
+  if (!lock) {
+    lock = new Mutex();
+    deviceLocks.set(id, lock);
+  }
+  return lock;
+};
+
+const sendCommandLocked = (
+  deviceId: string,
+  commandId: number,
+  cmdArgs: CommandArgs,
+  ...args: number[]
+) =>
+  getLock(deviceId).runExclusive(
+    () =>
+      new Promise<Uint8Array>((resolve, reject) => {
+        sendCommand(resolve, reject, commandId, cmdArgs, ...args);
+      }),
+  );
 
 const sendCommand = (
   resolve: (obj: Uint8Array) => void,
@@ -85,64 +107,52 @@ const sendCommand = (
   });
 };
 
-export const getStatus = async (
-  args: CommandArgs,
-): Promise<"on" | "off"> => {
-  const status = await new Promise<Uint8Array>((resolve, reject) =>
-    sendCommand(resolve, reject, 0x11, args),
-  );
+export const getStatus = async (deviceId: string, args: CommandArgs): Promise<"on" | "off"> => {
+  const status = await sendCommandLocked(deviceId, 0x11, args);
   if (status.at(6) === undefined || status[6] > 0x01)
     throw new Error("Couldn't get status");
   return status.at(6) === 0x00 ? "off" : "on";
 };
 
 export const setPower = async (
+  deviceId: string,
   args: CommandArgs,
   state: "on" | "off" | "reboot",
 ): Promise<boolean> => {
   const powerState = state === "off" ? 0x00 : state === "on" ? 0x01 : 0x02;
-  const res = await new Promise<Uint8Array>((resolve, reject) =>
-    sendCommand(resolve, reject, 0x11, args, powerState),
-  );
+  const res = await sendCommandLocked(deviceId, 0x11, args, powerState);
   return res.at(6) === powerState;
 };
 
 export const setVolume = async (
+  deviceId: string,
   args: CommandArgs,
   volume: number,
 ): Promise<boolean> => {
-  const res = await new Promise<Uint8Array>((resolve, reject) =>
-    sendCommand(resolve, reject, 0x12, args, volume),
-  );
+  const res = await sendCommandLocked(deviceId, 0x12, args, volume);
   return res.at(6) === volume;
 };
 
 export const setIsMute = async (
+  deviceId: string,
   args: CommandArgs,
   state: boolean,
 ): Promise<boolean> => {
-  const res = await new Promise<Uint8Array>((resolve, reject) =>
-    sendCommand(resolve, reject, 0x13, args, state ? 0x01 : 0x00),
-  );
+  const res = await sendCommandLocked(deviceId, 0x13, args, state ? 0x01 : 0x00);
   return res.at(6) === (state ? 0x01 : 0x00);
 };
 
 export const setSource = async (
+  deviceId: string,
   args: CommandArgs,
   source: MDCSourceVal,
 ): Promise<boolean> => {
-  const res = await new Promise<Uint8Array>((resolve, reject) =>
-    sendCommand(resolve, reject, 0x14, args, source),
-  );
+  const res = await sendCommandLocked(deviceId, 0x14, args, source);
   return res.at(6) === source;
 };
 
-export const getInfo = async (
-  args: CommandArgs,
-): Promise<MDCInfo> => {
-  const res = await new Promise<Uint8Array>((resolve, reject) =>
-    sendCommand(resolve, reject, 0x00, args),
-  );
+export const getInfo = async (deviceId: string, args: CommandArgs): Promise<MDCInfo> => {
+  const res = await sendCommandLocked(deviceId, 0x00, args);
   if (res.length < 10) throw new Error("Incorrect result");
 
   return {

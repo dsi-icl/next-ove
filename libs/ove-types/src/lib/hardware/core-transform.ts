@@ -35,25 +35,7 @@ export type TCoreRoutesSchema = {
     objectUtil.MergeShapes<BridgeRouteInputTransformSchema<Key>, {
       bridgeId: z.ZodString
     }>,
-    z.ZodDiscriminatedUnion<"status", [z.ZodObject<{
-      status: z.ZodLiteral<"success">
-      data: z.ZodUnknown
-    }, "strict", z.ZodTypeAny, {
-      status: "success"
-      data: BridgeRouteOutputTransformSchema<Key>
-    }, {
-      status: "success"
-      data: BridgeRouteOutputTransformSchema<Key>
-    }>, z.ZodObject<{
-      status: z.ZodLiteral<"error">
-      error: z.ZodString
-    }, "strict", z.ZodTypeAny, {
-      status: "error"
-      error: string
-    }, {
-      status: "error"
-      error: string
-    }>]>,
+    BridgeRouteOutputTransformSchema<Key>,
     OpenAPIMethod<ToSingleRoute<Key>>,
     APIExposureLevel<ToSingleRoute<Key>>
   >

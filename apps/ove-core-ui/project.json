@@ -8,7 +8,12 @@
     "db": {
       "executor": "nx:run-commands",
       "inputs": [
-        "{workspaceRoot}/tools/db/schema.prisma"
+        "{workspaceRoot}/tools/db/schema.prisma",
+        "{workspaceRoot}/pnpm-lock.yaml"
+      ],
+      "outputs": [
+        "{workspaceRoot}/node_modules/.prisma",
+        "{workspaceRoot}/node_modules/@prisma/client"
       ],
       "options": {
         "cwd": "{workspaceRoot}/",

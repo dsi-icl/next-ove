@@ -1,6 +1,9 @@
 {
   "entryPoints": ["../../libs/*/src/index.ts"],
-  "name": "Packages Example",
+  "name": "next-ove",
   "includeVersion": false,
-  "out": "../../out/documentation/types"
+  "out": "../../out/documentation/types",
+  "exclude": ["**/node_modules/**"],
+  "excludeExternals": true,
+  "tsconfig": "tsconfig.typedoc.json"
 }

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <title>OVE Demo Manager</title>
+  <style>
+      /* Base styles with dark mode support */
+      :root {
+          --primary-color: #4f46e5;
+          --primary-hover: #4338ca;
+          --success-color: #10b981;
+          --warning-color: #f59e0b;
+          --danger-color: #ef4444;
+          --text-color: #1f2937;
+          --text-light: #6b7280;
+          --bg-color: #f9fafb;
+          --card-bg: #ffffff;
+          --border-color: #e5e7eb;
+          --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          --modal-bg: rgba(0, 0, 0, 0.5);
+      }
+
+      [data-theme="dark"] {
+          --text-color: #f9fafb;
+          --text-light: #9ca3af;
+          --bg-color: #111827;
+          --card-bg: #1f2937;
+          --border-color: #374151;
+          --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+          --modal-bg: rgba(0, 0, 0, 0.7);
+      }
+
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+
+      body {
+          font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+          "Helvetica Neue", sans-serif;
+          background-color: var(--bg-color);
+          color: var(--text-color);
+          line-height: 1.5;
+          transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+      }
+
+      /* Header styles */
+      header {
+          margin-bottom: 2rem;
+      }
+
+      .header-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      h1 {
+          font-size: 2rem;
+          font-weight: 600;
+          color: var(--text-color);
+      }
+
+      h2 {
+          font-size: 1.5rem;
+          font-weight: 500;
+          margin-bottom: 1rem;
+          color: var(--text-color);
+      }
+
+      h3 {
+          font-size: 1.1rem;
+          font-weight: 500;
+      }
+
+      section {
+          margin-bottom: 2rem;
+      }
+
+      /* Theme toggle button */
+      .theme-toggle, .refresh, .shutdown-service {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border: none;
+          border-radius: 0.5rem;
+          background-color: var(--card-bg);
+          color: var(--text-color);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: var(--shadow);
+      }
+
+      .theme-toggle:hover {
+          transform: scale(1.05);
+      }
+
+      .theme-toggle .sun-icon {
+          display: none;
+      }
+
+      .theme-toggle .moon-icon {
+          display: block;
+      }
+
+      [data-theme="dark"] .theme-toggle .sun-icon {
+          display: block;
+      }
+
+      [data-theme="dark"] .theme-toggle .moon-icon {
+          display: none;
+      }
+
+      /* Current service styles */
+      .current-service .service-card {
+          background-color: var(--card-bg);
+          border-radius: 0.5rem;
+          padding: 1.5rem;
+          box-shadow: var(--shadow);
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1rem;
+          border: 2px solid transparent;
+          transition: all 0.3s ease;
+      }
+
+      .current-service .service-card.active {
+          border-color: var(--primary-color);
+      }
+
+      .service-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          background-color: rgba(79, 70, 229, 0.1);
+          border-radius: 0.5rem;
+          color: var(--primary-color);
+          transition: all 0.3s ease;
+      }
+
+      [data-theme="dark"] .service-icon {
+          /*background-color: rgba(79, 70, 229, 0.2);*/
+          background-color: var(--text-color);
+      }
+
+      .service-info {
+          flex: 1;
+      }
+
+      .status-indicator {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+          color: var(--text-light);
+          font-size: 0.875rem;
+      }
+
+      .status-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          display: inline-block;
+      }
+
+      .status-dot.running {
+          background-color: var(--success-color);
+      }
+
+      .status-dot.stopped {
+          background-color: var(--danger-color);
+      }
+
+      .status-dot.starting {
+          background-color: var(--warning-color);
+      }
+
+      /* Services grid */
+      .services-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          gap: 1rem;
+      }
+
+      .services-grid .service-card {
+          background-color: var(--card-bg);
+          border-radius: 0.5rem;
+          padding: 1.5rem;
+          box-shadow: var(--shadow);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          gap: 1rem;
+      }
+
+      .services-grid .service-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+
+      [data-theme="dark"] .services-grid .service-card:hover {
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Modal styles */
+      .modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: var(--modal-bg);
+          z-index: 1000;
+          justify-content: center;
+          align-items: center;
+          transition: all 0.3s ease;
+      }
+
+      .modal.show {
+          display: flex;
+      }
+
+      .modal-content {
+          background-color: var(--card-bg);
+          border-radius: 0.5rem;
+          padding: 2rem;
+          width: 90%;
+          max-width: 500px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          position: relative;
+          transition: all 0.3s ease;
+      }
+
+      [data-theme="dark"] .modal-content {
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+      }
+
+      .close-button {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          font-size: 1.5rem;
+          cursor: pointer;
+          color: var(--text-light);
+          transition: color 0.3s ease;
+      }
+
+      .close-button:hover {
+          color: var(--text-color);
+      }
+
+      .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 1rem;
+          margin-top: 2rem;
+      }
+
+      .button {
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          font-weight: 500;
+          cursor: pointer;
+          border: none;
+          transition: all 0.3s ease;
+      }
+
+      .button.confirm {
+          background-color: var(--primary-color);
+          color: white;
+      }
+
+      .button.confirm:hover {
+          background-color: var(--primary-hover);
+      }
+
+      .button.cancel {
+          background-color: var(--border-color);
+          color: var(--text-color);
+      }
+
+      .button.cancel:hover {
+          background-color: #d1d5db;
+      }
+
+      [data-theme="dark"] .button.cancel:hover {
+          background-color: #4b5563;
+      }
+
+      .header-actions {
+          display: flex;
+          flex-direction: row;
+          gap: 1rem;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+          .container {
+              padding: 1rem;
+          }
+
+          .services-grid {
+              grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          }
+
+          .header-content {
+              flex-direction: column;
+              gap: 1rem;
+              align-items: flex-start;
+          }
+
+          .header-actions {
+              align-self: flex-end;
+          }
+      }
+
+      @media (max-width: 480px) {
+          .services-grid {
+              grid-template-columns: 1fr;
+          }
+
+          .modal-content {
+              padding: 1.5rem;
+          }
+
+          .modal-actions {
+              flex-direction: column;
+          }
+
+          .button {
+              width: 100%;
+          }
+
+          .header-content {
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+          }
+      }
+
+      /* Smooth transitions for theme changes */
+      * {
+          transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header class="header-content">
+    <h1>Service Dashboard</h1>
+    <div class="header-actions">
+      <button class="refresh" onclick="refresh()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="lucide lucide-refresh-cw-icon lucide-refresh-cw">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+          <path d="M21 3v5h-5" />
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+          <path d="M8 16H3v5" />
+        </svg>
+      </button>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+        <svg class="sun-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+             fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2"
+             fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="current-service">
+    <h2>Current Service</h2>
+    <div class="service-card active" id="current-service">
+      <div class="service-icon">
+        <img id="current-icon" src="" alt="" />
+      </div>
+      <div class="service-info">
+        <h3 id="service-name"></h3>
+        <div class="status-indicator">
+          <span class="status-dot running"></span>
+          <span id="service-status"></span>
+        </div>
+      </div>
+      <button class="shutdown-service" onclick="shutdown()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             class="lucide lucide-power-off-icon lucide-power-off">
+          <path d="M18.36 6.64A9 9 0 0 1 20.77 15" />
+          <path d="M6.16 6.16a9 9 0 1 0 12.68 12.68" />
+          <path d="M12 2v4" />
+          <path d="m2 2 20 20" />
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="available-services">
+    <h2>Available Services</h2>
+    <div class="services-grid">
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="service-modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <h2>Change Service</h2>
+    <p id="modal-text"></p>
+    <div class="modal-actions">
+      <button class="button cancel">Cancel</button>
+      <button class="button confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let init;
+  let shutdown;
+
+  const refresh = async () => {
+    document.querySelector(".services-grid").innerHTML = "";
+    await init();
+  };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    let services = {};
+    let selectedService = null;
+    let currentRunningService = null;
+    let switching = false;
+
+    const modal = document.getElementById("service-modal");
+    const closeButton = document.querySelector(".close-button");
+    const cancelButton = document.querySelector(".button.cancel");
+    const confirmButton = document.querySelector(".button.confirm");
+    const currentServiceName = document.getElementById("service-name");
+    const currentServiceStatus =
+      document.getElementById("service-status");
+    const statusDot = document.querySelector(".status-dot");
+    const themeToggle = document.getElementById("theme-toggle");
+
+    function updateServiceStatus(status, statusClass) {
+      currentServiceStatus.textContent = status;
+      statusDot.className = "status-dot " + statusClass;
+    }
+
+    function updateCurrentIcon(service) {
+      const icon = document.getElementById("current-icon");
+      if (!service || !services[service]?.assetPath) {
+        icon.src = "";
+        icon.alt = "";
+        return;
+      }
+      icon.src = services[service].assetPath;
+      icon.alt = services[service].displayName + " icon";
+    }
+
+    function closeModal() {
+      modal.classList.remove("show");
+      modal.removeAttribute("data-action");
+      selectedService = null;
+    }
+
+    function showStartModal(serviceName) {
+      selectedService = serviceName;
+      modal.setAttribute("data-action", "start");
+
+      const modalText = document.getElementById("modal-text");
+      modalText.textContent = "";
+
+      const text = document.createElement("span");
+
+      if (!currentRunningService) {
+        text.textContent =
+          "Are you sure you want to start " +
+          services[serviceName].displayName +
+          "?";
+      } else {
+        text.textContent =
+          "Are you sure you want to shutdown " +
+          services[currentRunningService].displayName +
+          " and start " +
+          services[serviceName].displayName +
+          "?";
+      }
+
+      modalText.appendChild(text);
+      modal.classList.add("show");
+    }
+
+    shutdown = function () {
+      if (!currentRunningService) return;
+
+      modal.setAttribute("data-action", "shutdown");
+
+      const modalText = document.getElementById("modal-text");
+      modalText.textContent =
+        "Are you sure you want to shutdown " +
+        services[currentRunningService].displayName +
+        "?";
+
+      modal.classList.add("show");
+    };
+
+    confirmButton.addEventListener("click", async function () {
+      if (switching) return;
+
+      switching = true;
+      confirmButton.disabled = true;
+
+      try {
+        if (modal.getAttribute("data-action") === "start") {
+          currentServiceName.textContent =
+            services[selectedService].displayName;
+
+          updateCurrentIcon(selectedService);
+          updateServiceStatus("Starting", "starting");
+
+          const res = await fetch(
+            `api/service/${selectedService}`,
+            { method: "POST" }
+          );
+
+          if (!res.ok) {
+            updateServiceStatus("Error", "stopped");
+            return;
+          }
+        } else {
+          updateServiceStatus("Stopping", "starting");
+
+          const res = await fetch(
+            `api/service/${currentRunningService}`,
+            { method: "DELETE" }
+          );
+
+          if (!res.ok) {
+            updateServiceStatus("Error", "running");
+            return;
+          }
+        }
+
+        await refresh(); // backend is source of truth
+      } catch (err) {
+        console.error(err);
+        updateServiceStatus("Error", "stopped");
+      } finally {
+        switching = false;
+        confirmButton.disabled = false;
+        closeModal();
+      }
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    cancelButton.addEventListener("click", closeModal);
+
+    window.addEventListener("click", function (event) {
+      if (event.target === modal) closeModal();
+    });
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem("theme");
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+
+      if (savedTheme) {
+        document.documentElement.setAttribute("data-theme", savedTheme);
+      } else if (prefersDark) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme =
+        document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+    }
+
+    initTheme();
+    themeToggle.addEventListener("click", toggleTheme);
+
+    init = async function () {
+      services = await (
+        await fetch("api/services")
+      ).json();
+
+      const live = await (
+        await fetch("api/live")
+      ).text();
+
+      currentRunningService = live || null;
+
+      const grid = document.querySelector(".services-grid");
+
+      for (const [service, details] of Object.entries(services)) {
+        const card = document.createElement("div");
+        card.classList.add("service-card");
+        card.setAttribute("data-service", service);
+
+        if (service === currentRunningService) {
+          card.style.opacity = "0.5";
+          card.style.pointerEvents = "none";
+        }
+
+        const iconWrapper = document.createElement("div");
+        iconWrapper.classList.add("service-icon");
+
+        if (details.assetPath) {
+          const icon = document.createElement("img");
+          icon.src = details.assetPath;
+          icon.alt = details.displayName + " icon";
+          iconWrapper.appendChild(icon);
+        }
+
+        const heading = document.createElement("h3");
+        heading.textContent = details.displayName;
+
+        card.appendChild(iconWrapper);
+        card.appendChild(heading);
+        grid.appendChild(card);
+
+        card.addEventListener("click", function () {
+          if (service === currentRunningService) return;
+          showStartModal(service);
+        });
+      }
+
+      if (!currentRunningService) {
+        currentServiceName.textContent = "-";
+        updateCurrentIcon(null);
+        updateServiceStatus("Stopped", "stopped");
+      } else {
+        currentServiceName.textContent =
+          services[currentRunningService].displayName;
+        updateCurrentIcon(currentRunningService);
+        updateServiceStatus("Running", "running");
+      }
+    };
+
+    init().catch(console.error);
+  });
+</script>
+</body>
+</html>

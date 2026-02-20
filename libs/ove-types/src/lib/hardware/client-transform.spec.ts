@@ -3,16 +3,20 @@ Benchmark, formatOutput, __BENCHMARKS__ */
 
 import { writeFileSync } from "fs";
 import { bench } from "@arktype/attest";
-import { type TDeviceResponse } from "./client-transform";
+import type { TClientRouteOutputTransformSchema } from "./client-transform";
 
 describe("client-transform types", () => {
   const benchmarks: Record<string, Benchmark> = {};
 
-  it("TDeviceResponse", () => {
+  it("TClientRouteOutputTransformSchema", () => {
     init();
-    bench("TDeviceResponse", () => ({}) as TDeviceResponse<string>)
-      .mean([0, "ns"]).types([0, "instantiations"]);
-    benchmarks["TDeviceResponse"] = formatOutput(console.log as LogFn);
+    bench(
+      "TClientRouteOutputTransformSchema",
+      () => ({}) as TClientRouteOutputTransformSchema<"getStatus">,
+    )
+      .mean([0, "ns"])
+      .types([0, "instantiations"]);
+    benchmarks["TClientRouteOutputTransformSchema"] = formatOutput(console.log as LogFn);
   });
 
   afterAll(() => {

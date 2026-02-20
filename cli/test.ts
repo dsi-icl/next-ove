@@ -1,60 +1,63 @@
-import {
-  defaultAlias,
-  makeSchema,
-  parseArgs,
-  printSchemas,
-  run,
-} from "./utils";
 import { z } from "zod";
+import { Command } from "commander";
 
-const tagline = "Test the next-ove system";
-const help =
-  'Use "pnpm run test [COMMAND] -- --help" for more information about a command';
-const descriptions = {
-  unit: "Run unit tests",
-  integration: "Run integration tests",
-};
-const description =
-  "DESCRIPTION\n\tRun unit and integration tests on the next-ove system.";
+import { run } from "./utils/exec";
 
-const schemas = {
-  unit: z.strictObject({
-    __cmd__: z.literal("unit"),
-  }),
-  integration: z.strictObject({
-    __cmd__: z.literal("integration"),
-  }),
-};
+const program = new Command();
 
-const schema = makeSchema(schemas);
+program
+  .name("test")
+  .description("Run unit and integration tests on the next-ove system")
+  .option("--dry-run", "Print commands without executing")
+  .showHelpAfterError();
 
-const unit = () => {
-  run("pnx run-many --target=test -- --coverage", args.dryRun);
-};
+const baseSchema = z.object({
+  dryRun: z.boolean().optional(),
+});
 
-const integration = () => {
-  run("pnpx jest --coverage --config jest.integration.config.ts", args.dryRun);
-};
+const unitSchema = baseSchema.extend({});
+type UnitArgs = z.infer<typeof unitSchema>;
 
-const runTest = (args: { __cmd__: string }) => {
-  switch (args.__cmd__) {
-    case "integration":
-      integration();
-      break;
-    case "unit":
-      unit();
-      break;
-    default:
-      throw new Error("Unknown command");
-  }
-};
+const integrationSchema = baseSchema.extend({});
+type IntegrationArgs = z.infer<typeof integrationSchema>;
 
-const args = parseArgs(schema, true, defaultAlias);
-
-if (args.__cmd__ === undefined && args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help);
-} else if (args.help) {
-  printSchemas(schemas, tagline, description, descriptions, help, args.__cmd__);
-} else {
-  runTest(args);
+async function unit(args: UnitArgs): Promise<void> {
+  await run("pnx", ["run-many", "--target=test", "--", "--coverage"], {
+    dryRun: args.dryRun,
+  });
 }
+
+const integration = async (args: IntegrationArgs): Promise<void> => {
+  await run(
+    "pnpx",
+    ["jest", "--coverage", "--config", "jest.integration.config.ts"],
+    { dryRun: args.dryRun },
+  );
+};
+
+program
+  .command("unit")
+  .description("Run unit tests")
+  .action(async (_, cmd) => {
+    const parsed = unitSchema.parse({
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await unit(parsed);
+  });
+
+program
+  .command("integration")
+  .description("Run integration tests")
+  .action(async (_, cmd) => {
+    const parsed = integrationSchema.parse({
+      dryRun: cmd.parent?.opts().dryRun,
+    });
+
+    await integration(parsed);
+  });
+
+program.parseAsync(process.argv).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

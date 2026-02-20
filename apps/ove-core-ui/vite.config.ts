@@ -1,9 +1,12 @@
 /// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
-import { defineConfig, searchForWorkspaceRoot } from "vite";
+import { defineConfig, searchForWorkspaceRoot, loadEnv } from "vite";
 import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
-export default defineConfig(_config => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  console.log(env.VITE_FONT_URL);
+  fetch("https://next-ove.dsi.ic.ac.uk/fonts/263.woff2").catch(console.error);
   return {
     root: __dirname,
     css: {
@@ -26,7 +29,14 @@ export default defineConfig(_config => {
       host: "0.0.0.0",
       fs: {
         allow: [searchForWorkspaceRoot(process.cwd())]
-      }
+      },
+      proxy: {
+        "/fonts": {
+          target: env.VITE_FONT_URL,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
     preview: {
       port: 4203,

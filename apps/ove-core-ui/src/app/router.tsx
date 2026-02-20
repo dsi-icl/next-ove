@@ -4,6 +4,7 @@ import { auth } from "../utils/api";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../components/protected-route";
 import { useStore } from "../store";
+import { env } from "../env";
 
 const Logs = React.lazy(() => import("../pages/logs/page"));
 const Admin = React.lazy(() => import("../pages/admin/page"));
@@ -14,6 +15,9 @@ const Projects = React.lazy(() => import("../pages/launcher/page"));
 const HardwareManager = React.lazy(() => import("../pages/hardware/page"));
 const Collaboration = React.lazy(() => import("../pages/collaboration/page"));
 const ProjectEditorLoader = React.lazy(() => import("../pages/editor/loader"));
+const Docs = React.lazy(() => import("../pages/docs/page"));
+const ErrorPage = React.lazy(() => import("../pages/error/page"));
+const DemoManager = React.lazy(() => import("../pages/demo-manager/page"));
 
 const Router = () => {
   const loggedIn = useLoggedIn();
@@ -47,6 +51,14 @@ const Router = () => {
           }
         />
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/docs"
+          element={
+            <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/docs">
+              <Docs />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/sockets"
           element={
@@ -83,6 +95,28 @@ const Router = () => {
             <ProtectedRoute condition={loggedIn} redirectTo="/login?to=/logs">
               <Logs />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/demo-manager"
+          element={
+            <ProtectedRoute
+              condition={loggedIn && env.DEMO_MANAGER_URL !== undefined}
+              redirectTo="/login?to=/demo-manager"
+            >
+              <DemoManager />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <ErrorPage
+              error={new Error("Page not found")}
+              title="Page not found"
+              description="The page you’re looking for does not exist."
+              resetErrorBoundary={() => window.location.reload()}
+            />
           }
         />
       </Routes>

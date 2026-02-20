@@ -1,3 +1,5 @@
+import "./otel";
+
 import { start as startServer } from "./server";
 import {
   initializeElectron,

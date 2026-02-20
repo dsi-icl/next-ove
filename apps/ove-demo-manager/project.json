@@ -1,0 +1,79 @@
+{
+  "name": "ove-demo-manager",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-demo-manager",
+  "projectType": "application",
+  "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-demo-manager/tsconfig.app.json --noEmit --incremental"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-demo-manager/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "main": "apps/ove-demo-manager/src/main.ts",
+        "outputPath": "dist/apps/ove-demo-manager",
+        "outputFileName": "main.cjs",
+        "tsConfig": "apps/ove-demo-manager/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/ove-demo-manager/public",
+            "output": "public"
+          }
+        ],
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      }
+    },
+    "prebuild": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "main": "apps/ove-demo-manager/src/main.ts",
+        "outputPath": "dist/apps/ove-demo-manager",
+        "outputFileName": "main.cjs",
+        "tsConfig": "apps/ove-demo-manager/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": false,
+        "generatePackageJson": true,
+        "skipTypeCheck": true,
+        "platform": "node",
+        "minify": true
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "ove-demo-manager:build:development"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "ove-demo-manager:build:production"
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,0 @@
-{
-  "SERVER": {
-    "PORT": 8080,
-    "BASE_PATH": "/docs"
-  }
-}

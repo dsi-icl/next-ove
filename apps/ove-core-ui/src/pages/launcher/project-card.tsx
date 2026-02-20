@@ -26,6 +26,7 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
       bucketName: thumbnail?.bucketName ?? "ERROR",
       objectName: thumbnail?.name ?? "ERROR",
       versionId: thumbnail?.version ?? "ERROR",
+      isThumbnail: true,
     },
     { enabled: thumbnail !== null },
   );
@@ -43,6 +44,7 @@ const ProjectCard = ({ user, project, openConfig }: ProjectCardProps) => {
       className="flex h-full max-w-[calc(1.5rem+256px)] flex-col rounded-xl border border-gray-200 p-3"
     >
       <img
+        loading="lazy"
         className="aspect-square w-full rounded-xl"
         src={
           thumbnailURL.status === "success"

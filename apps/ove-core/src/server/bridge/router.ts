@@ -2,11 +2,13 @@ import {
   APIRoutes,
   type TAPIRoutes,
   type TBridgeService,
+  TBridgeServiceReturn,
   type TIsGet,
 } from "@ove/ove-types";
 import { io } from "./sockets";
 import { state } from "../state";
 import { logger } from "../../env";
+import { wrapSocketCall } from "../tracing";
 import { adminProcedure, router } from "../trpc";
 
 const getSocket = (socketId: string) => {
@@ -29,16 +31,18 @@ const handler = async <
 >(
   k: Key,
   input: T | undefined,
-) => {
+): Promise<TBridgeServiceReturn<Key>> => {
   if (input === undefined) throw new Error("ILLEGAL UNDEFINED");
   const { bridgeId, ...args } = input;
   logger.info(`Handling: ${k}`);
   const socket = getSocket(bridgeId);
   if (socket === null) throw new Error(`${bridgeId} is not connected`);
-  // @ts-expect-error arg spread
-  const res = await socket.emitWithAck(k, args);
-  if (res.status === "error") throw new Error(res.error);
-  return res.data;
+  return wrapSocketCall(k, async () => {
+    // @ts-expect-error arg spread
+    const res = await socket.emitWithAck(k, args);
+    if (res.status === "error") throw new Error(res.error);
+    return res.data;
+  });
 };
 
 const generateQuery = <Key extends keyof TBridgeService>(k: Key) =>

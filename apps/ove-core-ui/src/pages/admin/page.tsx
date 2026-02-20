@@ -4,6 +4,7 @@ import { type AdminView, useAdminStore } from "./store";
 import CreateUser from "./users/create";
 import UserOverview from "./users/overview";
 import GeneralOverview from "./general/overview";
+import TaskDashboard from "./formatter/task-dashboard";
 
 const getContent = (view: AdminView)=> {
   switch (view) {
@@ -13,6 +14,8 @@ const getContent = (view: AdminView)=> {
       return <CreateUser />;
     case "user-overview":
       return <UserOverview />;
+    case "data-formatter":
+      return <TaskDashboard />;
   }
 };
 

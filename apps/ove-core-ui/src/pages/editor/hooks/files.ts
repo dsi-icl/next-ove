@@ -3,51 +3,10 @@ import { assert } from "@ove/ove-utils";
 import { useMemo, useState } from "react";
 import { env, logger } from "../../../env";
 import { api, s3 } from "../../../utils/api";
-import { dataTypes, type File as TFile } from "@ove/ove-types";
+import type { File as TFile } from "@ove/ove-types";
 
 export const toURL = (bucketName: string, name: string, version: string) =>
   `/store/${bucketName}/${name}?versionId=${version}`;
-
-const getDataType = (name: string) =>
-  assert(
-    dataTypes.find((dt) =>
-      dt.extensions.includes(`.${getFormattedExtension(name)}`),
-    ),
-  );
-
-const getFormattedExtension = (name: string) => assert(name.split(".").at(-1));
-
-const getFileType = (name: string): string => {
-  const ext = getFormattedExtension(name).toLowerCase();
-  switch (ext) {
-    case "html":
-    case "htm":
-      return "text/html";
-    case "json":
-      return "application/json";
-    case "csv":
-      return "text/csv";
-    case "tsv":
-      return "text/tab-separated-values";
-    default:
-      return "text/plain";
-  }
-};
-
-export const hasVersion = (
-  files: TFile[],
-  bucketName: string,
-  name: string,
-  version: string,
-) => {
-  name = name.startsWith(`${bucketName}/`)
-    ? assert(name.split("/").at(-1))
-    : name;
-  return files
-    .filter((file) => file.name === name && file.bucketName === bucketName)
-    .map((f) => f.version)
-    .includes(version);
-};
 
 export const fromURL = (files: TFile[], url: string | null): TFile | null => {
   if (url === null) return null;
@@ -63,7 +22,6 @@ export const fromURL = (files: TFile[], url: string | null): TFile | null => {
 
 export const useUpload = (projectId: string) => {
   const uploadFile = s3.uploadFile.useMutation();
-  const formatFile = api.projects.formatData.useMutation();
   const apiUtils = api.useUtils();
   const client = apiUtils.client;
 
@@ -114,44 +72,12 @@ export const useUpload = (projectId: string) => {
         return false;
       }
 
-      const data = await file.text();
-      const dt = getDataType(objectName);
-      const formatted = await formatFile.mutateAsync({
-        data,
-        dataType: dt.name,
-        title: objectName,
-        opts:
-          dt.name === "data-table"
-            ? {
-                containsHeader: false,
-                tableSource: getFormattedExtension(objectName) as
-                  | "html"
-                  | "csv"
-                  | "tsv",
-              }
-            : undefined,
-      });
-
       const rawUrl = await client.projects.getPresignedPutURL.query({
         projectId,
         objectName,
       });
 
       await uploadFile.mutateAsync({ url: rawUrl, payload: file });
-
-      const { data: formattedText, fileName } = formatted;
-      const formattedUrl = await client.projects.getPresignedPutURL.query({
-        projectId,
-        objectName: fileName,
-      });
-
-      const formattedFile = new File([formattedText], fileName, {
-        type: getFileType(fileName),
-      });
-      await uploadFile.mutateAsync({
-        url: formattedUrl,
-        payload: formattedFile,
-      });
 
       apiUtils.projects.getFiles.invalidate({ projectId }).catch(() => {});
       toast.success("Upload complete");
@@ -276,6 +202,7 @@ export const useFileWithEdit = (
   };
 };
 
+// Generates using the latest tags, even if not saved
 export const useThumbnail = (projectId: string, tags: string[]) => {
   const apiUtils = api.useUtils();
   const generateThumbnail = api.projects.generateThumbnail.useMutation({

@@ -22,14 +22,14 @@ import dotenv from "dotenv";
 import { Readable } from "node:stream";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { User } from ".prisma/client";
-import { PrismaClient } from "@prisma/client";
+import { type User, PrismaClient } from ".prisma/client";
+import type { RemoveObjectsParam } from "minio/src/internal/type";
 
 dotenv.config();
 
 const s3 = new Minio.Client({
-  endPoint: process.env.ASSET_STORE_END_POINT,
-  port: parseInt(process.env.ASSET_STORE_PORT),
+  endPoint: process.env.ASSET_STORE_END_POINT ?? "localhost:9000",
+  port: parseInt(process.env.ASSET_STORE_PORT ?? "-1"),
   useSSL: process.env.ASSET_STORE_USE_SSL === "true",
   accessKey: process.env.ASSET_STORE_ACCESS_KEY,
   secretKey: process.env.ASSET_STORE_SECRET_KEY,
@@ -39,18 +39,17 @@ const prisma = new PrismaClient();
 
 const credentials = JSON.parse(
   readFileSync(path.join(import.meta.dirname, "data", "credentials.json")).toString(),
-);
+) as {username: string; password: string; role: string; email: string; }[];
 
 const unique = <T>(arr: T[]) => arr.filter((x, i, arr) => arr.indexOf(x) === i);
 
 const clear = async () => {
   for (const { name } of await s3.listBuckets()) {
-    const objects = await new Promise((resolve, reject) => {
+    const objects: RemoveObjectsParam = await new Promise((resolve, reject) => {
       const stream = s3
-        // @ts-expect-error – missing optional arguments parameter in library type
         .listObjects(name, "", true, { IncludeVersion: true });
-      const data = [];
-      stream.on("data", (obj) => data.push(obj));
+      const data: string[] = [];
+      stream.on("data", (obj) => data.push(obj.name ?? ""));
       stream.on("end", () => resolve(data));
       stream.on("error", (err) => reject(err));
     });
@@ -71,7 +70,7 @@ const generateUsers = () =>
       (_x) => ({
         username: randUserName(),
         email: randEmail(),
-        password: randPassword(),
+        password: randPassword() as unknown as string,
         role: rand(["admin", "creator", "client"]),
       }),
     ),
@@ -86,7 +85,7 @@ const generateProjects = (users: User[]) =>
     const collaboratorIds = unique(rand(userIds, { length: collaboratorLen }),
     ).filter((id) => {
       const user = users.find((user) => user.id === id);
-      return id !== creatorId && user.role !== "bridge";
+      return id !== creatorId && user?.role !== "bridge";
     });
     return {
       creatorId,
@@ -107,7 +106,7 @@ const generateProjects = (users: User[]) =>
     };
   });
 
-const generateSections = (projectIds) =>
+const generateSections = (projectIds: string[]) =>
   projectIds.flatMap((projectId) => {
     const states = ["__default__"].concat(randAnimal({ length: 6 }));
     return Array.from(
@@ -148,7 +147,7 @@ const createBucket = async (title: string) => {
   try {
     const bucketName = title.replaceAll(" ", "-").toLowerCase();
     await s3.makeBucket(bucketName);
-    const versioningConfig = { Status: "Enabled" };
+    const versioningConfig = { Status: "Enabled" as const };
     await s3.setBucketVersioning(bucketName, versioningConfig);
   } catch (e) {
     console.error(e);
@@ -160,13 +159,13 @@ const uploadFile = async (bucket: string, path: string) => {
     const repeat = randBoolean();
     await s3.fPutObject(
       bucket.replaceAll(" ", "-").toLowerCase(),
-      path.split("/").at(-1),
+      path.split("/").at(-1) ?? "",
       path,
     );
     if (repeat) {
       await s3.fPutObject(
         bucket.replaceAll(" ", "-").toLowerCase(),
-        path.split("/").at(-1),
+        path.split("/").at(-1) ?? "",
         path,
       );
     }
@@ -194,7 +193,7 @@ const load = async () => {
   for (const directory of await glob(
     path.join(import.meta.dirname, "data", "global_buckets", "*"),
   )) {
-    const bucket = directory.split("/").at(-1);
+    const bucket = directory.split("/").at(-1) ?? "";
     await createBucket(bucket);
 
     for (const file of await glob(`${directory}/*`)) {
@@ -206,9 +205,6 @@ const load = async () => {
     await createBucket(project.title);
     await prisma.project.create({
       data: project,
-      include: {
-        collaborators: true,
-      },
     });
 
     let template = readFileSync(

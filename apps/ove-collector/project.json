@@ -1,0 +1,89 @@
+{
+  "name": "ove-collector",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ove-collector",
+  "projectType": "application",
+  "targets": {
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": ["tsc -p apps/ove-collector/tsconfig.app.json --noEmit --incremental"]
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["apps/ove-collector/**/*.{ts,tsx,js,jsx}"]
+      }
+    },
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "main": "apps/ove-collector/src/main.ts",
+        "outputPath": "dist/apps/ove-collector",
+        "outputFileName": "main.cjs",
+        "tsConfig": "apps/ove-collector/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "platform": "node"
+      },
+      "configurations": {
+        "development": {
+          "minify": false
+        },
+        "production": {
+          "minify": true
+        }
+      }
+    },
+    "prebuild": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "main": "apps/ove-collector/src/main.ts",
+        "outputPath": "dist/apps/ove-collector",
+        "outputFileName": "main.cjs",
+        "tsConfig": "apps/ove-collector/tsconfig.json",
+        "format": ["cjs"],
+        "thirdParty": false,
+        "generatePackageJson": true,
+        "skipTypeCheck": true,
+        "platform": "node",
+        "minify": true
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "ove-collector:build:development"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "ove-collector:build:production"
+        }
+      }
+    },
+    "make": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "{workspaceRoot}/",
+        "commands": [
+          "docker build --rm -t next-ove/collector:latest --platform linux/amd64 -f apps/ove-collector/Dockerfile ."
+        ]
+      },
+      "configurations": {
+        "arm": {
+          "commands": [
+            "docker build --rm -t next-ove/collector:latest --platform linux/arm64 -f apps/ove-collector/Dockerfile ."
+          ]
+        }
+      },
+      "dependsOn": ["prebuild"]
+    }
+  }
+}

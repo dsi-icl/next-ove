@@ -11,6 +11,7 @@ import { controller } from "./controller";
 import type { TCallback, TParameters, TSocketOutEvents } from "@ove/ove-types";
 import { updateCookie } from "../../utils/auth";
 import { setMode } from "./power-scheduler";
+import { injectTrace, traceSocketListener } from "../../utils/tracing";
 
 export const initBridge = async () => {
   if (env.CORE?.URL === undefined || env.AUTH.NAME === undefined) return;
@@ -42,13 +43,22 @@ export const initBridge = async () => {
 
   const getHandler = <Key extends keyof TSocketOutEvents>(k: Key) => {
     return (async (args: TParameters<Key>, callback: TCallback<Key>) => {
-      try {
-        const res = await controller[k](args);
-        callback({ status: "success", data: res });
-      } catch (e) {
-        logger.error(e);
-        callback({ status: "error", error: (e as Error).message });
-      }
+      const otel =
+        typeof args === "object" && args?.__otel ? args.__otel : undefined;
+
+      traceSocketListener(k, otel, async () => {
+        try {
+          const res = await controller[k](args);
+          callback({ status: "success", data: res, __otel: injectTrace() });
+        } catch (e) {
+          logger.error(e);
+          callback({
+            status: "error",
+            error: (e as Error).message,
+            __otel: injectTrace(),
+          });
+        }
+      });
     }) as TSocketOutEvents[Key];
   };
 
@@ -59,7 +69,10 @@ export const initBridge = async () => {
   socket.on("connect_error", async (err) => {
     logger.error(`connection error due to ${err.message}`);
     socket?.disconnect();
-    setTimeout(() => initBridge().catch(logger.error), env.CORE.RECONNECTION_TIMEOUT);
+    setTimeout(
+      () => initBridge().catch(logger.error),
+      env.CORE.RECONNECTION_TIMEOUT,
+    );
   });
 
   setMode();

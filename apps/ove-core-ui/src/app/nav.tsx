@@ -82,89 +82,97 @@ const Nav = () => {
           />
         </Link>
       </NavigationMenuItem>
-      {isLogin ? null : (
-        <NavigationMenuList className="mr-2 h-full">
-          {loggedIn ? (
-            <NavigationMenuItem>
-              <NavigationMenuTrigger>Admin</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                  <li className="row-span-3">
-                    <NavigationMenuLink
-                      asChild
-                      className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md"
-                    >
-                      <Link to="/admin">
-                        <UserCog />
-                        <h4 className="mb-2 mt-4 text-lg font-medium">
-                          Admin Dashboard
-                        </h4>
-                        <p className="text-muted-foreground text-sm leading-tight">
-                          Manage users, files and projects.
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                  <li>
-                    <NavigationMenuLink
-                      asChild
-                      className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
-                    >
-                      <Link to="/hardware">
-                        <div className="text-sm font-medium leading-none">
-                          Hardware Manager
-                        </div>
-                        <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-                          Manage all connected hardware.
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                  <li>
-                    <NavigationMenuLink
-                      asChild
-                      className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
-                    >
-                      <Link to="/sockets">
-                        <div className="text-sm font-medium leading-none">
-                          Sockets
-                        </div>
-                        <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-                          Socket.IO Admin UI
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                  <li>
-                    <NavigationMenuLink
-                      asChild
-                      className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
-                    >
-                      <Link to="/logs">
-                        <div className="text-sm font-medium leading-none">
-                          Logs
-                        </div>
-                        <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-                          View live and historical logs across next-ove
-                        </p>
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-          ) : null}
-          <NavigationMenuItem className="flex h-[10vh] items-center">
-            {loggedIn ? (
-              <Persona />
-            ) : (
-              <NavigationMenuLink className="p-4 font-bold text-white" asChild>
-                <Link to="/login">Login</Link>
-              </NavigationMenuLink>
-            )}
+      <NavigationMenuList className="mr-2 h-full">
+        {loggedIn ? <NavigationMenuItem>
+          <NavigationMenuLink className="p-4 font-bold text-white" asChild>
+            <Link to="/docs">Docs</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem> : null}
+        {loggedIn ? <NavigationMenuItem>
+          <NavigationMenuLink className="p-4 font-bold text-white" asChild>
+            <Link to="/demo-manager">Demo Manager</Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem> : null}
+        {loggedIn ? (
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Admin</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+                <li className="row-span-3">
+                  <NavigationMenuLink
+                    asChild
+                    className="from-muted/50 to-muted flex size-full select-none flex-col justify-end rounded-md bg-gradient-to-b p-6 no-underline outline-none focus:shadow-md"
+                  >
+                    <Link to="/admin">
+                      <UserCog />
+                      <h4 className="mb-2 mt-4 text-lg font-medium">
+                        Admin Dashboard
+                      </h4>
+                      <p className="text-muted-foreground text-sm leading-tight">
+                        Manage users, files and projects.
+                      </p>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+                <li>
+                  <NavigationMenuLink
+                    asChild
+                    className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                  >
+                    <Link to="/hardware">
+                      <div className="text-sm font-medium leading-none">
+                        Hardware Manager
+                      </div>
+                      <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+                        Manage all connected hardware.
+                      </p>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+                <li>
+                  <NavigationMenuLink
+                    asChild
+                    className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                  >
+                    <Link to="/sockets">
+                      <div className="text-sm font-medium leading-none">
+                        Sockets
+                      </div>
+                      <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+                        Socket.IO Admin UI
+                      </p>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+                <li>
+                  <NavigationMenuLink
+                    asChild
+                    className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors"
+                  >
+                    <Link to="/logs">
+                      <div className="text-sm font-medium leading-none">
+                        Logs
+                      </div>
+                      <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
+                        View live and historical logs across next-ove
+                      </p>
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+              </ul>
+            </NavigationMenuContent>
           </NavigationMenuItem>
-        </NavigationMenuList>
-      )}
+        ) : null}
+        <NavigationMenuItem className="flex h-[10vh] items-center">
+          {loggedIn ? (
+            <Persona />
+          ) : (
+            <NavigationMenuLink className="p-4 font-bold text-white" asChild>
+              <Link to="/login">Login</Link>
+            </NavigationMenuLink>
+          )}
+        </NavigationMenuItem>
+      </NavigationMenuList>
     </NavigationMenu>
   );
 };

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Logger } from "@ove/ove-logging";
-import { assert } from "@ove/ove-utils";
+import { LogLevel } from "@ove/ove-types";
 
 interface ImportMeta {
   env: ImportMetaEnv;
@@ -10,18 +10,22 @@ interface ImportMetaEnv {
   VITE_BASE_URL: string;
   VITE_CORE_URL: string;
   VITE_LOG_LEVEL?: string;
-  VITE_LOGGING_SERVER_INGESTION?: string;
   VITE_VIDEO_STREAM_URL?: string;
   VITE_MODE: string;
   VITE_DISABLE_AUTH: string;
   VITE_LIVE_UPDATE_REFRESH_INTERVAL: string;
   VITE_PAGE_SIZE: string;
-  VITE_LOGGING_SERVER_API?: string;
-  VITE_LOGGING_SERVER_SOCKET_ENDPOINT?: string;
-  VITE_LOGGING_SERVER_SOCKET_PATH?: string;
-  VITE_LOGGING_IDENTIFIER?: string;
+  VITE_LOGGING_HOSTNAME?: string;
   VITE_DISABLE_LIVE_PREVIEW: string;
   VITE_API_CALL_OFFSET: string;
+  VITE_OTEL_COLLECTOR_URL?: string;
+  VITE_ANALYTICS_COLLECTOR_ENDPOINT?: string;
+  VITE_ANALYTICS_COLLECTOR_API_KEY?: string;
+  VITE_LOGGING_COLLECTOR_ENDPOINT?: string;
+  VITE_LOGGING_COLLECTOR_API_KEY?: string;
+  VITE_SOCKET_URL?: string;
+  VITE_SOCKET_PATH?: string;
+  VITE_DEMO_MANAGER_URL?: string;
 }
 
 const env_ = (import.meta as unknown as ImportMeta).env;
@@ -35,17 +39,26 @@ const schema = z
   .strictObject({
     BASE_URL: z.string(),
     CORE_URL: z.string(),
+    SOCKETS: z.strictObject({
+      URL: z.string(),
+      PATH: z.string().optional(),
+    }).optional(),
+    COLLECTORS: z.strictObject({
+      ANALYTICS: z.strictObject({
+        ENDPOINT: z.string(),
+        API_KEY: z.string(),
+      }).optional(),
+      LOGGING: z.strictObject({
+        ENDPOINT: z.string(),
+        API_KEY: z.string(),
+      }).optional(),
+      OTEL: z.string().optional(),
+    }).optional(),
+    DEMO_MANAGER_URL: z.string().optional(),
     LOGGING: z
       .strictObject({
-        LOG_LEVEL: z.number().optional(),
-        SERVER: z
-          .strictObject({
-            API_ENDPOINT: z.string(),
-            INGESTION: z.string(),
-            SOCKET_ENDPOINT: z.string(),
-            SOCKET_PATH: z.string().optional(),
-          }).optional(),
-        IDENTIFIER: z.string().optional(),
+        LEVEL: LogLevel.optional(),
+        HOSTNAME: z.string().optional(),
       })
       .optional(),
     PAGE_SIZE: z.number(),
@@ -64,17 +77,25 @@ const schema = z
 const parsedConfig = schema.parse({
   BASE_URL: env_.VITE_BASE_URL,
   CORE_URL: env_.VITE_CORE_URL,
+  DEMO_MANAGER_URL: formatConfigured(env_.VITE_DEMO_MANAGER_URL),
   LOGGING: {
-    LOG_LEVEL: isConfigured(env_.VITE_LOG_LEVEL)
-      ? parseInt(assert(env_.VITE_LOG_LEVEL))
-      : undefined,
-    SERVER: isConfigured(env_.VITE_LOGGING_SERVER_API) ? {
-      API_ENDPOINT: formatConfigured(env_.VITE_LOGGING_SERVER_API),
-      INGESTION: formatConfigured(env_.VITE_LOGGING_SERVER_INGESTION),
-      SOCKET_ENDPOINT: formatConfigured(env_.VITE_LOGGING_SERVER_SOCKET_ENDPOINT),
-      SOCKET_PATH: formatConfigured(env_.VITE_LOGGING_SERVER_SOCKET_PATH),
+    LEVEL: formatConfigured(env_.VITE_LOG_LEVEL) ?? "info",
+    HOSTNAME: formatConfigured(env_.VITE_LOGGING_HOSTNAME),
+  },
+  SOCKETS: {
+    URL: formatConfigured(env_.VITE_SOCKET_URL) ?? env_.VITE_CORE_URL,
+    PATH: formatConfigured(env_.VITE_SOCKET_PATH),
+  },
+  COLLECTORS: {
+    ANALYTICS: env_.VITE_ANALYTICS_COLLECTOR_ENDPOINT ? {
+      ENDPOINT: formatConfigured(env_.VITE_ANALYTICS_COLLECTOR_ENDPOINT),
+      API_KEY: formatConfigured(env_.VITE_ANALYTICS_COLLECTOR_API_KEY),
     } : undefined,
-    IDENTIFIER: formatConfigured(env_.VITE_LOGGING_IDENTIFIER),
+    LOGGING: env_.VITE_LOGGING_COLLECTOR_ENDPOINT ? {
+      ENDPOINT: formatConfigured(env_.VITE_LOGGING_COLLECTOR_ENDPOINT),
+      API_KEY: formatConfigured(env_.VITE_LOGGING_COLLECTOR_API_KEY),
+    } : undefined,
+    OTEL: formatConfigured(env_.VITE_OTEL_COLLECTOR_URL),
   },
   MODE: env_.VITE_MODE,
   DISABLE_AUTH: env_.VITE_DISABLE_AUTH === "true",
@@ -85,6 +106,7 @@ const parsedConfig = schema.parse({
 });
 
 const staticConfig = {
+  SOURCE: "browser",
   CORE_API_VERSION: 2,
   APP_NAME: "ove-core-ui",
   CONSTANTS: {
@@ -111,7 +133,11 @@ export const env = {
 
 export const logger = Logger(
   env.APP_NAME,
-  env.LOGGING?.IDENTIFIER,
-  env.LOGGING?.LOG_LEVEL,
-  env.LOGGING?.SERVER?.INGESTION,
+  env.LOGGING?.HOSTNAME ?? "unknown",
+  env.SOURCE,
+  env.LOGGING?.LEVEL ?? "info",
+  env.COLLECTORS?.LOGGING ? {
+    endpoint: env.COLLECTORS.LOGGING.ENDPOINT,
+    apiKey: env.COLLECTORS.LOGGING.API_KEY,
+  } : undefined,
 );

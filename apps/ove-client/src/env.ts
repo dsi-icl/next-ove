@@ -6,14 +6,14 @@ import { app } from "electron";
 import { nanoid } from "nanoid";
 import { Logger } from "@ove/ove-logging";
 import { setupConfig } from "@ove/ove-server-utils";
-import { BrowserConfigSchema } from "@ove/ove-types";
+import { BrowserConfigSchema, LogLevel } from "@ove/ove-types";
 
 const schema = z.strictObject({
+  // OTEL configuration has to be loaded directly from process.env
   LOGGING: z
     .strictObject({
-      SERVER: z.string().optional(),
-      LEVEL: z.number().optional(),
-      IDENTIFIER: z.string().optional(),
+      LEVEL: LogLevel.optional(),
+      HOSTNAME: z.string().optional(),
     })
     .optional(),
   SERVER: z.strictObject({
@@ -35,10 +35,11 @@ const schema = z.strictObject({
   BROWSERS: z.strictObject({
     CONFIG: BrowserConfigSchema,
     DELAY: z.number(),
-  })
+  }),
 });
 
 const staticConfig = {
+  SOURCE: "Electron",
   API_VERSION: 1,
   APP_NAME: "ove-client",
   TITLE: "next-ove client",
@@ -75,8 +76,8 @@ const configPath =
 export const env = setupConfig(configPath, defaultConfig, schema, staticConfig);
 export const logger = Logger(
   env.APP_NAME,
-  env.LOGGING?.IDENTIFIER,
-  env.LOGGING?.LEVEL,
-  env.LOGGING?.SERVER,
+  env.LOGGING?.HOSTNAME ?? "unknown",
+  env.SOURCE,
+  env.LOGGING?.LEVEL ?? "info",
 );
 logger.info(`Loaded configuration from ${configPath}`);

@@ -1,0 +1,21 @@
+[project]
+name = "ove-data-formatter"
+version = "0.1.0"
+description = "Format custom data types for display via the OVE and next-ove platform."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.128.0",
+    "markdown>=3.10",
+    "minio>=7.2.20",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
+    "pypandoc>=1.16.2",
+    "python-dotenv>=1.2.1",
+    "pyvips>=3.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.18.0",
+]
