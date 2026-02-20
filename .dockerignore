@@ -698,8 +698,8 @@ Temporary Items
 !/dist/apps/ove-core-ui/package.json
 !/dist/apps/ove-core-ui/pnpm-lock.yaml
 
-!/dist/apps/ove-docs/package.json
-!/dist/apps/ove-docs/pnpm-lock.yaml
+!/dist/apps/ove-maps-proxy/package.json
+!/dist/apps/ove-maps-proxy/pnpm-lock.yaml
 
 !/dist/apps/ove-collector/package.json
 !/dist/apps/ove-collector/pnpm-lock.yaml
