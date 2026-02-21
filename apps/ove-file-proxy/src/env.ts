@@ -13,6 +13,7 @@ const schema = z.strictObject({
     ENDPOINT: z.string(),
     ACCESS_KEY: z.string(),
     SECRET_KEY: z.string(),
+    REGION: z.string(),
   }),
   COOKIE: z.strictObject({
     JWT_SECRET: z.string(),
@@ -33,6 +34,7 @@ const defaultConfig: z.infer<typeof schema> = {
     ENDPOINT: "localhost:9000",
     ACCESS_KEY: "",
     SECRET_KEY: "",
+    REGION: "us-east-1",
   },
   COOKIE: {
     JWT_SECRET: nanoid(),
