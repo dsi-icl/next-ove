@@ -13,6 +13,8 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+const router = express.Router();
+
 const s3 = new S3Client({
   endpoint: env.S3.ENDPOINT,
   credentials: {
@@ -23,9 +25,30 @@ const s3 = new S3Client({
 });
 
 /**
+ * API Key authentication middleware
+ */
+const requireApiKey = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  const apiKey: string | undefined = req.header("x-api-key");
+
+  if (!apiKey || typeof apiKey !== "string") {
+    return res.status(401).json({ error: "API key required" });
+  }
+
+  if (!env.API_KEYS.includes(apiKey)) {
+    return res.status(403).json({ error: "Invalid API key" });
+  }
+
+  next();
+};
+
+/**
  * Create a short-lived magic link for a prefix (e.g. dzi folder)
  */
-app.post("/generate-link", (req, res) => {
+router.post("/generate-link", requireApiKey, (req, res) => {
   const { prefix, bucket, expiresInSeconds = 300 } = req.body as { prefix: string; bucket: string; expiresInSeconds?: number };
 
   if (!prefix || !bucket) {
@@ -37,8 +60,8 @@ app.post("/generate-link", (req, res) => {
     expiresIn: expiresInSeconds,
   });
 
-  const link = `/auth?token=${token}&redirect=${encodeURIComponent(
-    `/content/${bucket}/${prefix}`
+  const link = `${env.BASE_PATH}/auth?token=${token}&redirect=${encodeURIComponent(
+    `${env.BASE_PATH}/content/${bucket}/${prefix}`
   )}`;
 
   res.json({ link });
@@ -48,7 +71,7 @@ app.post("/generate-link", (req, res) => {
  * Magic link endpoint
  * Sets secure HTTP-only cookie then redirects
  */
-app.get("/auth", (req, res) => {
+router.get("/auth", (req, res) => {
   const { token, redirect } = req.query;
 
   if (!token || typeof token !== "string") {
@@ -70,7 +93,7 @@ app.get("/auth", (req, res) => {
       secure: true,
       sameSite: "lax",
       domain: env.COOKIE.DOMAIN,
-      path: "/content",
+      path: `${env.BASE_PATH}/content`,
     });
 
     res.redirect(typeof redirect === "string" ? redirect : "/");
@@ -83,20 +106,19 @@ app.get("/auth", (req, res) => {
 /**
  * Normalize S3 key safely
  */
-function normalizeKey(key: string): string {
+const normalizeKey = (key: string): string => {
   const normalized = path.posix.normalize(key);
   if (normalized.startsWith("..")) {
     throw new Error("Path traversal attempt");
   }
   return normalized;
-}
+};
 
-/**
- * Streaming proxy for ALL buckets
- * Route format:
- * /content/:bucket/*
- */
-app.get("/content/:bucket/*", async (req, res) => {
+const requireCookie = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
   const token = req.cookies.access_token;
   if (!token) {
     res.status(401).send("Unauthorized");
@@ -133,7 +155,14 @@ app.get("/content/:bucket/*", async (req, res) => {
     res.status(403).send("Forbidden key");
     return;
   }
+};
 
+/**
+ * Streaming proxy for ALL buckets
+ * Route format:
+ * /BASE_PATH/content/:bucket/*
+ */
+router.get("/content/:bucket/*", requireCookie, async (req, res) => {
   try {
     const range = req.headers.range;
 
@@ -174,6 +203,8 @@ app.get("/content/:bucket/*", async (req, res) => {
   }
 });
 
+app.use(env.BASE_PATH ?? "/", router);
+
 app.listen(env.PORT, () => {
-  console.log("Proxy running on http://localhost:3000");
+  console.log(`Proxy running on http://localhost:${env.PORT}`);
 });
