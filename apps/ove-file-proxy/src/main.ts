@@ -97,7 +97,8 @@ router.get("/auth", (req, res) => {
     });
 
     res.redirect(typeof redirect === "string" ? redirect : "/");
-  } catch {
+  } catch (e) {
+    console.error(e);
     res.status(401).send("Invalid or expired token");
     return;
   }
@@ -128,7 +129,8 @@ const requireCookie = (
   let payload: { bucket: string; prefix: string; };
   try {
     payload = jwt.verify(token, env.COOKIE.JWT_SECRET) as typeof payload;
-  } catch {
+  } catch (e) {
+    console.error(e);
     res.status(401).send("Invalid session");
     return;
   }
@@ -139,7 +141,8 @@ const requireCookie = (
 
   try {
     requestedKey = normalizeKey(requestedKeyRaw);
-  } catch {
+  } catch (e) {
+    console.error(e);
     res.status(400).send("Invalid path");
     return;
   }
