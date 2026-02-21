@@ -7,6 +7,7 @@ import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
   BASE_PATH: z.string().optional(),
+  API_KEYS: z.string().array(),
   PORT: z.number(),
   S3: z.strictObject({
     ENDPOINT: z.string(),
@@ -27,6 +28,7 @@ const staticConfig = {
 
 const defaultConfig: z.infer<typeof schema> = {
   PORT: 8080,
+  API_KEYS: [],
   S3: {
     ENDPOINT: "localhost:9000",
     ACCESS_KEY: "",
