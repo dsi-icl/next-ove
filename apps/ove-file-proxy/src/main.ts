@@ -16,6 +16,7 @@ app.use(cookieParser());
 const router = express.Router();
 
 const s3 = new S3Client({
+  region: env.S3.REGION,
   endpoint: env.S3.ENDPOINT,
   credentials: {
     accessKeyId: env.S3.ACCESS_KEY,
