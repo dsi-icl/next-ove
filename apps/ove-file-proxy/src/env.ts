@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
+  BASE_PATH: z.string().optional(),
   PORT: z.number(),
   S3: z.strictObject({
     ENDPOINT: z.string(),
