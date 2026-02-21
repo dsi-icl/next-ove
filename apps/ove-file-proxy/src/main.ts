@@ -158,6 +158,8 @@ const requireCookie = (
     res.status(403).send("Forbidden key");
     return;
   }
+
+  next();
 };
 
 /**
