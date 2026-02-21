@@ -116,7 +116,7 @@ const normalizeKey = (key: string): string => {
 };
 
 const requireCookie = (
-  req: express.Request,
+  req: express.Request & { key?: string; bucket?: string; },
   res: express.Response,
   next: express.NextFunction
 ) => {
@@ -159,6 +159,9 @@ const requireCookie = (
     return;
   }
 
+  req.key = requestedKey;
+  req.bucket = payload.bucket;
+
   next();
 };
 
@@ -167,13 +170,17 @@ const requireCookie = (
  * Route format:
  * /BASE_PATH/content/:bucket/*
  */
-router.get("/content/:bucket/*", requireCookie, async (req, res) => {
+router.get("/content/:bucket/*", requireCookie, async (req: express.Request & { key?: string; bucket?: string; }, res) => {
+  if (!req.bucket || !req.key) {
+    res.status(400).send("Missing bucket or key");
+    return;
+  }
   try {
     const range = req.headers.range;
 
     const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: requestedKey,
+      Bucket: req.bucket,
+      Key: req.key,
       Range: range,
     });
 
