@@ -704,6 +704,9 @@ Temporary Items
 !/dist/apps/ove-collector/package.json
 !/dist/apps/ove-collector/pnpm-lock.yaml
 
+!/dist/apps/ove-file-proxy/package.json
+!/dist/apps/ove-file-proxy/pnpm-lock.yaml
+
 Dockerfile
 
 *.old
