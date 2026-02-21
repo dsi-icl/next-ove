@@ -120,7 +120,7 @@ const requireCookie = (
   res: express.Response,
   next: express.NextFunction
 ) => {
-  const token = req.cookies.access_token;
+  const token = req.cookies[env.COOKIE.ID];
   if (!token) {
     res.status(401).send("Unauthorized");
     return;
