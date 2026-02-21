@@ -18,6 +18,12 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm add -D zod@3.22.3 nx@20.3.2 @nx/esbuild@20.3.2 esbuild@0.24.2 \
     tsconfig-paths@4.2.0 typescript@5.9.0-dev.20250618
 
+COPY ../../cli ./cli
+COPY ../../libs/ove-server-utils ./libs/ove-server-utils
+COPY ../../libs/ove-logging ./libs/ove-logging
+COPY ../../libs/ove-utils ./libs/ove-utils
+COPY ../../libs/ove-types ./libs/ove-types
+
 COPY ../../package.json ./
 COPY ../../tsconfig.base.json ./
 
