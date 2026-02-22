@@ -6,9 +6,14 @@ import { nanoid } from "nanoid";
 import { getConfigPath, setupConfig } from "@ove/ove-server-utils";
 
 const schema = z.strictObject({
-  BASE_PATH: z.string().optional(),
-  API_KEYS: z.string().array(),
-  PORT: z.number(),
+  SERVER: z.strictObject({
+    PORT: z.number(),
+    BASE_PATH: z.string().optional(),
+    AUTH: z.strictObject({
+      CROSS_ORIGINS: z.string().array(),
+      API_KEYS: z.string().array()
+    }),
+  }),
   S3: z.strictObject({
     ENDPOINT: z.string(),
     ACCESS_KEY: z.string(),
@@ -28,8 +33,13 @@ const staticConfig = {
 };
 
 const defaultConfig: z.infer<typeof schema> = {
-  PORT: 8080,
-  API_KEYS: [],
+  SERVER: {
+    PORT: 8080,
+    AUTH: {
+      CROSS_ORIGINS: ["http://localhost"],
+      API_KEYS: [],
+    },
+  },
   S3: {
     ENDPOINT: "localhost:9000",
     ACCESS_KEY: "",
