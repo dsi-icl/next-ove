@@ -8,10 +8,26 @@ import {
 } from "@aws-sdk/client-s3";
 import { env } from "./env";
 import { Readable } from "stream";
+import cors from "cors";
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      if (env.SERVER.AUTH.CROSS_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  }),
+);
 
 const router = express.Router();
 
@@ -35,11 +51,11 @@ const requireApiKey = (
 ) => {
   const apiKey: string | undefined = req.header("x-api-key");
 
-  if (!apiKey || typeof apiKey !== "string") {
+  if (!apiKey) {
     return res.status(401).json({ error: "API key required" });
   }
 
-  if (!env.API_KEYS.includes(apiKey)) {
+  if (!env.SERVER.AUTH.API_KEYS.includes(apiKey)) {
     return res.status(403).json({ error: "Invalid API key" });
   }
 
@@ -49,7 +65,7 @@ const requireApiKey = (
 /**
  * Create a short-lived magic link for a prefix (e.g. dzi folder)
  */
-router.post("/generate-link", requireApiKey, (req, res) => {
+router.post("/generate-link", requireApiKey as Parameters<typeof router.post>[1], (req, res) => {
   const { prefix, bucket, expiresInSeconds = 300 } = req.body as { prefix: string; bucket: string; expiresInSeconds?: number };
 
   if (!prefix || !bucket) {
@@ -61,8 +77,8 @@ router.post("/generate-link", requireApiKey, (req, res) => {
     expiresIn: expiresInSeconds,
   });
 
-  const link = `${env.BASE_PATH}/auth?token=${token}&redirect=${encodeURIComponent(
-    `${env.BASE_PATH}/content/${bucket}/${prefix}`
+  const link = `${env.SERVER.BASE_PATH}/auth?token=${token}&redirect=${encodeURIComponent(
+    `${env.SERVER.BASE_PATH}/content/${bucket}/${prefix}`
   )}`;
 
   res.json({ link });
@@ -92,9 +108,8 @@ router.get("/auth", (req, res) => {
     res.cookie(env.COOKIE.ID, sessionToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
-      domain: env.COOKIE.DOMAIN,
-      path: `${env.BASE_PATH}/content`,
+      sameSite: "none",
+      path: `${env.SERVER.BASE_PATH}/content`,
     });
 
     res.redirect(typeof redirect === "string" ? redirect : "/");
@@ -216,8 +231,9 @@ router.get("/content/:bucket/*", requireCookie, async (req: express.Request & { 
   }
 });
 
-app.use(env.BASE_PATH ?? "/", router);
+app.use(env.SERVER.BASE_PATH ?? "/", router);
+app.set("trust proxy", 1);
 
-app.listen(env.PORT, () => {
-  console.log(`Proxy running on http://localhost:${env.PORT}`);
+app.listen(env.SERVER.PORT, () => {
+  console.log(`Proxy running on http://localhost:${env.SERVER.PORT}`);
 });
