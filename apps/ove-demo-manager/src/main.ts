@@ -247,7 +247,7 @@ router.get("/api", async (req, res) => {
     await switchService(serviceName);
   
     res.sendStatus(200);
-  catch (e) {
+  } catch (e) {
     console.error(e);
     res.sendStatus(200);
   }
