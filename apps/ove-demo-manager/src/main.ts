@@ -203,6 +203,42 @@ router.use(async (req, res, next) => {
   }
 });
 
+router.get("/api, async (req, res) => {
+  const header = req.header("X-Original-URI");
+
+  if (!header) {
+    return res.sendStatus(400);
+  }
+
+  let serviceName: string;
+
+  try {
+    const uri = new URL(header, "http://127.0.0.1");
+    const parts = uri.pathname.split("/").filter(Boolean);
+
+    if (parts.length === 0) {
+      return res.sendStatus(400);
+    }
+
+    serviceName = parts[0];
+  } catch {
+    return res.sendStatus(400);
+  }
+
+  if (!config.routes[serviceName]) {
+    return res.sendStatus(404);
+  }
+
+  if (serviceName === config._config.running) {
+    await scheduleDown();
+    return res.sendStatus(200);
+  }
+
+  const success = await switchService(serviceName);
+
+  return res.sendStatus(success ? 200 : 500);
+});
+
 router.get("/status", (_req, res) => {
   res.json({ status: "running" });
 });
