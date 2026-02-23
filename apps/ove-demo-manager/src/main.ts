@@ -204,43 +204,53 @@ router.use(async (req, res, next) => {
 });
 
 router.get("/api", async (req, res) => {
-  const header = req.header("X-Original-URI");
-  log(`Header: ${header}`).catch();
-
-  if (!header) {
-    return res.sendStatus(200);
-  }
-
-  let serviceName: string;
-
   try {
-    const uri = new URL(header, "http://127.0.0.1");
-    const parts = uri.pathname.split("/").filter(Boolean);
-
-    if (parts.length === 0) {
-      return res.sendStatus(200);
+    const header = req.header("X-Original-URI");
+    log(`Header: ${header}`).catch();
+  
+    if (!header) {
+      res.sendStatus(200);
+      return;
     }
-
-    serviceName = parts[0];
-    log(`Service name: ${serviceName}`).catch();
-  } catch {
-    return res.sendStatus(200);
+  
+    let serviceName: string;
+  
+    try {
+      const uri = new URL(header, "http://127.0.0.1");
+      const parts = uri.pathname.split("/").filter(Boolean);
+  
+      if (parts.length === 0) {
+        res.sendStatus(200);
+        return;
+      }
+  
+      serviceName = parts[0];
+      log(`Service name: ${serviceName}`).catch();
+    } catch {
+      res.sendStatus(200);
+      return;
+    }
+  
+    if (!config.routes[serviceName]) {
+      res.sendStatus(200);
+      return;
+    }
+  
+    if (serviceName === config._config.running) {
+      log(`Resetting timeout`).catch()
+      await scheduleDown();
+      res.sendStatus(200);
+      return;
+    }
+  
+    log(`Switching service`).catch()
+    await switchService(serviceName);
+  
+    res.sendStatus(200);
+  catch (e) {
+    console.error(e);
+    res.sendStatus(200);
   }
-
-  if (!config.routes[serviceName]) {
-    return res.sendStatus(200);
-  }
-
-  if (serviceName === config._config.running) {
-    log(`Resetting timeout`).catch()
-    await scheduleDown();
-    return res.sendStatus(200);
-  }
-
-  log(`Switching service`).catch()
-  await switchService(serviceName);
-
-  return res.sendStatus(200);
 });
 
 router.get("/status", (_req, res) => {
