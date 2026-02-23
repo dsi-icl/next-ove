@@ -205,9 +205,10 @@ router.use(async (req, res, next) => {
 
 router.get("/api", async (req, res) => {
   const header = req.header("X-Original-URI");
+  log(`Header: ${header}`).catch();
 
   if (!header) {
-    return res.sendStatus(400);
+    return res.sendStatus(200);
   }
 
   let serviceName: string;
@@ -217,26 +218,29 @@ router.get("/api", async (req, res) => {
     const parts = uri.pathname.split("/").filter(Boolean);
 
     if (parts.length === 0) {
-      return res.sendStatus(400);
+      return res.sendStatus(200);
     }
 
     serviceName = parts[0];
+    log(`Service name: ${serviceName}`).catch();
   } catch {
-    return res.sendStatus(400);
+    return res.sendStatus(200);
   }
 
   if (!config.routes[serviceName]) {
-    return res.sendStatus(404);
+    return res.sendStatus(200);
   }
 
   if (serviceName === config._config.running) {
+    log(`Resetting timeout`).catch()
     await scheduleDown();
     return res.sendStatus(200);
   }
 
-  const success = await switchService(serviceName);
+  log(`Switching service`).catch()
+  await switchService(serviceName);
 
-  return res.sendStatus(success ? 200 : 500);
+  return res.sendStatus(200);
 });
 
 router.get("/status", (_req, res) => {
