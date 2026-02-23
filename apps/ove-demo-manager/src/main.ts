@@ -231,12 +231,12 @@ router.get("/api", async (req, res) => {
       return;
     }
   
-    if (!config.routes[serviceName]) {
+    if (!env.routes[serviceName]) {
       res.sendStatus(200);
       return;
     }
   
-    if (serviceName === config._config.running) {
+    if (serviceName === env._config.running) {
       log(`Resetting timeout`).catch()
       await scheduleDown();
       res.sendStatus(200);
