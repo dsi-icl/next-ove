@@ -22,6 +22,7 @@ app.use(
       if (env.SERVER.AUTH.CROSS_ORIGINS.includes(origin)) {
         callback(null, true);
       } else {
+        console.error("Origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -166,12 +167,6 @@ const requireCookie = (
   // Enforce bucket restriction
   if (bucket !== payload.bucket) {
     res.status(403).send("Forbidden bucket");
-    return;
-  }
-
-  // Enforce prefix restriction if defined
-  if (payload.prefix && !requestedKey.startsWith(payload.prefix)) {
-    res.status(403).send("Forbidden key");
     return;
   }
 
