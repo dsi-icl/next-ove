@@ -203,7 +203,7 @@ router.use(async (req, res, next) => {
   }
 });
 
-router.get("/api, async (req, res) => {
+router.get("/api", async (req, res) => {
   const header = req.header("X-Original-URI");
 
   if (!header) {
