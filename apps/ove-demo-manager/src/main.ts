@@ -161,7 +161,7 @@ app.use(cookieParser());
 const router = express.Router();
 
 router.use(
-  env._config.base_path ?? "/",
+  "/",
   express.static(
     env._config.publicDir ??
     path.join(__dirname, "..", "public")
