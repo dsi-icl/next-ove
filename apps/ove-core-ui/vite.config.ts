@@ -5,8 +5,6 @@ import { nxViteTsPaths } from "@nx/vite/plugins/nx-tsconfig-paths.plugin";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  console.log(env.VITE_FONT_URL);
-  fetch("https://next-ove.dsi.ic.ac.uk/fonts/263.woff2").catch(console.error);
   return {
     root: __dirname,
     css: {
