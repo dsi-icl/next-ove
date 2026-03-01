@@ -26,7 +26,7 @@ export const useStart = (
   if (deviceId === null) {
     return {
       start: () =>
-        toast.promise(startAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(startAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Starting devices...",
           error: `Failed to start devices`,
           success: (data) =>
@@ -64,7 +64,7 @@ export const useShutdown = (
   if (deviceId === null) {
     return {
       shutdown: () =>
-        toast.promise(shutdownAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(shutdownAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Shutting down devices...",
           error: "Failed to shut down devices",
           success: (data) =>
@@ -77,11 +77,11 @@ export const useShutdown = (
   }
   return {
     shutdown: () =>
-      toast.promise(
+      toast.promise(Promise.resolve(
         shutdown.mutateAsync({
           bridgeId,
           deviceId,
-        }),
+        })),
         {
           loading: `Shutting down ${deviceId}`,
           error: `Failed to shut down ${deviceId}`,
@@ -103,7 +103,7 @@ export const useReboot = (
   if (deviceId === null) {
     return {
       reboot: () =>
-        toast.promise(rebootAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(rebootAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Rebooting devices...",
           success: (data) =>
             handleFailingDevices(
@@ -116,11 +116,11 @@ export const useReboot = (
   }
   return {
     reboot: () =>
-      toast.promise(
+      toast.promise(Promise.resolve(
         reboot.mutateAsync({
           bridgeId,
           deviceId,
-        }),
+        })),
         {
           loading: `Rebooting ${deviceId}...`,
           error: `Failed to reboot ${deviceId}`,
@@ -143,7 +143,7 @@ export const useReloadBrowsers = (
     return {
       reloadBrowsers: () =>
         toast.promise(
-          reloadBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          Promise.resolve(reloadBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds })),
           {
             loading: "Reloading browsers...",
             error: "Unable to reload browsers",
@@ -161,11 +161,11 @@ export const useReloadBrowsers = (
   }
   return {
     reloadBrowsers: () =>
-      toast.promise(
+      toast.promise(Promise.resolve(
         reloadBrowsers.mutateAsync({
           bridgeId,
           deviceId,
-        }),
+        })),
         {
           loading: `Reloading browsers on ${deviceId}...`,
           error: `Unable to reload browsers on ${deviceId}`,
@@ -187,8 +187,8 @@ export const useCloseBrowsers = (
   if (deviceId === null) {
     return {
       closeBrowsers: () =>
-        toast.promise(
-          closeBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }),
+        toast.promise(Promise.resolve(
+          closeBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds })),
           {
             loading: "Closing browsers...",
             error: "Failed to close browsers",
@@ -204,10 +204,12 @@ export const useCloseBrowsers = (
   return {
     closeBrowsers: () =>
       toast.promise(
-        closeBrowsers.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          closeBrowsers.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Closing browsers on ${deviceId}...`,
           error: `Failed to close browsers on ${deviceId}`,
@@ -230,7 +232,7 @@ export const useOpenBrowsers = (
     return {
       openBrowsers: () =>
         toast.promise(
-          openBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          Promise.resolve(openBrowsersAll.mutateAsync({ bridgeId, tags, deviceIds })),
           {
             loading: "Opening browsers...",
             error: "Unable to open browsers",
@@ -246,10 +248,10 @@ export const useOpenBrowsers = (
   return {
     openBrowsers: () =>
       toast.promise(
-        openBrowsers.mutateAsync({
+        Promise.resolve(openBrowsers.mutateAsync({
           bridgeId,
           deviceId,
-        }),
+        })),
         {
           loading: "Opening browsers...",
           error: `Unable to open browsers on ${deviceId}`,
@@ -271,8 +273,8 @@ export const useSetSource = (
   if (deviceId === null) {
     return {
       setSource: (source: Source) =>
-        toast.promise(
-          setSourceAll.mutateAsync({ bridgeId, tags, source, deviceIds }),
+        toast.promise(Promise.resolve(
+          setSourceAll.mutateAsync({ bridgeId, tags, source, deviceIds })),
           {
             loading: "Setting source...",
             success: (data) =>
@@ -288,11 +290,13 @@ export const useSetSource = (
   return {
     setSource: (source: Source) =>
       toast.promise(
-        setSource.mutateAsync({
-          bridgeId,
-          deviceId,
-          source,
-        }),
+        Promise.resolve(
+          setSource.mutateAsync({
+            bridgeId,
+            deviceId,
+            source,
+          })
+        ),
         {
           loading: "Setting source...",
           error: `Failed to set source on ${deviceId}`,
@@ -314,7 +318,7 @@ export const useMute = (
   if (deviceId === null) {
     return {
       mute: () =>
-        toast.promise(muteAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(muteAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Muting devices...",
           error: "Failed to mute devices",
           success: (data) =>
@@ -325,10 +329,12 @@ export const useMute = (
   return {
     mute: () =>
       toast.promise(
-        mute.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          mute.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Muting ${deviceId}`,
           error: `Failed to mute ${deviceId}`,
@@ -350,7 +356,7 @@ export const useUnmute = (
   if (deviceId === null) {
     return {
       unmute: () =>
-        toast.promise(unmuteAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(unmuteAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Unmuting devices...",
           error: "Failed to unmute devices",
           success: (data) =>
@@ -361,10 +367,12 @@ export const useUnmute = (
   return {
     unmute: () =>
       toast.promise(
-        unmute.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          unmute.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Unmuting ${deviceId}`,
           error: `Failed to unmute ${deviceId}`,
@@ -386,7 +394,7 @@ export const useMuteAudio = (
   if (deviceId === null) {
     return {
       muteAudio: () =>
-        toast.promise(muteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(muteAudioAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Muting audio...",
           error: "Failed to mute audio",
           success: (data) =>
@@ -400,10 +408,12 @@ export const useMuteAudio = (
   return {
     muteAudio: () =>
       toast.promise(
-        muteAudio.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          muteAudio.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Muting audio on ${deviceId}`,
           error: `Failed to mute audio on ${deviceId}`,
@@ -426,7 +436,7 @@ export const useUnmuteAudio = (
     return {
       unmuteAudio: () =>
         toast.promise(
-          unmuteAudioAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          Promise.resolve(unmuteAudioAll.mutateAsync({ bridgeId, tags, deviceIds })),
           {
             loading: "Unmuting audio...",
             error: "Failed to unmute audio",
@@ -442,10 +452,12 @@ export const useUnmuteAudio = (
   return {
     unmuteAudio: () =>
       toast.promise(
-        unmuteAudio.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          unmuteAudio.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Unmuting audio on ${deviceId}`,
           error: `Failed to unmute audio on ${deviceId}`,
@@ -467,7 +479,7 @@ export const useMuteVideo = (
   if (deviceId === null) {
     return {
       muteVideo: () =>
-        toast.promise(muteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }), {
+        toast.promise(Promise.resolve(muteVideoAll.mutateAsync({ bridgeId, tags, deviceIds })), {
           loading: "Muting video...",
           error: "Failed to mute video",
           success: (data) =>
@@ -481,10 +493,12 @@ export const useMuteVideo = (
   return {
     muteVideo: () =>
       toast.promise(
-        muteVideo.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          muteVideo.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Muting video on ${deviceId}`,
           error: `Failed to mute video on ${deviceId}`,
@@ -507,7 +521,7 @@ export const useUnmuteVideo = (
     return {
       unmuteVideo: () =>
         toast.promise(
-          unmuteVideoAll.mutateAsync({ bridgeId, tags, deviceIds }),
+          Promise.resolve(unmuteVideoAll.mutateAsync({ bridgeId, tags, deviceIds })),
           {
             loading: "Unmuting video...",
             error: "Failed to unmute video",
@@ -523,10 +537,12 @@ export const useUnmuteVideo = (
   return {
     unmuteVideo: () =>
       toast.promise(
-        unmuteVideo.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          unmuteVideo.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Unmuting video on ${deviceId}`,
           error: `Failed to unmute video on ${deviceId}`,
