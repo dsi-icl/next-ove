@@ -108,4 +108,4 @@ COPY --from=build-ui /usr/src/app/node_modules/tinymce/skins ./ui/skins
 
 #COPY ./docs/* ./public/docs
 
-CMD ["/bin/sh", "-c", "./env.sh;node main.cjs"]
+CMD ["/bin/sh", "-c", "./env.sh;node --enable-source-maps main.cjs"]
