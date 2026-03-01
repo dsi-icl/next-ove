@@ -37,10 +37,12 @@ export const useStart = (
   return {
     start: () =>
       toast.promise(
-        start.mutateAsync({
-          bridgeId,
-          deviceId,
-        }),
+        Promise.resolve(
+          start.mutateAsync({
+            bridgeId,
+            deviceId,
+          })
+        ),
         {
           loading: `Starting ${deviceId}...`,
           error: `Failed to start ${deviceId}`,
