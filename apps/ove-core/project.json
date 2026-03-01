@@ -77,7 +77,8 @@
           "apps/ove-core/.env"
         ],
         "generatePackageJson": true,
-        "platform": "node"
+        "platform": "node",
+        "sourceMap": true
       },
       "configurations": {
         "development": {
