@@ -40,6 +40,7 @@ const tracingMiddleware = trpc.middleware(async ({ path, next }) =>
           code: SpanStatusCode.ERROR,
           message: (err as Error).message,
         });
+        logger.error(`tRPC error in procedure: ${path}`, { message: (err as Error).message });
         throw err;
       } finally {
         span.end();
