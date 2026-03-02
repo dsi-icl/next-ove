@@ -98,7 +98,12 @@ export const BridgeAPITransformSchema: TBridgeRoutesSchema = Object.entries(
     };
     acc[`${k}All`] = {
       meta: route.meta,
-      returns: getMultiDeviceResponseSchema(route.returns),
+      returns: getMultiDeviceResponseSchema(
+        z.discriminatedUnion("status", [
+          z.object({ status: z.literal("success"), data: route.returns }),
+          z.object({ status: z.literal("error"), error: z.string() }),
+        ]),
+      ),
       args: route.args.extend({
         tags: z.string().array().optional(),
         deviceIds: z.string().array().optional(),

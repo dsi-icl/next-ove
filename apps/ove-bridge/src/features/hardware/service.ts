@@ -95,7 +95,7 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
       const serviceArgs: TBridgeServiceArgs<Key> = without<
         typeof args,
         TBridgeServiceArgs<Key>
-      >(args)("deviceId");
+      >(args)("deviceId", "__otel");
       let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
       response = await applyService<typeof k>(
         getServiceForProtocol(device.type),
