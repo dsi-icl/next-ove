@@ -43,7 +43,12 @@ const useBrowserConfiguration = (
   const config = useMemo(() => {
     if (deviceId === null) {
       if (getBrowserConfigAll.status !== "success") return [];
-      return getBrowserConfigAll.data;
+      return getBrowserConfigAll.data
+        .filter(({ response }) => response.status === "success")
+        .map(({ deviceId, response }) => ({
+          deviceId,
+          response: (response as { status: "success"; data: string[] }).data,
+        }));
     }
 
     if (getBrowserConfig.status !== "success") return [];

@@ -109,11 +109,12 @@ const useDisplays = (
     if (deviceId === null) {
       if (getDisplayConfigAll.status !== "success")
         return [];
-      const xs = getDisplayConfigAll.data.filter(
-        ({ response }) => response.status !== "error",
-      );
       const allIds = new Set(
-        xs.flatMap(({ response }) => Object.keys(response).map(parseInt)),
+        getDisplayConfigAll.data.flatMap(({ response }) =>
+          response.status === "success"
+            ? Object.keys(response.data).map(parseInt)
+            : [],
+        ),
       );
       return Array.from(allIds).map((x) => ({
         value: x,
