@@ -55,6 +55,7 @@ const applyService = async <Key extends keyof TBridgeHardwareService>(
     (Object.keys(service) as Array<keyof TBridgeHardwareService>).includes(k)
   ) {
     const res = await assert(service[k])(device, args);
+    console.log("Service response:", res, service[k]);
     try {
       controller.update(device.id, k, args);
     } catch (_e) {
@@ -97,6 +98,12 @@ export const deviceHandler = async <Key extends keyof TBridgeHardwareService>(
         TBridgeServiceArgs<Key>
       >(args)("deviceId", "__otel");
       let response: Awaited<ReturnType<typeof applyService<typeof k>>>;
+      
+      console.log("Device found:", device);
+      console.log("Protocol:", getServiceForProtocol(device.type));
+      console.log("Service args:", serviceArgs);
+      console.log("Key:", k);
+
       response = await applyService<typeof k>(
         getServiceForProtocol(device.type),
         k,
