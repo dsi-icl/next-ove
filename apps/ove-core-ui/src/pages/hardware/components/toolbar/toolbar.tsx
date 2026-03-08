@@ -8,6 +8,7 @@ import PowerMode from "./power-mode";
 import PowerControls from "./power-controls";
 import Reconciliation from "./reconciliation";
 import AutoSchedule from "./auto-schedule";
+import CustomUrl from "./custom-url";
 
 type ToolbarProps = HardwareControlsProps;
 
@@ -26,6 +27,7 @@ const Toolbar = ({
     <Calendar bridgeId={bridgeId} />
     <AutoSchedule bridgeId={bridgeId} />
     <PowerMode bridgeId={bridgeId} />
+    <CustomUrl bridgeId={bridgeId} />
     <HardwareControls
       devices={devices}
       filterType={filterType}
