@@ -270,8 +270,6 @@ const setBrowserConfig = async (
   });
   const parsedOpts = setConfigOptsSchema.safeParse(args);
 
-  console.log("Setting browser config with args:", args, device, parsedOpts);
-
   if (!parsedOpts.success) return undefined;
 
   const controller = ac?.() ?? new AbortController();

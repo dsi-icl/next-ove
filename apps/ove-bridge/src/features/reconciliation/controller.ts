@@ -153,7 +153,7 @@ const loop = async (handler: () => Promise<void>, intervalMs: number) => {
   }
 };
 
-const updateState = async <Key extends keyof TBridgeHardwareService>(
+const updateState = <Key extends keyof TBridgeHardwareService>(
   deviceId: string,
   k: Key,
   args: unknown,
@@ -210,7 +210,7 @@ export const controller = {
       value,
     );
     if (state === null) return;
-    worker.postMessage({ type: "update" as const, deviceId, key, value });
+    worker.postMessage({ type: "update" as const, deviceId, key: state.key, value });
   },
   reconcile,
 };
