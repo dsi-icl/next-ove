@@ -47,7 +47,7 @@
           "minify": false
         },
         "production": {
-          "minify": true
+          "minify": false
         }
       },
       "dependsOn": ["db"]
