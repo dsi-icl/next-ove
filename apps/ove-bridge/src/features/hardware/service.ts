@@ -165,7 +165,7 @@ export const multiDeviceHandler = async <
           deviceId: devices[i].id,
           response: filterFulfilled(x)
             ? { status: "success" as const, data: x.value }
-            : { status: "error" as const, error: x.reason },
+            : { status: "error" as const, error: (x.reason as Error).message ?? String(x.reason) },
         }))
         .filter(filterUndefinedResponse);
 
