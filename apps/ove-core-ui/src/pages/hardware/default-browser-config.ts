@@ -9,8 +9,8 @@ export const DEFAULT_BROWSER_CONFIG: Record<string, [string, string]> = {
     "https://do-ove.dsi.ic.ac.uk/view.html?oveViewId=DOCluster-64",
   ],
   "do-02": [
-    "https://do-ove.dsi.ic.ac.uk/view.html?oveViewId=DOCluster-47",
     "https://do-ove.dsi.ic.ac.uk/view.html?oveViewId=DOCluster-63",
+    "https://do-ove.dsi.ic.ac.uk/view.html?oveViewId=DOCluster-47",
   ],
   "do-03": [
     "https://do-ove.dsi.ic.ac.uk/view.html?oveViewId=DOCluster-46",
