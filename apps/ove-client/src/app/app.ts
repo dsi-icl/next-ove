@@ -118,13 +118,21 @@ const loadDefaultWindows = async () => {
       const browser = Array.from(state.browsers.entries()).find(
         (v_) => v_[1].displayId === parseInt(k),
       );
+
+      const display = getDisplay(parseInt(k));
+      const electronDisplay = screen.getAllDisplays().find(                                                                                                                         
+        (s) => s.id === display.screenId
+      );                                                                                                                                                                            
+      const url = new URL(v);
+      url.searchParams.set("d", `${display.id}:${electronDisplay?.label ?? ""}`);   
+
       const idx =
         browser === undefined
-          ? await initBrowser(v, getDisplay(parseInt(k)))
+          ? await initBrowser(url.toString(), display)
           : browser[0];
       await new Promise((resolve) => setTimeout(resolve, env.BROWSERS.DELAY));
       idxs.push(idx);
-      loadURL(idx, v);
+      loadURL(idx, url.toString());
     }
   }
 
