@@ -6,7 +6,8 @@
   "files": [
     "!**/.env*",
     "!**/.vscode",
-    "!**/config"
+    "!**/config",
+    "**/node_modules/@opentelemetry/**/config/**"
   ],
   "win": {
     "target": [
