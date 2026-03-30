@@ -5,9 +5,7 @@
   "copyright": "Copyright © 2023 Data Science Institute",
   "files": [
     "!**/.env*",
-    "!**/.vscode",
-    "!**/config",
-    "**/node_modules/@opentelemetry/**/config/**"
+    "!**/.vscode"
   ],
   "win": {
     "target": [
