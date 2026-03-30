@@ -3,7 +3,7 @@
   "appId": "org.next-ove.client",
   "productName": "next-ove-client",
   "copyright": "Copyright © 2023 Data Science Institute",
-  "files": ["!**/.env*", "!**/.vscode", "!**/config", "**/node_modules/@opentelemetry/**/config/**"],
+  "files": ["!**/.env*", "!**/.vscode"],
   "win": {
     "target": ["nsis", "portable", "zip"],
     "icon": "apps/ove-client/build/icon.png"
